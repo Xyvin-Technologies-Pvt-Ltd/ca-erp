@@ -1,74 +1,138 @@
-name: Deploy React App to AWS Lightsail
+name: Backend Deployment
 
 on:
   push:
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-backend:
+    name: Deploy Backend to AWS Lightsail
     runs-on: ubuntu-latest
 
-    steps:
-      # Step 1: Checkout the code
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    env:
+      LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_HOST }}
+      SSH_KEY: ${{ secrets.LIGHTSAIL_KEY }}
+      USERNAME: ${{ secrets.LIGHTSAIL_USER }}
+      PROJECT_DIR: ca-erp
+      ENV_FILE_PATH: /home/ubuntu/ca-erp-backend/.env/.env.production
+      APP_NAME: ca-erp-backend
 
-      # Step 2: Set up Node.js
-      - name: Install Node.js
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "18"
+          cache: "npm"
+          cache-dependency-path: "backend/package-lock.json"
 
-      # Step 3: Install dependencies and build the project
-      - name: Install Dependencies and Build
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
-          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
-        run: |
-          cd frontend
-          npm ci
-          npm run build
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
 
-      # Step 4: Rename the build output directory (if required)
-      - name: Rename dist to ca-erp-frontend
-        run: |
-          cd frontend
-          mv ./dist  ../ca-erp-frontend
-
-      # Step 5: Clean up temporary deployment directory on Lightsail
-      - name: Clean Temporary Directory on Lightsail
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Deploy to AWS Lightsail
+        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
+          host: ${{ env.LIGHTSAIL_INSTANCE_IP }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.SSH_KEY }}
           script: |
-            rm -rf ~/deploy-temp
-            mkdir ~/deploy-temp
+            set -e
+            echo "🚀 Starting deployment process..."
 
-      # Step 6: Copy files to Lightsail
-      - name: Copy Files to Lightsail
-        uses: appleboy/scp-action@v0.1.3
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
-          source: ./ca-erp-frontend/
-          target: ~/deploy-temp/
+            # Ensure required tools are installed
+            echo "✅ Verifying environment dependencies..."
+            node -v || { echo "❌ Node.js not found"; exit 1; }
+            npm -v || { echo "❌ npm not found"; exit 1; }
 
-      # Step 7: Deploy on Lightsail
-      - name: Deploy on Lightsail
-        uses: appleboy/ssh-action@v0.1.6
+            # Install or update PM2
+            echo "✅ Checking PM2 installation..."
+            if ! command -v pm2 &> /dev/null; then
+              echo "📦 Installing PM2 globally..."
+              sudo npm install -g pm2
+            else
+              echo "📦 Updating PM2 globally..."
+              sudo npm update -g pm2
+            fi
+
+            # Create backup of current deployment
+            if [ -d "${{ env.PROJECT_DIR }}" ]; then
+              echo "💾 Creating backup of current deployment..."
+              BACKUP_DIR="${{ env.PROJECT_DIR }}_backup_$(date +%Y%m%d_%H%M%S)"
+              cp -r ${{ env.PROJECT_DIR }} $BACKUP_DIR
+            fi
+
+            # Clone or update repository
+            echo "📥 Fetching latest code..."
+            if [ -d "${{ env.PROJECT_DIR }}" ]; then
+              cd ${{ env.PROJECT_DIR }}
+              git fetch --all
+              git reset --hard origin/main
+            else
+              git clone https://oauth2:${{ secrets.GH_PAT }}@github.com/${{ github.repository }} ${{ env.PROJECT_DIR }}
+              cd ${{ env.PROJECT_DIR }}
+            fi
+
+            # Install dependencies
+            echo "📦 Installing backend dependencies..."
+            cd backend
+            npm ci --production
+
+            # Environment setup
+            echo "🔧 Setting up environment variables..."
+            if [ -f "${{ env.ENV_FILE_PATH }}" ]; then
+              cp ${{ env.ENV_FILE_PATH }} .env
+            else
+              echo "❌ .env file missing at ${{ env.ENV_FILE_PATH }}"
+              echo "🔄 Restoring from backup..."
+              if [ -d "$BACKUP_DIR" ]; then
+                rm -rf ${{ env.PROJECT_DIR }}
+                mv $BACKUP_DIR ${{ env.PROJECT_DIR }}
+              fi
+              exit 1
+            fi
+
+            # Application deployment
+            echo "🚀 Restarting application with PM2..."
+            pm2 delete ${{ env.APP_NAME }} || true
+            pm2 start npm --name ${{ env.APP_NAME }} -- run start
+            pm2 save
+
+            # Verify deployment
+            echo "✅ Verifying deployment..."
+            sleep 5
+            if pm2 status | grep -q "${{ env.APP_NAME }}" && pm2 status | grep -q "online"; then
+              echo "✅ Deployment successful!"
+            else
+              echo "❌ Deployment verification failed!"
+              echo "🔄 Restoring from backup..."
+              if [ -d "$BACKUP_DIR" ]; then
+                rm -rf ${{ env.PROJECT_DIR }}
+                mv $BACKUP_DIR ${{ env.PROJECT_DIR }}
+                cd ${{ env.PROJECT_DIR }}/backend
+                pm2 restart ${{ env.APP_NAME }} || pm2 start npm --name ${{ env.APP_NAME }} -- run start
+                pm2 save
+              fi
+              exit 1
+            fi
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
+          host: ${{ env.LIGHTSAIL_INSTANCE_IP }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.SSH_KEY }}
           script: |
-            sudo rm -rf /var/www/html/*
-            sudo mv ~/deploy-temp/* /var/www/html/
-            sudo rm -rf ~/deploy-temp
-            sudo rm -rf /var/cache/nginx/*
-            sudo systemctl restart nginx
+            echo "🔍 Checking application status..."
+            pm2 status
+            echo "📋 Checking application logs (last 10 lines)..."
+            pm2 logs ${{ env.APP_NAME }} --lines 10 || true
