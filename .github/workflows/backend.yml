@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-backend:
-    name: Deploy Backend to AWS Lightsail
+  build-and-deploy:
+    name: Build and Deploy Backend to AWS
     runs-on: ubuntu-latest
 
     env:
@@ -21,6 +21,8 @@ jobs:
       PROJECT_DIR: ca-erp
       ENV_FILE_PATH: /home/ubuntu/ca-erp-backend/.env/.env.production
       APP_NAME: ca-erp-backend
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
 
     steps:
       - name: Checkout repository
@@ -28,16 +30,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          node-version: "18"
-          cache: "npm"
-          cache-dependency-path: "backend/package-lock.json"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install dependencies
-        working-directory: ./backend
-        run: npm ci
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd backend
+          # Build a docker container and push it to ECR
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Deploy to AWS Lightsail
         uses: appleboy/ssh-action@master
@@ -51,79 +67,66 @@ jobs:
 
             # Ensure required tools are installed
             echo "✅ Verifying environment dependencies..."
-            node -v || { echo "❌ Node.js not found"; exit 1; }
-            npm -v || { echo "❌ npm not found"; exit 1; }
+            docker -v || { echo "❌ Docker not found"; exit 1; }
+            aws --version || { echo "❌ AWS CLI not found"; exit 1; }
 
-            # Install or update PM2
-            echo "✅ Checking PM2 installation..."
-            if ! command -v pm2 &> /dev/null; then
-              echo "📦 Installing PM2 globally..."
-              sudo npm install -g pm2
-            else
-              echo "📦 Updating PM2 globally..."
-              sudo npm update -g pm2
+            # Create backup of current container (if applicable)
+            echo "💾 Creating backup of current deployment..."
+            if docker ps -a | grep -q "${{ env.APP_NAME }}"; then
+              docker rename ${{ env.APP_NAME }} ${{ env.APP_NAME }}_backup_$(date +%Y%m%d_%H%M%S) || true
             fi
 
-            # Create backup of current deployment
-            if [ -d "${{ env.PROJECT_DIR }}" ]; then
-              echo "💾 Creating backup of current deployment..."
-              BACKUP_DIR="${{ env.PROJECT_DIR }}_backup_$(date +%Y%m%d_%H%M%S)"
-              cp -r ${{ env.PROJECT_DIR }} $BACKUP_DIR
-            fi
+            # Login to ECR
+            echo "🔑 Logging into AWS ECR..."
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            # Clone or update repository
-            echo "📥 Fetching latest code..."
-            if [ -d "${{ env.PROJECT_DIR }}" ]; then
-              cd ${{ env.PROJECT_DIR }}
-              git fetch --all
-              git reset --hard origin/main
-            else
-              git clone https://oauth2:${{ secrets.GH_PAT }}@github.com/${{ github.repository }} ${{ env.PROJECT_DIR }}
-              cd ${{ env.PROJECT_DIR }}
-            fi
-
-            # Install dependencies
-            echo "📦 Installing backend dependencies..."
-            cd backend
-            npm ci --production
+            # Pull the latest image
+            echo "📥 Pulling latest Docker image..."
+            docker pull ${{ steps.build-image.outputs.image }}
 
             # Environment setup
             echo "🔧 Setting up environment variables..."
             if [ -f "${{ env.ENV_FILE_PATH }}" ]; then
-              cp ${{ env.ENV_FILE_PATH }} .env
+              echo "✅ Found environment file"
             else
               echo "❌ .env file missing at ${{ env.ENV_FILE_PATH }}"
-              echo "🔄 Restoring from backup..."
-              if [ -d "$BACKUP_DIR" ]; then
-                rm -rf ${{ env.PROJECT_DIR }}
-                mv $BACKUP_DIR ${{ env.PROJECT_DIR }}
-              fi
               exit 1
             fi
 
-            # Application deployment
-            echo "🚀 Restarting application with PM2..."
-            pm2 delete ${{ env.APP_NAME }} || true
-            pm2 start npm --name ${{ env.APP_NAME }} -- run start
-            pm2 save
+            # Stop and remove the current container if it exists
+            echo "🛑 Stopping current container if it exists..."
+            docker stop ${{ env.APP_NAME }} || true
+            docker rm ${{ env.APP_NAME }} || true
+
+            # Run the new container
+            echo "🚀 Starting new container..."
+            docker run -d \
+              --name ${{ env.APP_NAME }} \
+              --restart always \
+              -p 3000:3000 \
+              --env-file ${{ env.ENV_FILE_PATH }} \
+              ${{ steps.build-image.outputs.image }}
 
             # Verify deployment
             echo "✅ Verifying deployment..."
-            sleep 5
-            if pm2 status | grep -q "${{ env.APP_NAME }}" && pm2 status | grep -q "online"; then
+            sleep 10
+            if docker ps | grep -q "${{ env.APP_NAME }}"; then
               echo "✅ Deployment successful!"
             else
               echo "❌ Deployment verification failed!"
               echo "🔄 Restoring from backup..."
-              if [ -d "$BACKUP_DIR" ]; then
-                rm -rf ${{ env.PROJECT_DIR }}
-                mv $BACKUP_DIR ${{ env.PROJECT_DIR }}
-                cd ${{ env.PROJECT_DIR }}/backend
-                pm2 restart ${{ env.APP_NAME }} || pm2 start npm --name ${{ env.APP_NAME }} -- run start
-                pm2 save
+              BACKUP_CONTAINER=$(docker ps -a --filter "name=${{ env.APP_NAME }}_backup" --format "{{.Names}}" | head -n 1)
+              if [ ! -z "$BACKUP_CONTAINER" ]; then
+                docker rename $BACKUP_CONTAINER ${{ env.APP_NAME }}
+                docker start ${{ env.APP_NAME }}
               fi
               exit 1
             fi
+
+            # Clean up old containers and images
+            echo "🧹 Cleaning up old containers and images..."
+            docker container prune -f
+            docker image prune -a -f
 
       - name: Verify deployment
         uses: appleboy/ssh-action@master
@@ -132,7 +135,7 @@ jobs:
           username: ${{ env.USERNAME }}
           key: ${{ env.SSH_KEY }}
           script: |
-            echo "🔍 Checking application status..."
-            pm2 status
-            echo "📋 Checking application logs (last 10 lines)..."
-            pm2 logs ${{ env.APP_NAME }} --lines 10 || true
+            echo "🔍 Checking container status..."
+            docker ps | grep "${{ env.APP_NAME }}"
+            echo "📋 Checking container logs (last 10 lines)..."
+            docker logs ${{ env.APP_NAME }} --tail 10 || true
