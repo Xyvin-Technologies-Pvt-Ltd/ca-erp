@@ -23,8 +23,8 @@ const Login = () => {
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "admin@example.com",
-      password: "password",
+      email: "admin@ca-erp.com",
+      password: "Admin@123",
     },
   });
 
