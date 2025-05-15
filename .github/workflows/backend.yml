@@ -1,4 +1,4 @@
-name: Deploy KSSIA-Backend to AWS Lightsail
+name: Deploy CA-ERP-Backend to AWS Lightsail
 
 on:
   push:
