@@ -72,8 +72,6 @@ jobs:
           script: |
             set -e
             echo "Starting deployment process..."
-            sudo apt update -y
-            sudo apt upgrade -y
 
             # Ensure Docker is installed
             if ! command -v docker &> /dev/null; then
