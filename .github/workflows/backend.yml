@@ -59,7 +59,7 @@ jobs:
           LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_HOST }}
           SSH_KEY: ${{ secrets.LIGHTSAIL_KEY }}
           USERNAME: ${{ secrets.LIGHTSAIL_USER }}
-          PORT: 3003
+          PORT: 5001
           CONTAINER_NAME: CA_ERP_BACKEND
           ENV_FILE_PATH: /home/ubuntu/ca-erp/.env/.env.production
 
