@@ -1,141 +1,97 @@
-name: Backend Deployment
+name: Deploy KSSIA-Backend to AWS Lightsail
 
 on:
   push:
     paths:
-      - "backend/**"
-      - ".github/workflows/backend.yml"
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy Backend to AWS
+  build:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [20.x]
+
     env:
-      LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_HOST }}
-      SSH_KEY: ${{ secrets.LIGHTSAIL_KEY }}
-      USERNAME: ${{ secrets.LIGHTSAIL_USER }}
-      PROJECT_DIR: ca-erp
-      ENV_FILE_PATH: /home/ubuntu/ca-erp-backend/.env/.env.production
-      APP_NAME: ca-erp-backend
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      ECR_REPOSITORY: ca-erp
+      IMAGE_TAG: latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
+      - name: Build and Push Docker image
+        id: build-and-push-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REPOSITORY: ca-erp
+          IMAGE_TAG: latest
+
         run: |
-          cd backend
-          # Build a docker container and push it to ECR
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker build -t ${{env.ECR_REGISTRY}}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+          docker push ${{env.ECR_REGISTRY}}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-      - name: Deploy to AWS Lightsail
+      - name: Deploy to Lightsail
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ca-erp
+          IMAGE_TAG: latest
+          LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_HOST }}
+          SSH_KEY: ${{ secrets.LIGHTSAIL_KEY }}
+          USERNAME: ${{ secrets.LIGHTSAIL_USER }}
+          PORT: 3003
+          CONTAINER_NAME: CA_ERP_BACKEND
+          ENV_FILE_PATH: /home/ubuntu/ca-erp/.env/.env.production
+
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.LIGHTSAIL_INSTANCE_IP }}
           username: ${{ env.USERNAME }}
-          key: ${{ env.SSH_KEY }}
+          key: ${{ env.SSH_KEY }}   
+
           script: |
-            set -e
-            echo "🚀 Starting deployment process..."
+            # Update system and install Docker if not installed
+            sudo apt-get update
+            sudo apt-get install -y docker.io
 
-            # Ensure required tools are installed
-            echo "✅ Verifying environment dependencies..."
-            docker -v || { echo "❌ Docker not found"; exit 1; }
-            aws --version || { echo "❌ AWS CLI not found"; exit 1; }
+            # Login to Amazon ECR
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-            # Create backup of current container (if applicable)
-            echo "💾 Creating backup of current deployment..."
-            if docker ps -a | grep -q "${{ env.APP_NAME }}"; then
-              docker rename ${{ env.APP_NAME }} ${{ env.APP_NAME }}_backup_$(date +%Y%m%d_%H%M%S) || true
-            fi
+            # Pull Docker Image
+            sudo docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-            # Login to ECR
-            echo "🔑 Logging into AWS ECR..."
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            # Stop and remove the existing container if running
+            sudo docker stop ${{ env.CONTAINER_NAME }} || true
+            sudo docker rm ${{ env.CONTAINER_NAME }} || true
 
-            # Pull the latest image
-            echo "📥 Pulling latest Docker image..."
-            docker pull ${{ steps.build-image.outputs.image }}
-
-            # Environment setup
-            echo "🔧 Setting up environment variables..."
-            if [ -f "${{ env.ENV_FILE_PATH }}" ]; then
-              echo "✅ Found environment file"
-            else
-              echo "❌ .env file missing at ${{ env.ENV_FILE_PATH }}"
+            # Check if the .env.production file exists
+            if [ ! -f ${{ env.ENV_FILE_PATH }} ]; then
+              echo ".env.production file is missing at ${{ env.ENV_FILE_PATH }}."
               exit 1
             fi
 
-            # Stop and remove the current container if it exists
-            echo "🛑 Stopping current container if it exists..."
-            docker stop ${{ env.APP_NAME }} || true
-            docker rm ${{ env.APP_NAME }} || true
-
-            # Run the new container
-            echo "🚀 Starting new container..."
-            docker run -d \
-              --name ${{ env.APP_NAME }} \
-              --restart always \
-              -p 3000:3000 \
+            # Run the new container with the .env.production file
+            sudo docker run -d \
+              -p ${{ env.PORT }}:${{ env.PORT }} \
+              --name ${{ env.CONTAINER_NAME }} \
               --env-file ${{ env.ENV_FILE_PATH }} \
-              ${{ steps.build-image.outputs.image }}
-
-            # Verify deployment
-            echo "✅ Verifying deployment..."
-            sleep 10
-            if docker ps | grep -q "${{ env.APP_NAME }}"; then
-              echo "✅ Deployment successful!"
-            else
-              echo "❌ Deployment verification failed!"
-              echo "🔄 Restoring from backup..."
-              BACKUP_CONTAINER=$(docker ps -a --filter "name=${{ env.APP_NAME }}_backup" --format "{{.Names}}" | head -n 1)
-              if [ ! -z "$BACKUP_CONTAINER" ]; then
-                docker rename $BACKUP_CONTAINER ${{ env.APP_NAME }}
-                docker start ${{ env.APP_NAME }}
-              fi
-              exit 1
-            fi
-
-            # Clean up old containers and images
-            echo "🧹 Cleaning up old containers and images..."
-            docker container prune -f
-            docker image prune -a -f
-
-      - name: Verify deployment
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.LIGHTSAIL_INSTANCE_IP }}
-          username: ${{ env.USERNAME }}
-          key: ${{ env.SSH_KEY }}
-          script: |
-            echo "🔍 Checking container status..."
-            docker ps | grep "${{ env.APP_NAME }}"
-            echo "📋 Checking container logs (last 10 lines)..."
-            docker logs ${{ env.APP_NAME }} --tail 10 || true
+              ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
