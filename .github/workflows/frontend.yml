@@ -3,8 +3,8 @@ name: Deploy React App to AWS Lightsail
 on:
   push:
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
 
 jobs:
   deploy:
