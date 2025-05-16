@@ -40,18 +40,26 @@ const secondaryNavigation = [
 const Sidebar = ({ onCloseMobile ,projects = []}) => {
   const location = useLocation();
   const { user, role } = useAuth();
-  const [logoFilename, setLogoFilename] = useState("");
+ const [logoFilename, setLogoFilename] = useState("");
+  const [companyName, setCompanyName] = useState("");
+
 
   useEffect(() => {
   const fetchLogo = async () => {
     try {
       const response = await api.get("/settings");
       const logo = response.data?.data?.company?.logo;
-
-      if (logo) {
-        const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${logo}`;
+      const company = response.data?.data?.company;
+ 
+       if (company?.logo) {
+        const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
         setLogoFilename(fullLogoUrl);
       }
+
+      if (company?.name) {
+        setCompanyName(company.name);
+      }
+      
     } catch (error) {
       console.error("Failed to load logo", error);
     }
@@ -110,7 +118,7 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
          {logoFilename ? (
             <img src={logoFilename} alt="Company Logo" className="h-10 object-contain" />
           ) : (
-            <span className="text-blue-600 font-bold text-2xl">CA-ERP</span>
+            <span className="text-blue-600 font-bold text-2xl">{companyName}</span>
           )}
           {/* <span className="text-blue-600 font-bold text-2xl">CA-ERP</span> */}
         </Link>
