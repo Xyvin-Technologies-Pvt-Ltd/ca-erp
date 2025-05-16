@@ -287,7 +287,6 @@ router.route('/:id')
 router.route('/:id/avatar')
     .put(
         protect,
-        authorize('admin'),
         uploadAvatarMiddleware.single('avatar'),
         uploadAvatar
     );

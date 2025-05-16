@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   HomeIcon,
@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ROUTES } from "../config/constants";
 import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
 
 const navigation = [
   { name: "Dashboard", to: ROUTES.DASHBOARD, icon: HomeIcon },
@@ -39,6 +40,27 @@ const secondaryNavigation = [
 const Sidebar = ({ onCloseMobile ,projects = []}) => {
   const location = useLocation();
   const { user, role } = useAuth();
+  const [logoFilename, setLogoFilename] = useState("");
+
+  useEffect(() => {
+  const fetchLogo = async () => {
+    try {
+      const response = await api.get("/settings");
+      const logo = response.data?.data?.company?.logo;
+
+      if (logo) {
+        const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${logo}`;
+        setLogoFilename(fullLogoUrl);
+      }
+    } catch (error) {
+      console.error("Failed to load logo", error);
+    }
+  };
+
+  fetchLogo();
+}, []);
+
+
 
   // Check if a nav item is active
   const isActive = (path) => {
@@ -85,7 +107,12 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
       {/* Logo and mobile close button */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
         <Link to={ROUTES.DASHBOARD} className="flex-shrink-0">
-          <span className="text-blue-600 font-bold text-2xl">CA-ERP</span>
+         {logoFilename ? (
+            <img src={logoFilename} alt="Company Logo" className="h-10 object-contain" />
+          ) : (
+            <span className="text-blue-600 font-bold text-2xl">CA-ERP</span>
+          )}
+          {/* <span className="text-blue-600 font-bold text-2xl">CA-ERP</span> */}
         </Link>
         {onCloseMobile && (
           <button

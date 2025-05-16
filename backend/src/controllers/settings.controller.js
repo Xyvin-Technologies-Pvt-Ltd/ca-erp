@@ -29,7 +29,7 @@ exports.getSettings = async (req, res, next) => {
                     financialYearStart: new Date().toISOString().split('T')[0],
                     currency: 'USD',
                     dateFormat: 'MM/DD/YYYY',
-                    logo: '/uploads/logos/default-logo.png'
+                    logo: ''
                 },
                 system: {
                     emailNotifications: true,
@@ -126,13 +126,28 @@ exports.uploadLogo = async (req, res, next) => {
             return next(new ErrorResponse('Settings not found', 404));
         }
 
-        // Update logo path in settings
+        // Update logo path in settings while preserving other settings
         const logoPath = `/uploads/logos/${req.file.filename}`;
+        logger.info(`Setting logo path: ${logoPath}`);
+        
+        // Update only the logo field while keeping other settings intact
+        settings = await Settings.findOneAndUpdate(
+            { _id: settings._id },
+            { 
+                $set: {
+                    'company.logo': logoPath,
+                    'updatedBy': req.user.id
+                }
+            },
+            { new: true, runValidators: true }
+        ).populate({
+            path: 'updatedBy',
+            select: 'name email'
+        });
 
-        // Update company.logo field in settings
-        settings.company.logo = logoPath;
-        settings.updatedBy = req.user.id;
-        await settings.save();
+        if (!settings) {
+            return next(new ErrorResponse('Failed to update settings', 500));
+        }
 
         // Log the logo update
         logger.info(`Company logo updated by ${req.user.name} (${req.user._id})`);
@@ -199,4 +214,4 @@ exports.updateMailSettings = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};

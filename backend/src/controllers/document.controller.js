@@ -44,7 +44,7 @@ exports.getDocuments = async (req, res, next) => {
         }
 
         // If user is not admin, only show documents they have access to
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager') {
             filter.$or = [
                 { createdBy: req.user.id },
                 { sharedWith: req.user.id }
@@ -161,7 +161,8 @@ exports.getDocument = async (req, res, next) => {
 
         // Check access - only admin, creator, and shared users can view
         if (
-            req.user.role !== 'admin' &&
+            req.user.role !== 'admin' && 
+            req.user.role !== 'manager' && 
             document.createdBy._id.toString() !== req.user.id.toString() &&
             !document.sharedWith.some(user => user._id.toString() === req.user.id.toString())
         ) {
@@ -252,7 +253,7 @@ exports.updateDocument = async (req, res, next) => {
        
 
         // Check access - only admin and creator can update
-        if (req.user.role !== 'admin' && document.uploadedBy.toString() !== req.user.id.toString()) {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && document.uploadedBy.toString() !== req.user.id.toString()) {
             return next(new ErrorResponse(`User not authorized to update this document`, 403));
         }
 
@@ -329,7 +330,7 @@ exports.deleteDocument = async (req, res, next) => {
         }
 
         // Check access - only admin and creator can delete
-        if (req.user.role !== 'admin' && document.createdBy.toString() !== req.user.id.toString()) {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && document.createdBy.toString() !== req.user.id.toString()) {
             return next(new ErrorResponse(`User not authorized to delete this document`, 403));
         }
 
@@ -376,7 +377,7 @@ exports.shareDocument = async (req, res, next) => {
         }
 
         // Check access - only admin and creator can share
-        if (req.user.role !== 'admin' && document.createdBy.toString() !== req.user.id.toString()) {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && document.createdBy.toString() !== req.user.id.toString()) {
             return next(new ErrorResponse(`User not authorized to share this document`, 403));
         }
 
@@ -421,7 +422,8 @@ exports.downloadDocument = async (req, res, next) => {
 
         // Check access - only admin, creator, and shared users can download
         if (
-            req.user.role !== 'admin' &&
+            req.user.role !== 'admin' && 
+            req.user.role !== 'manager' &&
             document.createdBy.toString() !== req.user.id.toString() &&
             !document.sharedWith.some(userId => userId.toString() === req.user.id.toString())
         ) {
