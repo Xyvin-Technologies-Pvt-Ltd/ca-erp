@@ -152,9 +152,9 @@ exports.getTask = async (req, res, next) => {
         }
 
         // Check access - only admin and assigned users can view
-        if (req.user.role !== 'admin' && req.user.role !== 'finance' && task.assignedTo.toString() !== req.user.id.toString()) {
-            return next(new ErrorResponse(`User not authorized to access this task`, 403));
-        }
+        // if (req.user.role !== 'admin' && req.user.role !== 'finance' && task.assignedTo.toString() !== req.user.id.toString()) {
+        //     return next(new ErrorResponse(`User not authorized to access this task`, 403));
+        // }
 
         res.status(200).json({
             success: true,
@@ -296,9 +296,9 @@ exports.updateTask = async (req, res, next) => {
         }
 
         // Check access - only admin and assigned users can update
-        if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id.toString()) {
-            return next(new ErrorResponse(`User not authorized to update this task`, 403));
-        }
+        // if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id.toString()) {
+        //     return next(new ErrorResponse(`User not authorized to update this task`, 403));
+        // }
 
         // Process file if uploaded
         if (req.file) {

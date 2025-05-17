@@ -40,7 +40,7 @@ const { settingsValidation } = require('../middleware/validator');
  *         description: Forbidden
  */
 router.route('/')
-    .get(protect, authorize('admin'), getSettings)
+    .get(protect,  getSettings)
     /**
      * @swagger
      * /api/settings:
@@ -121,7 +121,6 @@ router.route('/')
 router.route('/company/logo')
     .put(
         protect,
-        authorize('admin'),
         uploadLogoMiddleware.single('logo'),
         uploadLogo
     );
