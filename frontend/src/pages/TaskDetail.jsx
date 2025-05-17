@@ -284,6 +284,24 @@ const handleAddSubtask = async () => {
     }
   };
   
+
+  const calculateEstimatedHours = () => {
+  return task.timeTracking?.entries?.reduce((total, entry) => 
+    total + (parseFloat(entry?.hours) || 0), 0) || 0;
+};
+
+const calculateActualHours = () => {
+  const startDate = new Date(task.createdAt);
+  const dueDate = new Date(task.dueDate);
+  const diffTime = Math.abs(dueDate - startDate);
+  return Math.ceil(diffTime / (1000 * 60 * 60));
+};
+
+const calculateProgressPercentage = () => {
+  const estimated = calculateEstimatedHours();
+  const actual = calculateActualHours();
+  return Math.min((estimated / actual) * 100, 100);
+};
   
 
   const handleNotifyFinance = async () => {
@@ -790,19 +808,15 @@ const handleAddSubtask = async () => {
             <div className="p-6">
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-gray-500 mb-1">
-                  <span>Estimated: {task.estimatedHours} hours</span>
-                  <span>Actual: {task.actualHours || 0} hours</span>
+                <span>Estimated: {calculateEstimatedHours()} hours</span>
+                <span>Actual: {calculateActualHours()} hours</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-blue-600 h-2.5 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        ((task.actualHours || 0) / task.estimatedHours) * 100,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
+                   style={{
+                   width: `${calculateProgressPercentage()}%`,}}       
+                   ></div>
                 </div>
               </div>
               {/* {task.timeTracking && task.timeTracking.entries.length > 0 ? (
@@ -1044,7 +1058,7 @@ const handleAddSubtask = async () => {
                 <div>
                   <dt className="text-sm text-gray-500">Estimated Hours</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {task.estimatedHours}
+                    {calculateEstimatedHours()}
                   </dd>
                 </div>
               </dl>
