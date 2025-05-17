@@ -28,6 +28,7 @@ const TaskDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  
 
   const token = localStorage.getItem("auth_token");
   const user = JSON.parse(localStorage.getItem("userData")); // Adjust key if stored under a different name
@@ -50,6 +51,8 @@ const TaskDetail = () => {
   });
   const [notifyingFinance, setNotifyingFinance] = useState(false);
 
+
+  
   useEffect(() => {
     const loadTask = async () => {
       try {
@@ -76,8 +79,15 @@ const TaskDetail = () => {
     try {
       setLoading(true);
       const updatedTask = await updateTask(id, { ...task, status: newStatus });
-      setTask(updatedTask);
-      setLoading(false);
+      console.log("API returned updated task:", updatedTask);
+
+      setTask(prevTask => ({
+        ...prevTask,
+        ...updatedTask,
+      }));
+    //  setLoading(false);
+     setRefresh(prev => !prev);
+
     } catch (err) {
       console.error("Failed to update task status:", err);
       setError("Failed to update task status. Please try again later.");
@@ -176,37 +186,63 @@ const handleAddSubtask = async () => {
 
 
 
-  const handleAddAttachment = async () => {
-    if (!newAttachment.name.trim()) return;
-
-    try {
-      // In a real app, you would upload the file to a server
-      // Here we just simulate it with a local object
-
-      const updatedAttachments = [
-        ...(task.attachments || []),
-        {
-          id: Date.now().toString(),
-          name: newAttachment.name,
-          size: "1.2 MB", // In a real app, this would be the actual file size
-          uploadedAt: new Date().toISOString(),
-          uploadedBy: 1, // Current user ID
-        },
-      ];
-
-      const updatedTask = await updateTask(id, {
-        ...task,
-        attachments: updatedAttachments,
-      });
-
-      setTask(updatedTask);
-      setNewAttachment({ name: "", file: null, description: "" });
-      setShowAddAttachmentModal(false);
-    } catch (err) {
-      console.error("Failed to add attachment:", err);
+  // const handleAddAttachment = async () => {
+  //  if (!newAttachment.name.trim() || !newAttachment.file) return;
    
-    }
-  };
+  //   try {
+  //     // In a real app, you would upload the file to a server
+  //     // Here we just simulate it with a local object
+
+  //     const updatedAttachments = [
+  //       ...(task.attachments || []),
+  //       {
+  //         id: Date.now().toString(),
+  //         name: newAttachment.name,
+  //         size: "1.2 MB", // In a real app, this would be the actual file size
+  //         uploadedAt: new Date().toISOString(),
+  //         uploadedBy: 1, // Current user ID
+  //       },
+  //     ];
+
+  //     const updatedTask = await updateTask(id, {
+  //       ...task,
+  //       attachments: updatedAttachments,
+  //     });
+
+  //     setTask(updatedTask);
+  //     setNewAttachment({ name: "", file: null, description: "" });
+  //     setShowAddAttachmentModal(false);
+  //   } catch (err) {
+  //     console.error("Failed to add attachment:", err);
+   
+  //   }
+  // };
+
+  const handleAddAttachment = async () => {
+  if (!newAttachment.name.trim() || !newAttachment.file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', newAttachment.file);
+    formData.append('name', newAttachment.name);
+    formData.append('description', newAttachment.description || '');
+    
+    // Attach other task fields if needed
+    formData.append('attachments', JSON.stringify([
+      ...(task.attachments || []),
+    ]));
+
+    const updatedTask = await updateTask(id, formData, token); // token from your auth
+
+    setTask(updatedTask);
+    setNewAttachment({ name: '', file: null, description: '' });
+    setShowAddAttachmentModal(false);
+    setRefresh(prev => !prev);
+  } catch (err) {
+    console.error('Failed to add attachment:', err);
+  }
+};
+
 
   const handleAddTimeEntry = async () => {
     if (!newTimeEntry.hours || !newTimeEntry.description) return;
@@ -655,17 +691,18 @@ const handleAddSubtask = async () => {
                     >
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <svg
-                            className="h-5 w-5 text-gray-400"
+                           <svg
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
                           >
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                             ></path>
                           </svg>
                         </div>
@@ -682,7 +719,20 @@ const handleAddSubtask = async () => {
                         </div>
                       </div>
                       <button className="text-sm text-blue-600 hover:text-blue-800">
-                        Download
+                           <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            ></path>
+                          </svg>
                       </button>
                     </li>
                   ))}
@@ -705,7 +755,7 @@ const handleAddSubtask = async () => {
                 onClick={() => setShowAddTimeEntryModal(true)}
                 className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
               >
-                <svg
+                {/* <svg
                   className="w-5 h-5 mr-1"
                   fill="none"
                   stroke="currentColor"
@@ -718,8 +768,22 @@ const handleAddSubtask = async () => {
                     strokeWidth="2"
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   ></path>
+                </svg> */}
+               <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
-                Add Time Entry
+
               </button>
             </div>
             <div className="p-6">
@@ -885,6 +949,7 @@ const handleAddSubtask = async () => {
                   "cancelled",
                 ].map((status) => (
                   <button
+                    // type="button"
                     key={status}
                     onClick={() => handleStatusChange(status)}
                     className={`w-full px-4 py-2 rounded-md text-sm font-medium ${
@@ -1120,13 +1185,14 @@ const handleAddSubtask = async () => {
                         Click to upload
                       </span>
                       {" or drag and drop"}
-                    </label>
+                   
                     <input
                       type="file"
                       className="hidden"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
+                          console.log("Selected file:", file);
                           setNewAttachment({
                             ...newAttachment,
                             name: file.name,
@@ -1135,6 +1201,7 @@ const handleAddSubtask = async () => {
                         }
                       }}
                     />
+                     </label>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Any file up to 10MB
@@ -1147,7 +1214,7 @@ const handleAddSubtask = async () => {
                 </div>
               </div>
 
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label
                   htmlFor="attachmentName"
                   className="block text-sm font-medium text-gray-700 mb-1"
@@ -1158,6 +1225,7 @@ const handleAddSubtask = async () => {
                   type="text"
                   id="attachmentName"
                   value={newAttachment.name}
+  
                   onChange={(e) =>
                     setNewAttachment({ ...newAttachment, name: e.target.value })
                   }
@@ -1165,7 +1233,7 @@ const handleAddSubtask = async () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-              </div>
+              </div> */}
 
               <div className="mb-4">
                 <label
