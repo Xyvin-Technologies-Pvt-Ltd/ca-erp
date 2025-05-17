@@ -33,8 +33,10 @@ export const fetchTaskById = async (id) => {
     try {
         // In a real app, we would fetch from the backend
         const response = await api.get(`/tasks/${id}`);
+        console.log(response.data.data);
+        
         return response.data.data;
-
+ 
         // For demo purposes, return a mock task
         // return {
         //     id,

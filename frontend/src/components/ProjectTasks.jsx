@@ -147,7 +147,7 @@ const goToPrevTaskPage = () => {
       {tasks.length === 0 ? (
         <div className="p-6 text-center text-gray-500">
           <p>No tasks found for this project.</p>
-          { role != 'staff'(
+          { role != 'staff' && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

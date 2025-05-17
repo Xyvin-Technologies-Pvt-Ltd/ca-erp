@@ -36,7 +36,7 @@ exports.getTasks = async (req, res, next) => {
         }
         filter.deleted = { $ne: true };
         // If user is not admin, only show tasks they are assigned to
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager') {
             filter.assignedTo = req.user.id;
         } else if (req.query.assignedTo) {
             filter.assignedTo = req.query.assignedTo;
