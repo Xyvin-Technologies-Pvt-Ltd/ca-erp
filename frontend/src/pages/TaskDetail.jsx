@@ -277,6 +277,7 @@ const handleAddSubtask = async () => {
         date: new Date().toISOString().split("T")[0],
       });
       setShowAddTimeEntryModal(false);
+     setRefresh(prev => !prev);
     } catch (err) {
       console.error("Failed to add time entry:", err);
       // Show error message
@@ -804,7 +805,7 @@ const handleAddSubtask = async () => {
                   ></div>
                 </div>
               </div>
-              {task.timeTracking && task.timeTracking.entries.length > 0 ? (
+              {/* {task.timeTracking && task.timeTracking.entries.length > 0 ? (
                 <ul className="divide-y divide-gray-200">
                   {task.timeTracking.entries.map((entry, index) => (
                     <li key={index} className="py-3 flex justify-between">
@@ -826,7 +827,33 @@ const handleAddSubtask = async () => {
                 <p className="text-center text-gray-500">
                   No time entries yet. Add time spent on this task.
                 </p>
-              )}
+              )} */}
+
+              {task?.timeTracking?.entries?.length > 0 ? (
+  <ul className="divide-y divide-gray-200">
+    {task.timeTracking.entries.map((entry, index) => (
+      entry && (
+        <li key={index} className="py-3 flex justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-900">
+              {entry?.description || 'No description'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {entry?.date ? new Date(entry.date).toLocaleDateString() : 'No date'}
+            </p>
+          </div>
+          <span className="text-sm text-gray-700">
+            {entry?.hours || 0} hours
+          </span>
+        </li>
+      )
+    ))}
+  </ul>
+) : (
+  <p className="text-center text-gray-500">
+    No time entries yet. Add time spent on this task.
+  </p>
+)}
             </div>
           </div>
 
