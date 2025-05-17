@@ -53,7 +53,7 @@ const ProjectDetail = () => {
   const [editingNoteId, setEditingNoteId] = useState(null); // Track which note is being edited
   const [docToDelete, setDocToDelete] = useState(null);
   const [noteToDelete, setNoteToDelete] = useState(null);
-  const {user, role} = useAuth()
+  const { role} = useAuth()
 
   const [docCurrentPage, setDocCurrentPage] = useState(1);
   const docsPerPage = 5;
@@ -794,7 +794,7 @@ const goToPrevDocPage = () => {
         <div>
           <div className="flex justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">Notes</h3>
-            {project.notes?.length > 0 ? (
+            {project.notes?.length > 0 && role != "staff"? (
             <button
               onClick={() => setIsAddNotesModalOpen(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -824,6 +824,8 @@ const goToPrevDocPage = () => {
                       </span>
                     </div>
                     <div className="flex space-x-2">
+                    {role !== "staff" && (
+                      <>
                       <button
                         onClick={() => handleEditNote(note)}
                         className="text-blue-600 hover:text-blue-800"
@@ -836,6 +838,8 @@ const goToPrevDocPage = () => {
                       >
                         <MdDelete size={20} />
                       </button>
+                      </>
+                     )}
                     </div>
                   </div>
                 </div>
@@ -886,12 +890,14 @@ const goToPrevDocPage = () => {
               <p className="text-gray-500 mb-4">
                 No notes added for this project yet.
               </p>
+              {role !== "staff" && (
               <button
                 onClick={() => setIsAddNotesModalOpen(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Add Note
               </button>
+              )}
             </div>
           )}
         </div>
