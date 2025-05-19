@@ -1,6 +1,7 @@
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const Client = require('../models/Client');
+const Invoice = require('../models/Invoice'); // Add this import
 const { ErrorResponse } = require('../middleware/errorHandler');
 const { logger } = require('../utils/logger');
 const ActivityTracker = require('../utils/activityTracker');
@@ -84,6 +85,55 @@ exports.getProjects = async (req, res, next) => {
                     select: 'name email',
                 },
             });;
+
+ if (req.query.includeInvoiceStatus) {
+            const projectsWithInvoiceStatus = await Promise.all(
+                projects.map(async (project) => {
+                    const projectObj = project.toObject();
+                    
+                    // First check if the project already has an invoiceStatus
+                    if (project.invoiceStatus === 'Created') {
+                        projectObj.invoiceStatus = 'Created';
+                        return projectObj;
+                    }
+
+                    // If not, check for invoice in the Invoice collection
+                    const invoice = await Invoice.findOne({
+                        'items': {
+                            $elemMatch: {
+                                'projectId': project._id
+                            }
+                        }
+                    });
+
+                    projectObj.invoiceStatus = invoice ? 'Created' : 'Not Created';
+                    
+                    // If invoice exists, update the project's invoice status
+                    if (invoice && project.invoiceStatus !== 'Created') {
+                        await Project.findByIdAndUpdate(project._id, {
+                            invoiceStatus: 'Created'
+                        });
+                    }
+
+                    return projectObj;
+                })
+            );
+            
+            const data = {
+                success: true,
+                count: projectsWithInvoiceStatus.length,
+                pagination: {
+                    page,
+                    limit,
+                    total
+                },
+                projects: projectsWithInvoiceStatus
+            };
+            
+            return res.status(200).json(data);
+        }
+
+            
         // 🧠 Add completion stats for each project
         const projectsWithStats = await Promise.all(projects.map(async (project) => {
             const taskIds = project.tasks || [];
@@ -570,6 +620,45 @@ exports.updateProjectStatus = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: project,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateProjectInvoiceStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { invoiceNumber, invoiceDate } = req.body;
+
+        const project = await Project.findByIdAndUpdate(
+            id,
+            {
+                status: 'completed', // Keep it as completed
+                invoiceStatus: 'Created',
+                invoiceNumber,
+                invoiceDate,
+                updatedAt: new Date()
+            },
+            { 
+                new: true,
+                runValidators: true 
+            }
+        ).populate({
+            path: 'client',
+            select: 'name contactName contactEmail'
+        });
+
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${id}`, 404));
+        }
+
+        // Log the invoice status update
+        logger.info(`Project invoice status updated: ${project.name} (${project._id}) by ${req.user.name}`);
+
+        res.status(200).json({
+            success: true,
+            data: project
         });
     } catch (error) {
         next(error);

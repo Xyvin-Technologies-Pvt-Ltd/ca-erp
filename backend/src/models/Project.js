@@ -139,6 +139,12 @@ const ProjectSchema = new mongoose.Schema(
             }, 
         ],
         deleted: { type: Boolean, default: false },
+        // Add this field in ProjectSchema
+        invoiceStatus: {
+            type: String,
+            enum: ['Not Created', 'Created'],
+            default: 'Not Created'
+        },
     },
     {
         timestamps: true,
@@ -166,4 +172,4 @@ ProjectSchema.virtual('progress').get(function () {
     return Math.round((completedTasks / this.tasks.length) * 100);
 });
 
-module.exports = mongoose.model('Project', ProjectSchema); 
+module.exports = mongoose.model('Project', ProjectSchema);

@@ -289,7 +289,7 @@ const Tasks = () => {
       </div>
 
       {/* Task List */}
-      {tasks.length === 0 ? (
+      {tasks.length === 0  ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <h2 className="text-xl font-medium text-gray-900 mb-4">
             No tasks found
@@ -299,12 +299,14 @@ const Tasks = () => {
               ? "Get started by creating your first task."
               : "Try changing your filters or create a new task."}
           </p>
+          { role != "staff" && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Create Task
           </button>
+          )}
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
