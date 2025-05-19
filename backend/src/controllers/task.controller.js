@@ -21,7 +21,6 @@ exports.getTasks = async (req, res, next) => {
         const limit = parseInt(req.query.limit, 10) || 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        // const total = await Task.countDocuments();
 
         // Filtering
         const filter = {};
@@ -35,6 +34,16 @@ exports.getTasks = async (req, res, next) => {
             filter.priority = req.query.priority;
         }
         filter.deleted = { $ne: true };
+
+        
+
+        // Add project filter to only get tasks with non-deleted projects
+        const validProjects = await Project.find({ deleted: { $ne: true } }, '_id');
+        const validProjectIds = validProjects.map(p => p._id);
+        filter.project = { $in: validProjectIds };
+
+
+
         // If user is not admin, only show tasks they are assigned to
         if (req.user.role !== 'admin' && req.user.role !== 'manager') {
             filter.assignedTo = req.user.id;
@@ -82,7 +91,8 @@ exports.getTasks = async (req, res, next) => {
             .sort(sort)
             .populate({
                 path: 'project',
-                select: 'name projectNumber budget'
+                select: 'name projectNumber budget',
+                match: { deleted: { $ne: true } } // Additional check in populate
             })
             .populate({
                 path: 'assignedTo',
@@ -93,9 +103,11 @@ exports.getTasks = async (req, res, next) => {
                 select: 'name email'
             });
 
+        // Filter out any tasks where project population failed (project was deleted)
+        const validTasks = tasks.filter(task => task.project != null);
+
         // Pagination result
         const pagination = {};
-
         if (endIndex < total) {
             pagination.next = {
                 page: page + 1,
@@ -112,10 +124,10 @@ exports.getTasks = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            count: tasks.length,
+            count: validTasks.length,
             pagination,
-            total,
-            data: tasks,
+            total: validTasks.length,
+            data: validTasks,
         });
     } catch (error) {
         next(error);
@@ -722,4 +734,4 @@ exports.markTaskAsInvoiced = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
