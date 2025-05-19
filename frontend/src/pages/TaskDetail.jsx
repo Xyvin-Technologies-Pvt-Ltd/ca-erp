@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchTaskById, updateTask, deleteTask, updateTaskTime } from "../api/tasks";
 import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
+import { documentsApi } from '../api/documentsApi';
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -355,6 +356,40 @@ const calculateProgressPercentage = () => {
     }
   };
 
+  const handleDownloadDocument = async (documentId, fileName) => {
+    try {
+      // Get the attachment details from task.attachments
+      const attachment = task.attachments.find(att => att._id === documentId || att.id === documentId);
+      if (!attachment) {
+        throw new Error('Attachment not found');
+      }
+  
+      // Create the full URL for the file
+      const fileUrl = `${import.meta.env.VITE_BASE_URL}/${attachment.fileUrl.replace('public/', '')}`;
+      
+      // Fetch the file directly
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || attachment.name;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      setError("Failed to download document. Please try again later.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -704,66 +739,66 @@ const calculateProgressPercentage = () => {
               </button>
             </div>
             <div className="p-6">
-              {task.attachments && task.attachments.length > 0 ? (
-                <ul className="divide-y divide-gray-200">
-                  {task.attachments.map((attachment) => (
-                    <li
-                      key={attachment.id}
-                      className="py-3 flex justify-between items-center"
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                           <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            ></path>
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-900">
-                            {attachment.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {attachment.size} ·{" "}
-                            {new Date(
-                              attachment.uploadedAt
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <button className="text-sm text-blue-600 hover:text-blue-800">
-                           <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            ></path>
-                          </svg>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No attachments yet. Upload files to this task.
-                </p>
-              )}
+           {task.attachments && task.attachments.length > 0 ? (
+  <ul className="divide-y divide-gray-200">
+    {task.attachments.map((attachment) => (
+      <li
+        key={attachment._id || attachment.id}
+        className="py-3 flex justify-between items-center"
+      >
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              ></path>
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-900">
+              {attachment.name}
+            </p>
+            <p className="text-xs text-gray-500">
+              {attachment.size} · {new Date(attachment.uploadedAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+        <button 
+          onClick={() => handleDownloadDocument(attachment._id || attachment.id, attachment.name)}
+          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+        >
+          <svg
+            className="w-5 h-5 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            ></path>
+          </svg>
+        </button>
+      </li>
+    ))}
+  </ul>
+) : (
+  <p className="text-center text-gray-500">
+    No attachments yet. Upload files to this task.
+  </p>
+)}
             </div>
           </div>
 
