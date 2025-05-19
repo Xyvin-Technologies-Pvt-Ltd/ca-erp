@@ -5,6 +5,7 @@ import { fetchProjects } from "../api/projects";
 import CreateTaskModal from "../components/CreateTaskModal";
 import { FaGreaterThan } from "react-icons/fa";
 import { FaLessThan } from "react-icons/fa6";
+import { useAuth } from "../context/AuthContext";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -33,6 +34,8 @@ const Tasks = () => {
     limit: 10,
     total: 0,
   });
+
+  const {role} = useAuth()
 
 
   // Filter states
@@ -166,12 +169,14 @@ const Tasks = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white text-black">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Tasks</h1>
+          {role !== "staff" && (
         <button
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Create Task
         </button>
+          )}
       </div>
 
       {/* Filters */}

@@ -211,12 +211,14 @@ const Projects = () => {
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
         <div className="flex space-x-4">
+            {role !== "staff" && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Create Project
           </button>
+            )}
         </div>
       </div>
 

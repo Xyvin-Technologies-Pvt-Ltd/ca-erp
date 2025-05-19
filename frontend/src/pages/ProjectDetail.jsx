@@ -397,6 +397,7 @@ const goToPrevDocPage = () => {
           </svg>
           Back to Projects
         </button>
+        {role !== "staff" && (
         <div className="flex space-x-2">
           <button
             onClick={() => setIsEditing(true)}
@@ -411,6 +412,7 @@ const goToPrevDocPage = () => {
             Delete
           </button>
         </div>
+        )}
       </div>
 
       {/* Project header */}

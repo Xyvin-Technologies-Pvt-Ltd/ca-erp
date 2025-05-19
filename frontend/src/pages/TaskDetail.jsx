@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchTaskById, updateTask, deleteTask, updateTaskTime } from "../api/tasks";
 import TaskForm from "../components/TaskForm";
+import { useAuth } from "../context/AuthContext";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -28,7 +29,7 @@ const TaskDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  
+  const {role} = useAuth()
 
   const token = localStorage.getItem("auth_token");
   const user = JSON.parse(localStorage.getItem("userData")); // Adjust key if stored under a different name
@@ -467,12 +468,14 @@ const calculateProgressPercentage = () => {
           >
             Edit Task
           </button>
+          {role != "staff" && (
           <button
             onClick={() => setConfirmDelete(true)}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Delete
           </button>
+          )}
         </div>
       </div>
 
