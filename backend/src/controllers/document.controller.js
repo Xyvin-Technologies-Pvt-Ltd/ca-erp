@@ -20,7 +20,10 @@ exports.getDocuments = async (req, res, next) => {
         const limit = parseInt(req.query.limit, 10) || 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const total = await Document.countDocuments();
+
+        // Get valid (non-deleted) projects first
+        const validProjects = await Project.find({ deleted: { $ne: true } }, '_id');
+        const validProjectIds = validProjects.map(p => p._id);
 
         // Filtering
         const filter = {};
@@ -29,18 +32,18 @@ exports.getDocuments = async (req, res, next) => {
         }
         if (req.query.project) {
             filter.project = req.query.project;
+        } else {
+            // Only show documents from non-deleted projects
+            filter.project = { $in: validProjectIds };
         }
         if (req.query.status) {
             filter.status = req.query.status;
         }
         if (req.query.type) {
-            console.log("firggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggst", req.query.type)
-            filter.fileType = req.query.type; // 'type' maps to 'fileType' in DB
+            filter.fileType = req.query.type;
         }
-
         if (req.query.uploadedBy) {
-            
-            filter.CreatedBy  = req.query.uploadedBy;
+            filter.CreatedBy = req.query.uploadedBy;
         }
 
         // If user is not admin, only show documents they have access to
@@ -51,7 +54,7 @@ exports.getDocuments = async (req, res, next) => {
             ];
         }
 
-        // Search
+        // Search functionality
         if (req.query.search) {
             if (filter.$or) {
                 filter.$and = [
@@ -72,29 +75,17 @@ exports.getDocuments = async (req, res, next) => {
             }
         }
 
-        // Sort
-        const sort = {};
-        if (req.query.sort) {
-            const fields = req.query.sort.split(',');
-            fields.forEach(field => {
-                if (field.startsWith('-')) {
-                    sort[field.substring(1)] = -1;
-                } else {
-                    sort[field] = 1;
-                }
-            });
-        } else {
-            sort.createdAt = -1; // Default: newest first
-        }
+        const total = await Document.countDocuments(filter);
 
         // Query with filters and sort
         const documents = await Document.find(filter)
             .skip(startIndex)
             .limit(limit)
-            .sort(sort)
+            .sort({ createdAt: -1 })
             .populate({
                 path: 'project',
-                select: 'name projectNumber'
+                select: 'name projectNumber',
+                match: { deleted: { $ne: true } } // Add this to filter out deleted projects
             })
             .populate({
                 path: 'uploadedBy',
@@ -105,16 +96,17 @@ exports.getDocuments = async (req, res, next) => {
                 select: 'name email'
             });
 
+        // Filter out documents where project population failed (project was deleted)
+        const validDocuments = documents.filter(doc => doc.project != null);
+
         // Pagination result
         const pagination = {};
-
         if (endIndex < total) {
             pagination.next = {
                 page: page + 1,
                 limit,
             };
         }
-
         if (startIndex > 0) {
             pagination.prev = {
                 page: page - 1,
@@ -124,10 +116,10 @@ exports.getDocuments = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            count: documents.length,
+            count: validDocuments.length,
             pagination,
-            total,
-            data: documents,
+            total: validDocuments.length,
+            data: validDocuments,
         });
     } catch (error) {
         next(error);
@@ -452,4 +444,4 @@ exports.downloadDocument = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
