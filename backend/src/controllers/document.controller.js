@@ -75,6 +75,7 @@ exports.getDocuments = async (req, res, next) => {
             }
         }
 
+        // Get total count before applying skip and limit
         const total = await Document.countDocuments(filter);
 
         // Query with filters and sort
@@ -85,7 +86,7 @@ exports.getDocuments = async (req, res, next) => {
             .populate({
                 path: 'project',
                 select: 'name projectNumber',
-                match: { deleted: { $ne: true } } // Add this to filter out deleted projects
+                match: { deleted: { $ne: true } }
             })
             .populate({
                 path: 'uploadedBy',
@@ -96,7 +97,7 @@ exports.getDocuments = async (req, res, next) => {
                 select: 'name email'
             });
 
-        // Filter out documents where project population failed (project was deleted)
+        // Filter out documents where project population failed
         const validDocuments = documents.filter(doc => doc.project != null);
 
         // Pagination result
@@ -118,7 +119,7 @@ exports.getDocuments = async (req, res, next) => {
             success: true,
             count: validDocuments.length,
             pagination,
-            total: validDocuments.length,
+            total: total, // Use the total count from countDocuments
             data: validDocuments,
         });
     } catch (error) {

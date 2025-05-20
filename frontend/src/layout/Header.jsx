@@ -106,8 +106,10 @@ const Header = ({ onOpenSidebar }) => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
   
-
   const handleResultClick = (result) => {
     setShowResults(false);
     setSearchTerm('');

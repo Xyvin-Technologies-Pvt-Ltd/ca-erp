@@ -86,52 +86,52 @@ exports.getTasks = async (req, res, next) => {
 
         // Query with filters and sort
         const tasks = await Task.find(filter)
-            .skip(startIndex)
-            .limit(limit)
-            .sort(sort)
-            .populate({
-                path: 'project',
-                select: 'name projectNumber budget',
-                match: { deleted: { $ne: true } } // Additional check in populate
-            })
-            .populate({
-                path: 'assignedTo',
-                select: 'name email'
-            })
-            .populate({
-                path: 'createdBy',
-                select: 'name email'
-            });
-
-        // Filter out any tasks where project population failed (project was deleted)
-        const validTasks = tasks.filter(task => task.project != null);
-
-        // Pagination result
-        const pagination = {};
-        if (endIndex < total) {
-            pagination.next = {
-                page: page + 1,
-                limit,
-            };
-        }
-
-        if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit,
-            };
-        }
-
-        res.status(200).json({
-            success: true,
-            count: validTasks.length,
-            pagination,
-            total: validTasks.length,
-            data: validTasks,
+        .skip(startIndex)
+        .limit(limit)
+        .sort(sort)
+        .populate({
+            path: 'project',
+            select: 'name projectNumber budget',
+            match: { deleted: { $ne: true } }
+        })
+        .populate({
+            path: 'assignedTo',
+            select: 'name email'
+        })
+        .populate({
+            path: 'createdBy',
+            select: 'name email'
         });
-    } catch (error) {
-        next(error);
+
+    // Filter out tasks where project population failed
+    const validTasks = tasks.filter(task => task.project != null);
+
+    // Pagination result
+    const pagination = {};
+    if (endIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit,
+        };
     }
+
+    if (startIndex > 0) {
+        pagination.prev = {
+            page: page - 1,
+            limit,
+        };
+    }
+
+    res.status(200).json({
+        success: true,
+        count: validTasks.length,
+        pagination,
+        total: total, // Use the total count from countDocuments
+        data: validTasks,
+    });
+} catch (error) {
+    next(error);
+}
 };
 
 /**

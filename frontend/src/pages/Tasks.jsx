@@ -100,6 +100,8 @@ const Tasks = () => {
 
   const handleTaskCreated = (newTask) => {
     setTasks((prevTasks) => [...prevTasks, newTask]);
+    loadTasksAndProjects();
+    setIsModalOpen(false);
   };
 
   const handleFilterChange = (e) => {
