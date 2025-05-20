@@ -71,7 +71,7 @@ const Profile = () => {
         const formData = new FormData();
         formData.append("avatar", imageFile);
         await userApi.uploadAvatar(userId, formData);
-        toast.success("Avatar uploaded successfully!");
+        // toast.success("Avatar uploaded successfully!");
       }
 
       const updatedUser = await userApi.updateUser(userId, profileData);

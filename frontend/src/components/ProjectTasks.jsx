@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import CreateTaskModal from "./CreateTaskModal";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete } from "react-icons/md";
+import { useAuth } from "../context/AuthContext";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -33,6 +34,7 @@ const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated }) => {
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const { role} = useAuth()
   
  const [taskCurrentPage, setTaskCurrentPage] = useState(1);
  const tasksPerPage = 8;
@@ -132,33 +134,36 @@ const goToPrevTaskPage = () => {
     <div className="bg-white rounded-lg shadow">
       <div className="flex justify-between items-center p-6 border-b">
         <h2 className="text-xl font-semibold">Project Tasks</h2>
-        {tasks.length > 0 && (
+        {tasks.length > 0 && role != "staff" ?(
         <button
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           Add Task
         </button>
-         )}
+         ) :([])}
       </div>
 
       {tasks.length === 0 ? (
         <div className="p-6 text-center text-gray-500">
           <p>No tasks found for this project.</p>
+          { role != 'staff' && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Create First Task
           </button>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {["Task", "Status", "Priority", "Assigned To", "Due Date", "Actions"].map((head) => (
-                  <th
+              {["Task", "Status", "Priority", "Assigned To", "Due Date"]
+                    .concat(role !== "staff" ? ["Actions"] : [])
+                    .map((head) => (                  <th
                     key={head}
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
@@ -228,8 +233,10 @@ const goToPrevTaskPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(task.dueDate).toLocaleDateString()}
                   </td>
+             { role != 'staff' && (
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex space-x-2">
+                    
+                    <div className="flex space-x-2">     
                       <button
                         onClick={() => handleEditTask(task)}
                         className="text-blue-600 hover:text-blue-800"
@@ -244,6 +251,8 @@ const goToPrevTaskPage = () => {
                       </button>
                     </div>
                   </td>
+                )}
+
                 </tr>
               ))}
             </tbody>

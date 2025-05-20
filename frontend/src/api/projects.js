@@ -1,3 +1,4 @@
+
 import api from './axios';
 
 /**
@@ -76,54 +77,37 @@ export const deleteProject = async (id) => {
     }
 };
 export const fetchCompletedProjectsForInvoicing = async () => {
-  try {
-    const allProjects = await fetchProjects();
-    console.log(allProjects, "hghhg");
-
-    // Corrected: Access the project list from `data`
-    if (!Array.isArray(allProjects.data)) {
-      console.error("Projects array is undefined or not an array:", allProjects.data);
-      throw new Error("Failed to load projects for invoicing");
+    try {
+        const response = await api.get('/projects', { 
+            params: { 
+                status: 'completed',
+                includeInvoiceStatus: true // Add this parameter
+            } 
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching completed projects:', error);
+        throw error;
     }
-
-    const completedProjects = allProjects.data.filter(project =>
-      project.status === 'completed' &&
-      (!project.invoiceStatus || project.invoiceStatus === 'Not Invoiced')
-    );
-
-    console.log("completed pro", completedProjects);
-
-    return {
-      projects: completedProjects,
-      team: allProjects.team // Optional, depends on your API
-    };
-  } catch (error) {
-    console.error('Error fetching completed projects for invoicing:', error);
-    throw error;
-  }
 };
 
 
 export const markProjectAsInvoiced = async (id, invoiceData) => {
     try {
-        // In a real app, you would send a PUT request to update this in the backend
-        // const response = await api.put(`/api/projects/${id}/invoice`, invoiceData);
-        // return response.data;
-
-        const project = await fetchProjectById(id);
-
-        // Mark the project as invoiced
-        return {
-            ...project,
-            status: 'Invoiced',
-            invoiceStatus: 'Invoiced',
-            invoiceData: {
+        // Make a real API call to update the project
+        const response = await api.put(`/projects/${id}/invoice`, {
+            invoiceNumber: invoiceData.invoiceNumber,
+            invoiceDate: invoiceData.invoiceDate,
+            status: 'invoiced',
+            invoiceStatus: 'Created',
+             invoiceData: {
                 ...invoiceData,
                 createdAt: new Date().toISOString()
             }
-        };
+        });
+        return response.data;
     } catch (error) {
         console.error(`Error marking project ${id} as invoiced:`, error);
         throw error;
     }
-}; 
+};

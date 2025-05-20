@@ -20,7 +20,10 @@ const priorityColors = {
   medium: "bg-orange-100 text-orange-800",
   low: "bg-green-100 text-green-800",
 };
-
+const invoiceStatusColors = {
+  'Not Created': "bg-yellow-100 text-yellow-800",
+  'Created': "bg-green-100 text-green-800"
+};
 const Finance = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +121,7 @@ const Finance = () => {
         await markProjectAsInvoiced(id, {
           invoiceNumber: invoiceData.invoiceNumber,
           invoiceDate: invoiceData.invoiceDate,
+          invoiceStatus: 'Created' // Add this line
         });
       }
 
@@ -410,6 +414,9 @@ const Finance = () => {
             >
               Completion Date
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Invoice 
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -467,7 +474,7 @@ const Finance = () => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
-                  {pro.totalTasks ? `${pro.totalTasks} Tasks` : ""}
+                  {pro.tasks ? `${pro.tasks.length} Tasks` : ""}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -486,6 +493,13 @@ const Finance = () => {
                   : pro.updatedAt
                   ? new Date(pro.updatedAt).toLocaleDateString()
                   : ""}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  invoiceStatusColors[pro.invoiceStatus || 'Not Created']
+                }`}>
+                  {pro.invoiceStatus || 'Not Created'}
+                </span>
               </td>
             </tr>
           ))}
