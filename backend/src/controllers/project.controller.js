@@ -18,7 +18,6 @@ exports.getProjects = async (req, res, next) => {
         const limit = parseInt(req.query.limit, 10) || 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const total = await Project.countDocuments();
 
         // Filtering
         const filter = { deleted: { $ne: true } };
@@ -31,6 +30,7 @@ exports.getProjects = async (req, res, next) => {
         if (req.query.assignedTo) {
             filter.assignedTo = req.query.assignedTo;
         }
+        const total = await Project.countDocuments(filter);
 
         // If user is not admin, only show projects they are assigned to
         // if (req.user.role !== 'admin' && req.user.role !== 'finance' && req.user.role !== 'manager' ) {

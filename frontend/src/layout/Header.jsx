@@ -1,21 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Avatar } from '../ui';
 import { useAuth } from '../context/AuthContext';
-import NotificationDropdown from "../components/NotificationDropdown"
+import NotificationDropdown from "../components/NotificationDropdown";
 import { ROUTES } from '../config/constants';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+import { fetchTasks } from "../api/tasks";
+import { projectsApi } from "../api/projectsApi";
+import { clientsApi } from "../api/clientsApi";
 
 const Header = ({ onOpenSidebar }) => {
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const navigate = useNavigate();
+  const searchRef = useRef(null);
 
-  // Close user menu when clicking outside
+  // Close search results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
       }
     };
 
@@ -23,8 +31,87 @@ const Header = ({ onOpenSidebar }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
+  // Search function
+  const handleSearch = async (value) => {
+    setSearchTerm(value);
+    if (value.trim().length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    try {
+      // Modified API calls with proper error handling
+      const [tasksResponse, projectsResponse, clientsResponse] = await Promise.all([
+        fetchTasks({ search: value }).catch(() => ({ tasks: [] })),
+        projectsApi.getAllProjects().catch(() => ({ data: [] })),
+        clientsApi.getAllClients().catch(() => ({ data: [] }))
+      ]);
+
+      const searchResults = [];
+
+      // Modified task handling
+      if (tasksResponse?.tasks) {
+        const matchingTasks = tasksResponse.tasks
+          .filter(task => 
+            task.title?.toLowerCase().includes(value.toLowerCase())
+          )
+          .map(task => ({
+            type: 'task',
+            id: task._id,
+            title: task.title,
+            route: `${ROUTES.TASKS}/${task._id}`
+          }));
+        searchResults.push(...matchingTasks);
+      }
+
+      // Modified project handling
+      if (projectsResponse?.data) {
+        const matchingProjects = projectsResponse.data
+          .filter(project => 
+            project.name?.toLowerCase().includes(value.toLowerCase())
+          )
+          .map(project => ({
+            type: 'project',
+            id: project._id,
+            title: project.name,
+            route: `${ROUTES.PROJECTS}/${project._id}`
+          }));
+        searchResults.push(...matchingProjects);
+      }
+
+      // Modified client handling
+      if (clientsResponse?.data) {
+        const matchingClients = clientsResponse.data
+          .filter(client => 
+            (client.name?.toLowerCase().includes(value.toLowerCase()) ||
+            client.email?.toLowerCase().includes(value.toLowerCase()))
+          )
+          .map(client => ({
+            type: 'client',
+            id: client._id,
+            title: client.name,
+            subtitle: client.email,
+            route: `${ROUTES.CLIENTS}/${client._id}`
+          }));
+        searchResults.push(...matchingClients);
+      }
+
+      setSearchResults(searchResults);
+      setShowResults(searchResults.length > 0);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  };
+
+  
+
+  const handleResultClick = (result) => {
+    setShowResults(false);
+    setSearchTerm('');
+    navigate(result.route);
   };
 
   return (
@@ -45,8 +132,8 @@ const Header = ({ onOpenSidebar }) => {
 
           <div className="flex-1 flex items-center justify-between">
             {/* Search bar */}
-            <div className="flex-1 flex items-center md:ml-6">
-              <div className="max-w-lg w-full">
+            <div className="flex-1 flex items-center md:ml-6" ref={searchRef}>
+              <div className="max-w-lg w-full relative">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
@@ -66,10 +153,48 @@ const Header = ({ onOpenSidebar }) => {
                     id="search"
                     name="search"
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Search tasks, clients, projects..."
+                    placeholder="Search tasks, projects, clients..."
                     type="search"
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
                   />
                 </div>
+
+                {/* Search Results Dropdown */}
+                {showResults && searchResults.length > 0 && (
+  <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-50">
+    <ul className="max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+      {searchResults.map((result) => (
+        <li
+          key={`${result.type}-${result.id}`}
+          className="cursor-pointer hover:bg-gray-100 px-4 py-2"
+          onClick={() => handleResultClick(result)}
+        >
+          <div className="flex items-center">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize mr-2">
+              {result.type === 'task' && (
+                <span className="text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full">Task</span>
+              )}
+              {result.type === 'project' && (
+                <span className="text-green-800 bg-green-100 px-2 py-0.5 rounded-full">Project</span>
+              )}
+              {result.type === 'client' && (
+                <span className="text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">Client</span>
+              )}
+            </span>
+            <div className="flex flex-col">
+              <span className="text-gray-900">{result.title}</span>
+              {result.subtitle && (
+                <span className="text-xs text-gray-500">{result.subtitle}</span>
+              )}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
               </div>
             </div>
 
