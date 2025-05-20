@@ -511,13 +511,76 @@ const ProjectProgress = ({ project }) => {
   );
 };
 
+// const TaskSummary = ({ tasks }) => {
+//   const statusCounts = {
+//     "In Progress": tasks.filter((task) => task.status === "In Progress").length,
+//     Pending: tasks.filter((task) => task.status === "Pending").length,
+//     Completed: tasks.filter((task) => task.status === "Completed").length,
+//     Review: tasks.filter((task) => task.status === "Review").length,
+//   };
+//   return (
+//     <div className="bg-white rounded-lg shadow-sm p-6">
+//       <div className="flex justify-between items-center mb-4">
+//         <h2 className="text-lg font-medium">Task Summary</h2>
+//         <Link
+//           to={ROUTES.TASKS}
+//           className="text-sm text-blue-600 hover:text-blue-800"
+//         >
+//           View all
+//         </Link>
+//       </div>
+
+//       <div className="grid grid-cols-2 gap-4">
+//         {Object.entries(statusCounts).map(([status, count]) => (
+//           <div key={status} className="flex items-center p-3 border rounded-lg">
+//             <div
+//               className={`w-3 h-3 rounded-full mr-2 ${
+//                 status === "In Progress"
+//                   ? "bg-blue-500"
+//                   : status === "Pending"
+//                   ? "bg-yellow-500"
+//                   : status === "Completed"
+//                   ? "bg-green-500"
+//                   : "bg-purple-500"
+//               }`}
+//             ></div>
+//             <div>
+//               <p className="text-xs text-gray-500">{status}</p>
+//               <p className="text-lg font-bold">{count}</p>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       <div className="mt-4">
+//         <div className="flex justify-between text-xs text-gray-500 mb-1">
+//           <span>Tasks Completed</span>
+//           <span>
+//             {Math.round((statusCounts.Completed / tasks.length) * 100)}%
+//           </span>
+//         </div>
+//         <div className="w-full h-2 bg-gray-200 rounded-full">
+//           <div
+//             className="h-2 bg-green-500 rounded-full"
+//             style={{
+//               width: `${(statusCounts.Completed / tasks.length) * 100}%`,
+//             }}
+//           ></div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
 const TaskSummary = ({ tasks }) => {
-  const statusCounts = {
-    "In Progress": tasks.filter((task) => task.status === "In Progress").length,
-    Pending: tasks.filter((task) => task.status === "Pending").length,
-    Completed: tasks.filter((task) => task.status === "Completed").length,
-    Review: tasks.filter((task) => task.status === "Review").length,
-  };
+  // Define all possible statuses
+  const allStatuses = ["In Progress", "Pending", "Completed", "Review"];
+  
+  // Create a map of all statuses with their counts
+  const statusMap = allStatuses.map(status => ({
+    status,
+    count: tasks.find(t => t.status === status)?.count || 0
+  }));
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -532,7 +595,7 @@ const TaskSummary = ({ tasks }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {Object.entries(statusCounts).map(([status, count]) => (
+        {statusMap.map(({ status, count }) => (
           <div key={status} className="flex items-center p-3 border rounded-lg">
             <div
               className={`w-3 h-3 rounded-full mr-2 ${
@@ -554,17 +617,24 @@ const TaskSummary = ({ tasks }) => {
       </div>
 
       <div className="mt-4">
+        {/* Rest of the component remains the same */}
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>Tasks Completed</span>
           <span>
-            {Math.round((statusCounts.Completed / tasks.length) * 100)}%
+            {Math.round(
+              ((tasks.find(t => t.status === "Completed")?.count || 0) / 
+              tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
+            ) || 0}%
           </span>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full">
           <div
             className="h-2 bg-green-500 rounded-full"
             style={{
-              width: `${(statusCounts.Completed / tasks.length) * 100}%`,
+              width: `${Math.round(
+                ((tasks.find(t => t.status === "Completed")?.count || 0) / 
+                tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
+              ) || 0}%`,
             }}
           ></div>
         </div>

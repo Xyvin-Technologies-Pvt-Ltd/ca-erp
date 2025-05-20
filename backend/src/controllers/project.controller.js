@@ -16,8 +16,10 @@ exports.getProjects = async (req, res, next) => {
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
+        // If limit is -1 or very large number, don't apply limit
+        const shouldLimit = limit > 0 && limit <= 100;
+        const startIndex = shouldLimit ? (page - 1) * limit : 0;
+        const endIndex = shouldLimit ? page * limit : undefined;
 
         // Filtering
         const filter = { deleted: { $ne: true } };
@@ -61,9 +63,7 @@ exports.getProjects = async (req, res, next) => {
         }
 
         // Query with filters and sort
-        const projects = await Project.find(filter)
-            .skip(startIndex)
-            .limit(limit)
+        let query = Project.find(filter)
             .sort(sort)
             .populate({
                 path: 'client',
@@ -84,7 +84,14 @@ exports.getProjects = async (req, res, next) => {
                     path: 'uploadedBy',
                     select: 'name email',
                 },
-            });;
+            });
+
+        // Apply pagination only if limit is specified
+        if (shouldLimit) {
+            query = query.skip(startIndex).limit(limit);
+        }
+
+        const projects = await query;
 
  if (req.query.includeInvoiceStatus) {
             const projectsWithInvoiceStatus = await Promise.all(
