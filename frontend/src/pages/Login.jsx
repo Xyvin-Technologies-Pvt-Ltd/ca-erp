@@ -106,14 +106,14 @@ const Login = () => {
               </label>
             </div>
 
-            <div className="text-sm">
+            {/* <div className="text-sm">
               <a
                 href="#"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 Forgot your password?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div>
@@ -128,7 +128,7 @@ const Login = () => {
           </div>
         </form>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -149,7 +149,7 @@ const Login = () => {
               </Link>
             </p>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
