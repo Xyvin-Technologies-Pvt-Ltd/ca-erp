@@ -22,7 +22,8 @@ export const fetchDashboardData = async () => {
 
     //projects
     const [projects, tasksRes,usersRes] = await Promise.all([
-      projectsApi.getAllProjects(),
+      // Add limit parameter to get all projects
+      projectsApi.getAllProjects({ limit: 100 }), // Increase limit or use -1 if your API supports it
       fetchTasks(),
       userApi.Allusers(),
     ]);
@@ -47,13 +48,46 @@ export const fetchDashboardData = async () => {
 
     // console.log(tasksRes.total);
 
-    const tasksByStatus = tasksRes.tasks.reduce((acc, t) => {
-      const statusKey = t.status.charAt(0).toUpperCase() + t.status.slice(1);
-      const found = acc.find((x) => x.status === statusKey);
-      if (found) found.count++;
-      else acc.push({ status: statusKey, count: 1 });
+    console.log('Tasks from API:', tasksRes.tasks);
+
+    const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
+      const status = task.status.toLowerCase();
+      console.log('Processing task status:', status); // Debug log
+      
+      let statusKey;
+      switch (status) {
+        case 'completed':
+          statusKey = 'Completed';
+          break;
+        case 'in-progress':
+        case 'inprogress':
+          statusKey = 'In Progress';
+          break;
+        case 'pending':
+          statusKey = 'Pending';
+          break;
+        case 'delayed':
+          statusKey = 'Delayed';
+          break;
+        default:
+          statusKey = task.status.charAt(0).toUpperCase() + task.status.slice(1);
+      }
+
+      if (!acc[statusKey]) {
+        acc[statusKey] = 0;
+      }
+      acc[statusKey]++;
+      console.log('Current counts:', acc); // Debug log
       return acc;
-    }, []);
+    }, {});
+
+    // Convert to array format for the dashboard
+    const taskSummary = Object.entries(tasksByStatus).map(([status, count]) => ({
+      status,
+      count
+    }));
+
+
 
     // team members
     const currentMember = usersRes.data.data.count;
@@ -147,7 +181,7 @@ export const fetchDashboardData = async () => {
       
       projects: projectList,
       
-      tasks: tasksByStatus,
+      tasks: taskSummary,
       activities: [
         {
           id: 1,
