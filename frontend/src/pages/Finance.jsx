@@ -427,12 +427,12 @@ const [paginations, setPaginations] = useState({
             >
               Total Tasks
             </th>
-            <th
+            {/* <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               Hours
-            </th>
+            </th> */}
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -508,11 +508,11 @@ const [paginations, setPaginations] = useState({
                   {pro.tasks ? `${pro.tasks.length} Tasks` : ""}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              {/* <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
                   {pro.actualHours || pro.estimatedHours || 0}
                 </div>
-              </td>
+              </td> */}
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
                   {Number(pro.cost || 0).toLocaleString("en-IN")}
@@ -525,7 +525,7 @@ const [paginations, setPaginations] = useState({
                   ? new Date(pro.updatedAt).toLocaleDateString()
                   : ""}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4 whitespace-nowrap">
                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   invoiceStatusColors[pro.invoiceStatus || 'Not Created']
                 }`}>
