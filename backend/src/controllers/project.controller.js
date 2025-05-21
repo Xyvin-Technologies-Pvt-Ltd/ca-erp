@@ -125,15 +125,26 @@ exports.getProjects = async (req, res, next) => {
                     return projectObj;
                 })
             );
-            
+            const pagination = {};
+
+            if (endIndex < total) {
+                pagination.next = {
+                    page: page + 1,
+                    limit,
+                };
+            }
+    
+            if (startIndex > 0) {
+                pagination.prev = {
+                    page: page - 1,
+                    limit,
+                };
+            }
             const data = {
                 success: true,
                 count: projectsWithInvoiceStatus.length,
-                pagination: {
-                    page,
-                    limit,
-                    total
-                },
+                pagination,
+                total,
                 projects: projectsWithInvoiceStatus
             };
             

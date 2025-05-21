@@ -76,14 +76,16 @@ export const deleteProject = async (id) => {
         throw error;
     }
 };
-export const fetchCompletedProjectsForInvoicing = async () => {
+export const fetchCompletedProjectsForInvoicing = async ({ page = 1, limit = 10 }) => {
     try {
         const response = await api.get('/projects', { 
             params: { 
                 status: 'completed',
-                includeInvoiceStatus: true // Add this parameter
+                includeInvoiceStatus: true,
+                 page,        
+                limit
             } 
-        });
+        });       
         return response.data;
     } catch (error) {
         console.error('Error fetching completed projects:', error);
