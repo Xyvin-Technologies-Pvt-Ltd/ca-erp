@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { ErrorResponse } = require('../middleware/errorHandler');
 const { logger } = require('../utils/logger');
+const { log } = require('winston');
 
 /**
  * @desc    Get all users
@@ -122,40 +123,54 @@ exports.createUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id);
-
         if (!user) {
             return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
         }
 
-        // If trying to update email, check if it's already in use
+        // Check email uniqueness
         if (req.body.email && req.body.email !== user.email) {
             const existingEmail = await User.findOne({ email: req.body.email });
             if (existingEmail) {
                 return next(new ErrorResponse('Email already in use', 400));
             }
         }
+       
+        const isPasswordUpdate = !!req.body.password;
 
-        // Don't allow role updates unless by an admin
-        // if (req.body.role && req.user.role !== 'admin') {
-        //     return next(new ErrorResponse('Not authorized to update user role', 403));
-        // }
+       
+        if (req.body.password) {
+            user.password = req.body.password;
+            await user.save();
+            
+            req.body.password = user.password;
+           delete req.body.password;
+        }
 
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+
+        // Update other fields using findByIdAndUpdate
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
 
         // Log the user update
-        logger.info(`User updated: ${updatedUser.email} (${updatedUser._id}) by ${req.user.name} (${req.user._id})`);
+        logger.info(`User updated: ${updatedUser.email} (${updatedUser._id})`);
 
         res.status(200).json({
             success: true,
             data: updatedUser,
+            passwordUpdated: isPasswordUpdate
         });
     } catch (error) {
         next(error);
     }
 };
+
+
 
 /**
  * @desc    Delete user

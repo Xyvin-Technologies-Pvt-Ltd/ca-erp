@@ -110,7 +110,7 @@ router.route('/')
      *       403:
      *         description: Forbidden
      */
-    .post(protect, authorize('admin'), validate(userValidation.create), createUser);
+    .post(protect, authorize('admin','manager'), validate(userValidation.create), createUser);
 
 /**
  * @swagger
@@ -234,7 +234,7 @@ router.route('/:id')
      *       403:
      *         description: Forbidden
      */
-    .delete(protect, authorize('admin'), deleteUser);
+    .delete(protect, authorize('admin','manager'), deleteUser);
 
 /**
  * @swagger
