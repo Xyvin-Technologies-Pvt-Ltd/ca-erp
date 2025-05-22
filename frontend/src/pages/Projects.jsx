@@ -278,9 +278,9 @@ const handlePageChanges = (newPage) => {
               className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow duration-300"
             >
               <div className="px-6 py-5 border-b">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-[3px]">
                   <div>
-                    <h2 className="text-lg font-medium text-gray-900 truncate">
+                    <h2 className="text-lg font-medium text-gray-900  ">
                       {project.name}
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
