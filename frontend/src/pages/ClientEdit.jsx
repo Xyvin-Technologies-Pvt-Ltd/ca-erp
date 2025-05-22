@@ -34,7 +34,7 @@ const ClientEdit = () => {
   }, [id]);
 
   const handleSuccess = (updatedClient) => {
-    toast.success("Client updated successfully");
+    // toast.success("Client updated successfully");
     navigate(`/clients/${id}`, { state: { message: "Client updated successfully" } });
   };
 
