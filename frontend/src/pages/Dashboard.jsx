@@ -839,10 +839,28 @@ const UpcomingDeadlines = ({ projects }) => {
           <div className="space-y-3">
             {currentDeadlines.map((deadline) => (
               <div key={deadline.id} className="p-3 border rounded-lg">
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <h3 className="font-medium">{deadline.title}</h3>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
+                      deadline.daysLeft <= 1
+                        ? "bg-red-100 text-red-800"
+                        : deadline.daysLeft <= 3
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {deadline.daysLeft === 0
+                      ? "Today"
+                      : deadline.daysLeft === 1
+                      ? "Tomorrow"
+                      : `${deadline.daysLeft} days left`}
+                  </span>
+                </div> */}
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium flex-1 mr-3">{deadline.title}</h3>
+                  <span
+                    className={`text-xs px-3 py-2 rounded-full flex-shrink-0 ${
                       deadline.daysLeft <= 1
                         ? "bg-red-100 text-red-800"
                         : deadline.daysLeft <= 3
