@@ -735,3 +735,88 @@ exports.markTaskAsInvoiced = async (req, res, next) => {
         next(error);
     }
 };
+/**
+ * @desc    Get task tag documents
+ * @route   GET /api/tasks/:id/tag-documents
+ * @access  Private
+ */
+exports.getTaskTagDocuments = async (req, res, next) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            data: task.tagDocuments || {}
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Upload tag document
+ * @route   POST /api/tasks/:id/tag-documents
+ * @access  Private
+ */
+exports.uploadTagDocument = async (req, res, next) => {
+    try {
+        console.log('Upload request received:', {
+            body: req.body,
+            file: req.file,
+            params: req.params
+        });
+
+        if (!req.file) {
+            return next(new ErrorResponse('Please upload a file', 400));
+        }
+
+        let task = await Task.findById(req.params.id);
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        try {
+            // Initialize tagDocuments if it doesn't exist
+            if (!task.tagDocuments) {
+                task.tagDocuments = new Map();
+            }
+
+            // Get tag and documentType from request body
+            const { tag, documentType } = req.body;
+            
+            // Create a unique key for the document
+            const documentKey = `${tag}-${documentType}`;
+            
+            // Store the document information
+            const documentInfo = {
+                fileName: req.file.originalname,
+                filePath: req.file.path.replace(/\\/g, '/'),
+                documentType: documentType || 'document',
+                tag: tag || 'general',
+                uploadedAt: new Date()
+            };
+
+            console.log('Saving document info:', documentInfo);
+
+            // Set the document in the Map
+            task.tagDocuments.set(documentKey, documentInfo);
+            task.markModified('tagDocuments');
+
+            await task.save();
+
+            res.status(200).json({
+                success: true,
+                data: documentInfo
+            });
+        } catch (saveError) {
+            console.error('Error saving document:', saveError);
+            return next(new ErrorResponse('Error saving document information', 500));
+        }
+    } catch (error) {
+        console.error('Error in uploadTagDocument:', error);
+        next(error);
+    }
+};

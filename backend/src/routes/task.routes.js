@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const {
     getTasks,
     getTask,
@@ -10,13 +11,15 @@ const {
     addTaskComment,
     updateTaskTime,
     getMyTasks,
-    markTaskAsInvoiced
+    markTaskAsInvoiced,
+    uploadTagDocument,
+    getTaskTagDocuments
 } = require('../controllers/task.controller');
 
 const { protect, authorize } = require('../middleware/auth');
 const { validate } = require('../middleware/validator');
 const { taskValidation } = require('../middleware/validator');
-const { uploadTaskFile } = require('../middleware/upload');
+const { uploadTaskFile, uploadTagDocument: uploadTagDocumentMiddleware } = require('../middleware/upload');
 const ensureFileArray = (req, res, next) => {
     if (!req.body) req.body = {}; // Ensure body exists
     req.body.file = req.file ? [req.file.filename] : []; // If file exists, assign filename array; else, empty array
@@ -544,5 +547,42 @@ router.route('/:id/time')
  */
 router.route('/:id/invoice')
     .put(protect,  markTaskAsInvoiced);
+
+/**
+ * @swagger
+ * /api/tasks/{id}/tag-documents:
+ *   get:
+ *     summary: Get documents for a task
+ *     description: Retrieve a list of documents associated with a task
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Task ID
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       404:
+ *         description: Task not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.route('/:id/tag-documents')
+    .get(protect, getTaskTagDocuments)
+    .post(protect, uploadTagDocumentMiddleware.single('file'), uploadTagDocument);
 
 module.exports = router; 
