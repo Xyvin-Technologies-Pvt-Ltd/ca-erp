@@ -28,6 +28,7 @@ const financeRoutes = require('./routes/finance.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const activityRoutes = require('./routes/activity.routes');
+const departments = require('./routes/department.routes')
 
 // Initialize express app
 const app = express();
@@ -85,6 +86,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/departments',departments)
 
 
 // Swagger documentation

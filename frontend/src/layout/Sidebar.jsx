@@ -14,6 +14,7 @@ import {
   UserIcon,
   UsersIcon,
   ChevronDownIcon,
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 import { ROUTES } from "../config/constants";
 import { useAuth } from "../context/AuthContext";
@@ -28,12 +29,17 @@ const navigation = [
       {
         name: "Employees",
         to: ROUTES.HRM_EMPLOYEES,
-        icon: UsersIcon,
+        icon: UserIcon,
+      },
+      {
+        name: "Departments",
+        to: ROUTES.HRM_DEPARTMENTS,
+        icon: BuildingOfficeIcon,
       },
     ],
   },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },
-  { name: "Leads", to: ROUTES.LEADS, icon: UserPlusIcon },
+  // { name: "Leads", to: ROUTES.LEADS, icon: UserPlusIcon },
   { name: "Projects", to: ROUTES.PROJECTS, icon: BriefcaseIcon },
   { name: "Tasks", to: ROUTES.TASKS, icon: ClipboardDocumentListIcon },
   { name: "Documents", to: ROUTES.DOCUMENTS, icon: DocumentIcon },

@@ -18,14 +18,12 @@ import ErrorPage from "./pages/ErrorPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-
 import Profile from "./pages/Profile";
 import ProjectCart from "./pages/ProjectCart";
 import Notification from "./pages/Notification";
 import HRM from "./pages/hrm/HRM";
 import Employees from "./pages/hrm/Employees";
-
+import Departments from "./pages/hrm/Departments";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +78,7 @@ function App() {
                 {/* HRM Routes */}
                 <Route path={ROUTES.HRM} element={<HRM />} />
                 <Route path={ROUTES.HRM_EMPLOYEES} element={<Employees />} />
+                <Route path={ROUTES.HRM_DEPARTMENTS} element={<Departments />} />
 
                 {/* Default and 404 */}
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />

@@ -41,6 +41,7 @@ export const ROUTES = {
     SETTINGS_USER_MANAGEMENT: '/settings/user-management',
     HRM: '/hrm',
     HRM_EMPLOYEES: '/hrm/employees',
+    HRM_DEPARTMENTS: '/hrm/departments',
     FINANCE: '/finance',
     NOTIFICATIONS: '/notifications',
 }; 
