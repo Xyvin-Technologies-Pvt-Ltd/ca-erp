@@ -23,6 +23,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Profile from "./pages/Profile";
 import ProjectCart from "./pages/ProjectCart";
 import Notification from "./pages/Notification";
+import HRM from "./pages/hrm/HRM";
+import Employees from "./pages/hrm/Employees";
 
 
 const queryClient = new QueryClient({
@@ -75,6 +77,9 @@ function App() {
 
                 <Route path={ROUTES.PROFILE} element={<Profile />} />
 
+                {/* HRM Routes */}
+                <Route path={ROUTES.HRM} element={<HRM />} />
+                <Route path={ROUTES.HRM_EMPLOYEES} element={<Employees />} />
 
                 {/* Default and 404 */}
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />

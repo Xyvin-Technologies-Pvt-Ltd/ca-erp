@@ -11,6 +11,9 @@ import {
   UserPlusIcon,
   XMarkIcon,
   CurrencyDollarIcon,
+  UserIcon,
+  UsersIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { ROUTES } from "../config/constants";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +21,17 @@ import api from "../api/axios";
 
 const navigation = [
   { name: "Dashboard", to: ROUTES.DASHBOARD, icon: HomeIcon },
+   {
+    name: "HRM",
+    icon: UsersIcon,
+    children: [
+      {
+        name: "Employees",
+        to: ROUTES.HRM_EMPLOYEES,
+        icon: UsersIcon,
+      },
+    ],
+  },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },
   { name: "Leads", to: ROUTES.LEADS, icon: UserPlusIcon },
   { name: "Projects", to: ROUTES.PROJECTS, icon: BriefcaseIcon },
@@ -29,7 +43,7 @@ const navigation = [
     icon: CurrencyDollarIcon,
     roles: ["finance", "admin"],
   },
-  { name: "Project List", to: ROUTES.PROJECTCART, icon: BriefcaseIcon },
+  // { name: "Project List", to: ROUTES.PROJECTCART, icon: BriefcaseIcon },
 ];
 
 const secondaryNavigation = [
@@ -42,7 +56,7 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
   const { user, role } = useAuth();
  const [logoFilename, setLogoFilename] = useState("");
   const [companyName, setCompanyName] = useState("");
-
+  const [expandedItems, setExpandedItems] = useState({});
 
   useEffect(() => {
   const fetchLogo = async () => {
@@ -68,7 +82,12 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
   fetchLogo();
 }, []);
 
-
+  const toggleExpand = (itemName) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemName]: !prev[itemName],
+    }));
+  };
 
   // Check if a nav item is active
   const isActive = (path) => {
@@ -137,28 +156,65 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
       {/* Navigation */}
       <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4">
         <nav className="flex-1 px-2 space-y-1 bg-white">
-          {filteredNavigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.to}
-              onClick={onCloseMobile}
-              className={`${
-                isActive(item.to)
-                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-500"
-                  : "text-gray-700 hover:bg-gray-50"
-              } group flex items-center px-3 py-2 text-sm font-medium rounded-md`}
-            >
-              <item.icon
-                className={`${
-                  isActive(item.to)
-                    ? "text-blue-500"
-                    : "text-gray-500 group-hover:text-gray-600"
-                } mr-3 flex-shrink-0 h-6 w-6`}
-                aria-hidden="true"
-              />
-              {item.name}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isExpanded = expandedItems[item.name];
+            const hasChildren = item.children && item.children.length > 0;
+
+            return (
+              <div key={item.name}>
+                {hasChildren ? (
+                  <div>
+                    <button
+                      onClick={() => toggleExpand(item.name)}
+                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                        isExpanded
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <item.icon className="mr-3 h-5 w-5" />
+                      <span className="flex-1 text-left">{item.name}</span>
+                      <ChevronDownIcon
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isExpanded ? "transform rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-8 mt-1 space-y-1">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.name}
+                            to={child.to}
+                            className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                              location.pathname === child.to
+                                ? "bg-blue-50 text-blue-700"
+                                : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            <child.icon className="mr-3 h-5 w-5" />
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to={item.to}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                      location.pathname === item.to
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </div>
 

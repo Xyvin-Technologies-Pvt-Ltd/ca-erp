@@ -37,9 +37,10 @@ export const ROUTES = {
     DOCUMENTS: '/documents',
     PROFILE: '/profile',
     SETTINGS: '/settings',
+    SETTINGS_PROFILE: '/settings/profile',
+    SETTINGS_USER_MANAGEMENT: '/settings/user-management',
+    HRM: '/hrm',
+    HRM_EMPLOYEES: '/hrm/employees',
     FINANCE: '/finance',
     NOTIFICATIONS: '/notifications',
-
-
-
 }; 
