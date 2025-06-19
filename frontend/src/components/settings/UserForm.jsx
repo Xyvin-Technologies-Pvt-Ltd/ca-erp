@@ -2,22 +2,27 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ROLES } from "../../config/constants";
 import { userApi } from "../../api/userApi";
+import { getDepartments } from '../../api/department.api';
+import { getPositions } from '../../api/positions.api';
+
 import { toast } from "react-toastify";
 
-const departments = [
-  "Management",
-  "Audit",
-  "Tax",
-  "Finance",
-  "Consulting",
-  "Compliance",
-  "Operations",
-  "Legal",
-  "IT",
-];
+// const departments = [
+//   "Management",
+//   "Audit",
+//   "Tax",
+//   "Finance",
+//   "Consulting",
+//   "Compliance",
+//   "Operations",
+//   "Legal",
+//   "IT",
+// ];
 
 const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [loading, setLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
   const isEditMode = !!user;
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
@@ -40,10 +45,36 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
 
   useEffect(() => {
     if (user) {
-      reset(user);
+      // Ensure department and position are set to correct values for dropdowns
+      reset({
+        ...user,
+        department: user.department?._id || user.department || '',
+        position: user.position?._id || user.position || '',
+      });
     }
   }, [user, reset]);
- 
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await getDepartments();
+        setDepartments(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch departments:", error);
+        toast.error("Could not load departments");
+      }
+    };
+    const fetchPositions = async () => {
+      try {
+        const response = await getPositions();
+        setPositions(response.data || []);
+      } catch (error) {
+        setPositions([]);
+      }
+    };
+    fetchDepartments();
+    fetchPositions();
+  }, []);
+
   const submitHandler = async (data) => {
     setLoading(true);
     try {
@@ -194,7 +225,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
               )}
             </div>
 
-            <div>
+           <div>
               <label
                 htmlFor="department"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -209,15 +240,51 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Select a department</option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
+                {departments.length > 0 ? (
+                  departments.map((dept) => (
+                    <option key={dept._id || dept.name} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading...</option>
+                )}
               </select>
               {errors.department && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.department.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="position"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Position
+              </label>
+              <select
+                id="position"
+                {...register("position", {
+                  required: "Position is required",
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select a position</option>
+                {positions.length > 0 ? (
+                  positions.map((pos) => (
+                    <option key={pos._id} value={pos._id}>
+                      {pos.title}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading...</option>
+                )}
+              </select>
+              {errors.position && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.position.message}
                 </p>
               )}
             </div>

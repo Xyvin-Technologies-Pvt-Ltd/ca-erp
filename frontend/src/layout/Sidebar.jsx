@@ -36,6 +36,11 @@ const navigation = [
         to: ROUTES.HRM_DEPARTMENTS,
         icon: BuildingOfficeIcon,
       },
+      {
+        name: "Positions",
+        to: ROUTES.HRM_POSITIONS,
+        icon: BriefcaseIcon,
+      },
     ],
   },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },
