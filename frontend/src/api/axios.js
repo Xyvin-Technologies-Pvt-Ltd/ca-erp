@@ -8,7 +8,7 @@ const api = axios.create({
     },
     withCredentials: true,
     crossDomain: true,
-    timeout: 10000, // 10 seconds timeout
+    timeout: 100000, // 10 seconds timeout //TODO: changed this for a workaround for a bug
 });
 
 // Request interceptor for adding auth token
