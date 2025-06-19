@@ -33,7 +33,8 @@ exports.getUsers = async (req, res, next) => {
         const users = await User.find(filter)
             .skip(startIndex)
             .limit(limit)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('position', 'title');
 
         // Pagination result
         const pagination = {};
@@ -73,7 +74,7 @@ exports.getUser = async (req, res, next) => {
     try {
 
         console.log( "654utityt7iiiiiiiiiiiiiiiiiiiii64646")
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.id).populate('position', 'title');
 
         if (!user) {
             return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
@@ -102,6 +103,7 @@ exports.createUser = async (req, res, next) => {
         }
 
         const user = await User.create(req.body);
+        await user.populate('position', 'title');
 
         // Log the user creation
         logger.info(`User created: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
@@ -155,7 +157,7 @@ exports.updateUser = async (req, res, next) => {
                 new: true,
                 runValidators: true
             }
-        );
+        ).populate('position', 'title');
 
         // Log the user update
         logger.info(`User updated: ${updatedUser.email} (${updatedUser._id})`);

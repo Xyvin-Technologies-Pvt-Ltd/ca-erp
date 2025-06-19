@@ -49,6 +49,9 @@ require('dotenv').config();
  *           type: string
  *           format: date-time
  *           description: Date and time when the user was created
+ *         position:
+ *           type: string
+ *           description: Position (ObjectId reference)
  *       example:
  *         name: Admin User
  *         email: admin@ca-erp.com
@@ -104,6 +107,10 @@ const UserSchema = new mongoose.Schema(
         },
         resetPasswordToken: String,
         resetPasswordExpire: Date,
+        position: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Position',
+        },
     },
     {
         timestamps: true,

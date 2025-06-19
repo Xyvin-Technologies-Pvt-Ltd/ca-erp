@@ -96,7 +96,7 @@ positionSchema.pre('save', async function(next) {
         }
     }
     if (this.isNew || this.isModified('employees')) {
-        const Employee = mongoose.model('Employee');
+        const Employee = mongoose.model('User');
         const count = await Employee.countDocuments({ position: this._id });
         this.currentOccupancy = count;
     }
@@ -104,7 +104,7 @@ positionSchema.pre('save', async function(next) {
 });
 
 positionSchema.pre('deleteOne', { document: true }, async function(next) {
-    const currentCount = await mongoose.model('Employee').countDocuments({ position: this._id });
+    const currentCount = await mongoose.model('User').countDocuments({ position: this._id });
     if (currentCount > 0) {
         next(new Error('Cannot delete position with active employees'));
     }
