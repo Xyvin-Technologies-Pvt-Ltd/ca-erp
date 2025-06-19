@@ -43,6 +43,7 @@ export const ROUTES = {
     HRM_EMPLOYEES: '/hrm/employees',
     HRM_DEPARTMENTS: '/hrm/departments',
     HRM_POSITIONS: '/hrm/positions',
+    HRM_EVENTS: '/hrm/events',
     FINANCE: '/finance',
     NOTIFICATIONS: '/notifications',
 }; 

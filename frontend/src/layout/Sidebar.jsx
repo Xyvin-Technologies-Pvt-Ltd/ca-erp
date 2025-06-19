@@ -15,6 +15,7 @@ import {
   UsersIcon,
   ChevronDownIcon,
   BuildingOfficeIcon,
+  CalendarIcon,
 } from "@heroicons/react/24/outline";
 import { ROUTES } from "../config/constants";
 import { useAuth } from "../context/AuthContext";
@@ -40,6 +41,11 @@ const navigation = [
         name: "Positions",
         to: ROUTES.HRM_POSITIONS,
         icon: BriefcaseIcon,
+      },
+      {
+        name: "Events",
+        to: ROUTES.HRM_EVENTS,
+        icon: CalendarIcon,
       },
     ],
   },

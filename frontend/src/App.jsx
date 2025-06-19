@@ -25,6 +25,7 @@ import HRM from "./pages/hrm/HRM";
 import Employees from "./pages/hrm/Employees";
 import Departments from "./pages/hrm/Departments";
 import Positions from "./pages/hrm/Positions";
+import Events from "./pages/hrm/Events";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,6 +82,7 @@ function App() {
                 <Route path={ROUTES.HRM_EMPLOYEES} element={<Employees />} />
                 <Route path={ROUTES.HRM_DEPARTMENTS} element={<Departments />} />
                 <Route path={ROUTES.HRM_POSITIONS} element={<Positions />} />
+                <Route path={ROUTES.HRM_EVENTS} element={<Events />} />
 
                 {/* Default and 404 */}
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />
