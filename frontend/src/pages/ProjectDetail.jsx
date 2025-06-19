@@ -9,6 +9,7 @@ import {
 } from "../api/projects";
 import ProjectTasks from "../components/ProjectTasks";
 import ProjectForm from "../components/ProjectForm";
+import ProjectTimeline from "../components/ProjectTimeline";
 import { documentsApi } from "../api/documentsApi";
 import { projectsApi } from "../api";
 import ConfirmModal from "../components/settings/DeleteModal";
@@ -517,6 +518,16 @@ const goToPrevDocPage = () => {
             >
               Notes
             </button>
+            <button
+              onClick={() => setActiveTab("datalog")}
+              className={`px-6 py-3 border-b-2 text-sm font-medium ${
+                activeTab === "datalog"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Data Log
+            </button>
           </nav>
         </div>
 
@@ -904,6 +915,18 @@ const goToPrevDocPage = () => {
           )}
         </div>
       )}
+
+          {activeTab === "datalog" && (
+            <div>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Project Activity Log</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Timeline of all activities for this project including document uploads, reminders, and other actions.
+                </p>
+              </div>
+              <ProjectTimeline projectId={id} />
+            </div>
+          )}
 
         </div>
       </div>

@@ -40,7 +40,7 @@ export const createActivity = async (activity) => {
  */
 export const getActivityHistory = async (entityType, entityId) => {
     try {
-        const response = await api.get(`/api/activity/history/${entityType}/${entityId}`);
+        const response = await api.get(`/activities/${entityType}/${entityId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching activity history:", error);

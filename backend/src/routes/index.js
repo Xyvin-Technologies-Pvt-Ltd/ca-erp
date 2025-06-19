@@ -11,6 +11,7 @@ const documentRoutes = require('./document.routes');
 const settingRoutes = require('./setting.routes');
 const financeRoutes = require('./finance.routes');
 const positionRoutes = require('./position.routes');
+const activityRoutes = require('./activity.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -22,5 +23,6 @@ router.use('/documents', documentRoutes);
 router.use('/settings', settingRoutes);
 router.use('/finance', financeRoutes);
 router.use('/positions', positionRoutes);
+router.use('/activities', activityRoutes);
 
 module.exports = router; 
