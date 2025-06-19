@@ -338,3 +338,25 @@ export const getTaskTagDocuments = async (taskId) => {
         throw error;
     }
 };
+
+/**
+ * Send reminder to client for document
+ * @param {string} taskId - Task ID
+ * @param {Object} reminderData - Reminder data including document name, type, and tag
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the reminder response
+ */
+export const remindClientForDocument = async (taskId, reminderData, token) => {
+    try {
+        const response = await api.post(`/tasks/${taskId}/remind-client`, reminderData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Error sending reminder for task ${taskId}:`, error);
+        throw error;
+    }
+};

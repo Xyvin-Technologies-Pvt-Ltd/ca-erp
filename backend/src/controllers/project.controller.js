@@ -67,7 +67,7 @@ exports.getProjects = async (req, res, next) => {
             .sort(sort)
             .populate({
                 path: 'client',
-                select: 'name contactName contactEmail'
+                select: 'name contactName contactEmail contactPhone'
             })
             .populate({
                 path: 'assignedTo',
@@ -216,7 +216,7 @@ exports.getProject = async (req, res, next) => {
         const project = await Project.findById(req.params.id)
             .populate({
                 path: 'client',
-                select: 'name contactName contactEmail'
+                select: 'name contactName contactEmail contactPhone'
             })
             .populate({
                 path: 'assignedTo',
@@ -415,7 +415,7 @@ exports.updateProject = async (req, res, next) => {
         runValidators: true,
       }).populate({
         path: 'client',
-        select: 'name contactName contactEmail',
+        select: 'name contactName contactEmail contactPhone',
       }).populate({
         path: 'assignedTo',
         select: 'name email avatar',
@@ -664,7 +664,7 @@ exports.updateProjectInvoiceStatus = async (req, res, next) => {
             }
         ).populate({
             path: 'client',
-            select: 'name contactName contactEmail'
+            select: 'name contactName contactEmail contactPhone'
         });
 
         if (!project) {

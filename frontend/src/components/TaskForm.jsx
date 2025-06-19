@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { userApi } from "../api/userApi";
-import { createTask, updateTask, uploadTagDocument, getTaskTagDocuments } from "../api/tasks";
+import { createTask, updateTask, uploadTagDocument, getTaskTagDocuments, remindClientForDocument } from "../api/tasks";
 import { WithContext as ReactTags } from "react-tag-input";
 import { projectsApi } from "../api/projectsApi";
 import { useNotifications } from "../context/NotificationContext";
@@ -50,6 +50,8 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
 
   const [tagDocuments, setTagDocuments] = useState({});
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
+  const [clientInfo, setClientInfo] = useState(null);
+  const [isLoadingClient, setIsLoadingClient] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -76,6 +78,44 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
 
     fetchTagDocuments();
   }, [task?._id]);
+
+  // Fetch client information when project changes
+  const fetchClientInfo = async (projectId) => {
+    if (!projectId) {
+      setClientInfo(null);
+      return;
+    }
+
+    setIsLoadingClient(true);
+    try {
+      const response = await projectsApi.getProjectById(projectId);
+      if (response.success && response.data.client) {
+        setClientInfo(response.data.client);
+      } else {
+        setClientInfo(null);
+      }
+    } catch (error) {
+      console.error('Error fetching client info:', error);
+      setClientInfo(null);
+    } finally {
+      setIsLoadingClient(false);
+    }
+  };
+
+  // Handle client reminder
+  const handleRemindClient = async (reminderData) => {
+    if (!task?._id) {
+      throw new Error('Cannot send reminder for unsaved task');
+    }
+
+    try {
+      const response = await remindClientForDocument(task._id, reminderData, token);
+      return response;
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      throw error;
+    }
+  };
 
   const handleTagDocumentUpload = async (tag, documentType, file) => {
     try {
@@ -200,6 +240,20 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
 
 
 
+
+  // Fetch client info when project changes
+  useEffect(() => {
+    if (projectId) {
+      fetchClientInfo(projectId);
+    }
+  }, [projectId]);
+
+  // Fetch client info for existing task on mount
+  useEffect(() => {
+    if (task?.project?._id) {
+      fetchClientInfo(task.project._id);
+    }
+  }, [task?.project?._id]);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -392,6 +446,9 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
         {selectedTags.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Required Documents</h3>
+            {isLoadingClient && (
+              <div className="text-center text-gray-500 mb-2">Loading client information...</div>
+            )}
             {isLoadingDocuments ? (
               <div className="text-center">Loading documents...</div>
             ) : (
@@ -401,7 +458,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                     key={tag.text}
                     tag={tag.text}
                     onUpload={handleTagDocumentUpload}
+                    onRemindClient={task?._id ? handleRemindClient : null}
                     existingDocuments={tagDocuments}
+                    clientInfo={clientInfo}
+                    isLoading={isLoadingClient || isLoadingDocuments}
                   />
                 ))}
               </div>

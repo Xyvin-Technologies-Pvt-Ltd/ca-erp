@@ -8,6 +8,7 @@ const { logger } = require('../utils/logger');
 const websocketService = require('../utils/websocket');
 const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
+const webhookService = require('../services/webhookService');
 /**
  * @desc    Get all tasks
  * @route   GET /api/tasks
@@ -817,6 +818,107 @@ exports.uploadTagDocument = async (req, res, next) => {
         }
     } catch (error) {
         console.error('Error in uploadTagDocument:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Send reminder to client for document
+ * @route   POST /api/tasks/:id/remind-client
+ * @access  Private
+ */
+exports.remindClientForDocument = async (req, res, next) => {
+    try {
+        const { documentName, documentType, tag } = req.body;
+
+        // Validate required fields
+        if (!documentName || !documentType || !tag) {
+            return next(new ErrorResponse('Document name, type, and tag are required', 400));
+        }
+
+        // Find task with project and client populated
+        const task = await Task.findById(req.params.id)
+            .populate({
+                path: 'project',
+                select: 'name client',
+                populate: {
+                    path: 'client',
+                    select: 'name contactName contactPhone contactEmail'
+                }
+            });
+
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        // Check if user has access to this task
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && task.assignedTo.toString() !== req.user.id.toString()) {
+            return next(new ErrorResponse(`User not authorized to send reminders for this task`, 403));
+        }
+
+        // Check if project has client
+        if (!task.project || !task.project.client) {
+            return next(new ErrorResponse('Task project does not have an associated client', 400));
+        }
+
+        const client = task.project.client;
+
+        // Check if client has phone number
+        if (!client.contactPhone) {
+            return next(new ErrorResponse('Client does not have a phone number for reminders', 400));
+        }
+
+        // Prepare reminder data
+        const reminderData = {
+            clientName: client.name,
+            phoneNumber: client.contactPhone,
+            documentName,
+            tag,
+            documentType,
+            reminderSentBy: req.user.name
+        };
+
+        // Send webhook
+        const webhookResponse = await webhookService.sendClientReminder(reminderData);
+
+        // Log the reminder activity
+        logger.info(`Document reminder sent to client: ${client.name} (${client.contactPhone}) for ${documentName} by ${req.user.name} (${req.user._id})`);
+
+        // Track activity
+        await ActivityTracker.trackActivity(
+            'reminder_sent',
+            'Document Reminder Sent',
+            `Reminder sent to ${client.name} for ${documentName}`,
+            req.user.id,
+            {
+                taskId: task._id,
+                projectId: task.project._id,
+                clientId: client._id,
+                documentName,
+                documentType,
+                tag
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Reminder sent successfully',
+            data: {
+                clientName: client.name,
+                phoneNumber: client.contactPhone,
+                documentName,
+                reminderSentBy: req.user.name,
+                reminderSentAt: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        logger.error('Error sending client reminder:', {
+            error: error.message,
+            taskId: req.params.id,
+            userId: req.user.id,
+            stack: error.stack
+        });
         next(error);
     }
 };

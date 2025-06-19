@@ -13,7 +13,8 @@ const {
     getMyTasks,
     markTaskAsInvoiced,
     uploadTagDocument,
-    getTaskTagDocuments
+    getTaskTagDocuments,
+    remindClientForDocument
 } = require('../controllers/task.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -584,5 +585,82 @@ router.route('/:id/invoice')
 router.route('/:id/tag-documents')
     .get(protect, getTaskTagDocuments)
     .post(protect, uploadTagDocumentMiddleware.single('file'), uploadTagDocument);
+
+/**
+ * @swagger
+ * /api/tasks/{id}/remind-client:
+ *   post:
+ *     summary: Send reminder to client for document
+ *     description: Send a reminder to the client associated with the task's project for a specific document
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Task ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - documentName
+ *               - documentType
+ *               - tag
+ *             properties:
+ *               documentName:
+ *                 type: string
+ *                 description: Name of the document to remind about
+ *                 example: "GST Registration Certificate"
+ *               documentType:
+ *                 type: string
+ *                 description: Type of the document
+ *                 example: "gst_certificate"
+ *               tag:
+ *                 type: string
+ *                 description: Tag category for the document
+ *                 example: "GST"
+ *     responses:
+ *       200:
+ *         description: Reminder sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     clientName:
+ *                       type: string
+ *                     phoneNumber:
+ *                       type: string
+ *                     documentName:
+ *                       type: string
+ *                     reminderSentBy:
+ *                       type: string
+ *                     reminderSentAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Bad request - Missing required fields or client has no phone
+ *       403:
+ *         description: Unauthorized to send reminders for this task
+ *       404:
+ *         description: Task not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.route('/:id/remind-client')
+    .post(protect, remindClientForDocument);
 
 module.exports = router; 
