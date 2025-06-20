@@ -1,141 +1,184 @@
-import { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import useHrmStore from '../stores/useHrmStore';
-import toast from 'react-hot-toast';
+import React, { useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { createLeave, updateLeave, reviewLeave } from "../api/Leave";
+import { toast } from "react-hot-toast";
 
-const LeaveModal = ({ isOpen, onClose, onSuccess, leave }) => {
-  const { createLeave, updateLeave, reviewLeave } = useHrmStore();
-  const [formData, setFormData] = useState({
-    leaveType: '',
-    startDate: '',
-    endDate: '',
-    reason: '',
-    status: 'Pending',
-    duration: 1,
-    reviewNotes: '',
-  });
-  const [loading, setLoading] = useState(false);
+const validationSchema = Yup.object({
+  leaveType: Yup.string().required("Leave type is required"),
+  startDate: Yup.date().required("Start date is required"),
+  endDate: Yup.date().required("End date is required"),
+  reason: Yup.string().required("Reason is required"),
+  status: Yup.string().required("Status is required"),
+});
 
-  useEffect(() => {
-    if (leave) {
-      setFormData({
-        leaveType: leave.leaveType || '',
-        startDate: leave.startDate ? new Date(leave.startDate).toISOString().split('T')[0] : '',
-        endDate: leave.endDate ? new Date(leave.endDate).toISOString().split('T')[0] : '',
-        reason: leave.reason || '',
-        status: leave.status || 'Pending',
-        duration: leave.duration || 1,
-        reviewNotes: leave.reviewNotes || '',
-      });
-    } else {
-      setFormData({
-        leaveType: '',
-        startDate: '',
-        endDate: '',
-        reason: '',
-        status: 'Pending',
-        duration: 1,
-        reviewNotes: '',
-      });
-    }
-  }, [leave, isOpen]);
-
-  useEffect(() => {
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-      setFormData((prev) => ({ ...prev, duration: durationInDays }));
-    }
-  }, [formData.startDate, formData.endDate]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (leave) {
-        if (formData.status !== leave.status && (formData.status === 'Approved' || formData.status === 'Rejected')) {
-          await reviewLeave(leave._id, { status: formData.status, reviewNotes: formData.reviewNotes });
-          toast.success(`Leave request ${formData.status.toLowerCase()} successfully`);
+const LeaveModal = ({ leave, onClose, onSuccess }) => {
+  const formik = useFormik({
+    initialValues: {
+      leaveType: leave?.leaveType || "",
+      startDate: leave?.startDate ? new Date(leave.startDate).toISOString().split("T")[0] : "",
+      endDate: leave?.endDate ? new Date(leave.endDate).toISOString().split("T")[0] : "",
+      reason: leave?.reason || "",
+      status: leave?.status || "Pending",
+      reviewNotes: leave?.reviewNotes || "",
+    },
+    validationSchema,
+    onSubmit: async (values) => {
+      try {
+        const payload = {
+          ...values,
+          duration:
+            Math.ceil((new Date(values.endDate) - new Date(values.startDate)) / (1000 * 60 * 60 * 24)) + 1,
+        };
+        if (leave) {
+          // If status is being changed to Approved or Rejected, use reviewLeave
+          if (
+            values.status !== leave.status &&
+            (values.status === "Approved" || values.status === "Rejected")
+          ) {
+            await reviewLeave(leave._id, {
+              status: values.status,
+              reviewNotes: values.reviewNotes,
+            });
+            toast.success(`Leave request ${values.status.toLowerCase()} successfully`);
+          } else {
+            await updateLeave(leave._id, payload);
+            toast.success("Leave request updated successfully");
+          }
         } else {
-          await updateLeave(leave._id, formData);
-          toast.success('Leave request updated successfully');
+          await createLeave(payload);
+          toast.success("Leave request submitted successfully");
         }
-      } else {
-        await createLeave(formData);
-        toast.success('Leave request submitted successfully');
+        onSuccess();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Something went wrong");
       }
-      onSuccess();
-    } catch (error) {
-      toast.error(error.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (formik.values.startDate && formik.values.endDate) {
+      const start = new Date(formik.values.startDate);
+      const end = new Date(formik.values.endDate);
+      const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      formik.setFieldValue("duration", durationInDays);
+    }
+    // eslint-disable-next-line
+  }, [formik.values.startDate, formik.values.endDate]);
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6">
-        <div className="flex justify-between items-center mb-6 ">
-          <h2 className="text-2xl font-semibold text-gray-800">{leave ? 'Edit Leave Request' : 'Add Leave Request'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><XMarkIcon className="h-6 w-6" /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Leave Type</label>
-              <select name="leaveType" value={formData.leaveType} onChange={handleChange} required className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2">
-                <option value="">Select Type</option>
-                <option value="Annual">Annual Leave</option>
-                <option value="Sick">Sick Leave</option>
-                <option value="Personal">Personal Leave</option>
-                <option value="Maternity">Maternity Leave</option>
-                <option value="Paternity">Paternity Leave</option>
-                <option value="Unpaid">Unpaid Leave</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} required className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2">
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Start Date</label>
-              <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} required className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">End Date</label>
-              <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} required className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Duration (Days)</label>
-              <input type="number" name="duration" value={formData.duration} disabled className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2" />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Reason</label>
-              <textarea name="reason" value={formData.reason} onChange={handleChange} rows="3" required className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
-            </div>
-            {(formData.status === 'Approved' || formData.status === 'Rejected') && (
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Review Notes</label>
-                <textarea name="reviewNotes" value={formData.reviewNotes} onChange={handleChange} rows="3" className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+        <button
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+        <h2 className="text-xl font-semibold mb-4">
+          {leave ? "Edit Leave Request" : "Submit Leave Request"}
+        </h2>
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Leave Type</label>
+            <select
+              name="leaveType"
+              className="w-full border rounded px-3 py-2"
+              {...formik.getFieldProps("leaveType")}
+            >
+              <option value="">Select Type</option>
+              <option value="Annual">Annual Leave</option>
+              <option value="Sick">Sick Leave</option>
+              <option value="Personal">Personal Leave</option>
+              <option value="Maternity">Maternity Leave</option>
+              <option value="Paternity">Paternity Leave</option>
+              <option value="Unpaid">Unpaid Leave</option>
+              <option value="Other">Other Leave</option>
+            </select>
+            {formik.touched.leaveType && formik.errors.leaveType && (
+              <div className="text-red-500 text-xs mt-1">{formik.errors.leaveType}</div>
             )}
           </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">{loading ? 'Saving...' : leave ? 'Update' : 'Create'}</button>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                className="w-full border rounded px-3 py-2"
+                {...formik.getFieldProps("startDate")}
+              />
+              {formik.touched.startDate && formik.errors.startDate && (
+                <div className="text-red-500 text-xs mt-1">{formik.errors.startDate}</div>
+              )}
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">End Date</label>
+              <input
+                type="date"
+                name="endDate"
+                className="w-full border rounded px-3 py-2"
+                {...formik.getFieldProps("endDate")}
+              />
+              {formik.touched.endDate && formik.errors.endDate && (
+                <div className="text-red-500 text-xs mt-1">{formik.errors.endDate}</div>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Reason</label>
+            <textarea
+              name="reason"
+              rows={3}
+              className="w-full border rounded px-3 py-2"
+              {...formik.getFieldProps("reason")}
+            />
+            {formik.touched.reason && formik.errors.reason && (
+              <div className="text-red-500 text-xs mt-1">{formik.errors.reason}</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select
+              name="status"
+              className="w-full border rounded px-3 py-2"
+              {...formik.getFieldProps("status")}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            {formik.touched.status && formik.errors.status && (
+              <div className="text-red-500 text-xs mt-1">{formik.errors.status}</div>
+            )}
+          </div>
+          {(formik.values.status === "Approved" || formik.values.status === "Rejected") && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Review Notes</label>
+              <textarea
+                name="reviewNotes"
+                rows={2}
+                className="w-full border rounded px-3 py-2"
+                {...formik.getFieldProps("reviewNotes")}
+                placeholder={`Enter your ${formik.values.status.toLowerCase()} notes...`}
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              disabled={formik.isSubmitting}
+            >
+              {formik.isSubmitting ? "Saving..." : leave ? "Update" : "Submit"}
+            </button>
           </div>
         </form>
       </div>

@@ -13,6 +13,7 @@ const financeRoutes = require('./finance.routes');
 const positionRoutes = require('./position.routes');
 const eventRoutes = require('./event.routes');
 const leaveRoutes = require('./leave.routes');
+const attendanceRoutes = require('./attendance.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -26,5 +27,6 @@ router.use('/finance', financeRoutes);
 router.use('/positions', positionRoutes);
 router.use('/events', eventRoutes);
 router.use('/leaves', leaveRoutes);
+router.use('/attendance', attendanceRoutes);
 
 module.exports = router; 

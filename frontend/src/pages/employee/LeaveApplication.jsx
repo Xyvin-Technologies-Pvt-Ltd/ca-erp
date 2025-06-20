@@ -21,11 +21,12 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import useHrmStore from "../../stores/useHrmStore";
 import useAuthStore from "../../stores/auth.store";
+import { getMyLeaves, createLeave } from "../../api/Leave";
+import useHrmStore from "../../stores/useHrmStore.js";
 
 const LeaveApplication = () => {
-  const { fetchLeaves, leaves, createLeave } = useHrmStore();
+  const { getMyLeave, createLeave } = useHrmStore();
   const { user } = useAuthStore();
 
   const [dateRange, setDateRange] = useState({
@@ -56,9 +57,14 @@ const LeaveApplication = () => {
           setIsLoading(false);
           return;
         }
-        await fetchLeaves();
-        // Filter leaves to only show current user's applications
-        const leavesData = (leaves || []).filter(l => l.employee && (l.employee._id === user._id || l.employee._id === user.id));
+
+        const leaveResponse = await getMyLeave();
+        console.log("Leave response:", leaveResponse);
+
+        const leavesData =
+          leaveResponse?.data?.leaves ||
+          leaveResponse?.data?.data?.leaves ||
+          [];
 
         const sortedApplications = leavesData
           .map((leave) => ({
@@ -104,6 +110,7 @@ const LeaveApplication = () => {
         setLeaveBalance(balanceCalculation);
         setIsLoading(false);
       } catch (error) {
+        console.error("Error fetching leave data:", error);
         toast.error("Failed to fetch leave requests");
         setIsLoading(false);
       }
@@ -121,23 +128,32 @@ const LeaveApplication = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate inputs
     if (!leaveType) {
       toast.error("Please select a leave type");
       return;
     }
+
     if (!dateRange.from || !dateRange.to) {
       toast.error("Please select a date range");
       return;
     }
+
     if (!reason.trim()) {
       toast.error("Please provide a reason for your leave");
       return;
     }
+
     try {
+      console.log("User data for submit:", user);
+
       if (!user) {
         toast.error("User information not found");
         return;
       }
+
+      // Prepare leave request payload
       const leaveRequest = {
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
@@ -146,11 +162,16 @@ const LeaveApplication = () => {
         leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
         status: "Pending",
       };
+
+      // Send API request
       const response = await createLeave(leaveRequest);
+
       if (!response || !response.data) {
         toast.error("Failed to submit leave request");
         return;
       }
+
+      // Create new application object
       const newApplication = {
         type: leaveType.charAt(0).toUpperCase() + leaveType.slice(1) + " Leave",
         from: format(dateRange.from, "yyyy-MM-dd"),
@@ -158,11 +179,18 @@ const LeaveApplication = () => {
         status: "Pending",
         approvedBy: "",
       };
+
+      // Update recent applications
       setRecentApplications([newApplication, ...recentApplications]);
+
+      // Update leave balance with type checking
       const leaveDays = differenceInDays(dateRange.to, dateRange.from) + 1;
       const normalizedLeaveType = leaveType.toLowerCase();
+
       setLeaveBalance((prev) => {
+        // Check if the leave type exists in the balance
         if (!prev[normalizedLeaveType]) {
+          // If it doesn't exist, create a new entry
           return {
             ...prev,
             [normalizedLeaveType]: {
@@ -172,6 +200,8 @@ const LeaveApplication = () => {
             },
           };
         }
+
+        // If it exists, update the pending count
         return {
           ...prev,
           [normalizedLeaveType]: {
@@ -180,11 +210,17 @@ const LeaveApplication = () => {
           },
         };
       });
+
+      // Reset form
       setLeaveType("");
       setReason("");
       setDateRange({ from: new Date(), to: new Date() });
+
+      // Show success message
       toast.success("Leave request submitted successfully");
     } catch (error) {
+      // Handle error
+      console.error("Leave request error:", error);
       const message =
         error.response?.data?.message ||
         (error.response?.status === 403
@@ -217,7 +253,8 @@ const LeaveApplication = () => {
         return <ClockIcon className="h-5 w-5 text-yellow-600" />;
     }
   };
-
+  
+  // Safe date range for display
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
@@ -234,14 +271,18 @@ const LeaveApplication = () => {
     }
     return "Select date range";
   };
-
+  
+  // Handle Calendar selection with validation
   const handleDateSelect = (range) => {
+    // Make sure we have a valid range object before updating state
     if (range && range.from) {
+      // If only from is selected, set to to same as from
       if (!range.to) {
         range.to = range.from;
       }
       setDateRange(range);
     } else {
+      // If invalid selection, reset to default
       setDateRange({ from: new Date(), to: new Date() });
     }
   };

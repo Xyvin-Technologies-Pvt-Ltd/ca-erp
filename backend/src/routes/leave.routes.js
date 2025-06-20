@@ -1,23 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const leaveController = require('../controllers/leave.controller');
+const { 
+  getAllLeaves, 
+  getLeave, 
+  createLeave, 
+  updateLeave, 
+  deleteLeave, 
+  reviewLeave,
+  getLeaveStats, 
+  getAllMyLeaves
+} = require('../controllers/leave.controller');
 const { protect } = require('../middleware/auth');
 
-router.use(protect);
+router.use(protect)
 
+router.route('/stats')
+  .get( getLeaveStats);
 router.route('/')
-  .get(leaveController.getAllLeaves)
-  .post(leaveController.createLeave);
-
+  .get(getAllLeaves)
+  .post(createLeave);
 router.route('/my')
-  .get(leaveController.getAllMyLeaves);
-
+  .get(getAllMyLeaves);
 router.route('/:id')
-  .get(leaveController.getLeave)
-  .patch(leaveController.updateLeave)
-  .delete(leaveController.deleteLeave);
-
+  .get(getLeave)
+  .patch( updateLeave)
+  .delete( deleteLeave);
 router.route('/:id/review')
-  .patch(leaveController.reviewLeave);
+  .patch( reviewLeave);
 
 module.exports = router; 
