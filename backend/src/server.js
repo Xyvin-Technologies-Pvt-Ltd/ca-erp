@@ -49,7 +49,7 @@ const limiter = rateLimit({
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -116,38 +116,10 @@ const server = app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on port ${PORT}`);
 });
-// Initialize WebSocket
+// Initialize WebSocke
 websocketService.init(server);
 
-// const wss = new WebSocket.Server({ server });
-// Store WebSocket server instance
-// const wsInstance = {
-//   getWss: () => wss
-// };
-// wss.on('connection', (ws, req) => {
-//   console.log('New WebSocket connection');
 
-//   // Handle incoming messages
-//   ws.on('message', (message) => {
-//     try {
-//       const parsedMessage = JSON.parse(message);
-//       // Broadcast the message to all connected clients
-//       wss.clients.forEach((client) => {
-//         if (client !== ws && client.readyState === WebSocket.OPEN) {
-//           client.send(JSON.stringify(parsedMessage));
-//         }
-//       });
-//     } catch (error) {
-//       console.error('Error processing message:', error);
-//     }
-//   });
-// // Send initial connection success message
-// ws.send(JSON.stringify({ type: 'connection', message: 'Connected to WebSocket server' }))
-//   // Handle client disconnection
-//   ws.on('close', () => {
-//     console.log('Client disconnected');
-//   });
-// });
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
     logger.error(`Error: ${err.message}`);
