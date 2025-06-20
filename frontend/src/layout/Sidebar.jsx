@@ -47,6 +47,11 @@ const navigation = [
         to: ROUTES.HRM_EVENTS,
         icon: CalendarIcon,
       },
+      {
+        name: "Leaves",
+        to: ROUTES.HRM_LEAVES,
+        icon: CalendarIcon,
+      },
     ],
   },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },

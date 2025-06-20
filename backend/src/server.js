@@ -31,6 +31,7 @@ const activityRoutes = require('./routes/activity.routes');
 const departments = require('./routes/department.routes')
 const positionRoutes = require('./routes/position.routes')
 const eventsRoutes = require('./routes/event.routes')
+const leavesRoutes = require('./routes/leave.routes')
 
 // Initialize express app
 const app = express();
@@ -91,6 +92,7 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/departments',departments)
 app.use('/api/positions',positionRoutes)
 app.use('/api/events',eventsRoutes)
+app.use('/api/leaves',leavesRoutes)
 
 
 
