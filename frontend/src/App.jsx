@@ -27,6 +27,8 @@ import Departments from "./pages/hrm/Departments";
 import Positions from "./pages/hrm/Positions";
 import Events from "./pages/hrm/Events";
 import Leave from "./pages/hrm/Leave";
+import EMP from "./pages/employee/EMP";
+import LeaveApplication from "./pages/employee/LeaveApplication";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +79,9 @@ function App() {
                 <Route path={ROUTES.SETTINGS} element={<Settings />} />
 
                 <Route path={ROUTES.PROFILE} element={<Profile />} />
+
+                <Route path={ROUTES.EMP} element={<EMP />} />
+                <Route path={ROUTES.EMP_LeaveApplication} element= {<LeaveApplication />} />
 
                 {/* HRM Routes */}
                 <Route path={ROUTES.HRM} element={<HRM />} />

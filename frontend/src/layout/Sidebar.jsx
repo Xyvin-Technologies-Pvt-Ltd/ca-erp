@@ -24,6 +24,42 @@ import api from "../api/axios";
 const navigation = [
   { name: "Dashboard", to: ROUTES.DASHBOARD, icon: HomeIcon },
    {
+    name: "Employee",
+    icon: UsersIcon,
+    children: [
+      // {
+      //   name: "",
+      //   to: ROUTES.HRM_EMPLOYEES,
+      //   icon: UserIcon,
+      // },
+      {
+        name: "Departments",
+        to: ROUTES.HRM_DEPARTMENTS,
+        icon: BuildingOfficeIcon,
+      },
+      {
+        name: "Projects",
+        to: ROUTES.PROJECTS,
+        icon: BriefcaseIcon,
+      },
+      {
+        name: "Tasks",
+        to: ROUTES.TASKS,
+        icon: CalendarIcon,
+      },
+      {
+        name: "Leave Application",
+        to: ROUTES.EMP_LeaveApplication,
+        icon: CalendarIcon,
+      },
+      // {
+      //   name: "Documents",
+      //   to: ROUTES.DOCUMENTS,
+      //   icon: CalendarIcon,
+      // },
+    ],
+  },
+   {
     name: "HRM",
     icon: UsersIcon,
     children: [
