@@ -117,6 +117,8 @@ const Leave = () => {
     setShowModal(true);
   };
 
+  console.log(leaves,"leaves");
+  
   return (
     <div className="space-y-8 min-h-screen">
       <div className="flex justify-between items-center">
@@ -126,13 +128,13 @@ const Leave = () => {
           </h1>
           <p className="text-gray-600">Manage and track employee leave requests</p>
         </div>
-        {/* <button
+        <button
           onClick={handleAdd}
           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
         >
           <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
           Add Leave Request
-        </button> */}
+        </button>
       </div>
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         {loading ? (
@@ -197,7 +199,7 @@ const Leave = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-gray-900 truncate">
-                            {leave.employee ? `${leave.employee.firstName || ""} ${leave.employee.lastName || ""}`.trim() : "N/A"}
+                            {leave.employee ? leave.employee.name : "N/A"}
                           </span>
                         </div>
                       </div>
@@ -269,8 +271,8 @@ const Leave = () => {
         onConfirm={handleDelete}
         title="Delete Leave Request"
         message={`Are you sure you want to delete this leave request for ${
-          deleteModal.leave?.employee?.firstName || "Unknown"
-        } ${deleteModal.leave?.employee?.lastName || "Employee"}? This action cannot be undone.`}
+          deleteModal.leave?.employee?.name || "Unknown"
+        }? This action cannot be undone.`}
         itemName="leave request"
       />
       {showModal && (

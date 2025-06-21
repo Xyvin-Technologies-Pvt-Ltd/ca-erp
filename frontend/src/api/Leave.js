@@ -3,6 +3,8 @@ import api from "./axios";
 export const getLeaves = async () => {
   try {
     const response = await api.get("/leaves");
+    console.log(response);
+    
     return Array.isArray(response.data.data.leaves) ? response.data.data.leaves : [];
   } catch (error) {
     console.error("Error fetching leaves:", error);
@@ -13,8 +15,22 @@ export const getLeaves = async () => {
 export const getMyLeaves = async () => {
   try {
     const response = await api.get("/leaves/my");
-    const leaves = response.data?.data?.leaves || response.data?.leaves || response.data || [];
-    return Array.isArray(leaves) ? leaves : [];
+    console.log("Raw API response:", response);
+    
+    // Handle different response structures
+    let leaves = [];
+    if (response.data?.data?.leaves) {
+      leaves = response.data.data.leaves;
+    } else if (response.data?.leaves) {
+      leaves = response.data.leaves;
+    } else if (Array.isArray(response.data)) {
+      leaves = response.data;
+    } else if (response.data?.data && Array.isArray(response.data.data)) {
+      leaves = response.data.data;
+    }
+    
+    console.log("Processed leaves:", leaves);
+    return leaves;
   } catch (error) {
     console.error("Error fetching my leaves:", error);
     return [];

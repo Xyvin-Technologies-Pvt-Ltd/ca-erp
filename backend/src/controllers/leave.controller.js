@@ -49,9 +49,8 @@ exports.getAllLeaves = catchAsync(async (req, res) => {
   const leaves = await Leave.find(query)
     .populate({
       path: 'employee',
-      select: 'firstName lastName department position',
+      select: 'name department position',
       populate: [
-        { path: 'department', select: 'name' },
         { path: 'position', select: 'title' }
       ]
     })
@@ -108,9 +107,8 @@ exports.getAllMyLeaves = catchAsync(async (req, res) => {
   const leaves = await Leave.find(query)
     .populate({
       path: 'employee',
-      select: 'firstName lastName department position',
+      select: 'name department position',
       populate: [
-        { path: 'department', select: 'name' },
         { path: 'position', select: 'title' }
       ]
     })
@@ -131,9 +129,8 @@ exports.getLeave = catchAsync(async (req, res) => {
   const leave = await Leave.findById(req.params.id)
     .populate({
       path: 'employee',
-      select: 'firstName lastName department position',
+      select: 'name department position',
       populate: [
-        { path: 'department', select: 'name' },
         { path: 'position', select: 'title' }
       ]
     })
@@ -189,10 +186,22 @@ exports.createLeave = catchAsync(async (req, res) => {
     createdBy: req.user.id
   });
 
-
+  // Populate the created leave with employee details
+  const populatedLeave = await Leave.findById(leave._id)
+    .populate({
+      path: 'employee',
+      select: 'name department position',
+      populate: [
+        { path: 'position', select: 'title' }
+      ]
+    })
+    .populate({
+      path: 'user',
+      select: 'name'
+    });
 
   try {
-    const hrUsers = await Employee.find({ role: { $regex: 'hr', $options: 'i' } }).select('_id firstName lastName');
+    const hrUsers = await Employee.find({ role: { $regex: 'hr', $options: 'i' } }).select('_id name');
     console.log('HR Users:', hrUsers);
 
     for (const hr of hrUsers) {
@@ -200,7 +209,7 @@ exports.createLeave = catchAsync(async (req, res) => {
         user: hr._id,
         sender: req.user._id,
         title: `New Leave Request Submitted`,
-        message: `A leave request has been submitted by ${req.user.firstName} ${req.user.lastName}`,
+        message: `A leave request has been submitted by ${req.user.name}`,
         type: 'LEAVE_REQUEST'
       });
 
@@ -216,8 +225,7 @@ exports.createLeave = catchAsync(async (req, res) => {
           createdAt: notification.createdAt,
           sender: {
             _id: req.user._id,
-            firstName: req.user.firstName,
-            lastName: req.user.lastName,
+            name: req.user.name,
             email: req.user.email
           },
           leaveId: leave._id
@@ -228,10 +236,9 @@ exports.createLeave = catchAsync(async (req, res) => {
     console.error('Failed to send HR leave request notification:', notificationError);
   }
 
-
   res.status(201).json({
     status: 'success',
-    data: { leave }
+    data: { leave: populatedLeave }
   });
 });
 
@@ -248,9 +255,8 @@ exports.updateLeave = catchAsync(async (req, res) => {
     }
   ).populate({
     path: 'employee',
-    select: 'firstName lastName department position',
+    select: 'name department position',
     populate: [
-      { path: 'department', select: 'name' },
       { path: 'position', select: 'title' }
     ]
   })
@@ -314,7 +320,7 @@ exports.reviewLeave = catchAsync(async (req, res) => {
     const leave = await Leave.findById(req.params.id)
       .populate({
         path: 'employee',
-        select: 'firstName lastName department position'
+        select: 'name department position'
       });
 
     if (!leave) {
@@ -324,7 +330,7 @@ exports.reviewLeave = catchAsync(async (req, res) => {
     console.log('Leave request found:', {
       leaveId: leave._id,
       employeeId: leave.employee?._id,
-      employeeName: leave.employee ? `${leave.employee.firstName} ${leave.employee.lastName}` : 'N/A',
+      employeeName: leave.employee ? `${leave.employee.name}` : 'N/A',
       startDate: leave.startDate,
       endDate: leave.endDate,
       currentStatus: leave.status,

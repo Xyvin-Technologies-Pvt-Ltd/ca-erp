@@ -21,13 +21,14 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import useAuthStore from "../../stores/auth.store";
-import { getMyLeaves, createLeave } from "../../api/Leave";
-import useHrmStore from "../../stores/useHrmStore.js";
+// import useHrmStore from "../../stores/useHrmStore.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { createLeave, getMyLeaves } from "../../api/Leave.js";
+
 
 const LeaveApplication = () => {
-  const { getMyLeave, createLeave } = useHrmStore();
-  const { user } = useAuthStore();
+  // const { getMyLeave, createLeave } = useHrmStore();
+  const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
     from: new Date(),
@@ -58,13 +59,22 @@ const LeaveApplication = () => {
           return;
         }
 
-        const leaveResponse = await getMyLeave();
+        const leaveResponse = await getMyLeaves();
         console.log("Leave response:", leaveResponse);
 
-        const leavesData =
-          leaveResponse?.data?.leaves ||
-          leaveResponse?.data?.data?.leaves ||
-          [];
+        // Handle different response structures
+        let leavesData = [];
+        if (Array.isArray(leaveResponse)) {
+          leavesData = leaveResponse;
+        } else if (leaveResponse?.data?.leaves) {
+          leavesData = leaveResponse.data.leaves;
+        } else if (leaveResponse?.leaves) {
+          leavesData = leaveResponse.leaves;
+        } else if (leaveResponse?.data && Array.isArray(leaveResponse.data)) {
+          leavesData = leaveResponse.data;
+        }
+
+        console.log("Processed leaves data:", leavesData);
 
         const sortedApplications = leavesData
           .map((leave) => ({
@@ -118,6 +128,76 @@ const LeaveApplication = () => {
 
     fetchLeaveData();
   }, []);
+
+  // Function to refresh leave data
+  const refreshLeaveData = async () => {
+    try {
+      if (!user) return;
+
+      const leaveResponse = await getMyLeaves();
+      console.log("Refreshed leave response:", leaveResponse);
+
+      // Handle different response structures
+      let leavesData = [];
+      if (Array.isArray(leaveResponse)) {
+        leavesData = leaveResponse;
+      } else if (leaveResponse?.data?.leaves) {
+        leavesData = leaveResponse.data.leaves;
+      } else if (leaveResponse?.leaves) {
+        leavesData = leaveResponse.leaves;
+      } else if (leaveResponse?.data && Array.isArray(leaveResponse.data)) {
+        leavesData = leaveResponse.data;
+      }
+
+      console.log("Processed refreshed leaves data:", leavesData);
+
+      const sortedApplications = leavesData
+        .map((leave) => ({
+          type:
+            leave.leaveType.charAt(0).toUpperCase() +
+            leave.leaveType.slice(1) +
+            " Leave",
+          from: format(new Date(leave.startDate), "yyyy-MM-dd"),
+          to: format(new Date(leave.endDate), "yyyy-MM-dd"),
+          status:
+            leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
+          approvedBy: leave.approvalChain?.length
+            ? "Reviewed"
+            : "",
+        }))
+        .sort((a, b) => new Date(b.from) - new Date(a.from));
+
+      setRecentApplications(sortedApplications);
+
+      const balanceCalculation = {
+        annual: { total: 14, used: 0, pending: 0 },
+        sick: { total: 7, used: 0, pending: 0 },
+        personal: { total: 3, used: 0, pending: 0 },
+        maternity: { total: 90, used: 0, pending: 0 },
+        paternity: { total: 14, used: 0, pending: 0 },
+        unpaid: { total: 0, used: 0, pending: 0 },
+        other: { total: 0, used: 0, pending: 0 },
+      };
+
+      sortedApplications.forEach((app) => {
+        const type = app.type.toLowerCase().replace(" leave", "");
+        if (balanceCalculation[type]) {
+          if (app.status === "Approved") {
+            balanceCalculation[type].used +=
+              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+          } else if (app.status === "Pending") {
+            balanceCalculation[type].pending +=
+              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+          }
+        }
+      });
+
+      setLeaveBalance(balanceCalculation);
+    } catch (error) {
+      console.error("Error refreshing leave data:", error);
+    }
+  };
+
   const handlePreviousMonth = () => {
     setCurrentMonth((prev) => subMonths(prev, 1));
   };
@@ -171,46 +251,6 @@ const LeaveApplication = () => {
         return;
       }
 
-      // Create new application object
-      const newApplication = {
-        type: leaveType.charAt(0).toUpperCase() + leaveType.slice(1) + " Leave",
-        from: format(dateRange.from, "yyyy-MM-dd"),
-        to: format(dateRange.to, "yyyy-MM-dd"),
-        status: "Pending",
-        approvedBy: "",
-      };
-
-      // Update recent applications
-      setRecentApplications([newApplication, ...recentApplications]);
-
-      // Update leave balance with type checking
-      const leaveDays = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const normalizedLeaveType = leaveType.toLowerCase();
-
-      setLeaveBalance((prev) => {
-        // Check if the leave type exists in the balance
-        if (!prev[normalizedLeaveType]) {
-          // If it doesn't exist, create a new entry
-          return {
-            ...prev,
-            [normalizedLeaveType]: {
-              total: 0,
-              used: 0,
-              pending: leaveDays,
-            },
-          };
-        }
-
-        // If it exists, update the pending count
-        return {
-          ...prev,
-          [normalizedLeaveType]: {
-            ...prev[normalizedLeaveType],
-            pending: (prev[normalizedLeaveType].pending || 0) + leaveDays,
-          },
-        };
-      });
-
       // Reset form
       setLeaveType("");
       setReason("");
@@ -218,6 +258,9 @@ const LeaveApplication = () => {
 
       // Show success message
       toast.success("Leave request submitted successfully");
+
+      // Refresh leave data to get the updated list
+      await refreshLeaveData();
     } catch (error) {
       // Handle error
       console.error("Leave request error:", error);
@@ -295,11 +338,11 @@ const LeaveApplication = () => {
     );
   }
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Leave Application</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Leave Application</h1>
         <div className="mt-4 md:mt-0">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200">
             <DocumentTextIcon className="h-5 w-5" />
             Download Leave Policy
           </Button>
@@ -308,130 +351,132 @@ const LeaveApplication = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6">
+          <Card className="p-6 bg-white shadow-lg border-0">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Leave Type
                   </label>
                   <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white border-gray-300 hover:border-gray-400 focus:border-blue-500 transition-all duration-200 cursor-pointer">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="annual">Annual Leave</SelectItem>
-                      <SelectItem value="sick">Sick Leave</SelectItem>
-                      <SelectItem value="personal">Personal Leave</SelectItem>
-                      <SelectItem value="unpaid">Unpaid Leave</SelectItem>
-                      <SelectItem value="other">Other Leave</SelectItem>
-                      <SelectItem value="maternity">Maternity Leave</SelectItem>
-                      <SelectItem value="paternity">Paternity Leave</SelectItem>
+                    <SelectContent className="bg-white border-gray-200 shadow-lg">
+                      <SelectItem value="annual" className="cursor-pointer hover:bg-gray-50">Annual Leave</SelectItem>
+                      <SelectItem value="sick" className="cursor-pointer hover:bg-gray-50">Sick Leave</SelectItem>
+                      <SelectItem value="personal" className="cursor-pointer hover:bg-gray-50">Personal Leave</SelectItem>
+                      <SelectItem value="unpaid" className="cursor-pointer hover:bg-gray-50">Unpaid Leave</SelectItem>
+                      <SelectItem value="other" className="cursor-pointer hover:bg-gray-50">Other Leave</SelectItem>
+                      <SelectItem value="maternity" className="cursor-pointer hover:bg-gray-50">Maternity Leave</SelectItem>
+                      <SelectItem value="paternity" className="cursor-pointer hover:bg-gray-50">Paternity Leave</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Duration
                   </label>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md">
                     {getFormattedDateRange()}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
                   Date Range
                 </label>
-                <div className="rounded-md border p-4">
-                  <div className="flex flex-col">
-                    <div className="flex justify-center items-center gap-4 mb-2 pb-2 border-b">
+                <div className="rounded-md border border-gray-300 p-4 bg-white">
+                  <div className="flex flex-col items-center">
+                    <div className="flex justify-center items-center gap-4 mb-4 pb-2 border-b border-gray-200 w-full">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handlePreviousMonth}
-                        className="h-6 w-6"
+                        className="h-8 w-8 hover:bg-gray-50 cursor-pointer transition-all duration-200"
                       >
-                        <ChevronLeftIcon className="h-3 w-3" />
+                        <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
-                      <div className="text-xs font-medium">
+                      <div className="text-sm font-medium text-gray-700">
                         {format(currentMonth, "MMMM yyyy")}
                       </div>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handleNextMonth}
-                        className="h-6 w-6"
+                        className="h-8 w-8 hover:bg-gray-50 cursor-pointer transition-all duration-200"
                       >
-                        <ChevronRightIcon className="h-3 w-3" />
+                        <ChevronRightIcon className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Calendar
-                      mode="range"
-                      selected={dateRange}
-                      onSelect={handleDateSelect}
-                      numberOfMonths={1}
-                      month={currentMonth}
-                      className="w-full"
-                      showOutsideDays={false}
-                      classNames={{
-                        months: "flex",
-                        month: "space-y-2 w-full",
-                        caption: "hidden",
-                        nav: "hidden",
-                        table: "w-full border-collapse space-y-1",
-                        head_row: "flex",
-                        head_cell:
-                          "text-gray-500 w-8 font-normal text-[0.6rem]",
-                        row: "flex w-full",
-                        cell: "text-center text-[0.6rem] p-0 relative [&:has([aria-selected])]:bg-accent",
-                        day: "h-6 w-6 p-0 font-normal  hover:bg-gray-100",
-                        day_range_end: "day-range-end",
-                        day_range_start: "day-range-start",
-                        day_selected: "bg-primary text-primary-foreground",
-                      }}
-                    />
+                    <div className="flex justify-center w-full">
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={handleDateSelect}
+                        numberOfMonths={1}
+                        month={currentMonth}
+                        className="w-full max-w-sm"
+                        showOutsideDays={false}
+                        classNames={{
+                          months: "flex justify-center",
+                          month: "space-y-4 w-full",
+                          caption: "hidden",
+                          nav: "hidden",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell:
+                            "text-gray-500 w-10 font-normal text-sm",
+                          row: "flex w-full",
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
+                          day: "h-10 w-10 p-0 font-normal hover:bg-blue-100 cursor-pointer rounded-md transition-all duration-200",
+                          day_range_end: "day-range-end",
+                          day_range_start: "day-range-start",
+                          day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Reason</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">Reason</label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Please provide a reason for your leave request"
-                  className="min-h-[100px]"
+                  className="min-h-[100px] bg-white border-gray-300 focus:border-blue-500 transition-all duration-200"
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer transition-all duration-200">
                 Submit Application
               </Button>
             </form>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Recent Applications</h2>
+          <Card className="p-6 bg-white shadow-lg border-0">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">Recent Applications</h2>
             <div className="space-y-4">
               {recentApplications.length === 0 ? (
-                <p className="text-center text-gray-500">
+                <p className="text-center text-gray-500 py-8">
                   No leave applications found
                 </p>
               ) : (
                 recentApplications.map((application, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-lg border"
+                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-gray-100 rounded-full">
-                        <CalendarIcon className="h-5 w-5 text-gray-600" />
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <CalendarIcon className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium">{application.type}</p>
+                        <p className="font-medium text-gray-900">{application.type}</p>
                         <p className="text-sm text-gray-500">
                           {application.from} to {application.to}
                         </p>
@@ -459,20 +504,20 @@ const LeaveApplication = () => {
           </Card>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Leave Balance</h2>
+        <Card className="p-6 bg-white shadow-lg border-0">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">Leave Balance</h2>
           <div className="space-y-6">
             {Object.entries(leaveBalance).map(([type, balance]) => (
               <div key={type} className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="capitalize">{type} Leave</span>
-                  <span className="font-semibold">
+                  <span className="capitalize text-gray-700 font-medium">{type} Leave</span>
+                  <span className="font-semibold text-gray-900">
                     {balance.total - balance.used} days
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${
                         ((balance.used + balance.pending) / balance.total) * 100

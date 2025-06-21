@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { createLeave, updateLeave, reviewLeave } from "../api/Leave";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const validationSchema = Yup.object({
   leaveType: Yup.string().required("Leave type is required"),
@@ -13,6 +14,7 @@ const validationSchema = Yup.object({
 });
 
 const LeaveModal = ({ leave, onClose, onSuccess }) => {
+  const { user } = useAuth();
   const formik = useFormik({
     initialValues: {
       leaveType: leave?.leaveType || "",
@@ -29,6 +31,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
           ...values,
           duration:
             Math.ceil((new Date(values.endDate) - new Date(values.startDate)) / (1000 * 60 * 60 * 24)) + 1,
+          employee: user?._id,
         };
         if (leave) {
           // If status is being changed to Approved or Rejected, use reviewLeave
