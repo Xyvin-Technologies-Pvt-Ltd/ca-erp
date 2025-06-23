@@ -29,6 +29,8 @@ import Events from "./pages/hrm/Events";
 import Leave from "./pages/hrm/Leave";
 import EMP from "./pages/employee/EMP";
 import LeaveApplication from "./pages/employee/LeaveApplication";
+import Attendance from './pages/hrm/Attendance';
+import EmployeeAttendance from './pages/employee/EmployeeAttendance';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +84,7 @@ function App() {
 
                 <Route path={ROUTES.EMP} element={<EMP />} />
                 <Route path={ROUTES.EMP_LeaveApplication} element= {<LeaveApplication />} />
+                <Route path={ROUTES.EMPLOYEE_ATTENDANCE} element= {<EmployeeAttendance />} />
 
                 {/* HRM Routes */}
                 <Route path={ROUTES.HRM} element={<HRM />} />
@@ -90,6 +93,7 @@ function App() {
                 <Route path={ROUTES.HRM_POSITIONS} element={<Positions />} />
                 <Route path={ROUTES.HRM_EVENTS} element={<Events />} />
                 <Route path={ROUTES.HRM_LEAVES} element={<Leave />} />
+                <Route path={ROUTES.HRM_ATTENDANCE} element={<Attendance />} />
 
                 {/* Default and 404 */}
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />

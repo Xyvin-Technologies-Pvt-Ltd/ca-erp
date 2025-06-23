@@ -27,15 +27,10 @@ const navigation = [
     name: "Employee",
     icon: UsersIcon,
     children: [
-      // {
-      //   name: "",
-      //   to: ROUTES.HRM_EMPLOYEES,
-      //   icon: UserIcon,
-      // },
       {
-        name: "Departments",
-        to: ROUTES.HRM_DEPARTMENTS,
-        icon: BuildingOfficeIcon,
+        name: "My Attendance",
+        to: ROUTES.EMPLOYEE_ATTENDANCE,
+        icon: UserIcon,
       },
       {
         name: "Projects",
@@ -68,6 +63,11 @@ const navigation = [
         to: ROUTES.HRM_EMPLOYEES,
         icon: UserIcon,
       },
+       {
+        name: "Attendance",
+        to: ROUTES.HRM_ATTENDANCE,
+        icon: CalendarIcon,
+      },
       {
         name: "Departments",
         to: ROUTES.HRM_DEPARTMENTS,
@@ -88,6 +88,7 @@ const navigation = [
         to: ROUTES.HRM_LEAVES,
         icon: CalendarIcon,
       },
+     
     ],
   },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },
