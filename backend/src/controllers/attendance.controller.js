@@ -31,7 +31,8 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   const attendance = await Attendance.find(query)
     .populate({
       path: 'employee',
-      select: 'firstName lastName department position',
+      match: { status: 'active' },
+      select: 'name department position',
       populate: [
         { path: 'department', select: 'name' },
         { path: 'position', select: 'title' }
@@ -57,7 +58,7 @@ exports.getAttendance = catchAsync(async (req, res) => {
         { path: 'position', select: 'title' }
       ]
     });
-
+    
   if (!attendance) {
     throw createError(404, 'No attendance record found with that ID');
   }

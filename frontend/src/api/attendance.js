@@ -3,6 +3,8 @@ import api from './axios';
 // Get all attendance records
 export const getAttendance = async (params) => {
   const response = await api.get('/attendance', { params });
+  console.log(response,"&&&&&&&");
+  
   return response.data;
 };
 
@@ -49,3 +51,4 @@ export const deleteAttendance = async (id) => {
   const response = await api.delete(`/attendance/${id}`);
   return response.data;
 };
+

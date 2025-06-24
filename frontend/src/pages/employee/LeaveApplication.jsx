@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
-import { format, differenceInDays, addMonths, subMonths } from "date-fns";
+import { format, differenceInDays, addMonths, subMonths, addDays } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -21,18 +21,15 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-// import useHrmStore from "../../stores/useHrmStore.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { createLeave, getMyLeaves } from "../../api/Leave.js";
 
-
 const LeaveApplication = () => {
-  // const { getMyLeave, createLeave } = useHrmStore();
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
-    from: new Date(),
-    to: new Date(),
+    from: addDays(new Date(), 7), // Default to 7 days from today
+    to: addDays(new Date(), 7),
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [leaveType, setLeaveType] = useState("");
@@ -62,7 +59,6 @@ const LeaveApplication = () => {
         const leaveResponse = await getMyLeaves();
         console.log("Leave response:", leaveResponse);
 
-        // Handle different response structures
         let leavesData = [];
         if (Array.isArray(leaveResponse)) {
           leavesData = leaveResponse;
@@ -86,9 +82,7 @@ const LeaveApplication = () => {
             to: format(new Date(leave.endDate), "yyyy-MM-dd"),
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
-            approvedBy: leave.approvalChain?.length
-              ? "Reviewed"
-              : "",
+            approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
           }))
           .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -137,7 +131,6 @@ const LeaveApplication = () => {
       const leaveResponse = await getMyLeaves();
       console.log("Refreshed leave response:", leaveResponse);
 
-      // Handle different response structures
       let leavesData = [];
       if (Array.isArray(leaveResponse)) {
         leavesData = leaveResponse;
@@ -161,9 +154,7 @@ const LeaveApplication = () => {
           to: format(new Date(leave.endDate), "yyyy-MM-dd"),
           status:
             leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
-          approvedBy: leave.approvalChain?.length
-            ? "Reviewed"
-            : "",
+          approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
         }))
         .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -254,7 +245,7 @@ const LeaveApplication = () => {
       // Reset form
       setLeaveType("");
       setReason("");
-      setDateRange({ from: new Date(), to: new Date() });
+      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
 
       // Show success message
       toast.success("Leave request submitted successfully");
@@ -262,7 +253,6 @@ const LeaveApplication = () => {
       // Refresh leave data to get the updated list
       await refreshLeaveData();
     } catch (error) {
-      // Handle error
       console.error("Leave request error:", error);
       const message =
         error.response?.data?.message ||
@@ -296,8 +286,7 @@ const LeaveApplication = () => {
         return <ClockIcon className="h-5 w-5 text-yellow-600" />;
     }
   };
-  
-  // Safe date range for display
+
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
@@ -314,20 +303,21 @@ const LeaveApplication = () => {
     }
     return "Select date range";
   };
-  
-  // Handle Calendar selection with validation
+
   const handleDateSelect = (range) => {
-    // Make sure we have a valid range object before updating state
     if (range && range.from) {
-      // If only from is selected, set to to same as from
       if (!range.to) {
         range.to = range.from;
       }
       setDateRange(range);
     } else {
-      // If invalid selection, reset to default
-      setDateRange({ from: new Date(), to: new Date() });
+      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
     }
+  };
+
+  // Disable dates within 7 days from today
+  const disabledDays = {
+    before: addDays(new Date(), 6), // Disable today + next 6 days
   };
 
   if (isLoading) {
@@ -342,7 +332,10 @@ const LeaveApplication = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Leave Application</h1>
         <div className="mt-4 md:mt-0">
-          <Button variant="outline" className="flex items-center gap-2 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200"
+          >
             <DocumentTextIcon className="h-5 w-5" />
             Download Leave Policy
           </Button>
@@ -363,13 +356,27 @@ const LeaveApplication = () => {
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-200 shadow-lg">
-                      <SelectItem value="annual" className="cursor-pointer hover:bg-gray-50">Annual Leave</SelectItem>
-                      <SelectItem value="sick" className="cursor-pointer hover:bg-gray-50">Sick Leave</SelectItem>
-                      <SelectItem value="personal" className="cursor-pointer hover:bg-gray-50">Personal Leave</SelectItem>
-                      <SelectItem value="unpaid" className="cursor-pointer hover:bg-gray-50">Unpaid Leave</SelectItem>
-                      <SelectItem value="other" className="cursor-pointer hover:bg-gray-50">Other Leave</SelectItem>
-                      <SelectItem value="maternity" className="cursor-pointer hover:bg-gray-50">Maternity Leave</SelectItem>
-                      <SelectItem value="paternity" className="cursor-pointer hover:bg-gray-50">Paternity Leave</SelectItem>
+                      <SelectItem value="annual" className="cursor-pointer hover:bg-gray-50">
+                        Annual Leave
+                      </SelectItem>
+                      <SelectItem value="sick" className="cursor-pointer hover:bg-gray-50">
+                        Sick Leave
+                      </SelectItem>
+                      <SelectItem value="personal" className="cursor-pointer hover:bg-gray-50">
+                        Personal Leave
+                      </SelectItem>
+                      <SelectItem value="unpaid" className="cursor-pointer hover:bg-gray-50">
+                        Unpaid Leave
+                      </SelectItem>
+                      <SelectItem value="other" className="cursor-pointer hover:bg-gray-50">
+                        Other Leave
+                      </SelectItem>
+                      <SelectItem value="maternity" className="cursor-pointer hover:bg-gray-50">
+                        Maternity Leave
+                      </SelectItem>
+                      <SelectItem value="paternity" className="cursor-pointer hover:bg-gray-50">
+                        Paternity Leave
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -420,6 +427,7 @@ const LeaveApplication = () => {
                         month={currentMonth}
                         className="w-full max-w-sm"
                         showOutsideDays={false}
+                        disabled={disabledDays} // Disable dates within 7 days
                         classNames={{
                           months: "flex justify-center",
                           month: "space-y-4 w-full",
@@ -427,14 +435,14 @@ const LeaveApplication = () => {
                           nav: "hidden",
                           table: "w-full border-collapse space-y-1",
                           head_row: "flex",
-                          head_cell:
-                            "text-gray-500 w-10 font-normal text-sm",
+                          head_cell: "text-gray-500 w-10 font-normal text-sm",
                           row: "flex w-full",
                           cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
                           day: "h-10 w-10 p-0 font-normal hover:bg-blue-100 cursor-pointer rounded-md transition-all duration-200",
                           day_range_end: "day-range-end",
                           day_range_start: "day-range-start",
                           day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50", // Style for disabled days
                         }}
                       />
                     </div>
@@ -452,7 +460,10 @@ const LeaveApplication = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer transition-all duration-200">
+              <Button
+                type="submit"
+                className="w-full inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
                 Submit Application
               </Button>
             </form>
@@ -462,9 +473,7 @@ const LeaveApplication = () => {
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Recent Applications</h2>
             <div className="space-y-4">
               {recentApplications.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
-                  No leave applications found
-                </p>
+                <p className="text-center text-gray-500 py-8">No leave applications found</p>
               ) : (
                 recentApplications.map((application, index) => (
                   <div
@@ -492,9 +501,7 @@ const LeaveApplication = () => {
                           {getStatusIcon(application.status)}
                           <span>{application.status}</span>
                         </div>
-                        <p className="text-sm text-gray-500">
-                          {application.approvedBy}
-                        </p>
+                        <p className="text-sm text-gray-500">{application.approvedBy}</p>
                       </div>
                     </div>
                   </div>
@@ -520,7 +527,7 @@ const LeaveApplication = () => {
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${
-                        ((balance.used + balance.pending) / balance.total) * 100
+                        balance.total > 0 ? ((balance.used + balance.pending) / balance.total) * 100 : 0
                       }%`,
                     }}
                   />
@@ -538,4 +545,4 @@ const LeaveApplication = () => {
   );
 };
 
-export default LeaveApplication; 
+export default LeaveApplication;

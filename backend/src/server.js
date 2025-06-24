@@ -32,6 +32,7 @@ const departments = require('./routes/department.routes')
 const positionRoutes = require('./routes/position.routes')
 const eventsRoutes = require('./routes/event.routes')
 const leavesRoutes = require('./routes/leave.routes')
+const attendanceRoutes = require('./routes/attendance.routes')
 
 // Initialize express app
 const app = express();
@@ -93,6 +94,7 @@ app.use('/api/departments',departments)
 app.use('/api/positions',positionRoutes)
 app.use('/api/events',eventsRoutes)
 app.use('/api/leaves',leavesRoutes)
+app.use('/api/attendance',attendanceRoutes)
 
 
 

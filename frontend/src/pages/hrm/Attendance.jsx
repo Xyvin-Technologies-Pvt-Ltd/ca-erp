@@ -3,7 +3,7 @@ import { getAttendance, getAttendanceStats, deleteAttendance } from "../../api/a
 import AttendanceModal from "../../components/AttendanceModal";
 import AttendanceEditModal from "../../components/AttendanceEditModal";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const statusColors = {
   Present: "bg-green-100 text-green-800",
@@ -67,6 +67,9 @@ const Attendance = () => {
     }
   };
 
+  console.log(attendance ,"attendance");
+  
+
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
@@ -110,7 +113,7 @@ const Attendance = () => {
         </div>
       </div>
       {/* Attendance Table */}
-      <div className="overflow-x-auto bg-white rounded shadow max-h-[60vh]">
+      <div className="overflow-x-auto bg-white rounded shadow max-h-[60vh] overflow-y-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -141,9 +144,23 @@ const Attendance = () => {
                   <td className="px-4 py-2">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[a.status] || "bg-gray-100 text-gray-800"}`}>{a.status}</span>
                   </td>
-                  <td className="px-4 py-2 flex gap-2">
-                    <button className="text-blue-600 hover:underline flex items-center" onClick={() => setEditModal({ open: true, record: a })} title="Edit"><PencilSquareIcon className="h-5 w-5"/></button>
-                    <button className="text-red-600 hover:underline" onClick={() => handleDelete(a._id)}>Delete</button>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => setEditModal({ open: true, record: a })}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Edit"
+                      >
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a._id)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

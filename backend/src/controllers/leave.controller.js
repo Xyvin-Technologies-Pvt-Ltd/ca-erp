@@ -66,32 +66,76 @@ exports.getAllLeaves = catchAsync(async (req, res) => {
     data: { leaves }
   });
 });
+// exports.getAllMyLeaves = catchAsync(async (req, res) => {
+//   const { status, employeeId, departmentId, startDate, endDate , userId} = req.query;
+  
+//   let query = {};
+  
+//   // If user is not admin/manager, only show their own leaves
+//   if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+//     query.employee = req.user._id;
+//   } else {
+//     // Status filter
+//     if (status) {
+//       query.status = status;
+//     }
+    
+//     // Employee filter
+//     if (employeeId) {
+//       query.employee = employeeId;
+//     }
+    
+//     // Department filter
+//     if (departmentId) {
+//       const employees = await Employee.find({ department: departmentId }).select('_id');
+//       query.employee = { $in: employees.map(emp => emp._id) };
+//     }
+//   }
+  
+//   // Date range filter
+//   if (startDate && endDate) {
+//     query.$or = [
+//       {
+//         startDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+//       },
+//       {
+//         endDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+//       }
+//     ];
+//   }
+
+//   const leaves = await Leave.find(query)
+//     .populate({
+//       path: 'employee',
+//       select: 'name department position',
+//       populate: [
+//         { path: 'position', select: 'title' }
+//       ]
+//     })
+//     .populate({
+//       path: 'user',
+//       select: 'name'
+//     })
+//     .sort('-createdAt');
+
+//   res.status(200).json({
+//     status: 'success',
+//     results: leaves.length,
+//     data: { leaves }
+//   });
+// });
 exports.getAllMyLeaves = catchAsync(async (req, res) => {
-  const { status, employeeId, departmentId, startDate, endDate , userId} = req.query;
-  
-  let query = {};
-  
-  // If user is not admin/manager, only show their own leaves
-  if (req.user.role !== 'admin' && req.user.role !== 'manager') {
-    query.employee = req.user._id;
-  } else {
-    // Status filter
-    if (status) {
-      query.status = status;
-    }
-    
-    // Employee filter
-    if (employeeId) {
-      query.employee = employeeId;
-    }
-    
-    // Department filter
-    if (departmentId) {
-      const employees = await Employee.find({ department: departmentId }).select('_id');
-      query.employee = { $in: employees.map(emp => emp._id) };
-    }
+  const { status, startDate, endDate } = req.query;
+
+  let query = {
+    employee: req.user._id // Restrict to current user's leaves for all roles
+  };
+
+  // Status filter
+  if (status) {
+    query.status = status;
   }
-  
+
   // Date range filter
   if (startDate && endDate) {
     query.$or = [
