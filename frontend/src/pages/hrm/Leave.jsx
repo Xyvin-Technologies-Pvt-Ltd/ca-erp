@@ -1,20 +1,18 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  CalendarDaysIcon,
+  CalendarIcon,
 } from "@heroicons/react/24/outline";
 import LeaveModal from "../../components/LeaveModal";
 import DeleteConfirmationModal from "../../components/common/DeleteConfirmationModal";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import {
   getLeaves,
   createLeave,
@@ -51,29 +49,25 @@ const Leave = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "Approved":
-        return <CheckCircleIcon className="h-4 w-4 text-teal-600" />;
+        return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
       case "Rejected":
-        return <XCircleIcon className="h-4 w-4 text-red-600" />;
+        return <XCircleIcon className="h-5 w-5 text-red-600" />;
       case "Pending":
-        return <ClockIcon className="h-4 w-4 text-amber-600" />;
       default:
-        return <ClockIcon className="h-4 w-4 text-amber-600" />;
+        return <ClockIcon className="h-5 w-5 text-yellow-600" />;
     }
   };
 
-  const getStatusStyle = (status) => {
-    const statusMap = {
-      Approved:
-        "bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 border border-teal-200",
-      Rejected:
-        "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200",
-      Pending:
-        "bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border border-amber-200",
-    };
-    return (
-      statusMap[status] ||
-      "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border border-gray-200"
-    );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Approved":
+        return "bg-green-100 text-green-800";
+      case "Rejected":
+        return "bg-red-100 text-red-800";
+      case "Pending":
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
   };
 
   const handleEdit = (leave) => {
@@ -103,34 +97,31 @@ const Leave = () => {
     setShowModal(true);
   };
 
-  console.log(leaves, "leaves");
-
   return (
-    <div className="space-y-8 min-h-screen">
-      <div className="flex justify-between items-center">
-        <div className="space-y-2">
-          <h1 className="text-3xl text-gray-900">Leave Requests</h1>
-        </div>
-        <button
+    <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Leave Requests</h1>
+        <Button
           onClick={handleAdd}
-          className="inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="mt-4 md:mt-0 inline-flex items-center px-4 py-3 rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
         >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+          <PlusIcon className="h-5 w-5 mr-2" />
           Add Leave Request
-        </button>
+        </Button>
       </div>
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+
+      <Card className="p-6 bg-white shadow-md rounded-xl border-0">
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-teal-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto"></div>
               <p className="text-gray-500 font-medium">Loading leave requests...</p>
             </div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-br from-teal-50 to-white">
+          <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                 <XCircleIcon className="w-8 h-8 text-red-500" />
               </div>
               <div>
@@ -142,91 +133,107 @@ const Leave = () => {
         ) : leaves.length === 0 ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center mx-auto">
-                <CalendarDaysIcon className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                <CalendarIcon className="w-8 h-8 text-gray-400" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">No leave requests found</h3>
                 <p className="text-gray-500 mt-1">Get started by creating your first leave request</p>
               </div>
-              <button
+              <Button
                 onClick={handleAdd}
-                className="inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-3 rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
               >
-                <PlusIcon className="w-4 h-4 mr-2" />
+                <PlusIcon className="h-5 w-5 mr-2" />
                 Add Leave Request
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Employee</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Start Date</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">End Date</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Duration</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Start Date</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">End Date</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {leaves.map((leave, idx) => (
-                  <tr key={leave._id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                  <tr key={leave._id || idx}>
                     <td className="px-4 py-4 text-sm">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-normal text-gray-900 truncate">
-                          {leave.employee ? leave.employee.name : "N/A"}
-                        </span>
-                      </div>
+                      <span className="font-semibold text-gray-900 truncate">
+                        {leave.employee ? leave.employee.name : "N/A"}
+                      </span>
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <span className="text-sm font-normal text-gray-900">
+                      <span className="font-semibold text-gray-900">
                         {leave.leaveType?.charAt(0).toUpperCase() + leave.leaveType?.slice(1) || "N/A"}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <span className="text-sm font-normal text-gray-900">
-                        {leave.startDate ? new Date(leave.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "N/A"}
+                      <span className="text-sm text-gray-900">
+                        {leave.startDate
+                          ? new Date(leave.startDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "2-digit",
+                            })
+                          : "N/A"}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <span className="text-sm font-normal text-gray-900">
-                        {leave.endDate ? new Date(leave.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "N/A"}
+                      <span className="text-sm text-gray-900">
+                        {leave.endDate
+                          ? new Date(leave.endDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "2-digit",
+                            })
+                          : "N/A"}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm">
                       <div className="flex items-center space-x-2">
-                        <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-normal text-gray-900">
+                        <CalendarIcon className="h-5 w-5 text-blue-600" />
+                        <span className="text-sm text-gray-900">
                           {leave.duration ? `${leave.duration} ${leave.duration === 1 ? "day" : "days"}` : "N/A"}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-normal shadow-sm ${getStatusStyle(leave.status)}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          leave.status
+                        )}`}
+                      >
                         {getStatusIcon(leave.status)}
-                        <span className="ml-1.5">{leave.status || "Pending"}</span>
+                        <span>{leave.status || "Pending"}</span>
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <button
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline-none"
                           onClick={() => handleEdit(leave)}
-                          className="group p-1.5 rounded-lg hover:bg-gray-50 transition-all duration-200"
-                          title="Edit Leave Request"
+                          className="p-1 rounded-md hover:bg-gray-200 transition-all duration-200"
+                          title={`Edit ${leave.leaveType} Leave Request`}
                         >
-                          <PencilIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-700" />
-                        </button>
-                        <button
+                          <PencilIcon className="h-5 w-5 text-gray-600" />
+                        </Button>
+                        <Button
+                          variant="outline-none"
                           onClick={() => handleDeleteClick(leave)}
-                          className="group p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200"
-                          title="Delete Leave Request"
+                          className="p-1 rounded-md hover:bg-red-100 transition-all duration-200"
+                          title={`Delete ${leave.leaveType} Leave Request`}
                         >
-                          <TrashIcon className="h-4 w-4 text-gray-400 group-hover:text-red-600" />
-                        </button>
+                          <TrashIcon className="h-5 w-5 text-red-600" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -235,7 +242,8 @@ const Leave = () => {
             </table>
           </div>
         )}
-      </div>
+      </Card>
+
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, leave: null })}
@@ -246,6 +254,7 @@ const Leave = () => {
         }? This action cannot be undone.`}
         itemName="leave request"
       />
+
       {showModal && (
         <LeaveModal
           leave={selectedLeave}

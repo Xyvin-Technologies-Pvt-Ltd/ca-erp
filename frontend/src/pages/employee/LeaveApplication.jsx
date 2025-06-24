@@ -28,7 +28,7 @@ const LeaveApplication = () => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
-    from: addDays(new Date(), 7), // Default to 7 days from today
+    from: addDays(new Date(), 7),
     to: addDays(new Date(), 7),
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -46,7 +46,6 @@ const LeaveApplication = () => {
     other: { total: 0, used: 0, pending: 0 },
   });
 
-  // Fetch leave requests and balance
   useEffect(() => {
     const fetchLeaveData = async () => {
       try {
@@ -123,7 +122,6 @@ const LeaveApplication = () => {
     fetchLeaveData();
   }, []);
 
-  // Function to refresh leave data
   const refreshLeaveData = async () => {
     try {
       if (!user) return;
@@ -200,7 +198,6 @@ const LeaveApplication = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate inputs
     if (!leaveType) {
       toast.error("Please select a leave type");
       return;
@@ -224,7 +221,6 @@ const LeaveApplication = () => {
         return;
       }
 
-      // Prepare leave request payload
       const leaveRequest = {
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
@@ -234,7 +230,6 @@ const LeaveApplication = () => {
         status: "Pending",
       };
 
-      // Send API request
       const response = await createLeave(leaveRequest);
 
       if (!response || !response.data) {
@@ -242,15 +237,12 @@ const LeaveApplication = () => {
         return;
       }
 
-      // Reset form
       setLeaveType("");
       setReason("");
       setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
 
-      // Show success message
       toast.success("Leave request submitted successfully");
 
-      // Refresh leave data to get the updated list
       await refreshLeaveData();
     } catch (error) {
       console.error("Leave request error:", error);
@@ -291,17 +283,22 @@ const LeaveApplication = () => {
     if (dateRange && dateRange.from && dateRange.to) {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       return (
-        <>
-          <span className="font-medium">{days} days</span>
-          <span className="mx-2">•</span>
-          <span>
-            {format(dateRange.from, "MMM d")} -{" "}
-            {format(dateRange.to, "MMM d, yyyy")}
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="h-4 w-4 text-blue-600" />
+          <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
+          <span className="text-gray-500">|</span>
+          <span className="text-gray-700">
+            {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d, yyyy")}
           </span>
-        </>
+        </div>
       );
     }
-    return "Select date range";
+    return (
+      <div className="flex items-center gap-2">
+        <CalendarIcon className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-500">Select date range</span>
+      </div>
+    );
   };
 
   const handleDateSelect = (range) => {
@@ -315,107 +312,93 @@ const LeaveApplication = () => {
     }
   };
 
-  // Disable dates within 7 days from today
   const disabledDays = {
-    before: addDays(new Date(), 6), // Disable today + next 6 days
+    before: addDays(new Date(), 6),
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="container mx-auto px-4 py-8 text-center text-gray-600">
         Loading leave information...
       </div>
     );
   }
+
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Leave Application</h1>
+    <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Leave Application</h1>
         <div className="mt-4 md:mt-0">
           <Button
             variant="outline"
-            className="flex items-center gap-2 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200"
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 shadow-sm rounded-lg transition-all duration-200"
           >
-            <DocumentTextIcon className="h-5 w-5" />
-            Download Leave Policy
+            <DocumentTextIcon className="h-5 w-5 text-gray-600" />
+            <span className="font-medium text-gray-700">Download Leave Policy</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6 bg-white shadow-lg border-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="p-6 bg-white shadow-md rounded-xl border-0">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Leave Type
                   </label>
                   <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger className="w-full bg-white border-gray-300 hover:border-gray-400 focus:border-blue-500 transition-all duration-200 cursor-pointer">
+                    <SelectTrigger className="w-full bg-white border-gray-300 hover:border-gray-400 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-200 shadow-lg">
-                      <SelectItem value="annual" className="cursor-pointer hover:bg-gray-50">
-                        Annual Leave
-                      </SelectItem>
-                      <SelectItem value="sick" className="cursor-pointer hover:bg-gray-50">
-                        Sick Leave
-                      </SelectItem>
-                      <SelectItem value="personal" className="cursor-pointer hover:bg-gray-50">
-                        Personal Leave
-                      </SelectItem>
-                      <SelectItem value="unpaid" className="cursor-pointer hover:bg-gray-50">
-                        Unpaid Leave
-                      </SelectItem>
-                      <SelectItem value="other" className="cursor-pointer hover:bg-gray-50">
-                        Other Leave
-                      </SelectItem>
-                      <SelectItem value="maternity" className="cursor-pointer hover:bg-gray-50">
-                        Maternity Leave
-                      </SelectItem>
-                      <SelectItem value="paternity" className="cursor-pointer hover:bg-gray-50">
-                        Paternity Leave
-                      </SelectItem>
+                    <SelectContent className="bg-white border-gray-200 shadow-lg rounded-lg">
+                      <SelectItem value="annual" className="hover:bg-gray-50">Annual Leave</SelectItem>
+                      <SelectItem value="sick" className="hover:bg-gray-50">Sick Leave</SelectItem>
+                      <SelectItem value="personal" className="hover:bg-gray-50">Personal Leave</SelectItem>
+                      <SelectItem value="unpaid" className="hover:bg-gray-50">Unpaid Leave</SelectItem>
+                      <SelectItem value="other" className="hover:bg-gray-50">Other Leave</SelectItem>
+                      <SelectItem value="maternity" className="hover:bg-gray-50">Maternity Leave</SelectItem>
+                      <SelectItem value="paternity" className="hover:bg-gray-50">Paternity Leave</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Duration
                   </label>
-                  <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md">
+                  <div className="text-sm bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
                     {getFormattedDateRange()}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Date Range
                 </label>
-                <div className="rounded-md border border-gray-300 p-4 bg-white">
+                <div className="rounded-lg border border-gray-200 p-4 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
                   <div className="flex flex-col items-center">
                     <div className="flex justify-center items-center gap-4 mb-4 pb-2 border-b border-gray-200 w-full">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handlePreviousMonth}
-                        className="h-8 w-8 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                        className="h-8 w-8 hover:bg-gray-50 border-gray-300 rounded-full transition-all duration-200"
                       >
-                        <ChevronLeftIcon className="h-4 w-4" />
+                        <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
                       </Button>
-                      <div className="text-sm font-medium text-gray-700">
+                      <div className="text-sm font-semibold text-gray-700">
                         {format(currentMonth, "MMMM yyyy")}
                       </div>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handleNextMonth}
-                        className="h-8 w-8 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                        className="h-8 w-8 hover:bg-gray-50 border-gray-300 rounded-full transition-all duration-200"
                       >
-                        <ChevronRightIcon className="h-4 w-4" />
+                        <ChevronRightIcon className="h-4 w-4 text-gray-600" />
                       </Button>
                     </div>
                     <div className="flex justify-center w-full">
@@ -425,9 +408,9 @@ const LeaveApplication = () => {
                         onSelect={handleDateSelect}
                         numberOfMonths={1}
                         month={currentMonth}
-                        className="w-full max-w-sm"
+                        className="w-full max-w-sm animate-fade-in"
                         showOutsideDays={false}
-                        disabled={disabledDays} // Disable dates within 7 days
+                        disabled={disabledDays}
                         classNames={{
                           months: "flex justify-center",
                           month: "space-y-4 w-full",
@@ -438,11 +421,11 @@ const LeaveApplication = () => {
                           head_cell: "text-gray-500 w-10 font-normal text-sm",
                           row: "flex w-full",
                           cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
-                          day: "h-10 w-10 p-0 font-normal hover:bg-blue-100 cursor-pointer rounded-md transition-all duration-200",
+                          day: "h-10 w-10 p-0 font-normal hover:bg-blue-100 cursor-pointer rounded-full transition-all duration-200",
                           day_range_end: "day-range-end",
                           day_range_start: "day-range-start",
                           day_selected: "bg-blue-600 text-white hover:bg-blue-700",
-                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50", // Style for disabled days
+                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50",
                         }}
                       />
                     </div>
@@ -451,26 +434,26 @@ const LeaveApplication = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700">Reason</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Reason</label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Please provide a reason for your leave request"
-                  className="min-h-[100px] bg-white border-gray-300 focus:border-blue-500 transition-all duration-200"
+                  className="min-h-[100px] bg-white border-gray-300 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full inline-flex items-center justify-center px-4 py-3 rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
               >
                 Submit Application
               </Button>
             </form>
           </Card>
 
-          <Card className="p-6 bg-white shadow-lg border-0">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900">Recent Applications</h2>
+          <Card className="p-6 bg-white shadow-md rounded-xl border-0">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Applications</h2>
             <div className="space-y-4">
               {recentApplications.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">No leave applications found</p>
@@ -478,14 +461,14 @@ const LeaveApplication = () => {
                 recentApplications.map((application, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm"
                   >
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-blue-100 rounded-full">
                         <CalendarIcon className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{application.type}</p>
+                        <p className="font-semibold text-gray-900">{application.type}</p>
                         <p className="text-sm text-gray-500">
                           {application.from} to {application.to}
                         </p>
@@ -494,7 +477,7 @@ const LeaveApplication = () => {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm ${getStatusColor(
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
                             application.status
                           )}`}
                         >
@@ -511,30 +494,42 @@ const LeaveApplication = () => {
           </Card>
         </div>
 
-        <Card className="p-6 bg-white shadow-lg border-0">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">Leave Balance</h2>
+        <Card className="p-6 bg-white shadow-md rounded-xl border-0">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Balance</h2>
           <div className="space-y-6">
             {Object.entries(leaveBalance).map(([type, balance]) => (
-              <div key={type} className="space-y-2">
+              <div key={type} className="space-y-2 group relative">
                 <div className="flex justify-between items-center">
-                  <span className="capitalize text-gray-700 font-medium">{type} Leave</span>
+                  <span className="capitalize text-gray-700 font-semibold">{type} Leave</span>
                   <span className="font-semibold text-gray-900">
                     {balance.total - balance.used} days
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden relative"
+                  title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
+                >
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-300"
                     style={{
                       width: `${
-                        balance.total > 0 ? ((balance.used + balance.pending) / balance.total) * 100 : 0
+                        type === "unpaid" || type === "other"
+                          ? balance.used > 0 || balance.pending > 0
+                            ? 100
+                            : 0
+                          : balance.total > 0
+                          ? ((balance.used + balance.pending) / balance.total) * 100
+                          : 0
                       }%`,
                     }}
                   />
                 </div>
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-xs text-gray-500">
                   <span>Used: {balance.used} days</span>
                   <span>Pending: {balance.pending} days</span>
+                </div>
+                <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2">
+                  Used: {balance.used} days, Pending: {balance.pending} days
                 </div>
               </div>
             ))}
