@@ -103,14 +103,14 @@ const Leave = () => {
         <h1 className="text-3xl font-bold text-gray-900">Leave Requests</h1>
         <Button
           onClick={handleAdd}
-          className="mt-4 md:mt-0 inline-flex items-center px-4 py-3 rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
+          className="inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add Leave Request
         </Button>
       </div>
 
-      <Card className="p-6 bg-white shadow-md rounded-xl border-0">
+      <Card className=" bg-white shadow-md rounded-xl border-0">
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
@@ -142,7 +142,7 @@ const Leave = () => {
               </div>
               <Button
                 onClick={handleAdd}
-                className="inline-flex items-center px-4 py-3 rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
+                className="inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Leave Request
@@ -152,7 +152,7 @@ const Leave = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
                   <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>

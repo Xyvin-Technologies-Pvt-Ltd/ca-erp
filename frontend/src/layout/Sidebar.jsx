@@ -8,7 +8,6 @@ import {
   DocumentIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-  UserPlusIcon,
   XMarkIcon,
   CurrencyDollarIcon,
   UserIcon,
@@ -16,6 +15,9 @@ import {
   ChevronDownIcon,
   BuildingOfficeIcon,
   CalendarIcon,
+  ClockIcon,
+  CalendarDaysIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
 import { ROUTES } from "../config/constants";
 import { useAuth } from "../context/AuthContext";
@@ -23,14 +25,14 @@ import api from "../api/axios";
 
 const navigation = [
   { name: "Dashboard", to: ROUTES.DASHBOARD, icon: HomeIcon },
-   {
+  {
     name: "Employee",
-    icon: UsersIcon,
+    icon: UserIcon, // Changed from UsersIcon to distinguish from HRM
     children: [
       {
         name: "My Attendance",
         to: ROUTES.EMPLOYEE_ATTENDANCE,
-        icon: UserIcon,
+        icon: ClockIcon, // Changed from UserIcon to represent attendance
       },
       {
         name: "Projects",
@@ -40,33 +42,28 @@ const navigation = [
       {
         name: "Tasks",
         to: ROUTES.TASKS,
-        icon: CalendarIcon,
+        icon: ClipboardDocumentListIcon, // Changed from CalendarIcon to represent tasks
       },
       {
         name: "Leave Application",
         to: ROUTES.EMP_LeaveApplication,
         icon: CalendarIcon,
       },
-      // {
-      //   name: "Documents",
-      //   to: ROUTES.DOCUMENTS,
-      //   icon: CalendarIcon,
-      // },
     ],
   },
-   {
+  {
     name: "HRM",
     icon: UsersIcon,
     children: [
       {
         name: "Employees",
         to: ROUTES.HRM_EMPLOYEES,
-        icon: UserIcon,
+        icon: UserGroupIcon, // Changed from UserIcon to represent multiple employees
       },
-       {
+      {
         name: "Attendance",
         to: ROUTES.HRM_ATTENDANCE,
-        icon: CalendarIcon,
+        icon: ClockIcon, // Changed from CalendarIcon to match Employee's My Attendance
       },
       {
         name: "Departments",
@@ -76,25 +73,21 @@ const navigation = [
       {
         name: "Positions",
         to: ROUTES.HRM_POSITIONS,
-        icon: BriefcaseIcon,
+        icon: BriefcaseIcon, // Reused for roles/positions
       },
       {
         name: "Events",
         to: ROUTES.HRM_EVENTS,
-        icon: CalendarIcon,
+        icon: CalendarDaysIcon, // Changed from CalendarIcon to distinguish from Leave Application
       },
       {
         name: "Leaves",
         to: ROUTES.HRM_LEAVES,
-        icon: CalendarIcon,
+        icon: FolderIcon, // Changed from CalendarIcon to represent leave records
       },
-     
     ],
   },
   { name: "Clients", to: ROUTES.CLIENTS, icon: UserGroupIcon },
-  // { name: "Leads", to: ROUTES.LEADS, icon: UserPlusIcon },
-  { name: "Projects", to: ROUTES.PROJECTS, icon: BriefcaseIcon },
-  { name: "Tasks", to: ROUTES.TASKS, icon: ClipboardDocumentListIcon },
   { name: "Documents", to: ROUTES.DOCUMENTS, icon: DocumentIcon },
   {
     name: "Finance",
@@ -102,7 +95,6 @@ const navigation = [
     icon: CurrencyDollarIcon,
     roles: ["finance", "admin"],
   },
-  // { name: "Project List", to: ROUTES.PROJECTCART, icon: BriefcaseIcon },
 ];
 
 const secondaryNavigation = [
@@ -110,57 +102,54 @@ const secondaryNavigation = [
   { name: "Settings", to: ROUTES.SETTINGS, icon: Cog6ToothIcon },
 ];
 
-const Sidebar = ({ onCloseMobile ,projects = []}) => {
+const Sidebar = ({ onCloseMobile, projects = [] }) => {
   const location = useLocation();
   const { user, role } = useAuth();
- const [logoFilename, setLogoFilename] = useState("");
+  const [logoFilename, setLogoFilename] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [expandedItems, setExpandedItems] = useState({});
 
   useEffect(() => {
-  const fetchLogo = async () => {
-    try {
-      const response = await api.get("/settings");
-      const logo = response.data?.data?.company?.logo;
-      const company = response.data?.data?.company;
- 
-       if (company?.logo) {
-        const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
-        setLogoFilename(fullLogoUrl);
-      }
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get("/settings");
+        const logo = response.data?.data?.company?.logo;
+        const company = response.data?.data?.company;
 
-      if (company?.name) {
-        setCompanyName(company.name);
-      }
-      
-    } catch (error) {
-      console.error("Failed to load logo", error);
-    }
-  };
+        if (company?.logo) {
+          const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
+          setLogoFilename(fullLogoUrl);
+        }
 
-  fetchLogo();
-}, []);
+        if (company?.name) {
+          setCompanyName(company.name);
+        }
+      } catch (error) {
+        console.error("Failed to load logo", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   const toggleExpand = (itemName) => {
-    setExpandedItems((prev) => ({
-      ...prev,
-      [itemName]: !prev[itemName],
-    }));
+    setExpandedItems((prev) => {
+      const newExpanded = {};
+      // Only expand the clicked item, collapse all others
+      newExpanded[itemName] = !prev[itemName];
+      return newExpanded;
+    });
   };
 
-  // Check if a nav item is active
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
-
-  // Return nothing if user isn't authenticated
-  if (!user) return null;
-
-  // Filter navigation items based on user role
-  // const filteredNavigation = navigation.filter(
-  //   (item) => !item.roles || item.roles.includes(role || "staff")
-  // );
-
+  // Collapse all expandable items when navigating to a top-level route
+  useEffect(() => {
+    const isTopLevelRoute = navigation.some(
+      (item) => !item.children && item.to === location.pathname
+    );
+    if (isTopLevelRoute) {
+      setExpandedItems({});
+    }
+  }, [location.pathname]);
 
   const getVisibleNavigation = (role) => {
     return navigation.filter((item) => {
@@ -168,37 +157,31 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
         case "Dashboard":
           return true;
         case "Clients":
-        // case "Leads":
         case "Documents":
           return role === "admin" || role === "manager";
-        case "Projects":
-          return ["admin", "manager", "staff"].includes(role);
-          case "Tasks":
-            return ["admin", "manager", "staff"].includes(role);
         case "Finance":
           return ["admin", "manager", "finance"].includes(role);
-        // case "Project List":
-        //   return role === "finance";
+        case "Employee":
+        case "HRM":
+          return ["admin", "manager", "staff"].includes(role);
         default:
           return false;
       }
     });
   };
 
-  const filteredNavigation = getVisibleNavigation(role || "staff")
-
+  const filteredNavigation = getVisibleNavigation(role || "staff");
 
   return (
     <div className="h-full flex flex-col">
       {/* Logo and mobile close button */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
         <Link to={ROUTES.DASHBOARD} className="flex-shrink-0">
-         {logoFilename ? (
+          {logoFilename ? (
             <img src={logoFilename} alt="Company Logo" className="h-10 object-contain" />
           ) : (
             <span className="text-blue-600 font-bold text-2xl">{companyName}</span>
           )}
-          {/* <span className="text-blue-600 font-bold text-2xl">CA-ERP</span> */}
         </Link>
         {onCloseMobile && (
           <button
@@ -215,7 +198,7 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
       {/* Navigation */}
       <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4">
         <nav className="flex-1 px-2 space-y-1 bg-white">
-          {navigation.map((item) => {
+          {filteredNavigation.map((item) => {
             const isExpanded = expandedItems[item.name];
             const hasChildren = item.children && item.children.length > 0;
 
@@ -279,7 +262,7 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
 
       {/* Secondary links and user info */}
       <div className="px-2 space-y-1 mb-2">
-      {secondaryNavigation
+        {secondaryNavigation
           .filter((item) => {
             if (item.name === "Settings") {
               return role === "admin" || role === "manager";
@@ -287,27 +270,27 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
             return true;
           })
           .map((item) => (
-              <Link
-                key={item.name}
-                to={item.to}
-                onClick={onCloseMobile}
+            <Link
+              key={item.name}
+              to={item.to}
+              onClick={onCloseMobile}
+              className={`${
+                location.pathname === item.to
+                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-500"
+                  : "text-gray-700 hover:bg-gray-50"
+              } group flex items-center px-3 py-2 text-sm font-medium rounded-md`}
+            >
+              <item.icon
                 className={`${
-                  isActive(item.to)
-                    ? "bg-blue-50 text-blue-700 border-l-4 border-blue-500"
-                    : "text-gray-700 hover:bg-gray-50"
-                } group flex items-center px-3 py-2 text-sm font-medium rounded-md`}
-              >
-                <item.icon
-                  className={`${
-                    isActive(item.to)
-                      ? "text-blue-500"
-                      : "text-gray-500 group-hover:text-gray-600"
-                  } mr-3 flex-shrink-0 h-6 w-6`}
-                  aria-hidden="true"
-                />
-                {item.name}
-              </Link>
-        ))}
+                  location.pathname === item.to
+                    ? "text-blue-500"
+                    : "text-gray-500 group-hover:text-gray-600"
+                } mr-3 flex-shrink-0 h-6 w-6`}
+                aria-hidden="true"
+              />
+              {item.name}
+            </Link>
+          ))}
       </div>
 
       {/* User info */}
@@ -339,7 +322,6 @@ const Sidebar = ({ onCloseMobile ,projects = []}) => {
             </div>
           </div>
         </div>
-
       )}
     </div>
   );

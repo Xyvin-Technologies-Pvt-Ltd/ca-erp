@@ -45,10 +45,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
 
   useEffect(() => {
     if (user) {
-      // Ensure department and position are set to correct values for dropdowns
       reset({
         ...user,
-        department: user.department?._id || user.department || '',
+        department: user.department || '',
         position: user.position?._id || user.position || '',
       });
     }
