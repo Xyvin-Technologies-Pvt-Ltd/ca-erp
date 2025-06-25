@@ -57,7 +57,6 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
       try {
         const res = await userApi.getAllUsers({ role: 'staff', status: 'active', limit: 100 });
         const employees = res.data || [];
-        console.log(employees)
         setActiveEmployees(employees);
         setFilteredEmployees(employees);
       } catch (error) {
@@ -185,143 +184,145 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-              {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Time <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="time"
-                name="time"
-                value={formData.time}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-              {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              >
-                <option value="checkIn">Check In</option>
-                <option value="checkOut">Check Out</option>
-              </select>
-              {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Status <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              >
-                {Object.keys(statusIcons).map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Shift <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="shift"
-                value={formData.shift}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              >
-                <option value="Morning">Morning</option>
-                <option value="Evening">Evening</option>
-                <option value="Night">Night</option>
-              </select>
-              {errors.shift && <p className="mt-1 text-sm text-red-600">{errors.shift}</p>}
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Notes</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                rows="3"
-                placeholder="Enter notes..."
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-              {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Select Employees <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Search employees..."
-                onChange={handleEmployeeSearch}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-              <div className="mt-2 max-h-60 overflow-y-auto rounded-md border border-gray-300 p-2">
-                <div className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="checkbox"
-                    id="select-all"
-                    checked={formData.selectedEmployees.length === activeEmployees.length && activeEmployees.length > 0}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-                    Select All
-                  </label>
-                </div>
-                {filteredEmployees.map((employee) => (
-                  <div key={employee._id} className="flex items-center space-x-2 py-1">
+          <div className="max-h-[70vh] overflow-y-auto px-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                />
+                {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Time <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                />
+                {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                >
+                  <option value="checkIn">Check In</option>
+                  <option value="checkOut">Check Out</option>
+                </select>
+                {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                >
+                  {Object.keys(statusIcons).map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+                {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Shift <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="shift"
+                  value={formData.shift}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                >
+                  <option value="Morning">Morning</option>
+                  <option value="Evening">Evening</option>
+                  <option value="Night">Night</option>
+                </select>
+                {errors.shift && <p className="mt-1 text-sm text-red-600">{errors.shift}</p>}
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Notes</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows="3"
+                  placeholder="Enter notes..."
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                />
+                {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Employees <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Search employees..."
+                  onChange={handleEmployeeSearch}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                />
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-md border border-gray-300 p-2">
+                  <div className="flex items-center space-x-2 mb-2">
                     <input
                       type="checkbox"
-                      id={`employee-${employee._id}`}
-                      checked={formData.selectedEmployees.includes(employee._id)}
-                      onChange={(e) => handleEmployeeSelection(employee._id, e.target.checked)}
+                      id="select-all"
+                      checked={formData.selectedEmployees.length === activeEmployees.length && activeEmployees.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <label
-                      htmlFor={`employee-${employee._id}`}
-                      className="text-sm text-gray-700"
-                    >
-                      {employee.name} ({employee.employeeId || "No ID"})
+                    <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
+                      Select All
                     </label>
                   </div>
-                ))}
+                  {filteredEmployees.map((employee) => (
+                    <div key={employee._id} className="flex items-center space-x-2 py-1">
+                      <input
+                        type="checkbox"
+                        id={`employee-${employee._id}`}
+                        checked={formData.selectedEmployees.includes(employee._id)}
+                        onChange={(e) => handleEmployeeSelection(employee._id, e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor={`employee-${employee._id}`}
+                        className="text-sm text-gray-700"
+                      >
+                        {employee.name} ({employee.employeeId || "No ID"})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {errors.selectedEmployees && (
+                  <p className="mt-1 text-sm text-red-600">{errors.selectedEmployees}</p>
+                )}
               </div>
-              {errors.selectedEmployees && (
-                <p className="mt-1 text-sm text-red-600">{errors.selectedEmployees}</p>
-              )}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">

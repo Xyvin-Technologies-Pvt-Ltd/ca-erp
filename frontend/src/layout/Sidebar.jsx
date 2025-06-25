@@ -158,12 +158,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
           return true;
         case "Clients":
         case "Documents":
+                    // return true;
           return role === "admin" || role === "manager";
         case "Finance":
           return ["admin", "manager", "finance"].includes(role);
         case "Employee":
+           return true;
         case "HRM":
-          return ["admin", "manager", "staff"].includes(role);
+          return ["admin", "manager"].includes(role);
         default:
           return false;
       }
