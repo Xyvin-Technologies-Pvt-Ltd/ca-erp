@@ -339,7 +339,7 @@ const LeaveApplication = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card className="p-6 bg-white shadow-md rounded-xl border-0">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -494,7 +494,7 @@ const LeaveApplication = () => {
           </Card>
         </div>
 
-        <Card className="p-6 bg-white shadow-md rounded-xl border-0">
+        {/* <Card className="p-6 bg-white shadow-md rounded-xl border-0">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Balance</h2>
           <div className="space-y-6">
             {Object.entries(leaveBalance).map(([type, balance]) => (
@@ -534,7 +534,7 @@ const LeaveApplication = () => {
               </div>
             ))}
           </div>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
