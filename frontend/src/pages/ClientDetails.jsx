@@ -38,7 +38,7 @@ const ClientDetails = () => {
         const response = await clientsApi.deleteClient(id);
         if (response.success) {
           toast.success("Client deleted successfully");
-          navigate("/clients", { state: { message: "Client deleted successfully" } });
+          navigate("/clients");
         } else {
           throw new Error(response.error || "Failed to delete client");
         }
