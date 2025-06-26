@@ -56,8 +56,13 @@ const Projects = () => {
       if (!data?.data || !Array.isArray(data.data)) {
         throw new Error('Invalid API response format');
       }
-      
-      setProjects(data.data);
+
+      // Sort projects by dueDate (ascending)
+      const sortedProjects = data.data.sort((a, b) => 
+        new Date(a.dueDate) - new Date(b.dueDate)
+      );
+
+      setProjects(sortedProjects);
       setPaginations({
         page: currentPage,
         total: data.total || 0,
@@ -96,39 +101,38 @@ const Projects = () => {
     
     console.log("Tasks:", taskList);
 
-    // Step 1: Extract unique project IDs from assigned tasks
-    const taskProjectIds = new Set(taskList.map(task => task.project?._id).filter(Boolean));
+      // Step 1: Extract unique project IDs from assigned tasks
+      const taskProjectIds = new Set(taskList.map(task => task.project?._id).filter(Boolean));
 
-    // Step 2: Filter projects using those IDs
-    const allProjects = Array.isArray(projectsData.data) ? projectsData.data : [];
-    const filteredProjects = allProjects.filter(project => taskProjectIds.has(project._id));
+      // Step 2: Filter projects using those IDs
+      const allProjects = Array.isArray(projectsData.data) ? projectsData.data : [];
 
-    // Set filtered projects
-    setProjects(filteredProjects);
+      // Step 3: Filter and sort projects by dueDate (ascending)
+      const filteredProjects = allProjects
+        .filter(project => taskProjectIds.has(project._id))
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-    // setTeamMembers(
-    //   taskList.map(task => task.assignedTo).filter(Boolean)
-    // );
+      // Set filtered and sorted projects
+      setProjects(filteredProjects);
 
-    // Set pagination
-    setPaginations({
-      page: currentPage,
-      total: tasksData.total,
-      limit: tasksData.pagination?.next?.limit || 10,
-    });
+      // Set pagination
+      setPaginations({
+        page: currentPage,
+        total: tasksData.total,
+        limit: tasksData.pagination?.next?.limit || 10,
+      });
 
-    setLoading(false);
-  } catch (err) {
-    console.error("Failed to fetch data:", err);
-    setError("Failed to load tasks. Please try again later.");
-    setLoading(false);
-  }
-};
-
-const handlePageChanges = (newPage) => {
-    setCurrentPage(newPage);
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      setError("Failed to load tasks. Please try again later.");
+      setLoading(false);
+    }
   };
 
+  const handlePageChanges = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   // Function to delete a project
   const deleteProject = async () => {
@@ -148,14 +152,13 @@ const handlePageChanges = (newPage) => {
     }
   };
 
- useEffect(() => {
-  if (user?.role === "staff") {
-    loadTasksAndProjects();
-  }else {
-    loadProjects(); 
-  }
-}, [currentPage, filters]);
-
+  useEffect(() => {
+    if (user?.role === "staff") {
+      loadTasksAndProjects();
+    } else {
+      loadProjects();
+    }
+  }, [currentPage, filters]);
 
   // Check for success message from redirect (e.g., after project deletion)
   useEffect(() => {
@@ -186,6 +189,9 @@ const handlePageChanges = (newPage) => {
 
     return () => clearTimeout(timer);
   };
+
+  console.log(projects,"for leave projects");
+  
 
   if (loading) {
     return (
@@ -241,18 +247,18 @@ const handlePageChanges = (newPage) => {
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
         <div className="flex space-x-4">
-            {role !== "staff" && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Create Project
-          </button>
-            )}
+          {role !== "staff" && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Create Project
+            </button>
+          )}
         </div>
       </div>
 
-      {projects.length === 0  ? (
+      {projects.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <h2 className="text-xl font-medium text-gray-900 mb-4">
             No projects found
@@ -260,14 +266,14 @@ const handlePageChanges = (newPage) => {
           <p className="text-gray-500 mb-6">
             Get started by creating your first project.
           </p>
-            { role != "staff" && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Create First Project
-          </button>
-            )}
+          {role != "staff" && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Create First Project
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -279,8 +285,8 @@ const handlePageChanges = (newPage) => {
             >
               <div className="px-6 py-5 border-b">
                 <div className="flex items-start justify-between gap-[3px]">
-                  <div>
-                    <h2 className="text-lg font-medium text-gray-900  ">
+                  <div className="min-h-[84px]">
+                    <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
                       {project.name}
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
@@ -288,8 +294,7 @@ const handlePageChanges = (newPage) => {
                     </p>
                   </div>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"
-                      }`}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"}`}
                   >
                     {project.status}
                   </span>
@@ -323,7 +328,7 @@ const handlePageChanges = (newPage) => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  {project.teamMembers && project.teamMembers.length > 0 ? (
+                  {/* {project.teamMembers && project.teamMembers.length > 0 ? (
                     <div className="flex -space-x-2">
                       {project.teamMembers.slice(0, 3).map((member) => (
                         <div
@@ -354,11 +359,10 @@ const handlePageChanges = (newPage) => {
                     </div>
                   ) : (
                     <div className="text-xs text-gray-500">No team members</div>
-                  )}
+                  )} */}
 
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"
-                      }`}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
                   >
                     {project.priority}
                   </span>
@@ -369,98 +373,115 @@ const handlePageChanges = (newPage) => {
         </div>
       )}
 
- {/* Pagination Controls */}
-        <div className="px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => handlePageChanges(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "text-blue-600 hover:text-blue-900 border border-gray-300"
-                  }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChanges(currentPage + 1)}
-                disabled={currentPage === totalPage}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${currentPage === totalPage
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "text-blue-600 hover:text-blue-900 border border-gray-300"
-                  }`}
-              >
-                Next
-              </button>
+      {/* Pagination Controls */}
+      <div className="px-6 py-4 border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => handlePageChanges(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                currentPage === 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "text-blue-600 hover:text-blue-900 border border-gray-300"
+              }`}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => handlePageChanges(currentPage + 1)}
+              disabled={currentPage === totalPage}
+              className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                currentPage === totalPage
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "text-blue-600 hover:text-blue-900 border border-gray-300"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * paginations.limit + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * paginations.limit, paginations.total)}
+                </span>{" "}
+                of <span className="font-medium">{paginations.total}</span>{" "}
+                results
+              </p>
             </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">
-                    {(currentPage - 1) * paginations.limit + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-medium">
-                    {Math.min(currentPage * paginations.limit, paginations.total)}
-                  </span>{" "}
-                  of <span className="font-medium">{paginations.total}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => handlePageChanges(1)}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
-                      }`}
+            <div>
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
+                <button
+                  onClick={() => handlePageChanges(1)}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
+                  }`}
+                >
+                  <span className="sr-only">First</span>
+                  <svg
+                    className="h-5 w-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <span className="sr-only">First</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                  {pages.map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChanges(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === currentPage
-                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                    <path
+                      fillRule="evenodd"
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {pages.map((page) => (
                   <button
-                    onClick={() => handlePageChanges(currentPage + 1)}
-                    disabled={currentPage === totalPage}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${currentPage === totalPage
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
-                      }`}
+                    key={page}
+                    onClick={() => handlePageChanges(page)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      page === currentPage
+                        ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    {page}
                   </button>
-                </nav>
-              </div>
+                ))}
+                <button
+                  onClick={() => handlePageChanges(currentPage + 1)}
+                  disabled={currentPage === totalPage}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                    currentPage === totalPage
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
+                  }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="h-5 w-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </nav>
             </div>
           </div>
         </div>
+      </div>
 
       <CreateProjectModal
         isOpen={isModalOpen}
