@@ -130,6 +130,8 @@ const Documents = () => {
     limit: 10,
     total: 0,
   });
+const [showPreviewModal, setShowPreviewModal] = useState(false);
+const [previewDocument, setPreviewDocument] = useState(null);
   const fetchInitialData = async () => {
     try {
       setLoading(true);
@@ -265,13 +267,17 @@ const Documents = () => {
       alert("Error downloading document. Please try again.");
     }
   };
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const handlePreviewDocument = async (documentId, filename) => {
+    try {
+      const blob = await documentsApi.downloadDocument(documentId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      setPreviewDocument({ url, filename });
+      setShowPreviewModal(true);
+    } catch (error) {
+      console.error("Failed to preview document:", error);
+      alert("Error previewing document. Please try again.");
+    }
+  }; 
 
   const getProjectName = (projectId) => {
     const project = projectOptions.find((p) => p.id === projectId);
@@ -316,6 +322,23 @@ const Documents = () => {
     }, 3000);
   };
 
+  const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  });
+};
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return "0 Bytes";
+  const units = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const size = (bytes / Math.pow(1024, i)).toFixed(1);
+  return `${size} ${units[i]}`;
+};
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -471,37 +494,37 @@ const Documents = () => {
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Document
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Project
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Uploaded By
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Date
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Size
+                   File Size
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Actions
                   </th>
@@ -510,13 +533,12 @@ const Documents = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredDocuments.map((document) => (
                   <tr key={document.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center items-center">
                         <div className="flex-shrink-0">
                           {getFileIcon(getFileExtension(document.fileUrl))}
-
                         </div>
-                        <div className="ml-4">
+                        <div className="ml-4 text-left">
                           <div className="text-sm font-medium text-gray-900">
                             {document.name}
                           </div>
@@ -526,7 +548,7 @@ const Documents = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       {document.project ? (
                         <Link
                           to={`/projects/${document.project._id}`}
@@ -538,23 +560,50 @@ const Documents = () => {
                         <span className="text-gray-500">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-gray-900">
                         {document.uploadedBy.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-gray-900">
-                        {document.createdAt}
+                        {formatDate(document.createdAt)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-gray-900">
-                        {document.fileSize}
+                        {formatFileSize(document.fileSize)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-3">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center space-x-3">
+                        {getFileExtension(document.fileUrl) === "pdf" && (
+                          <button
+                            className="text-grey-200 hover:text-grey-300"
+                            onClick={() => handlePreviewDocument(document._id, document.name)}
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              ></path>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              ></path>
+                            </svg>
+                          </button>
+                        )}
                         <button
                           className="text-blue-600 hover:text-blue-900"
                           onClick={() => handleDownloadDocument(document._id, document.name)}
@@ -577,7 +626,6 @@ const Documents = () => {
                         <button
                           className="text-red-600 hover:text-red-900"
                           onClick={() => setShowConfirmDelete(document._id)}
-
                         >
                           <svg
                             className="w-5 h-5"
@@ -594,7 +642,6 @@ const Documents = () => {
                             ></path>
                           </svg>
                         </button>
-
                       </div>
                     </td>
                   </tr>
@@ -881,6 +928,44 @@ const Documents = () => {
           </div>
         </div>
       )} */}
+       {showPreviewModal && previewDocument && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Preview: {previewDocument.filename}
+              </h3>
+              <button
+                className="text-gray-400 hover:text-gray-500"
+                onClick={() => {
+                  window.URL.revokeObjectURL(previewDocument.url);
+                  setShowPreviewModal(false);
+                  setPreviewDocument(null);
+                }}
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1">
+              <iframe
+                src={previewDocument.url}
+                className="w-full h-full border-0"
+                title={`Preview of ${previewDocument.filename}`}
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
