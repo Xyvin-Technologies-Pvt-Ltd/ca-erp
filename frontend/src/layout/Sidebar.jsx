@@ -49,6 +49,7 @@ const navigation = [
         to: ROUTES.EMP_LeaveApplication,
         icon: CalendarIcon,
       },
+        { name: "Profile", to: ROUTES.PROFILE, icon: UserCircleIcon },
     ],
   },
   {
@@ -95,12 +96,13 @@ const navigation = [
     icon: CurrencyDollarIcon,
     roles: ["finance", "admin"],
   },
+  { name: "Settings", to: ROUTES.SETTINGS, icon: Cog6ToothIcon, roles: ["admin", "manager"] },
 ];
 
-const secondaryNavigation = [
-  { name: "Profile", to: ROUTES.PROFILE, icon: UserCircleIcon },
-  { name: "Settings", to: ROUTES.SETTINGS, icon: Cog6ToothIcon },
-];
+// const secondaryNavigation = [
+//   // { name: "Profile", to: ROUTES.PROFILE, icon: UserCircleIcon },
+//   { name: "Settings", to: ROUTES.SETTINGS, icon: Cog6ToothIcon },
+// ];
 
 const Sidebar = ({ onCloseMobile, projects = [] }) => {
   const location = useLocation();
@@ -166,6 +168,8 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
            return true;
         case "HRM":
           return ["admin", "manager"].includes(role);
+        case "Settings":
+        return item.roles ? item.roles.includes(role) : true;
         default:
           return false;
       }
@@ -263,7 +267,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
       </div>
 
       {/* Secondary links and user info */}
-      <div className="px-2 space-y-1 mb-2">
+      {/* <div className="px-2 space-y-1 mb-2">
         {secondaryNavigation
           .filter((item) => {
             if (item.name === "Settings") {
@@ -293,7 +297,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
               {item.name}
             </Link>
           ))}
-      </div>
+      </div> */}
 
       {/* User info */}
       {user && (

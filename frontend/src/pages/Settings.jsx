@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { ROLES } from "../config/constants";
-import UserManagement from "../components/settings/UserManagement";
+// import UserManagement from "../components/settings/UserManagement";
 import CompanySettings from "../components/settings/CompanySettings";
 import SystemPreferences from "../components/settings/SystemPreferences";
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useState("company");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -83,9 +83,11 @@ const Settings = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
+          {/* Uncomment to enable User Management tab */}
+          {/*
           <button
             onClick={() => setActiveTab("users")}
-            className={`${
+            className={`$
               activeTab === "users"
                 ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -93,6 +95,7 @@ const Settings = () => {
           >
             User Management
           </button>
+          */}
           <button
             onClick={() => setActiveTab("company")}
             className={`${
@@ -118,7 +121,7 @@ const Settings = () => {
 
       {/* Tab Content */}
       <div>
-        {activeTab === "users" && <UserManagement />}
+        {/* {activeTab === "users" && <UserManagement />} */}
         {activeTab === "company" && <CompanySettings />}
         {activeTab === "system" && <SystemPreferences />}
       </div>
