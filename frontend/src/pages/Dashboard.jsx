@@ -771,38 +771,65 @@ const UpcomingDeadlines = ({ projects }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
   
-  // Extract deadline information from projects
+
+  const parseDate = (dateString) => {
+    try {
+      if (!dateString) {
+        throw new Error('Empty date string');
+      }
+      const [day, month, year] = dateString.split('/');
+      if (!day || !month || !year || day.length !== 2 || month.length !== 2 || year.length !== 4) {
+        throw new Error('Invalid date format');
+      }
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+      date.setHours(0, 0, 0, 0);
+      return date;
+    } catch (error) {
+      console.warn(`Failed to parse date: ${dateString}`, error.message);
+      return null;
+    }
+  };
   const extractDeadlines = () => {
     const today = new Date();
-    
-    // Map project data to deadline format
+    today.setHours(0, 0, 0, 0);
+
     return projects
       .map(project => {
-        // Parse the due date
-        const dueDate = new Date(project.dueDate);
-        
+        const dueDate = parseDate(project.dueDate);
+
+        if (!dueDate) {
+          console.warn(`Invalid dueDate for project ${project.name}: ${project.dueDate}`);
+          return null;
+        }
+
         // Calculate days left
         const diffTime = dueDate - today;
         const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         return {
           id: project.id,
           title: `${project.name} Completion`,
           date: project.dueDate,
-          daysLeft: daysLeft > 0 ? daysLeft : 0,
+          daysLeft,
           project: project.name,
           projectId: project.id,
-          // Include completion status from project
-          completionPercentage: project.completionPercentage || project.progress
+          completionPercentage: project.completionPercentage || project.progress || 0,
         };
       })
+      // Remove invalid entries
+      .filter(deadline => deadline !== null)
+      // Filter upcoming deadlines (today or future, within 30 days)
+      .filter(deadline => deadline.daysLeft >= 0)
       // Sort by days left (most urgent first)
-      .sort((a, b) => a.daysLeft - b.daysLeft)
-      // Take only the upcoming deadlines (within next 30 days)
-      .filter(deadline => deadline.daysLeft <= 30);
+      .sort((a, b) => a.daysLeft - b.daysLeft);
   };
 
   const allDeadlines = extractDeadlines();
+  console.log(allDeadlines,"huuuh");
+  
   
   // Calculate total pages
   const totalPages = Math.ceil(allDeadlines.length / itemsPerPage);

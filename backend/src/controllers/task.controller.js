@@ -8,6 +8,7 @@ const { logger } = require('../utils/logger');
 const websocketService = require('../utils/websocket');
 const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
+const webhookService = require('../services/webhookService');
 /**
  * @desc    Get all tasks
  * @route   GET /api/tasks
@@ -732,6 +733,192 @@ exports.markTaskAsInvoiced = async (req, res, next) => {
             data: task,
         });
     } catch (error) {
+        next(error);
+    }
+};
+/**
+ * @desc    Get task tag documents
+ * @route   GET /api/tasks/:id/tag-documents
+ * @access  Private
+ */
+exports.getTaskTagDocuments = async (req, res, next) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            data: task.tagDocuments || {}
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Upload tag document
+ * @route   POST /api/tasks/:id/tag-documents
+ * @access  Private
+ */
+exports.uploadTagDocument = async (req, res, next) => {
+    try {
+        console.log('Upload request received:', {
+            body: req.body,
+            file: req.file,
+            params: req.params
+        });
+
+        if (!req.file) {
+            return next(new ErrorResponse('Please upload a file', 400));
+        }
+
+        let task = await Task.findById(req.params.id);
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        try {
+            // Initialize tagDocuments if it doesn't exist
+            if (!task.tagDocuments) {
+                task.tagDocuments = new Map();
+            }
+
+            // Get tag and documentType from request body
+            const { tag, documentType } = req.body;
+            
+            // Create a unique key for the document
+            const documentKey = `${tag}-${documentType}`;
+            
+            // Store the document information
+            const documentInfo = {
+                fileName: req.file.originalname,
+                filePath: req.file.path.replace(/\\/g, '/'),
+                documentType: documentType || 'document',
+                tag: tag || 'general',
+                uploadedAt: new Date()
+            };
+
+            console.log('Saving document info:', documentInfo);
+
+            // Set the document in the Map
+            task.tagDocuments.set(documentKey, documentInfo);
+            task.markModified('tagDocuments');
+
+            await task.save();
+
+            res.status(200).json({
+                success: true,
+                data: documentInfo
+            });
+        } catch (saveError) {
+            console.error('Error saving document:', saveError);
+            return next(new ErrorResponse('Error saving document information', 500));
+        }
+    } catch (error) {
+        console.error('Error in uploadTagDocument:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Send reminder to client for document
+ * @route   POST /api/tasks/:id/remind-client
+ * @access  Private
+ */
+exports.remindClientForDocument = async (req, res, next) => {
+    try {
+        const { documentName, documentType, tag } = req.body;
+
+        // Validate required fields
+        if (!documentName || !documentType || !tag) {
+            return next(new ErrorResponse('Document name, type, and tag are required', 400));
+        }
+
+        // Find task with project and client populated
+        const task = await Task.findById(req.params.id)
+            .populate({
+                path: 'project',
+                select: 'name client',
+                populate: {
+                    path: 'client',
+                    select: 'name contactName contactPhone contactEmail'
+                }
+            });
+
+        if (!task) {
+            return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        // Check if user has access to this task
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && task.assignedTo.toString() !== req.user.id.toString()) {
+            return next(new ErrorResponse(`User not authorized to send reminders for this task`, 403));
+        }
+
+        // Check if project has client
+        if (!task.project || !task.project.client) {
+            return next(new ErrorResponse('Task project does not have an associated client', 400));
+        }
+
+        const client = task.project.client;
+
+        // Check if client has phone number
+        if (!client.contactPhone) {
+            return next(new ErrorResponse('Client does not have a phone number for reminders', 400));
+        }
+
+        // Prepare reminder data
+        const reminderData = {
+            clientName: client.name,
+            phoneNumber: client.contactPhone,
+            documentName,
+            tag,
+            documentType,
+            reminderSentBy: req.user.name
+        };
+
+        // Send webhook
+        const webhookResponse = await webhookService.sendClientReminder(reminderData);
+
+        // Log the reminder activity
+        logger.info(`Document reminder sent to client: ${client.name} (${client.contactPhone}) for ${documentName} by ${req.user.name} (${req.user._id})`);
+
+        // Track activity
+        await ActivityTracker.trackActivity(
+            'reminder_sent',
+            'Document Reminder Sent',
+            `Reminder sent to ${client.name} for ${documentName}`,
+            req.user.id,
+            {
+                taskId: task._id,
+                projectId: task.project._id,
+                clientId: client._id,
+                documentName,
+                documentType,
+                tag
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Reminder sent successfully',
+            data: {
+                clientName: client.name,
+                phoneNumber: client.contactPhone,
+                documentName,
+                reminderSentBy: req.user.name,
+                reminderSentAt: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        logger.error('Error sending client reminder:', {
+            error: error.message,
+            taskId: req.params.id,
+            userId: req.user.id,
+            stack: error.stack
+        });
         next(error);
     }
 };

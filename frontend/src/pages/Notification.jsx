@@ -4,6 +4,7 @@ import useNotificationStore from '../hooks/useNotificationsStore';
 import { NOTIFICATION_TYPES } from '../config/constants';
 import { FaTrash, FaCheck, FaCheckDouble } from 'react-icons/fa'; 
 
+
 const Notification = () => {
   const {
     notifications,

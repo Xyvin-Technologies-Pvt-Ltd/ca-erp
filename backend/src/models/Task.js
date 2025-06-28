@@ -258,7 +258,17 @@ const TaskSchema = new mongoose.Schema(
             ref: 'User'
         }],
         deleted: { type: Boolean, default: false },
-
+        tagDocuments: {
+            type: Map,
+            of: {
+                fileName: String,
+                filePath: String,
+                documentType: String,
+                tag: String,
+                uploadedAt: Date
+            },
+            default: {}
+        },
     },
     {
         timestamps: true,

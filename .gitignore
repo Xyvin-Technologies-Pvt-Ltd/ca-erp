@@ -1,3 +1,6 @@
+
+memory.txt
+
 # Node.js / Backend
 node_modules/
 npm-debug.log
@@ -109,4 +112,4 @@ Thumbs.db
 # Temporary files
 .tmp/
 .temp/
-//
+

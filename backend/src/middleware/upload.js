@@ -50,63 +50,117 @@ const storage = {
         },
     }),
 
-       // Add storage for task files
-        taskFiles: multer.diskStorage({
-            destination: (req, file, cb) => {
-                const uploadPath = createUploadDir('/taskFiles');
+    // Add storage for task files
+    taskFiles: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const uploadPath = createUploadDir('/taskFiles');
+            cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = path.extname(file.originalname);
+            cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+    }),
+
+    // Update tag documents storage
+    tagDocuments: multer.diskStorage({
+        destination: function(req, file, cb) {
+            try {
+                const taskId = req.params.id;
+                const uploadPath = createUploadDir(`/tagDocuments/${taskId}`);
+                console.log('Created upload path:', uploadPath);
                 cb(null, uploadPath);
-            },
-            filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            } catch (error) {
+                console.error('Error in destination handler:', error);
+                cb(error);
+            }
+        },
+        filename: function(req, file, cb) {
+            try {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
                 const ext = path.extname(file.originalname);
-                cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-            },
-        }),
+                const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
+                cb(null, filename);
+            } catch (error) {
+                console.error('Error in filename handler:', error);
+                cb(error);
+            }
+        }
+    })
 };
 
 // File filter to check file types
 const fileFilter = (req, file, cb) => {
-    // Define allowed mime types
-    const allowedMimeTypes = {
-        documents: [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'text/plain',
-            'text/csv',
-            'application/zip',
-            'application/x-zip-compressed',
-            'image/jpeg',
-            'image/png',
-        ],
-        avatars: ['image/jpeg', 'image/png', 'image/gif'],
-        logos: ['image/jpeg', 'image/png', 'image/svg+xml'],
-        taskFiles: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'image/jpeg', 'image/png', 'application/zip', 'application/x-zip-compressed'],
-    };
+    try {
+        console.log('Checking file:', {
+            mimetype: file.mimetype,
+            originalname: file.originalname
+        });
 
-    // Determine upload type based on route or request data
-    let uploadType = 'documents';
-    if (req.originalUrl.includes('avatars')) {
-        uploadType = 'avatars';
-    } else if (req.originalUrl.includes('logos') || req.originalUrl.includes('settings')) {
-        uploadType = 'logos';
-    }
+        // Define allowed mime types
+        const allowedMimeTypes = {
+            documents: [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'text/csv',
+                'application/zip',
+                'application/x-zip-compressed',
+                'image/jpeg',
+                'image/png',
+            ],
+            avatars: ['image/jpeg', 'image/png', 'image/gif'],
+            logos: ['image/jpeg', 'image/png', 'image/svg+xml'],
+            taskFiles: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'image/jpeg', 'image/png', 'application/zip', 'application/x-zip-compressed'],
+            tagDocuments: [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'text/csv',
+                'application/zip',
+                'application/x-zip-compressed',
+                'image/jpeg',
+                'image/png'
+            ]
+        };
 
-    // Check if the file type is allowed
-    if (allowedMimeTypes[uploadType].includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(
-            new ErrorResponse(
-                `File type not allowed. Allowed types for ${uploadType}: ${allowedMimeTypes[uploadType].join(
-                    ', '
-                )}`,
-                400
-            ),
-            false
-        );
+        // Determine upload type based on route
+        let uploadType = 'documents';
+        if (req.originalUrl.includes('avatars')) {
+            uploadType = 'avatars';
+        } else if (req.originalUrl.includes('logos')) {
+            uploadType = 'logos';
+        } else if (req.originalUrl.includes('tag-documents')) {
+            uploadType = 'tagDocuments';
+        }
+
+        console.log('Upload type:', uploadType);
+
+        // Check if the file type is allowed
+        if (allowedMimeTypes[uploadType].includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            console.error('Invalid file type:', file.mimetype);
+            cb(
+                new ErrorResponse(
+                    `File type not allowed. Allowed types: ${allowedMimeTypes[uploadType].join(
+                        ', '
+                    )}`,
+                    400
+                ),
+                false
+            );
+        }
+    } catch (error) {
+        console.error('Error in file filter:', error);
+        cb(error);
     }
 };
 
@@ -126,5 +180,6 @@ module.exports = {
     uploadDocument: upload('documents'),
     uploadAvatar: upload('avatars'),
     uploadLogo: upload('logos'),
-     uploadTaskFile: upload('taskFiles'), 
+    uploadTaskFile: upload('taskFiles'),
+    uploadTagDocument: upload('tagDocuments')
 }; 

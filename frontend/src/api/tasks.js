@@ -292,3 +292,71 @@ export const updateTaskTime = async (id, timeData, token) => {
     throw error;
   }
 };
+
+/**
+ * Upload a tag document for a task
+ * @param {string} taskId - Task ID
+ * @param {Object} formData - Document data including file and tag info
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the uploaded document info
+ */
+export const uploadTagDocument = async (taskId, formData, token) => {
+    try {
+        console.log('Uploading document with FormData');
+
+        // Log all FormData entries
+        for (let [key, value] of formData.entries()) {
+            console.log('FormData entry:', key, typeof value, value);
+        }
+
+        const response = await api.post(`/tasks/${taskId}/tag-documents`, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        console.log('Upload response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading document:', error.response?.data || error);
+        throw error;
+    }
+};
+
+/**
+ * Get tag documents for a task
+ * @param {string} taskId - Task ID
+ * @returns {Promise} Promise object containing the task's tag documents
+ */
+export const getTaskTagDocuments = async (taskId) => {
+    try {
+        const response = await api.get(`/tasks/${taskId}/tag-documents`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching tag documents for task ${taskId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Send reminder to client for document
+ * @param {string} taskId - Task ID
+ * @param {Object} reminderData - Reminder data including document name, type, and tag
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the reminder response
+ */
+export const remindClientForDocument = async (taskId, reminderData, token) => {
+    try {
+        const response = await api.post(`/tasks/${taskId}/remind-client`, reminderData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Error sending reminder for task ${taskId}:`, error);
+        throw error;
+    }
+};

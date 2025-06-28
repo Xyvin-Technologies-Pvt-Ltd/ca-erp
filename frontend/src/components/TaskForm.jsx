@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { userApi } from "../api/userApi";
-import { createTask, updateTask } from "../api/tasks";
+import { createTask, updateTask, uploadTagDocument, getTaskTagDocuments, remindClientForDocument } from "../api/tasks";
 import { WithContext as ReactTags } from "react-tag-input";
 import { projectsApi } from "../api/projectsApi";
 import { useNotifications } from "../context/NotificationContext";
 import Select from "react-select";
+import TagDocumentUpload from "./TagDocumentUpload";
+import { tagDocumentRequirements } from '../utils/tagDocumentFields';
 
 
 const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
@@ -46,6 +48,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const { socket } = useNotifications();
   const token = localStorage.getItem("auth_token");
 
+  const [tagDocuments, setTagDocuments] = useState({});
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
+  const [clientInfo, setClientInfo] = useState(null);
+  const [isLoadingClient, setIsLoadingClient] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -54,9 +60,105 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   };
    
 
+  // Fetch existing tag documents when editing a task
+  useEffect(() => {
+    const fetchTagDocuments = async () => {
+      if (task?._id) {
+        setIsLoadingDocuments(true);
+        try {
+          const response = await getTaskTagDocuments(task._id);
+          setTagDocuments(response.data || {});
+        } catch (error) {
+          console.error('Error fetching tag documents:', error);
+        } finally {
+          setIsLoadingDocuments(false);
+        }
+      }
+    };
+
+    fetchTagDocuments();
+  }, [task?._id]);
+
+  // Fetch client information when project changes
+  const fetchClientInfo = async (projectId) => {
+    if (!projectId) {
+      setClientInfo(null);
+      return;
+    }
+
+    setIsLoadingClient(true);
+    try {
+      const response = await projectsApi.getProjectById(projectId);
+      if (response.success && response.data.client) {
+        setClientInfo(response.data.client);
+      } else {
+        setClientInfo(null);
+      }
+    } catch (error) {
+      console.error('Error fetching client info:', error);
+      setClientInfo(null);
+    } finally {
+      setIsLoadingClient(false);
+    }
+  };
+
+  // Handle client reminder
+  const handleRemindClient = async (reminderData) => {
+    if (!task?._id) {
+      throw new Error('Cannot send reminder for unsaved task');
+    }
+
+    try {
+      const response = await remindClientForDocument(task._id, reminderData, token);
+      return response;
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      throw error;
+    }
+  };
+
+  const handleTagDocumentUpload = async (tag, documentType, file) => {
+    try {
+      console.log('Uploading document:', { tag, documentType, file });
+
+      if (!task?._id) {
+        // If we're creating a new task, store the file temporarily
+        setTagDocuments(prev => ({
+          ...prev,
+          [`${tag}-${documentType}`]: {
+            file,
+            tag,
+            documentType,
+            isTemp: true
+          }
+        }));
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tag', tag);
+      formData.append('documentType', documentType);
+
+      // Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log('FormData entry:', key, value);
+      }
+
+      const response = await uploadTagDocument(task._id, formData, token);
+
+      setTagDocuments(prev => ({
+        ...prev,
+        [`${tag}-${documentType}`]: response.data
+      }));
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      alert('Failed to upload document');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
 
     if (!token) {
       alert("Unauthorized: No token found");
@@ -70,43 +172,19 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
 
     try {
       let taskPayload;
-    const tagList = selectedTags.map(tag => tag.text);
+      const tagList = selectedTags.map(tag => tag.text);
 
-
-      if (file) {
-        taskPayload = new FormData();
-        taskPayload.append("title", title);
-        taskPayload.append("project", projectId);
-        taskPayload.append("status", status);
-        taskPayload.append("priority", priority.toLowerCase());
-        taskPayload.append("assignedTo", assignedTo);
-        taskPayload.append("dueDate", dueDate);
-        taskPayload.append("description", description);
-
-        const originalFileName = file.name;
-    const fileNameWithoutExtension = originalFileName.replace(/\.[^/.]+$/, "");
-    console.log(fileNameWithoutExtension, "ddddddddddddgrtrteryteyrt")
-   
-        taskPayload.append("file", file);
-        taskPayload.append("originalName", fileNameWithoutExtension);
-        tagList.forEach(tag => taskPayload.append("tags[]", tag));
-
-     
-
-      } else {
-        taskPayload = {
-          title,
-          project: projectId,
-          status,
-          priority: priority.toLowerCase(),
-          assignedTo,
-          dueDate,
-          file,
-          description,
-          
-tags: tagList
-        };
-      }
+      // Create FormData for task creation
+      taskPayload = new FormData();
+      taskPayload.append("title", title);
+      taskPayload.append("project", projectId);
+      taskPayload.append("status", status);
+      taskPayload.append("priority", priority.toLowerCase());
+      taskPayload.append("assignedTo", assignedTo);
+      taskPayload.append("dueDate", dueDate);
+      taskPayload.append("description", description);
+      if (file) taskPayload.append("file", file);
+      tagList.forEach(tag => taskPayload.append("tags[]", tag));
 
       let response;
       if (task) {
@@ -114,10 +192,21 @@ tags: tagList
       } else {
         response = await createTask(taskPayload, token);
 
+        // After creating the task, upload any pending tag documents
+        const tempDocs = Object.entries(tagDocuments).filter(([_, doc]) => doc.isTemp);
+        for (const [key, doc] of tempDocs) {
+          const formData = new FormData();
+          formData.append('file', doc.file);
+          formData.append('tag', doc.tag);
+          formData.append('documentType', doc.documentType);
+
+          await uploadTagDocument(response.data.data._id, formData, token);
+        }
+
         if (socket && socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify({
             type: "notification",
-            message:`New task "${title}" has been created`,
+            message: `New task "${title}" has been created`,
             timestamp: new Date(),
             taskId: response.data.data._id,
             action: "create_task",
@@ -151,6 +240,20 @@ tags: tagList
 
 
 
+
+  // Fetch client info when project changes
+  useEffect(() => {
+    if (projectId) {
+      fetchClientInfo(projectId);
+    }
+  }, [projectId]);
+
+  // Fetch client info for existing task on mount
+  useEffect(() => {
+    if (task?.project?._id) {
+      fetchClientInfo(task.project._id);
+    }
+  }, [task?.project?._id]);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -313,7 +416,8 @@ tags: tagList
           />
         </div>
 
-        <div className="md:col-span-2">
+        {/* Tags */}
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Tags
           </label>
@@ -325,22 +429,45 @@ tags: tagList
                   key={tag}
                   type="button"
                   onClick={() => handleTagToggle(tag)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${isSelected
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    isSelected
                       ? "bg-blue-100 text-blue-800"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                  }`}
                 >
                   {tag}
                 </button>
               );
             })}
-
           </div>
-          {/* <input type="hidden" {...register("tags")} /> */}
         </div>
 
-        
-
+        {/* Tag Documents */}
+        {selectedTags.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">Required Documents</h3>
+            {isLoadingClient && (
+              <div className="text-center text-gray-500 mb-2">Loading client information...</div>
+            )}
+            {isLoadingDocuments ? (
+              <div className="text-center">Loading documents...</div>
+            ) : (
+              <div className="space-y-4">
+                {selectedTags.map(tag => (
+                  <TagDocumentUpload
+                    key={tag.text}
+                    tag={tag.text}
+                    onUpload={handleTagDocumentUpload}
+                    onRemindClient={task?._id ? handleRemindClient : null}
+                    existingDocuments={tagDocuments}
+                    clientInfo={clientInfo}
+                    isLoading={isLoadingClient || isLoadingDocuments}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Buttons */}
         <div className="flex justify-between mt-6">

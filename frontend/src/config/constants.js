@@ -37,9 +37,18 @@ export const ROUTES = {
     DOCUMENTS: '/documents',
     PROFILE: '/profile',
     SETTINGS: '/settings',
+    SETTINGS_PROFILE: '/settings/profile',
+    SETTINGS_USER_MANAGEMENT: '/settings/user-management',
+    HRM: '/hrm',
+    HRM_EMPLOYEES: '/hrm/employees',
+    HRM_DEPARTMENTS: '/hrm/departments',
+    HRM_POSITIONS: '/hrm/positions',
+    HRM_EVENTS: '/hrm/events',
+    HRM_LEAVES: '/hrm/leaves',
+    HRM_ATTENDANCE: "/hrm/attendance",
+    EMP:'/emp',
+    EMP_LeaveApplication: '/employee/leaveapplication',
+    EMPLOYEE_ATTENDANCE: "/employee/attendance",
     FINANCE: '/finance',
     NOTIFICATIONS: '/notifications',
-
-
-
 }; 

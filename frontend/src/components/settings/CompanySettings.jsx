@@ -178,179 +178,187 @@ const CompanySettings = () => {
       {!loading && (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="bg-white mb-6 p-6 rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 mb-6 border-b">
-              <h3 className="text-md font-medium text-gray-900">Basic Information</h3>
-            </div>
-            {/* Company Name */}
-            <div>
-              <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name
-              </label>
-              <input
-                id="companyName"
-                {...register("company.name", { required: "Company name is required" })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {errors.company?.name && (
-                <span className="text-red-600 text-sm">{errors.company.name.message}</span>
-              )}
+  <div className="px-6 py-4 mb-6 border-b">
+    <h3 className="text-md font-medium text-gray-900">Basic Information</h3>
+  </div>
+  {/* Company Name */}
+  <div>
+    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
+      Company Name <span className="text-red-600">*</span>
+    </label>
+    <input
+      id="companyName"
+      {...register("company.name", { required: "Company name is required" })}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    />
+    {errors.company?.name && (
+      <span className="text-red-600 text-sm">{errors.company.name.message}</span>
+    )}
+  </div>
+
+  {/* Contact Email */}
+  <div>
+    <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-1">
+      Contact Email <span className="text-red-600">*</span>
+    </label>
+    <input
+      id="contactEmail"
+      type="email"
+      {...register("company.contactEmail", { required: "Email is required" })}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    />
+    {errors.company?.contactEmail && (
+      <span className="text-red-600 text-sm">{errors.company.contactEmail.message}</span>
+    )}
+  </div>
+
+  {/* Phone */}
+  <div>
+    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+      Phone <span className="text-red-600">*</span>
+    </label>
+    <input
+      id="phone"
+      type="tel"
+      {...register("company.phone", { required: "Phone number is required" })}
+      pattern="[0-9+\-\s]*"
+      onKeyPress={(e) => {
+        const char = String.fromCharCode(e.which);
+        if (!/[0-9+\-\s]/.test(char)) {
+          e.preventDefault();
+        }
+      }}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    />
+    {errors.company?.phone && (
+      <span className="text-red-600 text-sm">{errors.company.phone.message}</span>
+    )}
+  </div>
+
+  {/* Address */}
+  <div>
+    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+      Address <span className="text-red-600">*</span>
+    </label>
+    <input
+      id="address"
+      {...register("company.address", { required: "Address is required" })}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    />
+    {errors.company?.address && (
+      <span className="text-red-600 text-sm">{errors.company.address.message}</span>
+    )}
+  </div>
+
+  {/* Website */}
+  <div>
+    <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
+      Website <span className="text-red-600">*</span>
+    </label>
+    <input
+      id="website"
+      type="url"
+      {...register("company.website", { required: "Website URL is required" })}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    />
+    {errors.company?.website && (
+      <span className="text-red-600 text-sm">{errors.company.website.message}</span>
+    )}
+  </div>
             </div>
 
-            {/* Contact Email */}
-            <div>
-              <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                Contact Email
-              </label>
-              <input
-                id="contactEmail"
-                type="email"
-                {...register("company.contactEmail", { required: "Email is required" })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {errors.company?.contactEmail && (
-                <span className="text-red-600 text-sm">{errors.company.contactEmail.message}</span>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
-              </label>
-              <input
-                id="phone"
-                {...register("company.phone", { required: "Phone number is required" })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {errors.company?.phone && (
-                <span className="text-red-600 text-sm">{errors.company.phone.message}</span>
-              )}
-            </div>
-
-            {/* Address */}
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Address
-              </label>
-              <input
-                id="address"
-                {...register("company.address", { required: "Address is required" })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {errors.company?.address && (
-                <span className="text-red-600 text-sm">{errors.company.address.message}</span>
-              )}
-            </div>
-
-            {/* Website */}
-            <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
-                Website
-              </label>
-              <input
-                id="website"
-                type="url"
-                {...register("company.website", { required: "Website URL is required" })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              {errors.company?.website && (
-                <span className="text-red-600 text-sm">{errors.company.website.message}</span>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b">
-              <h3 className="text-md font-medium text-gray-900">Financial Settings</h3>
-            </div>
-            <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tax ID */}
-              <div>
-                <label htmlFor="taxId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Tax ID / GST NUMBER
-                </label>
-                <input
-                  id="taxId"
-                  {...register("company.taxId", { required: "Tax ID is required" })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors.company?.taxId && (
-                  <span className="text-red-600 text-sm">{errors.company.taxId.message}</span>
-                )}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="px-6 py-4 border-b">
+                <h3 className="text-md font-medium text-gray-900">Financial Settings</h3>
               </div>
+              <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Tax ID */}
+                <div>
+                  <label htmlFor="taxId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Tax ID / GST NUMBER <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    id="taxId"
+                    {...register("company.taxId", { required: "Tax ID is required" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.company?.taxId && (
+                    <span className="text-red-600 text-sm">{errors.company.taxId.message}</span>
+                  )}
+                </div>
 
-              {/* Currency */}
-              <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                  Default Currency
-                </label>
-                <select
-                  id="currency"
-                  {...register("company.currency", { required: "Currency is required" })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="INR">Indian Rupee (₹)</option>
-                  <option value="USD">US Dollar ($)</option>
-                  <option value="EUR">Euro (€)</option>
-                  <option value="GBP">British Pound (£)</option>
-                  <option value="CAD">Canadian Dollar (C$)</option>
-                  <option value="AUD">Australian Dollar (A$)</option>
-                  <option value="SGD">Singapore Dollar (S$)</option>
-                </select>
-                {errors.company?.currency && (
-                  <span className="text-red-600 text-sm">{errors.company.currency.message}</span>
-                )}
-              </div>
+                {/* Currency */}
+                <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
+                    Default Currency <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    id="currency"
+                    {...register("company.currency", { required: "Currency is required" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="INR">Indian Rupee (₹)</option>
+                    <option value="USD">US Dollar ($)</option>
+                    <option value="EUR">Euro (€)</option>
+                    <option value="GBP">British Pound (£)</option>
+                    <option value="CAD">Canadian Dollar (C$)</option>
+                    <option value="AUD">Australian Dollar (A$)</option>
+                    <option value="SGD">Singapore Dollar (S$)</option>
+                  </select>
+                  {errors.company?.currency && (
+                    <span className="text-red-600 text-sm">{errors.company.currency.message}</span>
+                  )}
+                </div>
 
-              {/* Financial Year Start */}
-              <div>
-                <label htmlFor="financialYearStart" className="block text-sm font-medium text-gray-700 mb-1">
-                  Financial Year Start
-                </label>
-                <select
-                  id="financialYearStart"
-                  {...register("company.financialYearStart", { required: "Financial year start is required" })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="January">January</option>
-                  <option value="February">February</option>
-                  <option value="March">March</option>
-                  <option value="April">April</option>
-                  <option value="May">May</option>
-                  <option value="June">June</option>
-                  <option value="July">July</option>
-                  <option value="August">August</option>
-                  <option value="September">September</option>
-                  <option value="October">October</option>
-                  <option value="November">November</option>
-                  <option value="December">December</option>
-                </select>
-                {errors.company?.financialYearStart && (
-                  <span className="text-red-600 text-sm">{errors.company.financialYearStart.message}</span>
-                )}
-              </div>
+                {/* Financial Year Start */}
+                <div>
+                  <label htmlFor="financialYearStart" className="block text-sm font-medium text-gray-700 mb-1">
+                    Financial Year Start <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    id="financialYearStart"
+                    {...register("company.financialYearStart", { required: "Financial year start is required" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                  </select>
+                  {errors.company?.financialYearStart && (
+                    <span className="text-red-600 text-sm">{errors.company.financialYearStart.message}</span>
+                  )}
+                </div>
 
-              {/* Date Format */}
-              <div>
-                <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
-                  Date Format
-                </label>
-                <select
-                  id="dateFormat"
-                  {...register("company.dateFormat", { required: "Date format is required" })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                  <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
-                </select>
-                {errors.company?.dateFormat && (
-                  <span className="text-red-600 text-sm">{errors.company.dateFormat.message}</span>
-                )}
+                {/* Date Format */}
+                <div>
+                  <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
+                    Date Format <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    id="dateFormat"
+                    {...register("company.dateFormat", { required: "Date format is required" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
+                  </select>
+                  {errors.company?.dateFormat && (
+                    <span className="text-red-600 text-sm">{errors.company.dateFormat.message}</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b">
