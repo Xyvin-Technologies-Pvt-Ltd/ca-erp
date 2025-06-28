@@ -1,0 +1,105 @@
+name: Deploy React App to AWS Lightsail
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
+
+      # Step 3: Install dependencies and build the project
+      - name: Install Dependencies and Build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      # Step 4: Rename the build output directory (if required)
+      - name: Rename dist to ca-erp-frontend
+        run: |
+          cd frontend
+          mv ./dist ../ca-erp-frontend
+
+      # Step 5: Verify SSH connection
+      - name: Verify SSH connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_KEY }}
+          timeout: 60s
+          script: |
+            echo "SSH connection successful"
+            whoami
+            pwd
+            ls -la
+
+      # Step 6: Clean up temporary deployment directory on Lightsail
+      - name: Clean Temporary Directory on Lightsail
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_KEY }}
+          timeout: 60s
+          script: |
+            rm -rf ~/deploy-temp
+            mkdir -p ~/deploy-temp
+            chmod 775 ~/deploy-temp
+
+      # Step 7: Copy files to Lightsail using rsync
+      - name: Deploy to Lightsail using rsync
+        uses: burnett01/rsync-deployments@5.2.1
+        with:
+          switches: -avzr --delete
+          path: ./ca-erp-frontend/
+          remote_path: ~/deploy-temp/
+          remote_host: ${{ secrets.LIGHTSAIL_HOST }}
+          remote_user: ${{ secrets.LIGHTSAIL_USER }}
+          remote_key: ${{ secrets.LIGHTSAIL_KEY }}
+
+      # Step 8: Deploy on Lightsail
+      - name: Deploy on Lightsail
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_KEY }}
+          timeout: 60s
+          script: |
+            echo "Deploying to web root..."
+            sudo rm -rf /var/www/html/*
+            sudo cp -R ~/deploy-temp/* /var/www/html/
+            sudo chown -R www-data:www-data /var/www/html/
+            sudo chmod -R 755 /var/www/html/
+            sudo rm -rf ~/deploy-temp
+
+            # Clear nginx cache and restart
+            echo "Restarting Nginx..."
+            sudo rm -rf /var/cache/nginx/*
+            sudo systemctl restart nginx
+
+            echo "Deployment completed!"

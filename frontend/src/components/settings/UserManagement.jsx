@@ -151,8 +151,10 @@ const UserManagement = () => {
 
   return (
     <div>
-      <div className="flex justify-end items-center mb-6">
-        {/* <h2 className="text-lg font-medium text-gray-900">User Management</h2> */}
+      <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              Employees
+            </h1>        
         <button
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -214,7 +216,14 @@ const UserManagement = () => {
                         <img
                           className="h-10 w-10 rounded-full"
                           src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
-
+                          onError={(e) => {
+                            e.target.outerHTML = `
+                             <svg className="h-10 w-10 rounded-full" fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="20" fill="#9CA3AF"/>
+                            <path d="M20 12a4 4 0 100 8 4 4 0 000-8zm0 10c-4.42 0-8 3.58-8 8v2h16v-2c0-4.42-3.58-8-8-8z" fill="white"/>
+                          </svg>`
+                          }}
+                          alt={`${user.name}'s avatar`}
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
@@ -241,7 +250,7 @@ const UserManagement = () => {
                       user.role
                     )}`}
                   >
-                    {user.role}
+                    {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

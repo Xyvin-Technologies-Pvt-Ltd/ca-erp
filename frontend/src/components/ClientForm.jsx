@@ -32,6 +32,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm({
     defaultValues: client || {
       name: "",
@@ -47,6 +48,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       notes: "",
     },
   });
+
+  // Watch address and notes for character counting
+  const addressValue = watch("address");
+  const notesValue = watch("notes");
+
+  // Define max character limits
+  const maxAddressLength = 200;
+  const maxNotesLength = 500;
 
   useEffect(() => {
     if (client) {
@@ -253,9 +262,13 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             <textarea
               {...register("address")}
               rows="3"
+              maxLength={maxAddressLength}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter complete address"
             ></textarea>
+            <p className="mt-1 text-sm text-gray-500 text-right">
+              {addressValue?.length || 0}/{maxAddressLength} characters
+            </p>
           </div>
 
           {/* Notes */}
@@ -266,9 +279,13 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             <textarea
               {...register("notes")}
               rows="3"
+              maxLength={maxNotesLength}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Additional notes about the client"
             ></textarea>
+            <p className="mt-1 text-sm text-gray-500 text-right">
+              {notesValue?.length || 0}/{maxNotesLength} characters
+            </p>
           </div>
         </div>
 

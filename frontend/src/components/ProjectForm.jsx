@@ -6,16 +6,22 @@ import { useAuth } from "../context/AuthContext";
 
 const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const isEditMode = !!project;
   const { user, role } = useAuth();
-  
+
+  // Get today's date in YYYY-MM-DD format for min attribute
+  const today = new Date().toISOString().split("T")[0];
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     reset,
+    watch,
+    setError,
+    clearErrors,
   } = useForm({
     defaultValues: {
       name: "",
@@ -29,17 +35,25 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     },
   });
 
+  const startDate = watch("startDate");
+  const dueDate = watch("dueDate");
+  const projectName = watch("name");
+
   useEffect(() => {
-    const loadClients = async () => {
+    const loadClientsAndProjects = async () => {
       try {
-        const response = await clientsApi.getAllClients();
-        setClients(response.data);
+        const [clientsResponse, projectsResponse] = await Promise.all([
+          clientsApi.getAllClients(),
+          projectsApi.getAllProjects({ limit: 1000 })
+        ]);
+        setClients(clientsResponse.data);
+        setProjects(projectsResponse.data || []);
       } catch (error) {
-        console.error("Error loading clients:", error);
+        console.error("Error loading clients or projects:", error);
       }
     };
 
-    loadClients();
+    loadClientsAndProjects();
   }, []);
 
   useEffect(() => {
@@ -63,11 +77,33 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   }, [project, clients, reset]);
 
   const onSubmit = async (data) => {
-    
+    if (data.startDate && data.dueDate && new Date(data.dueDate) < new Date(data.startDate)) {
+      setError("dueDate", {
+        type: "manual",
+        message: "Due date cannot be earlier than start date",
+      });
+      return;
+    } else {
+      clearErrors("dueDate");
+    }
+
+    const isDuplicateName = projects.some(
+      (p) => p.name.toLowerCase() === data.name.toLowerCase() && 
+             (!isEditMode || p._id !== project?._id)
+    );
+    if (isDuplicateName) {
+      setError("name", {
+        type: "manual",
+        message: "Project name already exists",
+      });
+      return;
+    } else {
+      clearErrors("name");
+    }
+
     setLoading(true);
     try {
       const projectData = {
-      
         client: data.client.id,
         status: data.status ? data.status.toLowerCase() : "planning",
         budget: data.budget ? Number(data.budget) : undefined,
@@ -82,7 +118,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         console.error(`Invalid status: ${projectData.status}`);
         return;
       }
-      
+
       let result;
       if (isEditMode && project?.id) {
         result = await projectsApi.updateProject(project.id, projectData);
@@ -91,11 +127,28 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       }
 
       setLoading(false);
+      reset(); 
       if (onSuccess) onSuccess(result.data);
     } catch (error) {
       console.error("Error saving project:", error.response ? error.response.data : error);
+      if (error.response?.data?.message?.includes("name already exists")) {
+        setError("name", {
+          type: "manual",
+          message: "Project name already exists",
+        });
+      }
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      const confirmDiscard = window.confirm("Are you sure you want to discard changes?");
+      if (!confirmDiscard) {
+        return;
+      }
+    }
+    onCancel();
   };
 
   return (
@@ -108,7 +161,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project Name
+              Project Name <span className="text-red-600">*</span>
             </label>
             <input
               type="text"
@@ -122,7 +175,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Client
+              Client <span className="text-red-600">*</span>
             </label>
             <select
               {...register("client.id", { required: "Client is required" })}
@@ -171,11 +224,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
+              Start Date <span className="text-red-600">*</span>
             </label>
             <input
               type="date"
               {...register("startDate", { required: "Start date is required" })}
+              min={isEditMode ? undefined : today}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.startDate && (
@@ -185,11 +239,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Due Date
+              Due Date <span className="text-red-600">*</span>
             </label>
             <input
               type="date"
               {...register("dueDate", { required: "Due date is required" })}
+              min={isEditMode ? undefined : today}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.dueDate && (
@@ -214,7 +269,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
+            Description <span className="text-red-600">*</span>
           </label>
           <textarea
             {...register("description", { required: "Description is required" })}
@@ -229,7 +284,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         <div className="flex justify-end space-x-3">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={handleCancel}
             className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Cancel

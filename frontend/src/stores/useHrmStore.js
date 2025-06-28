@@ -8,6 +8,11 @@ const useHrmStore = create((set, get) => ({
   departmentsLoading: false,
   departmentsError: null,
 
+  // Leave State
+  leaves: [],
+  leavesLoading: false,
+  leavesError: null,
+
   // Actions
   fetchDepartments: async () => {
     set({ departmentsLoading: true, departmentsError: null });
@@ -67,7 +72,8 @@ const useHrmStore = create((set, get) => ({
       console.error('Error deleting department:', error);
       throw error;
     }
-  }
+  },
+
 }));
 
 export default useHrmStore; 

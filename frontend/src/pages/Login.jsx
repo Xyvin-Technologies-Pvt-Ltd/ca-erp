@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "../ui";
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../config/constants";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -15,6 +16,7 @@ const schema = z.object({
 const Login = () => {
   const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -23,8 +25,8 @@ const Login = () => {
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "admin@example.com",
-      password: "password",
+      email: "admin@ca-erp.com",
+      password: "Admin@123",
     },
   });
 
@@ -51,6 +53,10 @@ const Login = () => {
       // Error is handled by the auth store
       console.error("Login failed:", error);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -80,15 +86,29 @@ const Login = () => {
             error={errors.email?.message}
           />
 
-          <Input
-            label="Password"
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            {...register("password")}
-            error={errors.password?.message}
-          />
+          <div className="relative">
+            <Input
+              label="Password"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              {...register("password")}
+              error={errors.password?.message}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              style={{ top: "60%", transform: "translateY(-25%)" }}
+            >
+              {showPassword ? (
+                <EyeIcon className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
 
           <div className="flex items-center justify-between">
             {/* <div className="flex items-center">

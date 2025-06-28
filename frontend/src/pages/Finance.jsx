@@ -450,91 +450,90 @@ const [paginations, setPaginations] = useState({
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {filteredProjects.map((pro) => (
-            <tr
-              key={pro.id}
-              className={
-                selectedProjects.includes(pro.id)
-                  ? "bg-blue-50"
-                  : "hover:bg-gray-50"
-              }
-            >
-              <td className="px-6 py-4 whitespace-nowrap">
-                <input
-                  type="checkbox"
-                  checked={selectedProjects.includes(pro.id)}
-                  onChange={() => handleProjectSelection(pro.id)}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      <Link
-                        to={`/projects/${pro.id}`}
-                        className="hover:text-blue-600"
-                      >
-                        {pro.name}
-                      </Link>
-                    </div>
-                    <div className="text-sm text-gray-500 flex mt-1">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          statusColors[pro.status] || "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {pro.status}
-                      </span>
-                      <span
-                        className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          priorityColors[pro.priority] || "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {pro.priority}
-                      </span>
-                    </div>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {filteredProjects.map((pro) => (
+          <tr
+            key={pro.id}
+            className={`${
+              selectedProjects.includes(pro.id)
+                ? "bg-blue-50"
+                : pro.tasks?.length === 0
+                ? "bg-gray-100 text-gray-500"
+                : "hover:bg-gray-50"
+            }`}
+          >
+            <td className="px-6 py-4 whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={selectedProjects.includes(pro.id)}
+                onChange={() => handleProjectSelection(pro.id)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="flex items-center">
+                <div>
+                  <div className="text-sm font-medium text-gray-900">
+                    <Link
+                      to={`/projects/${pro.id}`}
+                      className={pro.tasks?.length === 0 ? "text-gray-500" : "hover:text-blue-600"}
+                    >
+                      {pro.name}
+                    </Link>
+                  </div>
+                  <div className="text-sm text-gray-500 flex mt-1">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        statusColors[pro.status] || "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {pro.status}
+                    </span>
+                    <span
+                      className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        priorityColors[pro.priority] || "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {pro.priority}
+                    </span>
                   </div>
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500">
-                  {pro.client?.name || "No Client"}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {pro.tasks ? `${pro.tasks.length} Tasks` : ""}
-                </div>
-              </td>
-              {/* <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {pro.actualHours || pro.estimatedHours || 0}
-                </div>
-              </td> */}
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {Number(pro.cost || 0).toLocaleString("en-IN")}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {pro.completedAt
-                  ? new Date(pro.completedAt).toLocaleDateString()
-                  : pro.updatedAt
-                  ? new Date(pro.updatedAt).toLocaleDateString()
-                  : ""}
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  invoiceStatusColors[pro.invoiceStatus || 'Not Created']
-                }`}>
-                  {pro.invoiceStatus || 'Not Created'}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="text-sm text-gray-500">
+                {pro.client?.name || "No Client"}
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="text-sm text-gray-900">
+                {pro.tasks ? `${pro.tasks.length} Tasks` : "0 Tasks"}
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="text-sm text-gray-900">
+                {Number(pro.cost || 0).toLocaleString("en-IN")}
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {pro.completedAt
+                ? new Date(pro.completedAt).toLocaleDateString()
+                : pro.updatedAt
+                ? new Date(pro.updatedAt).toLocaleDateString()
+                : ""}
+            </td>
+            <td className="px-4 py-4 whitespace-nowrap">
+              <span
+                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  invoiceStatusColors[pro.invoiceStatus || "Not Created"]
+                }`}
+              >
+                {pro.invoiceStatus || "Not Created"}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
       </table>
     </div>
   ) : (

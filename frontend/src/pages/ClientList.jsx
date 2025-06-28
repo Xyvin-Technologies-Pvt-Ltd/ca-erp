@@ -40,7 +40,49 @@ const ClientCard = ({ client }) => {
       .toUpperCase()
       .substring(0, 2);
   };
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+      }
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.warn(`Failed to format date: ${dateString}`, error.message);
+      return "N/A";
+    }
+  };
+ const toTitleCase = (str) => {
+  if (!str) return str;
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
 
+const formatPhoneNumber = (phone) => {
+    if (!phone) return phone;
+    const cleaned = phone.replace(/[^\d+]/g, "");
+    const withCountryCode = cleaned.match(/^\+(\d{1,3})(\d{10})$/);
+    if (withCountryCode) {
+      const countryCode = withCountryCode[1];
+      const digits = withCountryCode[2];
+      return `+${countryCode} ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    }
+    const noCountryCode = cleaned.match(/^\d{10}$/);
+    if (noCountryCode) {
+      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+    }
+    const usFormat = cleaned.match(/^\+1(\d{10})$/);
+    if (usFormat) {
+      const digits = usFormat[1];
+      return `+1 ${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return phone;
+  };
   return (
     <Link
       to={`/clients/${client._id}`}
@@ -68,14 +110,14 @@ const ClientCard = ({ client }) => {
               </h3>
               <StatusBadge status={client.status} />
             </div>
-            <p className="mt-1 text-sm text-gray-600">{client.industry || 'N/A'}</p>
+            <p className="mt-1 text-sm text-gray-600">{client.industry || "N/A"}</p>
           </div>
         </div>
         <div className="mt-4 border-t border-gray-100 pt-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-500">Contact Person</p>
-              <p className="font-medium">{client.contactName || 'N/A'}</p>
+              <p className="font-medium">{toTitleCase(client.contactName) || 'N/A'}</p>
             </div>
             <div>
               <p className="text-gray-500">Email</p>
@@ -83,7 +125,7 @@ const ClientCard = ({ client }) => {
             </div>
             <div>
               <p className="text-gray-500">Phone</p>
-              <p className="font-medium">{client.contactPhone || 'N/A'}</p>
+              <p className="font-medium">{formatPhoneNumber(client.contactPhone) || "N/A"}</p>
             </div>
             <div>
               <p className="text-gray-500">Created</p>
@@ -152,7 +194,7 @@ const ClientList = () => {
           statuses: response.filters?.statuses || []
         }));
       } else {
-        throw new Error(response.error || 'Failed to fetch clients');
+        throw new Error(response.error || "Failed to fetch clients");
       }
       
       setLoading(false);
@@ -183,7 +225,7 @@ const ClientList = () => {
       clients: [newClient, ...prevData.clients],
       total: prevData.total + 1
     }));
-    toast.success("Client created successfully");
+    // toast.success("Client created successfully");
     setIsModalOpen(false);
   };
 
@@ -239,6 +281,9 @@ const ClientList = () => {
       </div>
     );
   }
+
+  // console.log(clientsData,"clients");
+  
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -361,7 +406,10 @@ const ClientList = () => {
       {/* Results info */}
       <div className="mb-4 flex justify-between items-center">
         <p className="text-sm text-gray-500">
-          Showing {clientsData.clients.length} of {clientsData.total} clients
+          {/* Showing {clientsData.clients.length} of {clientsData.total} clients */}
+          {clientsData.clients.length === 1
+            ? "Showing 1 client"
+            : `Showing ${clientsData.clients.length} of ${clientsData.total} clients`}
         </p>
         
         {/* Pagination */}

@@ -116,6 +116,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
+         <div className="max-h-[70vh] overflow-y-auto px-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Position Title *</label>
@@ -268,6 +269,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
             >
               {loading ? 'Saving...' : position ? 'Update' : 'Create'}
             </button>
+          </div>
           </div>
         </form>
       </div>

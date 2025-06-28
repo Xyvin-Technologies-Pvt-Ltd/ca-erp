@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-ca-erp.xyvin.com/api/';
 
 export const ROLES = {
     ADMIN: 'admin',
@@ -43,6 +43,12 @@ export const ROUTES = {
     HRM_EMPLOYEES: '/hrm/employees',
     HRM_DEPARTMENTS: '/hrm/departments',
     HRM_POSITIONS: '/hrm/positions',
+    HRM_EVENTS: '/hrm/events',
+    HRM_LEAVES: '/hrm/leaves',
+    HRM_ATTENDANCE: "/hrm/attendance",
+    EMP:'/emp',
+    EMP_LeaveApplication: '/employee/leaveapplication',
+    EMPLOYEE_ATTENDANCE: "/employee/attendance",
     FINANCE: '/finance',
     NOTIFICATIONS: '/notifications',
 }; 
