@@ -313,53 +313,64 @@ const Projects = () => {
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-blue-600">
-                      {project.completionPercentage}% Complete
+                      {project.tasks && project.tasks.length > 0 
+                        ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
+                        : 0}% Complete
                     </span>
                     <span className="text-xs font-medium text-gray-500">
-                      {project.completedTasks} / {project.totalTasks} Tasks
+                      {project.completedTasks || 0} / {project.tasks ? project.tasks.length : 0} Tasks
                     </span>
                   </div>
                   <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${project.completionPercentage}%` }}
+                      style={{ 
+                        width: `${project.tasks && project.tasks.length > 0 
+                          ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
+                          : 0}%` 
+                      }}
                     ></div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  {/* {project.teamMembers && project.teamMembers.length > 0 ? (
+                  {project.team && project.team.length > 0 ? (
                     <div className="flex -space-x-2">
-                      {project.teamMembers.slice(0, 3).map((member) => (
+                      {project.team.slice(0, 3).map((member) => (
                         <div
-                          key={member.id}
+                          key={member}
                           className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
-                          title={member.name}
+                          title={member}
                         >
-                          {member.avatar ? (
-                            <img
-                              src={member.avatar}
-                              alt={member.name}
-                              className="h-full w-full rounded-full"
-                            />
-                          ) : (
-                            <span className="text-xs font-medium text-gray-600">
-                              {member.name.charAt(0)}
-                            </span>
-                          )}
+                          <span className="text-xs font-medium text-gray-600">
+                            {/* {member.charAt(0)} */}
+                             <svg
+                  className="h-5 w-5 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                          </span>
                         </div>
                       ))}
-                      {project.teamMembers.length > 3 && (
+                      {project.team.length > 3 && (
                         <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
                           <span className="text-xs font-medium text-gray-600">
-                            +{project.teamMembers.length - 3}
+                            +{project.team.length - 3}
                           </span>
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="text-xs text-gray-500">No team members</div>
-                  )} */}
+                  )}
 
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
