@@ -155,14 +155,18 @@ exports.getProjects = async (req, res, next) => {
         // 🧠 Add completion stats for each project
         const projectsWithStats = await Promise.all(projects.map(async (project) => {
             const taskIds = project.tasks || [];
-            const totalTasks = taskIds.length;
+            
+            // Filter out deleted tasks for accurate counting
+            const activeTasks = await Task.find({
+                _id: { $in: taskIds },
+                deleted: { $ne: true }
+            });
+            
+            const totalTasks = activeTasks.length;
 
             let completedTasks = 0;
             if (totalTasks > 0) {
-                completedTasks = await Task.countDocuments({
-                    _id: { $in: taskIds },
-                    status: 'completed',
-                });
+                completedTasks = activeTasks.filter(task => task.status === 'completed').length;
             }
 
             const completionPercentage = totalTasks > 0
@@ -259,14 +263,18 @@ exports.getProject = async (req, res, next) => {
         const projectObject = project.toObject(); // Convert Mongoose doc to plain object
         // 🧠 Calculate task completion stats
         const taskIds = project.tasks; // array of ObjectId
-        const totalTasks = taskIds.length;
+        
+        // Filter out deleted tasks for accurate counting
+        const activeTasks = await Task.find({
+            _id: { $in: taskIds },
+            deleted: { $ne: true }
+        });
+        
+        const totalTasks = activeTasks.length;
 
         let completedTasks = 0;
         if (totalTasks > 0) {
-            completedTasks = await Task.countDocuments({
-                _id: { $in: taskIds },
-                status: 'completed',
-            });
+            completedTasks = activeTasks.filter(task => task.status === 'completed').length;
         }
 
         const completionPercentage = totalTasks > 0
