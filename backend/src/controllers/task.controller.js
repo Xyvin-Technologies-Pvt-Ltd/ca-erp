@@ -313,6 +313,34 @@ exports.updateTask = async (req, res, next) => {
         //     return next(new ErrorResponse(`User not authorized to update this task`, 403));
         // }
 
+        // Handle soft delete - remove task from project and clean up team
+        if (req.body.deleted === true) {
+            const project = await Project.findById(task.project);
+            if (project) {
+                // Remove task from project's tasks array
+                project.tasks = project.tasks.filter(taskId => taskId.toString() !== task._id.toString());
+                
+                // Check if assigned user has other active tasks in this project
+                if (task.assignedTo) {
+                    const remainingTasks = await Task.countDocuments({
+                        project: task.project,
+                        assignedTo: task.assignedTo,
+                        _id: { $ne: task._id },
+                        deleted: { $ne: true }
+                    });
+                    
+                    // Remove user from team if no other active tasks
+                    if (remainingTasks === 0) {
+                        project.team = project.team.filter(memberId => 
+                            memberId.toString() !== task.assignedTo.toString()
+                        );
+                    }
+                }
+                
+                await project.save();
+            }
+        }
+
         // Process file if uploaded
         if (req.file) {
             const file = {
@@ -443,6 +471,32 @@ exports.deleteTask = async (req, res, next) => {
 
         if (!task) {
             return next(new ErrorResponse(`Task not found with id of ${req.params.id}`, 404));
+        }
+
+        // Remove task from project and clean up team before deleting
+        const project = await Project.findById(task.project);
+        if (project) {
+            // Remove task from project's tasks array
+            project.tasks = project.tasks.filter(taskId => taskId.toString() !== task._id.toString());
+            
+            // Check if assigned user has other active tasks in this project
+            if (task.assignedTo) {
+                const remainingTasks = await Task.countDocuments({
+                    project: task.project,
+                    assignedTo: task.assignedTo,
+                    _id: { $ne: task._id },
+                    deleted: { $ne: true }
+                });
+                
+                // Remove user from team if no other active tasks
+                if (remainingTasks === 0) {
+                    project.team = project.team.filter(memberId => 
+                        memberId.toString() !== task.assignedTo.toString()
+                    );
+                }
+            }
+            
+            await project.save();
         }
 
         // Log the task deletion
