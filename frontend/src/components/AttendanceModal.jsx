@@ -55,7 +55,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   useEffect(() => {
     const loadEmployees = async () => {
       try {
-        const res = await userApi.getAllUsers({ role: 'staff', status: 'active', limit: 100 });
+        const res = await userApi.getAllUsers({ limit: 1000 });
         const employees = res.data || [];
         setActiveEmployees(employees);
         setFilteredEmployees(employees);
@@ -176,8 +176,8 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
           <h2 className="text-2xl font-semibold text-gray-800">Record Bulk Attendance</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-6 w-6" />

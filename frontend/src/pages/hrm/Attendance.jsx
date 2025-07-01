@@ -119,7 +119,6 @@ const Attendance = () => {
             <tr>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Check In</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Check Out</th>
@@ -129,20 +128,19 @@ const Attendance = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
-              <tr><td colSpan={8} className="text-center py-8">Loading...</td></tr>
+              <tr><td colSpan={7} className="text-center py-8">Loading...</td></tr>
             ) : attendance.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-8">No records found</td></tr>
+              <tr><td colSpan={7} className="text-center py-8">No records found</td></tr>
             ) : (
               attendance.map((a) => (
                 <tr key={a._id}>
                   <td className="px-4 py-2">{a.employee?.name || a.employee?.firstName || "-"}</td>
                   <td className="px-4 py-2">{a.employee?.department?.name || a.employee?.department || "-"}</td>
-                  <td className="px-4 py-2">{a.employee?.position?.title || a.employee?.position || "-"}</td>
                   <td className="px-4 py-2">{a.date ? new Date(a.date).toLocaleDateString() : "-"}</td>
                   <td className="px-4 py-2">{a.checkIn?.time ? new Date(a.checkIn.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}</td>
                   <td className="px-4 py-2">{a.checkOut?.time ? new Date(a.checkOut.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}</td>
                   <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[a.status] || "bg-gray-100 text-gray-800"}`}>{a.status}</span>
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">{a.status}</span>
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-3">

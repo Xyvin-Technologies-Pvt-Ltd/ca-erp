@@ -65,15 +65,18 @@ const EmployeeAttendance = () => {
   const attendanceByDate = {};
   attendance.forEach(a => {
     const dateStr = a.date ? new Date(a.date).toISOString().split("T")[0] : null;
-    if (dateStr) attendanceByDate[dateStr] = a;
+    if (dateStr && (a.status === 'Present' || a.status === 'On-Leave')) attendanceByDate[dateStr] = a;
   });
 
   const [year, month] = selectedMonth.split("-");
   const days = getDaysInMonth(Number(year), Number(month) - 1);
   const firstDayOfWeek = days[0].getDay();
 
-  // Only show table rows for days with attendance
-  const attendanceDays = days.filter(day => attendanceByDate[day.toISOString().split("T")[0]]);
+  // Only show table rows for days with attendance (Present or On-Leave)
+  const attendanceDays = days.filter(day => {
+    const att = attendanceByDate[day.toISOString().split("T")[0]];
+    return att && (att.status === 'Present' || att.status === 'On-Leave');
+  });
 
   return (
     <div className="p-6">
@@ -87,18 +90,10 @@ const EmployeeAttendance = () => {
         />
       </div>
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded shadow p-4">
           <div className="text-gray-500 text-sm">Present</div>
           <div className="text-2xl font-bold">{stats.present || 0}</div>
-        </div>
-        <div className="bg-white rounded shadow p-4">
-          <div className="text-gray-500 text-sm">Absent</div>
-          <div className="text-2xl font-bold">{stats.absent || 0}</div>
-        </div>
-        <div className="bg-white rounded shadow p-4">
-          <div className="text-gray-500 text-sm">Late</div>
-          <div className="text-2xl font-bold">{stats.late || 0}</div>
         </div>
         <div className="bg-white rounded shadow p-4">
           <div className="text-gray-500 text-sm">On-Leave</div>
@@ -119,7 +114,7 @@ const EmployeeAttendance = () => {
             return (
               <button
                 key={dateStr}
-                className={`rounded p-2 w-full h-16 flex flex-col items-center justify-center border ${selectedDate === dateStr ? 'border-blue-600' : 'border-gray-200'} ${att ? statusColors[att.status] : 'bg-gray-50 text-gray-400'}`}
+                className={`rounded p-2 w-full h-16 flex flex-col items-center justify-center border ${selectedDate === dateStr ? 'border-blue-600' : 'border-gray-200'} ${att ? 'bg-gray-100 text-gray-800' : 'bg-gray-50 text-gray-400'}`}
                 onClick={() => att && setSelectedDate(dateStr)}
                 disabled={!att}
               >
@@ -188,7 +183,7 @@ const EmployeeAttendance = () => {
                   <td className="px-4 py-2">{att?.checkOut?.time ? new Date(att.checkOut.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
                   <td className="px-4 py-2">{att?.workHours != null ? att.workHours : '-'}</td>
                   <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[att?.status] || "bg-gray-100 text-gray-800"}`}>{att?.status || '-'}</span>
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">{att?.status || '-'}</span>
                   </td>
                 </tr>
               );

@@ -2,8 +2,7 @@ const Attendance = require('../models/Attendance');
 const Employee = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const { createError } = require('../utils/errors');
-// ... existing code ... 
-// Get all attendance records
+
 exports.getAllAttendance = catchAsync(async (req, res) => {
   const { startDate, endDate, employeeId, departmentId } = req.query;
   
