@@ -185,7 +185,7 @@ exports.getTask = async (req, res, next) => {
  */
 exports.createTask = async (req, res, next) => {
     try {
-        console.log('req.body:', req.body);
+        console.log('req.body (createTask):', req.body);
         req.body.createdBy = req.user.id;
         let project;
 
@@ -207,15 +207,18 @@ exports.createTask = async (req, res, next) => {
                 return next(new ErrorResponse(`Project not found with id of ${req.body.project}`, 404));
             }
         }
-        // Ensure amount is a number
-    if ('amount' in req.body) {
-      req.body.amount = parseFloat(req.body.amount);
-      if (isNaN(req.body.amount) || req.body.amount < 0) {
-        return next(new ErrorResponse('Amount must be a non-negative number', 400));
-      }
-    } else {
-      req.body.amount = 0; // Explicitly set default if not provided
-    }
+        // Ensure amount is a number and always present
+        if ('amount' in req.body) {
+            req.body.amount = parseFloat(req.body.amount);
+            if (isNaN(req.body.amount) || req.body.amount < 0) {
+                console.error('Invalid amount received:', req.body.amount);
+                return next(new ErrorResponse('Amount must be a non-negative number', 400));
+            }
+        } else {
+            req.body.amount = 0; // Explicitly set default if not provided
+            console.warn('No amount provided, defaulting to 0');
+        }
+        console.log('Final amount to save (createTask):', req.body.amount);
 
         // Validate assigned user
         if (req.body.assignedTo) {
@@ -311,7 +314,7 @@ exports.createTask = async (req, res, next) => {
 exports.updateTask = async (req, res, next) => {
     try {
         const taskId = req.params.id;
-        console.log(req.body,"111111111111111111111111")
+        console.log('req.body (updateTask):', req.body);
         let task = await Task.findById(taskId);
 
         if (!task) {
@@ -381,11 +384,14 @@ exports.updateTask = async (req, res, next) => {
     if ('amount' in req.body) {
       req.body.amount = parseFloat(req.body.amount);
       if (isNaN(req.body.amount) || req.body.amount < 0) {
+        console.error('Invalid amount received (update):', req.body.amount);
         return next(new ErrorResponse('Amount must be a non-negative number', 400));
       }
     } else {
       req.body.amount = task.amount; // Retain existing amount
+      console.warn('No amount provided in update, retaining previous value:', task.amount);
     }
+    console.log('Final amount to save (updateTask):', req.body.amount);
 
         const isNewAssignment = req.body.assignedTo && (!task.assignedTo || task.assignedTo.toString() !== req.body.assignedTo.toString());
 

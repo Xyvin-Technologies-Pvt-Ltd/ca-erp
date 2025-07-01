@@ -9,7 +9,7 @@ import { projectsApi } from "./projectsApi";
 
 
 
-export const fetchDashboardData = async () => {
+export const fetchDashboardData = async (userId) => {
   try {
     // In a real app, we would fetch from the backend
     // const response = await api.get('/api/dashboard');
@@ -31,7 +31,7 @@ export const fetchDashboardData = async () => {
 
     console.log(projects,"project is this");
     const completedProjects = projects.data.filter((project) => project.status === "completed");
-    const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
+    // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
 
     const currentProjects = projects.count;
     const previousProject =8;
@@ -96,6 +96,18 @@ export const fetchDashboardData = async () => {
     
 
     
+    // Calculate total revenue as the sum of task.amount for tasks assigned to the logged-in user
+    let totalRevenue = 0;
+    if (userId) {
+      totalRevenue = tasksRes.tasks.reduce((acc, task) => {
+        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        if (assignedId === userId) {
+          return acc + (task.amount || 0);
+        }
+        return acc;
+      }, 0);
+    }
+
     return {
       stats: {
         totalProjects: {
@@ -124,7 +136,7 @@ export const fetchDashboardData = async () => {
         //   color: "bg-purple-100",
         // },
         revenue: {
-          value: `$${totalRevenue}`,
+          value: `₹${totalRevenue}`,
           change: 6,
           iconType: "money",
           color: "bg-yellow-100",

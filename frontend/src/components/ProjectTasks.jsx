@@ -161,15 +161,23 @@ const goToPrevTaskPage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-              {["Task", "Status", "Priority", "Assigned To", "Due Date"]
-                    .concat(role !== "staff" ? ["Actions"] : [])
-                    .map((head) => (                  <th
-                    key={head}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {head}
-                  </th>
-                ))}
+                {[
+                  "Task",
+                  "Status",
+                  "Priority",
+                  "Assigned To",
+                  "Due Date",
+                  "Amount"
+                ]
+                  .concat(role !== "staff" ? ["Actions"] : [])
+                  .map((head) => (
+                    <th
+                      key={head}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {head}
+                    </th>
+                  ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -233,7 +241,10 @@ const goToPrevTaskPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(task.dueDate).toLocaleDateString()}
                   </td>
-             { role != 'staff' && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {task.amount !== undefined ? `₹${task.amount}` : '-'}
+                  </td>
+                  { role != 'staff' && (
                   <td className="px-6 py-4 whitespace-nowrap">
                     
                     <div className="flex space-x-2">     

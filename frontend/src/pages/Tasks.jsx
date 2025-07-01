@@ -331,6 +331,9 @@ const Tasks = () => {
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
                     Assigned To
                   </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                    Amount
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -362,6 +365,9 @@ const Tasks = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {task.assignedTo?.name || "Unassigned"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {task.amount !== undefined ? `₹${task.amount}` : '-'}
                     </td>
                   </tr>
                 ))}

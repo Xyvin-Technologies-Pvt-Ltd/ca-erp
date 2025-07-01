@@ -511,67 +511,6 @@ const ProjectProgress = ({ project }) => {
   );
 };
 
-// const TaskSummary = ({ tasks }) => {
-//   const statusCounts = {
-//     "In Progress": tasks.filter((task) => task.status === "In Progress").length,
-//     Pending: tasks.filter((task) => task.status === "Pending").length,
-//     Completed: tasks.filter((task) => task.status === "Completed").length,
-//     Review: tasks.filter((task) => task.status === "Review").length,
-//   };
-//   return (
-//     <div className="bg-white rounded-lg shadow-sm p-6">
-//       <div className="flex justify-between items-center mb-4">
-//         <h2 className="text-lg font-medium">Task Summary</h2>
-//         <Link
-//           to={ROUTES.TASKS}
-//           className="text-sm text-blue-600 hover:text-blue-800"
-//         >
-//           View all
-//         </Link>
-//       </div>
-
-//       <div className="grid grid-cols-2 gap-4">
-//         {Object.entries(statusCounts).map(([status, count]) => (
-//           <div key={status} className="flex items-center p-3 border rounded-lg">
-//             <div
-//               className={`w-3 h-3 rounded-full mr-2 ${
-//                 status === "In Progress"
-//                   ? "bg-blue-500"
-//                   : status === "Pending"
-//                   ? "bg-yellow-500"
-//                   : status === "Completed"
-//                   ? "bg-green-500"
-//                   : "bg-purple-500"
-//               }`}
-//             ></div>
-//             <div>
-//               <p className="text-xs text-gray-500">{status}</p>
-//               <p className="text-lg font-bold">{count}</p>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="mt-4">
-//         <div className="flex justify-between text-xs text-gray-500 mb-1">
-//           <span>Tasks Completed</span>
-//           <span>
-//             {Math.round((statusCounts.Completed / tasks.length) * 100)}%
-//           </span>
-//         </div>
-//         <div className="w-full h-2 bg-gray-200 rounded-full">
-//           <div
-//             className="h-2 bg-green-500 rounded-full"
-//             style={{
-//               width: `${(statusCounts.Completed / tasks.length) * 100}%`,
-//             }}
-//           ></div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
 const TaskSummary = ({ tasks }) => {
   // Define all possible statuses
   const allStatuses = ["In Progress", "Pending", "Completed", "Review"];
@@ -617,7 +556,6 @@ const TaskSummary = ({ tasks }) => {
       </div>
 
       <div className="mt-4">
-        {/* Rest of the component remains the same */}
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>Tasks Completed</span>
           <span>
@@ -763,8 +701,6 @@ const RecentActivity = () => {
     </div>
   );
 };
-
-
 
 const UpcomingDeadlines = ({ projects }) => {
   // Add state for pagination
@@ -970,13 +906,22 @@ const Dashboard = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [complianceTasks, setComplianceTasks] = useState([]);
 
+  // Get logged-in user id from localStorage
+  let userId = undefined;
+  try {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    userId = userData?._id;
+  } catch (e) {
+    userId = undefined;
+  }
+
   const {
     data,
     isLoading: dashboardLoading,
     error,
   } = useQuery({
-    queryKey: ["dashboardData"],
-    queryFn: fetchDashboardData,
+    queryKey: ["dashboardData", userId],
+    queryFn: () => fetchDashboardData(userId),
     // Sample data for testing
     initialData: {
       stats: {
@@ -1191,20 +1136,20 @@ const Dashboard = () => {
     return <div>Loading...</div>; 
   }
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetchDashboardData();
-      setStats(response.stats);
-      setRecentTasks(response.tasks);
-      setComplianceTasks(response.complianceTasks);
-      setIsLoading(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const fetchData = async () => {
+      try {
+        const response = await fetchDashboardData(userId);
+        setStats(response.stats);
+        setRecentTasks(response.tasks);
+        setComplianceTasks(response.complianceTasks);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, [userId]);
 
   if (isLoading) {
     return (
@@ -1284,15 +1229,14 @@ const Dashboard = () => {
           iconType={dashboardStats.teamMembers.iconType}
           color={dashboardStats.teamMembers.color}
         />
-        {["admin", "manager", "finance"].includes(role) && (
+       
               <StatCard
-                title="Monthly Revenue"
+                title="Revenue"
                 value={dashboardStats.revenue.value}
                 change={dashboardStats.revenue.change}
                 iconType={dashboardStats.revenue.iconType}
                 color={dashboardStats.revenue.color}
               />
-        )}
         </div>
 
 

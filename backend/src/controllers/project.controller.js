@@ -284,10 +284,13 @@ exports.getProject = async (req, res, next) => {
         projectObject.totalTasks = totalTasks;
         projectObject.completedTasks = completedTasks;
         projectObject.completionPercentage = completionPercentage;
+        // Calculate total amount of all tasks as budget
+        const totalAmount = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
+        projectObject.budget = totalAmount;
         // Remove budget if user is not admin or finance
-        if (!['admin','manager', 'finance'].includes(req.user.role)) {
-            delete projectObject.budget;
-        }
+        // if (!['admin','manager', 'finance'].includes(req.user.role)) {
+        //     delete projectObject.budget;
+        // }
 
         res.status(200).json({
             success: true,
@@ -308,6 +311,10 @@ exports.createProject = async (req, res, next) => {
     try {
         // Add user to req.body
         req.body.createdBy = req.user.id;
+        // Remove budget if present in payload
+        if ('budget' in req.body) {
+            delete req.body.budget;
+        }
         console.log(req.body)
         // Check if client exists
         if (req.body.client) {

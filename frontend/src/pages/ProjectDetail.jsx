@@ -550,16 +550,16 @@ const goToPrevDocPage = () => {
                         {formatDate(project.dueDate)}
                       </span>
                     </div>
-                    {project.budget && (
+                    {/* {project.budget !== undefined && ( */}
                       <div>
                         <span className="text-sm text-gray-500 block">
                           Budget
                         </span>
                         <span className="text-sm font-medium text-gray-900">
-                          {formatCurrency(project.budget)}
+                          {(project.budget)}
                         </span>
                       </div>
-                    )}
+                    {/* )} */}
                     {project.spent && (
                       <div>
                         <span className="text-sm text-gray-500 block">
@@ -849,7 +849,7 @@ const goToPrevDocPage = () => {
                         onClick={() => setNoteToDelete(note)}
                         className="text-red-600 hover:text-red-800 font-bold"
                       >
-                        <MdDelete size={20} />
+                        <MdDelete size={20} />
                       </button>
                       </>
                      )}
