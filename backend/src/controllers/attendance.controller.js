@@ -8,7 +8,6 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   
   let query = { isDeleted: false };
   
-  // Date range filter
   if (startDate && endDate) {
     query.date = {
       $gte: new Date(startDate),
@@ -16,12 +15,10 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
     };
   }
   
-  // Employee filter
   if (employeeId) {
     query.employee = employeeId;
   }
   
-  // Department filter
   if (departmentId) {
     const employees = await Employee.find({ department: departmentId }).select('_id');
     query.employee = { $in: employees.map(emp => emp._id) };
@@ -46,7 +43,6 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   });
 });
 
-// Get single attendance record
 exports.getAttendance = catchAsync(async (req, res) => {
   const attendance = await Attendance.findById(req.params.id)
     .populate({
@@ -68,11 +64,9 @@ exports.getAttendance = catchAsync(async (req, res) => {
   });
 });
 
-// Create attendance record
 exports.createAttendance = catchAsync(async (req, res) => {
   const { employee, date, checkIn, status, notes, shift = 'Morning' } = req.body;
 
-  // Check for existing attendance record
   const existingAttendance = await Attendance.findOne({
     employee,
     date: new Date(date)
@@ -82,7 +76,6 @@ exports.createAttendance = catchAsync(async (req, res) => {
     throw createError(400, 'Attendance record already exists for this date');
   }
 
-  // Create attendance with check-in only
   const attendance = await Attendance.create({
     employee,
     date: new Date(date),
@@ -113,16 +106,13 @@ exports.createAttendance = catchAsync(async (req, res) => {
   });
 });
 
-// Create bulk attendance records
 exports.createBulkAttendance = catchAsync(async (req, res) => {
   const attendanceRecords = req.body;
 
-  // Validate input
   if (!Array.isArray(attendanceRecords) || attendanceRecords.length === 0) {
     throw createError(400, 'Please provide an array of attendance records');
   }
 
-  // Validate each record has required fields and proper date format
   attendanceRecords.forEach((record, index) => {
     if (!record.employee) {
       throw createError(400, `Employee ID is required for record at index ${index}`);
@@ -131,7 +121,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       throw createError(400, `Date is required for record at index ${index}`);
     }
     
-    // Validate date format
     const date = new Date(record.date);
     if (isNaN(date.getTime())) {
       throw createError(400, `Invalid date format for record at index ${index}`);
@@ -144,7 +133,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
     throw createError(400, 'No valid employee IDs provided');
   }
 
-  // Check if employees exist and are active
   const employees = await Employee.find({
     _id: { $in: employeeIds }
   }).select('_id status');
@@ -153,7 +141,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
     throw createError(400, 'One or more employees not found');
   }
 
-  // Verify all employees are active
   const inactiveEmployees = employees.filter(emp => emp.status !== 'active');
   if (inactiveEmployees.length > 0) {
     throw createError(400, `Found ${inactiveEmployees.length} inactive employee(s)`);
@@ -162,21 +149,17 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
   const results = [];
   const errors = [];
 
-  // Process each attendance record
   for (const record of attendanceRecords) {
     try {
-      // Parse and validate date
       const attendanceDate = new Date(record.date);
       attendanceDate.setHours(0, 0, 0, 0);
 
-      // Find existing attendance for the day
       const existingAttendance = await Attendance.findOne({
         employee: record.employee,
         date: attendanceDate
       });
 
       if (existingAttendance) {
-        // If checkout data is provided and not a holiday/on-leave, update existing record
         if (record.checkOut && !['Holiday', 'On-Leave'].includes(record.status)) {
           const checkInTime = existingAttendance.checkIn?.time;
           const checkOutTime = new Date(record.checkOut.time || new Date());
@@ -213,7 +196,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         }
       }
 
-      // Create new attendance record if no existing record or no checkout data
       const attendanceData = {
         employee: record.employee,
         date: attendanceDate,
@@ -225,7 +207,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         updatedBy: req.user._id
       };
 
-      // Handle check-in data based on status
       if (!['Holiday', 'On-Leave'].includes(record.status)) {
         const checkInTime = record.checkIn?.time ? new Date(record.checkIn.time) : new Date();
         if (isNaN(checkInTime.getTime())) {
@@ -238,7 +219,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
           ipAddress: record.checkIn?.ipAddress
         };
       } else {
-        // For holiday/on-leave status, set special flags
         attendanceData.isHoliday = record.status === 'Holiday';
         attendanceData.notes = record.notes || `Not checked in - ${record.status}`;
       }
@@ -277,19 +257,16 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
   });
 });
 
-// Helper function to calculate work hours
 const calculateWorkHours = (checkInTime, checkOutTime) => {
   if (!checkInTime || !checkOutTime) return 0;
   
   const checkIn = new Date(checkInTime);
   const checkOut = new Date(checkOutTime);
   
-  // Validate dates
   if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
     return 0;
   }
   
-  // Ensure checkOut is after checkIn
   if (checkOut <= checkIn) {
     return 0;
   }
@@ -298,12 +275,10 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
   return Math.max(0, Math.round(diffInHours * 100) / 100); // Round to 2 decimal places, ensure non-negative
 };
 
-// Update attendance for checkout
 exports.checkOut = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { checkOut } = req.body;
 
-  // Find the attendance record
   const attendance = await Attendance.findById(id);
 
   if (!attendance) {
@@ -321,15 +296,12 @@ exports.checkOut = catchAsync(async (req, res) => {
   const checkInTime = new Date(attendance.checkIn.time);
   const checkOutTime = new Date(checkOut?.time || new Date());
 
-  // Validate checkout time is after checkin
   if (checkOutTime <= checkInTime) {
     throw createError(400, 'Check-out time must be after check-in time');
   }
 
-  // Calculate work hours
   const workHours = calculateWorkHours(checkInTime, checkOutTime);
 
-  // Update the attendance record with checkout and work hours
   const updatedAttendance = await Attendance.findByIdAndUpdate(
     id,
     {
@@ -362,11 +334,9 @@ exports.checkOut = catchAsync(async (req, res) => {
   });
 });
 
-// Helper function to determine attendance status
 const determineStatus = (checkInTime, checkOutTime, workHours) => {
-  // You can customize these thresholds based on your requirements
-  const fullDayHours = 8; // Standard work hours for a full day
-  const halfDayHours = 4; // Standard work hours for a half day
+  const fullDayHours = 8; 
+  const halfDayHours = 4; 
   
   if (workHours >= fullDayHours) {
     return 'Present';
@@ -379,7 +349,6 @@ const determineStatus = (checkInTime, checkOutTime, workHours) => {
   }
 };
 
-// Delete attendance record (Soft Delete)
 exports.deleteAttendance = catchAsync(async (req, res) => {
   const attendance = await Attendance.findById(req.params.id);
 
@@ -387,7 +356,6 @@ exports.deleteAttendance = catchAsync(async (req, res) => {
     throw createError(404, 'No attendance record found with that ID');
   }
 
-  // Implement soft delete
   attendance.isDeleted = true;
   await attendance.save();
 
@@ -397,12 +365,10 @@ exports.deleteAttendance = catchAsync(async (req, res) => {
   });
 });
 
-// Get attendance statistics
 exports.getAttendanceStats = catchAsync(async (req, res) => {
   const { startDate, endDate, departmentId } = req.query;
 
   try {
-    // Validate and set date range for current month
     const validStartDate = startDate ? new Date(startDate) : new Date();
     validStartDate.setHours(0, 0, 0, 0);
     
@@ -413,7 +379,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       throw createError(400, 'Invalid date format provided');
     }
 
-    // Get total active employees count
     let employeeQuery = { status: 'active' };
     if (departmentId) {
       employeeQuery.department = departmentId;
@@ -422,13 +387,11 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
     const employees = await Employee.find(employeeQuery).select('_id');
     const employeeIds = employees.map(emp => emp._id);
 
-    // Build base match stage for attendance queries
     let baseMatchStage = { 
       isDeleted: false,
       employee: { $in: employeeIds }
     };
 
-    // Get current period stats with employee details
     let currentPeriodMatch = { 
       ...baseMatchStage,
       date: {
@@ -473,7 +436,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       }
     ]);
 
-    // Calculate previous period dates
     const prevPeriodStart = new Date(validStartDate);
     prevPeriodStart.setMonth(prevPeriodStart.getMonth() - 1);
     prevPeriodStart.setHours(0, 0, 0, 0);
@@ -482,7 +444,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
     prevPeriodEnd.setMonth(prevPeriodEnd.getMonth() - 1);
     prevPeriodEnd.setHours(23, 59, 59, 999);
 
-    // Get previous period stats
     let prevPeriodMatch = { 
       ...baseMatchStage,
       date: {
@@ -516,7 +477,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       }
     ]);
 
-    // Process current period stats
     const processedStats = {
       present: 0,
       absent: 0,
@@ -527,10 +487,9 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       holiday: 0,
       dayOff: 0,
       totalWorkHours: 0,
-      records: [] // Store all attendance records
+      records: []
     };
 
-    // Process stats and collect records
     currentPeriodStats.forEach(stat => {
       if (!stat._id) return;
       
@@ -571,7 +530,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       processedStats.totalWorkHours += stat.totalWorkHours || 0;
     });
 
-    // Process previous period stats
     const prevStats = {
       present: 0,
       absent: 0,
@@ -615,14 +573,12 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       prevStats.totalWorkHours += stat.totalWorkHours || 0;
     });
 
-    // Calculate percentage changes
     const calculateChange = (currentValue, prevValue) => {
       if (prevValue === 0) return currentValue > 0 ? '+100%' : '0%';
       const change = ((currentValue - prevValue) / prevValue) * 100;
       return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
     };
 
-    // Calculate changes
     const changes = {
       present: calculateChange(processedStats.present, prevStats.present),
       absent: calculateChange(processedStats.absent, prevStats.absent),
@@ -671,7 +627,6 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
   }
 });
 
-// Update attendance record
 exports.updateAttendance = catchAsync(async (req, res) => {
   const { date, checkIn, checkOut, status, notes, shift } = req.body;
   
