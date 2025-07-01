@@ -185,6 +185,7 @@ exports.getTask = async (req, res, next) => {
  */
 exports.createTask = async (req, res, next) => {
     try {
+        console.log('req.body:', req.body);
         req.body.createdBy = req.user.id;
         let project;
 
@@ -206,6 +207,15 @@ exports.createTask = async (req, res, next) => {
                 return next(new ErrorResponse(`Project not found with id of ${req.body.project}`, 404));
             }
         }
+        // Ensure amount is a number
+    if ('amount' in req.body) {
+      req.body.amount = parseFloat(req.body.amount);
+      if (isNaN(req.body.amount) || req.body.amount < 0) {
+        return next(new ErrorResponse('Amount must be a non-negative number', 400));
+      }
+    } else {
+      req.body.amount = 0; // Explicitly set default if not provided
+    }
 
         // Validate assigned user
         if (req.body.assignedTo) {
@@ -367,6 +377,15 @@ exports.updateTask = async (req, res, next) => {
                 return next(new ErrorResponse(`User not found with id of ${req.body.assignedTo}`, 404));
             }
         }
+      // Handle amount explicitly
+    if ('amount' in req.body) {
+      req.body.amount = parseFloat(req.body.amount);
+      if (isNaN(req.body.amount) || req.body.amount < 0) {
+        return next(new ErrorResponse('Amount must be a non-negative number', 400));
+      }
+    } else {
+      req.body.amount = task.amount; // Retain existing amount
+    }
 
         const isNewAssignment = req.body.assignedTo && (!task.assignedTo || task.assignedTo.toString() !== req.body.assignedTo.toString());
 

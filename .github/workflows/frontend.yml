@@ -91,10 +91,11 @@ jobs:
           timeout: 60s
           script: |
             echo "Deploying to web root..."
-            sudo rm -rf /var/www/html/*
-            sudo cp -R ~/deploy-temp/* /var/www/html/
-            sudo chown -R www-data:www-data /var/www/html/
-            sudo chmod -R 755 /var/www/html/
+            sudo rm -rf /var/www/html/ca-erp
+            sudo mkdir -p /var/www/html/ca-erp
+            sudo cp -R ~/deploy-temp/* /var/www/html/ca-erp
+            sudo chown -R www-data:www-data /var/www/html/ca-erp
+            sudo chmod -R 755 /var/www/html/ca-erp
             sudo rm -rf ~/deploy-temp
 
             # Clear nginx cache and restart

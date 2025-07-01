@@ -4,7 +4,7 @@ const { ErrorResponse } = require('./errorHandler');
 // Function to validate request against a Joi schema
 const validate = (schema) => {
     return (req, res, next) => {
-       
+
         const options = {
             abortEarly: false, // include all errors
             allowUnknown: true, // ignore unknown props
@@ -89,19 +89,19 @@ const userValidation = {
 // Client validation schemas
 const clientValidation = {
     create: Joi.object({
-      body: Joi.object({
-        name: Joi.string().max(100).required(),
-        contactName: Joi.string().max(50).allow(""),
-        contactEmail: Joi.string().email().required(),
-        contactPhone: Joi.string().max(20).allow(""),
-        address: Joi.string().max(200).allow(""),
-        website: Joi.string().allow(""),
-        industry: Joi.string().max(50).allow(""),
-        notes: Joi.string().allow(""),
-        status: Joi.string().valid("active", "inactive").allow(""),
-      }),
+        body: Joi.object({
+            name: Joi.string().max(100).required(),
+            contactName: Joi.string().max(50).allow(""),
+            contactEmail: Joi.string().email().required(),
+            contactPhone: Joi.string().max(20).allow(""),
+            address: Joi.string().max(200).allow(""),
+            website: Joi.string().allow(""),
+            industry: Joi.string().max(50).allow(""),
+            notes: Joi.string().allow(""),
+            status: Joi.string().valid("active", "inactive").allow(""),
+        }),
     }),
-  
+
     update: Joi.object({
         params: Joi.object({
             id: Joi.string().required(),
@@ -171,16 +171,17 @@ const taskValidation = {
             description: Joi.string().max(500),
             project: Joi.string().required(),
             assignedTo: Joi.string(),
-            status: Joi.string().valid('pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled','review'),
+            amount: Joi.number().min(0),
+            status: Joi.string().valid('pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'),
             priority: Joi.string().valid('low', 'medium', 'high', 'urgent'),
             dueDate: Joi.date(),
             estimatedHours: Joi.number().min(0),
             parent: Joi.string(),
-               tags: Joi.array().items(Joi.string()).default([]),
-                  fileUrl: Joi.string().uri(),
-                  fileType: Joi.string(),
-                  fileSize: Joi.number(),
-                  team: Joi.array().items(Joi.string()),
+            tags: Joi.array().items(Joi.string()).default([]),
+            fileUrl: Joi.string().uri(),
+            fileType: Joi.string(),
+            fileSize: Joi.number(),
+            team: Joi.array().items(Joi.string()),
             file: Joi.array().items(Joi.string()).default([]).optional(),
 
         }),
@@ -201,11 +202,12 @@ const taskValidation = {
             estimatedHours: Joi.number().min(0),
             parent: Joi.string(),
             deleted: Joi.boolean(),
-             tags: Joi.array().items(Joi.string()),
-                  fileUrl: Joi.string().uri(),
-                  fileType: Joi.string(),
-                  fileSize: Joi.number(),
-                  team: Joi.array().items(Joi.string()),
+            tags: Joi.array().items(Joi.string()),
+            fileUrl: Joi.string().uri(),
+            fileType: Joi.string(),
+            fileSize: Joi.number(),
+            amount: Joi.number().min(0),
+            team: Joi.array().items(Joi.string()),
         }),
     }),
 

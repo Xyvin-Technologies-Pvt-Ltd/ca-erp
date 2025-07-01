@@ -11,7 +11,7 @@ import { tagDocumentRequirements } from '../utils/tagDocumentFields';
 
 
 const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
-   const tagOptions = [
+  const tagOptions = [
     "GST",
     "Income Tax",
     "TDS",
@@ -36,7 +36,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.split("T")[0] : "");
   const [description, setDescription] = useState(task?.description || "");
   const [file, setFile] = useState(null);
- const [selectedTags, setSelectedTags] = useState(task?.tags?.map(tag => ({ id: tag, text: tag })) || []);
+  const [selectedTags, setSelectedTags] = useState(task?.tags?.map(tag => ({ id: tag, text: tag })) || []);
 
   const [projectId, setProjectId] = useState(task?.project?._id || projectIds);
   const [users, setUsers] = useState([]);
@@ -52,13 +52,14 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [clientInfo, setClientInfo] = useState(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
+  const [amount, setAmount] = useState(task?.amount || 0);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-    
-    
+
+
   };
-   
+
 
   // Fetch existing tag documents when editing a task
   useEffect(() => {
@@ -181,6 +182,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       taskPayload.append("status", status);
       taskPayload.append("priority", priority.toLowerCase());
       taskPayload.append("assignedTo", assignedTo);
+      taskPayload.append("amount", amount !== undefined ? amount : 0);
       taskPayload.append("dueDate", dueDate);
       taskPayload.append("description", description);
       if (file) taskPayload.append("file", file);
@@ -189,6 +191,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       let response;
       if (task) {
         response = await updateTask(task._id, taskPayload, token);
+        console.log(response, "response")
       } else {
         response = await createTask(taskPayload, token);
 
@@ -215,7 +218,8 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
               projectId,
               assignedTo,
               priority: priority.toLowerCase(),
-              status
+              status,
+              amount
             }
           }));
         }
@@ -227,16 +231,16 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       alert(err.response?.data?.message || "Failed to create/update task");
     }
   };
- const handleTagToggle = (tag) => {
-  setSelectedTags((prev) => {
-    const exists = prev.find((t) => t.text === tag);
-    if (exists) {
-      return prev.filter((t) => t.text !== tag);
-    } else {
-      return [...prev, { id: tag, text: tag }];
-    }
-  });
-};
+  const handleTagToggle = (tag) => {
+    setSelectedTags((prev) => {
+      const exists = prev.find((t) => t.text === tag);
+      if (exists) {
+        return prev.filter((t) => t.text !== tag);
+      } else {
+        return [...prev, { id: tag, text: tag }];
+      }
+    });
+  };
 
 
 
@@ -361,16 +365,16 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
         {/* Assigned To */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700"> Select Assigning</label>
-  <Select
+          <Select
   value={users.find((user) => user._id === assignedTo)}
   onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
-  getOptionLabel={(e) => e.name || e.email}
-  getOptionValue={(e) => e._id}
-  isLoading={loadingUsers}
-  options={users}
+            getOptionLabel={(e) => e.name || e.email}
+            getOptionValue={(e) => e._id}
+            isLoading={loadingUsers}
+            options={users}
   placeholder="Select a user"
-  className="mt-1"
-/>
+            className="mt-1"
+          />
 
         </div>
 
@@ -382,6 +386,18 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Amount</label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            placeholder="Enter task amount"
+            min="0"
+            step="0.01"
           />
         </div>
 
@@ -429,11 +445,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                   key={tag}
                   type="button"
                   onClick={() => handleTagToggle(tag)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    isSelected
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${isSelected
                       ? "bg-blue-100 text-blue-800"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                    }`}
                 >
                   {tag}
                 </button>
