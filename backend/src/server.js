@@ -41,13 +41,13 @@ const app = express();
 connectDB();
 
 // Set up rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: 'Too many requests from this IP, please try again after 15 minutes'
-});
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // limit each IP to 100 requests per windowMs
+//     standardHeaders: true,
+//     legacyHeaders: false,
+//     message: 'Too many requests from this IP, please try again after 15 minutes'
+// });
 
 // CORS configuration
 const corsOptions = {
@@ -67,7 +67,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
-app.use(limiter);
+// app.use(limiter);
 
 // Prevent XSS attacks
 app.use(xss());
