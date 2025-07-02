@@ -11,7 +11,7 @@ import { fetchDashboardData } from "../api/dashboard";
 
 const StatCard = ({ title, value, change, iconType, color }) => {
   const isPositive = change >= 0;
-  const changeClass = isPositive ? "text-green-600" : "text-red-600";
+  const changeClass = isPositive ? "text-emerald-600" : "text-rose-600";
   const changeIcon = isPositive ? (
     <svg
       className="w-4 h-4"
@@ -43,382 +43,117 @@ const StatCard = ({ title, value, change, iconType, color }) => {
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="group bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300 hover:transform hover:-translate-y-1">
       <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-200">{value}</p>
           {change !== null && (
-            <div className={`flex items-center mt-1 ${changeClass}`}>
-              <span className="flex items-center text-xs font-medium">
-                {changeIcon}
-                <span className="ml-1">
+            <div className={`flex items-center ${changeClass}`}>
+              <span className="flex items-center text-sm font-semibold">
+                <span className="mr-1 transition-transform duration-200 group-hover:scale-110">
+                  {changeIcon}
+                </span>
+                <span>
                   {Math.abs(change)}% from last month
                 </span>
               </span>
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <StatIcon iconType={iconType} />
+        <div className={`p-4 rounded-xl ${color} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+          <div className="text-current opacity-80 group-hover:opacity-100 transition-opacity duration-200">
+            {iconType}
+          </div>
         </div>
       </div>
     </div>
-  );
-};
-
-const TaskTable = ({ tasks }) => {
-  return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Task
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Client
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Due Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Assigned To
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {task.title}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.client}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.dueDate}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <StatusBadge status={task.status} />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <Avatar name={task.assignedTo} size="sm" className="mr-2" />
-                  <div className="text-sm font-medium text-gray-900">
-                    {task.assignedTo}
-                  </div>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const ComplianceTable = ({ tasks }) => {
-  return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Compliance Task
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Client
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Due Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Priority
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {task.task}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.client}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.dueDate}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    task.status === "Due Soon"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {task.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    task.priority === "High"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {task.priority}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const StatsCard = ({ title, value, icon, change, changeType, linkTo }) => {
-  return (
-    <Link
-      to={linkTo}
-      className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
-    >
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-gray-500 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold mt-2">{value}</p>
-          {change && (
-            <p
-              className={`text-sm mt-2 font-medium flex items-center ${
-                changeType === "increase"
-                  ? "text-green-600"
-                  : changeType === "decrease"
-                  ? "text-red-600"
-                  : "text-gray-600"
-              }`}
-            >
-              {changeType === "increase" ? (
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 15l7-7 7 7"
-                  ></path>
-                </svg>
-              ) : changeType === "decrease" ? (
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              ) : null}
-              {change}
-            </p>
-          )}
-        </div>
-        <div className="p-3 rounded-full bg-blue-50 text-blue-600">{icon}</div>
-      </div>
-    </Link>
   );
 };
 
 const ActivityItem = ({ activity }) => {
   const getActivityIcon = (type) => {
-    switch (type) {
-      case "task_created":
-        return (
-          <div className="p-2 rounded-full bg-green-100 text-green-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "task_completed":
-        return (
-          <div className="p-2 rounded-full bg-blue-100 text-blue-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "client_added":
-        return (
-          <div className="p-2 rounded-full bg-purple-100 text-purple-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "project_created":
-      case "project_milestone":
-        return (
-          <div className="p-2 rounded-full bg-yellow-100 text-yellow-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "deadline_updated":
-        return (
-          <div className="p-2 rounded-full bg-orange-100 text-orange-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "document_uploaded":
-        return (
-          <div className="p-2 rounded-full bg-indigo-100 text-indigo-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              ></path>
-            </svg>
-          </div>
-        );
-      default:
-        return (
-          <div className="p-2 rounded-full bg-gray-100 text-gray-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-          </div>
-        );
-    }
+    const iconConfig = {
+      task_created: {
+        bg: "bg-emerald-100",
+        text: "text-emerald-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        )
+      },
+      task_completed: {
+        bg: "bg-blue-100",
+        text: "text-blue-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+        )
+      },
+      client_added: {
+        bg: "bg-purple-100",
+        text: "text-purple-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        )
+      },
+      project_created: {
+        bg: "bg-amber-100",
+        text: "text-amber-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        )
+      },
+      project_milestone: {
+        bg: "bg-amber-100",
+        text: "text-amber-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        )
+      },
+      deadline_updated: {
+        bg: "bg-orange-100",
+        text: "text-orange-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      },
+      document_uploaded: {
+        bg: "bg-indigo-100",
+        text: "text-indigo-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        )
+      }
+    };
+
+    const config = iconConfig[type] || {
+      bg: "bg-slate-100",
+      text: "text-slate-600",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    };
+
+    return (
+      <div className={`p-3 rounded-xl ${config.bg} ${config.text} hover:scale-110 transition-all duration-200`}>
+        {config.icon}
+      </div>
+    );
   };
 
   const formatTimeAgo = (dateString) => {
@@ -450,131 +185,115 @@ const ActivityItem = ({ activity }) => {
   };
 
   return (
-    <div className="flex items-start space-x-3 py-3">
+    <div className="flex items-start space-x-4 py-4 px-2 rounded-lg hover:bg-slate-50 transition-all duration-200 group">
       {getActivityIcon(activity.type)}
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-          <p className="text-xs text-gray-500">
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start">
+          <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{activity.title}</p>
+          <p className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-full">
             {formatTimeAgo(activity.timestamp)}
           </p>
         </div>
-        <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-        {/* {activity.link && (
-          <Link
-            to={activity.link}
-            className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
-          >
-            View details
-          </Link>
-        )} */}
+        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{activity.description}</p>
       </div>
     </div>
   );
 };
 
 const ProjectProgress = ({ project }) => {
+  const getStatusConfig = (status) => {
+    const configs = {
+      "On Track": { bg: "bg-emerald-100", text: "text-emerald-800", progress: "bg-emerald-500" },
+      "At Risk": { bg: "bg-amber-100", text: "text-amber-800", progress: "bg-amber-500" }, 
+      "Delayed": { bg: "bg-rose-100", text: "text-rose-800", progress: "bg-rose-500" }
+    };
+    return configs[status] || configs["On Track"];
+  };
+
+  const statusConfig = getStatusConfig(project.status);
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="font-medium">{project.name}</h3>
-        <span
-          className={`text-xs px-2 py-1 rounded-full ${
-            project.status === "On Track"
-              ? "bg-green-100 text-green-800"
-              : project.status === "At Risk"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
+    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-4 hover:shadow-md hover:border-slate-300 transition-all duration-300 group">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{project.name}</h3>
+        <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
           {project.status}
         </span>
       </div>
-      <p className="text-xs text-gray-500 mb-2">Due {project.dueDate}</p>
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
+      <p className="text-sm text-slate-500 mb-3 font-medium">Due {project.dueDate}</p>
+      <div className="flex justify-between text-sm text-slate-600 mb-2 font-medium">
         <span>Progress</span>
-        <span>{project.completionPercentage}%</span>
+        <span className="font-semibold">{project.completionPercentage}%</span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full">
+      <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
         <div
-          className={`h-2 rounded-full ${
-            project.status === "On Track"
-              ? "bg-green-500"
-              : project.status === "At Risk"
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
+          className={`h-full rounded-full transition-all duration-700 ease-out ${statusConfig.progress}`}
           style={{ width: `${project.completionPercentage}%` }}
-        ></div>
+        />
       </div>
     </div>
   );
 };
 
 const TaskSummary = ({ tasks }) => {
-  // Define all possible statuses
   const allStatuses = ["In Progress", "Pending", "Completed", "Review"];
   
-  // Create a map of all statuses with their counts
   const statusMap = allStatuses.map(status => ({
     status,
     count: tasks.find(t => t.status === status)?.count || 0
   }));
 
+  const getStatusConfig = (status) => {
+    const configs = {
+      "In Progress": { bg: "bg-blue-500", dot: "bg-blue-500" },
+      "Pending": { bg: "bg-amber-500", dot: "bg-amber-500" },
+      "Completed": { bg: "bg-emerald-500", dot: "bg-emerald-500" },
+      "Review": { bg: "bg-purple-500", dot: "bg-purple-500" }
+    };
+    return configs[status] || configs["Pending"];
+  };
+
+  const completedTasks = tasks.find(t => t.status === "Completed")?.count || 0;
+  const totalTasks = tasks.reduce((sum, t) => sum + (t.count || 0), 0);
+  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Task Summary</h2>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Task Summary</h2>
         <Link
           to={ROUTES.TASKS}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
         >
-          View all
+          View all →
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {statusMap.map(({ status, count }) => (
-          <div key={status} className="flex items-center p-3 border rounded-lg">
-            <div
-              className={`w-3 h-3 rounded-full mr-2 ${
-                status === "In Progress"
-                  ? "bg-blue-500"
-                  : status === "Pending"
-                  ? "bg-yellow-500"
-                  : status === "Completed"
-                  ? "bg-green-500"
-                  : "bg-purple-500"
-              }`}
-            ></div>
-            <div>
-              <p className="text-xs text-gray-500">{status}</p>
-              <p className="text-lg font-bold">{count}</p>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {statusMap.map(({ status, count }) => {
+          const config = getStatusConfig(status);
+          return (
+            <div key={status} className="flex items-center p-4 border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all duration-300 group">
+              <div className={`w-3 h-3 rounded-full mr-3 ${config.dot} group-hover:scale-125 transition-transform duration-200`} />
+              <div>
+                <p className="text-xs text-slate-500 font-medium">{status}</p>
+                <p className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{count}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Tasks Completed</span>
-          <span>
-            {Math.round(
-              ((tasks.find(t => t.status === "Completed")?.count || 0) / 
-              tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
-            ) || 0}%
-          </span>
+      <div className="mt-6 p-4 bg-slate-50 rounded-xl">
+        <div className="flex justify-between text-sm text-slate-600 mb-2 font-medium">
+          <span>Overall Completion</span>
+          <span className="font-bold text-slate-900">{completionPercentage}%</span>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full">
+        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-2 bg-green-500 rounded-full"
-            style={{
-              width: `${Math.round(
-                ((tasks.find(t => t.status === "Completed")?.count || 0) / 
-                tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
-              ) || 0}%`,
-            }}
-          ></div>
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${completionPercentage}%` }}
+          />
         </div>
       </div>
     </div>
@@ -582,7 +301,6 @@ const TaskSummary = ({ tasks }) => {
 };
 
 const RecentActivity = () => {
-  // Updated to object syntax for React Query v5
   const { data, isLoading, error } = useQuery({
     queryKey: ['recentActivity'],
     queryFn: async () => {
@@ -591,22 +309,21 @@ const RecentActivity = () => {
     }
   });
   
-  // Set up pagination with state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Show 4 items per page as requested
+  const itemsPerPage = 4;
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
+          <div className="h-5 bg-slate-200 rounded-lg w-1/3 mb-6"></div>
+          <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-3">
-                <div className="rounded-full bg-gray-200 h-10 w-10"></div>
+              <div key={i} className="flex items-start space-x-4">
+                <div className="rounded-xl bg-slate-200 h-12 w-12"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+                  <div className="h-4 bg-slate-200 rounded-lg w-3/4 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded-lg w-1/2"></div>
                 </div>
               </div>
             ))}
@@ -618,25 +335,26 @@ const RecentActivity = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="text-red-600">Error loading recent activity</div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="text-rose-600 text-center">
+          <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          Error loading recent activity
+        </div>
       </div>
     );
   }
 
-  // Extract activities from the response structure
   const activities = data?.data?.activities || [];
-  
-  // Calculate total pages
   const totalPages = Math.ceil(activities.length / itemsPerPage);
-  
-  // Get current page items
   const currentActivities = activities.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   
-  // Handle page navigation
   const goToNextPage = () => {
     setCurrentPage(current => Math.min(current + 1, totalPages));
   };
@@ -646,56 +364,66 @@ const RecentActivity = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Recent Activity</h2>
-        {/* <Link to="/activity" className="text-sm text-blue-600 hover:text-blue-800">
-          View all
-        </Link> */}
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
+        <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
       </div>
 
       {activities.length > 0 ? (
         <>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {currentActivities.map((activity) => (
               <ActivityItem key={activity.id} activity={activity} />
             ))}
           </div>
           
-          {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4 pt-2 border-t">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-200">
               <button 
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === 1 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                 </svg>
                 Previous
               </button>
               
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+              <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                {currentPage} of {totalPages}
               </span>
               
               <button 
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === totalPages 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
                 Next
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
           )}
         </>
       ) : (
-        <div className="text-center py-6 text-gray-500">
-          No recent activity to display
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-slate-500 font-medium">No recent activity to display</p>
         </div>
       )}
     </div>
@@ -703,10 +431,8 @@ const RecentActivity = () => {
 };
 
 const UpcomingDeadlines = ({ projects }) => {
-  // Add state for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
-  
 
   const parseDate = (dateString) => {
     try {
@@ -728,6 +454,7 @@ const UpcomingDeadlines = ({ projects }) => {
       return null;
     }
   };
+
   const extractDeadlines = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -741,7 +468,6 @@ const UpcomingDeadlines = ({ projects }) => {
           return null;
         }
 
-        // Calculate days left
         const diffTime = dueDate - today;
         const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -755,28 +481,18 @@ const UpcomingDeadlines = ({ projects }) => {
           completionPercentage: project.completionPercentage || project.progress || 0,
         };
       })
-      // Remove invalid entries
       .filter(deadline => deadline !== null)
-      // Filter upcoming deadlines (today or future, within 30 days)
       .filter(deadline => deadline.daysLeft >= 0)
-      // Sort by days left (most urgent first)
       .sort((a, b) => a.daysLeft - b.daysLeft);
   };
 
   const allDeadlines = extractDeadlines();
-  console.log(allDeadlines,"huuuh");
-  
-  
-  // Calculate total pages
   const totalPages = Math.ceil(allDeadlines.length / itemsPerPage);
-  
-  // Get current page items
   const currentDeadlines = allDeadlines.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   
-  // Handle page navigation
   const goToNextPage = () => {
     setCurrentPage(current => Math.min(current + 1, totalPages));
   };
@@ -785,97 +501,94 @@ const UpcomingDeadlines = ({ projects }) => {
     setCurrentPage(current => Math.max(current - 1, 1));
   };
 
+  const getUrgencyConfig = (daysLeft) => {
+    if (daysLeft <= 1) {
+      return { bg: "bg-rose-100", text: "text-rose-800", border: "border-rose-200" };
+    } else if (daysLeft <= 3) {
+      return { bg: "bg-amber-100", text: "text-amber-800", border: "border-amber-200" };
+    } else {
+      return { bg: "bg-blue-100", text: "text-blue-800", border: "border-blue-200" };
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Upcoming Deadlines</h2>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Upcoming Deadlines</h2>
         <Link
           to={ROUTES.PROJECTS}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
         >
-          View all
+          View all →
         </Link>
       </div>
 
       {allDeadlines.length > 0 ? (
         <>
-          <div className="space-y-3">
-            {currentDeadlines.map((deadline) => (
-              <div key={deadline.id} className="p-3 border rounded-lg">
-                {/* <div className="flex justify-between">
-                  <h3 className="font-medium">{deadline.title}</h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      deadline.daysLeft <= 1
-                        ? "bg-red-100 text-red-800"
-                        : deadline.daysLeft <= 3
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {deadline.daysLeft === 0
-                      ? "Today"
-                      : deadline.daysLeft === 1
-                      ? "Tomorrow"
-                      : `${deadline.daysLeft} days left`}
-                  </span>
-                </div> */}
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium flex-1 mr-3">{deadline.title}</h3>
-                  <span
-                    className={`text-xs px-3 py-2 rounded-full flex-shrink-0 ${
-                      deadline.daysLeft <= 1
-                        ? "bg-red-100 text-red-800"
-                        : deadline.daysLeft <= 3
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {deadline.daysLeft === 0
-                      ? "Today"
-                      : deadline.daysLeft === 1
-                      ? "Tomorrow"
-                      : `${deadline.daysLeft} days left`}
-                  </span>
+          <div className="space-y-4">
+            {currentDeadlines.map((deadline) => {
+              const urgencyConfig = getUrgencyConfig(deadline.daysLeft);
+              return (
+                <div key={deadline.id} className={`p-4 border-2 ${urgencyConfig.border} rounded-xl hover:shadow-md transition-all duration-300 group`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold text-slate-900 flex-1 mr-3 group-hover:text-indigo-600 transition-colors duration-200">
+                      {deadline.title}
+                    </h3>
+                    <span className={`text-xs px-3 py-2 rounded-full font-bold ${urgencyConfig.bg} ${urgencyConfig.text} flex-shrink-0`}>
+                      {deadline.daysLeft === 0
+                        ? "Today"
+                        : deadline.daysLeft === 1
+                        ? "Tomorrow"
+                        : `${deadline.daysLeft} days left`}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 mb-3 font-medium">Due on {deadline.date}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-xs text-slate-500 mr-2 font-medium">Project:</span>
+                      <Link
+                        to={`${ROUTES.PROJECTS}/${deadline.projectId}`}
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
+                      >
+                        {deadline.project}
+                      </Link>
+                    </div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Due on {deadline.date}</p>
-                <div className="flex items-center mt-2">
-                  <span className="text-xs text-gray-500 mr-2">Project:</span>
-                  <Link
-                    to={`${ROUTES.PROJECTS}/${deadline.projectId}`}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    {deadline.project}
-                  </Link>
-                </div>
-                
-                
-              </div>
-            ))}
+              );
+            })}
           </div>
           
-          {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4 pt-2 border-t">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-200">
               <button 
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === 1 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                 </svg>
                 Previous
               </button>
               
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+              <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                {currentPage} of {totalPages}
               </span>
               
               <button 
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === totalPages 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
                 Next
                 <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -893,7 +606,6 @@ const UpcomingDeadlines = ({ projects }) => {
     </div>
   );
 };
-
 const Dashboard = () => {
   const { user,role } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -1283,5 +995,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;
