@@ -13,6 +13,7 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [tempImage, setTempImage] = useState(null); // for preview
   const [imageFile, setImageFile] = useState(null); // file to upload
+  const [imageError, setImageError] = useState(false); // Track image load failure
 
   const [profileData, setProfileData] = useState({
     name: "",
@@ -49,6 +50,7 @@ const Profile = () => {
     if (file) {
       setTempImage({ preview: URL.createObjectURL(file) });
       setImageFile(file);
+      setImageError(false); 
     }
   };
 
@@ -128,31 +130,43 @@ const Profile = () => {
                 onChange={handleImageChange}
               />
               <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-100">
-                {tempImage?.preview || profileImage ? (
+                {tempImage?.preview || (profileImage && !imageError) ? (
                   <img
                     src={tempImage?.preview || profileImage}
                     alt="Profile"
                     className="w-full h-full object-cover"
+                    onError={() => setImageError(true)} // Handle image load failure
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    <IoMdCloudUpload className="text-4xl" />
-                  </div>
+                  <svg
+                    className="w-full h-full text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
                 )}
               </div>
             </label>
           ) : (
             <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-100">
-              {profileImage ? (
+              {profileImage && !imageError ? (
                 <img
                   src={profileImage}
                   alt="Profile"
                   className="w-full h-full object-cover"
+                  onError={() => setImageError(true)} // Handle image load failure
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-400">
-                  <IoMdCloudUpload className="text-4xl" />
-                </div>
+                <svg
+                  className="w-full h-full text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
               )}
             </div>
           )}
@@ -215,7 +229,7 @@ const Profile = () => {
                     name="phone"
                     value={profileData.phone ? formatPhoneNumber(profileData.phone) : ""}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 p-2 rounded-lg focus:outline014-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
                   />
                 ) : (
                   <p className="text-black">{formatPhoneNumber(profileData.phone)}</p>
