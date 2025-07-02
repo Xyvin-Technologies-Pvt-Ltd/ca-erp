@@ -361,7 +361,7 @@ const Profile = () => {
             ) : (
               <motion.button
                 onClick={handleEditToggle}
-                className="px-7 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                className="px-7 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
