@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "formik": "^2.4.6",
+    "framer-motion": "^12.23.0",
     "frontend": "file:",
     "lucide-react": "^0.522.0",
     "react": "^19.0.0",
@@ -49,6 +50,6 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "vite": "^7.0.0"
+    "vite": "^6.3.5"
   }
 }

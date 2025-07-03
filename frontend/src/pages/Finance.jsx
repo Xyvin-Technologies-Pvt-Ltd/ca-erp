@@ -4,26 +4,50 @@ import {
   markProjectAsInvoiced
 } from "../api/projects";
 import { Link } from "react-router-dom";
-
+import { 
+  CreditCard, 
+  FileText, 
+  Calendar, 
+  DollarSign, 
+  Clock, 
+  Users, 
+  CheckCircle, 
+  AlertCircle, 
+  Filter, 
+  RefreshCw, 
+  Download,
+  Eye,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Building2,
+  Briefcase,
+  TrendingUp,
+  Receipt
+} from "lucide-react";
 
 const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800",
-  "in-progress": "bg-blue-100 text-blue-800",
-  review: "bg-purple-100 text-purple-800",
-  completed: "bg-green-100 text-green-800",
-  invoiced: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-800",
+  pending: "bg-amber-50 text-amber-700 border-amber-200",
+  "in-progress": "bg-blue-50 text-blue-700 border-blue-200",
+  review: "bg-purple-50 text-purple-700 border-purple-200",
+  completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  invoiced: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  cancelled: "bg-gray-50 text-gray-700 border-gray-200",
 };
 
 const priorityColors = {
-  high: "bg-red-100 text-red-800",
-  medium: "bg-orange-100 text-orange-800",
-  low: "bg-green-100 text-green-800",
+  high: "bg-red-50 text-red-700 border-red-200",
+  medium: "bg-orange-50 text-orange-700 border-orange-200",
+  low: "bg-green-50 text-green-700 border-green-200",
 };
+
 const invoiceStatusColors = {
-  'Not Created': "bg-yellow-100 text-yellow-800",
-  'Created': "bg-green-100 text-green-800"
+  'Not Created': "bg-amber-50 text-amber-700 border-amber-200",
+  'Created': "bg-emerald-50 text-emerald-700 border-emerald-200"
 };
+
 const Finance = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +68,8 @@ const Finance = () => {
     client: "",
   });
 
-    const [currentPage, setCurrentPage] = useState(1);
-const [paginations, setPaginations] = useState({
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginations, setPaginations] = useState({
     page: 1,
     total: 0,
     limit: 10,
@@ -89,7 +113,7 @@ const [paginations, setPaginations] = useState({
     } finally {
       setLoading(false);
     }
-};
+  };
 
   useEffect(() => {
     loadProjects();
@@ -99,7 +123,6 @@ const [paginations, setPaginations] = useState({
     setCurrentPage(newPage);
   };
 
-  
   const handleProjectSelection = (id) => {
     setSelectedProjects(prev =>
       prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
@@ -114,7 +137,7 @@ const [paginations, setPaginations] = useState({
     }
   };
 
-   const handleFilterChange = (e) => {
+  const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
       ...prev,
@@ -153,7 +176,7 @@ const [paginations, setPaginations] = useState({
         await markProjectAsInvoiced(id, {
           invoiceNumber: invoiceData.invoiceNumber,
           invoiceDate: invoiceData.invoiceDate,
-          invoiceStatus: 'Created' // Add this line
+          invoiceStatus: 'Created'
         });
       }
 
@@ -179,597 +202,644 @@ const [paginations, setPaginations] = useState({
     return true;
   });
 
-
-// console.log(projects,'consolved project');
-
-  // const project = [
-  //   ...new Map(
-  //     projects.map((pro) => [
-  //       pro.task?.id,
-  //       { id: task.project?.id, name: task.project?.name },
-  //     ])
-  //   ).values(),
-  // ].filter((project) => project.id);
-
-
-  // console.log(projects,"hiii");
-
-
   const client = Array.from(
-  new Map(
-    projects.map(p => [p.client?.id, {
-      id: p.client?.id,
-      name: p.client?.name,
-    }])
-  ).values()
-).filter(c => c.id && c.name);
-
+    new Map(
+      projects.map(p => [p.client?.id, {
+        id: p.client?.id,
+        name: p.client?.name,
+      }])
+    ).values()
+  ).filter(c => c.id && c.name);
 
   const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
   const totalAmount = selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || 0), 0);
   const totalHours = selectedProjectsData.reduce((sum, p) => sum + Number(p.actualHours || p.estimatedHours || 0), 0);
 
-  
   if (loading && projects.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-400 rounded-full animate-ping mx-auto"></div>
+          </div>
+          <p className="mt-4 text-gray-600 font-medium">Loading financial data...</p>
+        </div>
       </div>
     );
   }
-
-  
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 p-4 rounded-md">
-          <p className="text-red-700">{error}</p>
-          <button
-            onClick={loadProjects}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Try Again
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={loadProjects}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Render your main UI here (tables, filters, invoice modal, etc.
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">
-          Finance - Project Invoicing
-        </h1>
-        <button
-          onClick={openInvoiceModal}
-          disabled={selectedProjects.length === 0}
-          className={`px-4 py-2 ${
-            selectedProjects.length === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          } text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-        >
-          Create Invoice ({selectedProjects.length})
-        </button>
-      </div>
-
-
-      {/* Success message */}
-      {showSuccessMessage && (
-        <div className="mb-6 bg-green-50 p-4 rounded-md flex justify-between items-center">
-          <p className="text-green-700">{successMessage}</p>
-          <button
-            onClick={() => setShowSuccessMessage(false)}
-            className="text-green-700 hover:text-green-900 focus:outline-none"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <h2 className="text-lg font-medium text-gray-900 mb-2 md:mb-0">
-            Filters
-          </h2>
-          <button
-            onClick={resetFilters}
-            className="text-sm text-blue-600 hover:text-blue-800"
-          >
-            Reset Filters
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="project"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              project
-            </label>
-            <select
-              id="project"
-              name="project"
-              value={filters.project}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All project</option>
-              {projects.map((pro) => (
-                <option key={pro.id} value={pro.id}>
-                  {pro.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="project"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              client
-            </label>
-            <select
-              id="client"
-              name="client"
-              value={filters.client}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All clients</option>
-              {client.map((cl) => (
-                <option key={cl.id} value={cl.id}>
-                  {cl.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Tasks Summary */}
-      {selectedProjects.length > 0 && (
-        <div className="bg-blue-50 rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Enhanced Header */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <p className="text-sm text-blue-800">
-                <span className="font-medium">{selectedProjects.length}</span>{" "}
-                project selected
-              </p>
-              <p className="text-sm text-blue-800">
-                Total Amount:{" "}
-                <span className="font-medium">
-                  ₹{totalAmount.toLocaleString("en-IN")}
-                </span>
-              </p>
-              <p className="text-sm text-blue-800">
-                Total Hours: <span className="font-medium">{totalHours}</span>
-              </p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Finance Dashboard
+                </h1>
+              </div>
+              <p className="text-gray-600 text-lg">Manage project invoicing and financial tracking</p>
             </div>
-            <div className="mt-3 md:mt-0">
+            
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span className="text-gray-600">Ready to Invoice</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <span className="text-gray-600">{projects.length} Projects</span>
+                </div>
+              </div>
+              
               <button
                 onClick={openInvoiceModal}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={selectedProjects.length === 0}
+                className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
+                  selectedProjects.length === 0
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
+                    : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-105"
+                }`}
               >
+                <Receipt className="w-4 h-4" />
+                Create Invoice ({selectedProjects.length})
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Success Message */}
+        {showSuccessMessage && (
+          <div className="mb-8 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-emerald-900">Success!</p>
+                  <p className="text-emerald-700">{successMessage}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg p-2 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Filters */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Filter className="w-4 h-4 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Filters</h2>
+              </div>
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Reset Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="w-4 h-4 inline mr-2" />
+                  Project
+                </label>
+                <select
+                  id="project"
+                  name="project"
+                  value={filters.project}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">All Projects</option>
+                  {projects.map((pro) => (
+                    <option key={pro.id} value={pro.id}>
+                      {pro.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Building2 className="w-4 h-4 inline mr-2" />
+                  Client
+                </label>
+                <select
+                  id="client"
+                  name="client"
+                  value={filters.client}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">All Clients</option>
+                  {client.map((cl) => (
+                    <option key={cl.id} value={cl.id}>
+                      {cl.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Selected Projects Summary */}
+        {selectedProjects.length > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-200 p-6 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-600 font-medium">Projects Selected</p>
+                    <p className="text-2xl font-bold text-blue-900">{selectedProjects.length}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-emerald-600 font-medium">Total Amount</p>
+                    <p className="text-2xl font-bold text-emerald-900">₹{totalAmount.toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-purple-600 font-medium">Total Hours</p>
+                    <p className="text-2xl font-bold text-purple-900">{totalHours}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={openInvoiceModal}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <Receipt className="w-4 h-4" />
                 Create Invoice
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* project List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-medium text-gray-900">
-            Completed Projects ({projects.length}) {/* Show all projects here */}
-          </h2>
-          <div className="flex items-center">
-            <input
-              id="select-all"
-              name="select-all"
-              type="checkbox"
-              checked={selectedProjects.length === projects.length && projects.length > 0}
-              onChange={handleSelectAll}
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="select-all" className="ml-2 text-sm text-gray-700">
-              Select All
-            </label>
-          </div>
-        </div>
-
-  {/* If there are no completed projects, show a message */}
-  {projects.length > 0 ? (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <span className="sr-only">Select</span>
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Project
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Client
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Total Tasks
-            </th>
-            {/* <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Hours
-            </th> */}
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Cost (₹)
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Completion Date
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Invoice 
-            </th>
-          </tr>
-        </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {filteredProjects.map((pro) => (
-          <tr
-            key={pro.id}
-            className={`${
-              selectedProjects.includes(pro.id)
-                ? "bg-blue-50"
-                : pro.tasks?.length === 0
-                ? "bg-gray-100 text-gray-500"
-                : "hover:bg-gray-50"
-            }`}
-          >
-            <td className="px-6 py-4 whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={selectedProjects.includes(pro.id)}
-                onChange={() => handleProjectSelection(pro.id)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="flex items-center">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">
-                    <Link
-                      to={`/projects/${pro.id}`}
-                      className={pro.tasks?.length === 0 ? "text-gray-500" : "hover:text-blue-600"}
-                    >
-                      {pro.name}
-                    </Link>
-                  </div>
-                  <div className="text-sm text-gray-500 flex mt-1">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        statusColors[pro.status] || "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {pro.status}
-                    </span>
-                    <span
-                      className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        priorityColors[pro.priority] || "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {pro.priority}
-                    </span>
-                  </div>
+        {/* Enhanced Projects List */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
                 </div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Completed Projects ({projects.length})
+                </h2>
               </div>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm text-gray-500">
-                {pro.client?.name || "No Client"}
+              
+              <div className="flex items-center gap-3">
+                <input
+                  id="select-all"
+                  name="select-all"
+                  type="checkbox"
+                  checked={selectedProjects.length === projects.length && projects.length > 0}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
+                  Select All
+                </label>
               </div>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm text-gray-900">
-                {pro.tasks ? `${pro.tasks.length} Tasks` : "0 Tasks"}
-              </div>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm text-gray-900">
-                {Number(pro.cost || 0).toLocaleString("en-IN")}
-              </div>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {pro.completedAt
-                ? new Date(pro.completedAt).toLocaleDateString()
-                : pro.updatedAt
-                ? new Date(pro.updatedAt).toLocaleDateString()
-                : ""}
-            </td>
-            <td className="px-4 py-4 whitespace-nowrap">
-              <span
-                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  invoiceStatusColors[pro.invoiceStatus || "Not Created"]
-                }`}
-              >
-                {pro.invoiceStatus || "Not Created"}
-              </span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-      </table>
-    </div>
-  ) : (
-    <div className="px-6 py-8 text-center text-gray-500">
-      No completed project available for invoicing.
-    </div>
-  )}
-
-  {/* Pagination Controls */}
-        <div className="px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => handlePageChanges(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "text-blue-600 hover:text-blue-900 border border-gray-300"
-                  }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChanges(currentPage + 1)}
-                disabled={currentPage === totalPage}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${currentPage === totalPage
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "text-blue-600 hover:text-blue-900 border border-gray-300"
-                  }`}
-              >
-                Next
-              </button>
             </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">
-                    {(currentPage - 1) * paginations.limit + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-medium">
-                    {Math.min(currentPage * paginations.limit, paginations.total)}
-                  </span>{" "}
-                  of <span className="font-medium">{paginations.total}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => handlePageChanges(1)}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
+          </div>
+
+          {projects.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span className="sr-only">Select</span>
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Project Details
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Client
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tasks
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Cost (₹)
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Completion Date
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Invoice Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredProjects.map((pro) => (
+                    <tr
+                      key={pro.id}
+                      className={`transition-all duration-200 ${
+                        selectedProjects.includes(pro.id)
+                          ? "bg-blue-50 border-l-4 border-blue-500"
+                          : pro.tasks?.length === 0
+                          ? "bg-gray-50 text-gray-500"
+                          : "hover:bg-gray-50"
                       }`}
-                  >
-                    <span className="sr-only">First</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                  {pages.map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChanges(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === currentPage
-                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
                     >
-                      {page}
-                    </button>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedProjects.includes(pro.id)}
+                          onChange={() => handleProjectSelection(pro.id)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              <Link
+                                to={`/projects/${pro.id}`}
+                                className={`hover:text-blue-600 transition-colors ${
+                                  pro.tasks?.length === 0 ? "text-gray-500" : ""
+                                }`}
+                              >
+                                {pro.name}
+                              </Link>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
+                                  statusColors[pro.status] || "bg-gray-50 text-gray-700 border-gray-200"
+                                }`}
+                              >
+                                {pro.status}
+                              </span>
+                              <span
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
+                                  priorityColors[pro.priority] || "bg-gray-50 text-gray-700 border-gray-200"
+                                }`}
+                              >
+                                {pro.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-900">
+                            {pro.client?.name || "No Client"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-900">
+                            {pro.tasks ? `${pro.tasks.length} Tasks` : "0 Tasks"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {Number(pro.cost || 0).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-500">
+                            {pro.completedAt
+                              ? new Date(pro.completedAt).toLocaleDateString()
+                              : pro.updatedAt
+                              ? new Date(pro.updatedAt).toLocaleDateString()
+                              : ""}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
+                            invoiceStatusColors[pro.invoiceStatus || "Not Created"]
+                          }`}
+                        >
+                          {pro.invoiceStatus || "Not Created"}
+                        </span>
+                      </td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No completed projects</h3>
+              <p className="text-gray-500">No completed projects are available for invoicing at the moment.</p>
+            </div>
+          )}
+
+          {/* Enhanced Pagination Controls */}
+          {projects.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => handlePageChanges(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md"
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </button>
                   <button
                     onClick={() => handlePageChanges(currentPage + 1)}
                     disabled={currentPage === totalPage}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${currentPage === totalPage
+                    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      currentPage === totalPage
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
-                      }`}
+                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md"
+                    }`}
                   >
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
-                </nav>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Showing{" "}
+                      <span className="font-medium">
+                        {(currentPage - 1) * paginations.limit + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min(currentPage * paginations.limit, paginations.total)}
+                      </span>{" "}
+                      of <span className="font-medium">{paginations.total}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => handlePageChanges(1)}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                        }`}
+                      >
+                        <ChevronsLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handlePageChanges(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      {pages.map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChanges(page)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                            page === currentPage
+                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => handlePageChanges(currentPage + 1)}
+                        disabled={currentPage === totalPage}
+                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                          currentPage === totalPage
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                        }`}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handlePageChanges(totalPage)}
+                        disabled={currentPage === totalPage}
+                        className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
+                          currentPage === totalPage
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                        }`}
+                      >
+                        <ChevronsRight className="w-4 h-4" />
+                      </button>
+                    </nav>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-</div>
 
+        {/* Enhanced Create Invoice Modal */}
+        {showInvoiceModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 transform transition-all">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Receipt className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">Create Invoice</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowInvoiceModal(false)}
+                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
 
-      {/* Create Invoice Modal */}
-      {showInvoiceModal && (
-        <div
-          className="fixed inset-0 z-50 overflow-y-auto"
-          aria-labelledby="modal-title"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-              aria-hidden="true"
-            ></div>
-            <span
-              className="hidden sm:inline-block sm:align-middle sm:h-screen"
-              aria-hidden="true"
-            >
-              ​
-            </span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3
-                      className="text-lg leading-6 font-medium text-gray-900"
-                      id="modal-title"
-                    >
-                      Create Invoice
-                    </h3>
-                    <div className="mt-4">
-                      <div className="mb-4">
-                        <label
-                          htmlFor="invoiceNumber"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Invoice Number
-                        </label>
-                        <input
-                          type="text"
-                          id="invoiceNumber"
-                          value={invoiceData.invoiceNumber}
-                          onChange={(e) =>
-                            setInvoiceData({
-                              ...invoiceData,
-                              invoiceNumber: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label
-                          htmlFor="invoiceDate"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Invoice Date
-                        </label>
-                        <input
-                          type="date"
-                          id="invoiceDate"
-                          value={invoiceData.invoiceDate}
-                          onChange={(e) =>
-                            setInvoiceData({
-                              ...invoiceData,
-                              invoiceDate: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label
-                          htmlFor="client"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Client
-                        </label>
-                        <input
-                          type="text"
-                          id="client"
-                          value={invoiceData.client}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-                          disabled
-                        />
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-700 mb-2">
-                          Invoice Summary:
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">
-                            {selectedProjects.length}
-                          </span>{" "}
-                          projects
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          Total Amount:{" "}
-                          <span className="font-medium">
-                            ₹{totalAmount.toLocaleString("en-IN")}
-                          </span>
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          Total Hours:{" "}
-                          <span className="font-medium">{totalHours}</span>
-                        </p>
-                      </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    Invoice Number
+                  </label>
+                  <input
+                    type="text"
+                    id="invoiceNumber"
+                    value={invoiceData.invoiceNumber}
+                    onChange={(e) =>
+                      setInvoiceData({
+                        ...invoiceData,
+                        invoiceNumber: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="invoiceDate" className="block text-sm font-medium text-gray-700 mb-2">
+                    Invoice Date
+                  </label>
+                  <input
+                    type="date"
+                    id="invoiceDate"
+                    value={invoiceData.invoiceDate}
+                    onChange={(e) =>
+                      setInvoiceData({
+                        ...invoiceData,
+                        invoiceDate: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
+                    Client
+                  </label>
+                  <input
+                    type="text"
+                    id="client"
+                    value={invoiceData.client}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600"
+                    disabled
+                  />
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                  <h4 className="text-sm font-medium text-blue-900 mb-4 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Invoice Summary
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-900">{selectedProjects.length}</p>
+                      <p className="text-xs text-blue-600">Projects</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-emerald-900">₹{totalAmount.toLocaleString("en-IN")}</p>
+                      <p className="text-xs text-emerald-600">Total Amount</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-900">{totalHours}</p>
+                      <p className="text-xs text-purple-600">Total Hours</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+              <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   type="button"
                   onClick={handleCreateInvoice}
                   disabled={loading}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Processing..." : "Create Invoice"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowInvoiceModal(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Cancel
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    "Create Invoice"
+                  )}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
