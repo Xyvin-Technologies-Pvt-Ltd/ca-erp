@@ -35,6 +35,7 @@ jobs:
         run: |
           cd frontend
           npm ci
+          npm ls vite || true
           npm run build
 
       # Step 4: Rename the build output directory (if required)
