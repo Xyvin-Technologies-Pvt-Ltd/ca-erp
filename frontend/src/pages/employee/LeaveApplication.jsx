@@ -344,7 +344,7 @@ const LeaveApplication = () => {
           className="mt-4 md:mt-0 flex items-center gap-2 bg-white hover:bg-indigo-50 border-indigo-300 shadow-sm rounded-lg transition-all duration-300 hover:shadow-md"
         >
           <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
-          <span className="font-medium text-indigo-700">Download Leave Policy</span>
+          <span className="font-medium text-indigo-700 cursor-pointer">Download Leave Policy</span>
         </Button>
       </motion.div>
 
@@ -365,17 +365,17 @@ const LeaveApplication = () => {
                     Leave Type
                   </label>
                   <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger className="w-full bg-white border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300">
+                    <SelectTrigger className="w-full bg-white border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 cursor-pointer">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-indigo-100 shadow-lg rounded-lg">
-                      <SelectItem value="annual" className="hover:bg-indigo-50">Annual Leave</SelectItem>
-                      <SelectItem value="sick" className="hover:bg-indigo-50">Sick Leave</SelectItem>
-                      <SelectItem value="personal" className="hover:bg-indigo-50">Personal Leave</SelectItem>
-                      <SelectItem value="unpaid" className="hover:bg-indigo-50">Unpaid Leave</SelectItem>
-                      <SelectItem value="other" className="hover:bg-indigo-50">Other Leave</SelectItem>
-                      <SelectItem value="maternity" className="hover:bg-indigo-50">Maternity Leave</SelectItem>
-                      <SelectItem value="paternity" className="hover:bg-indigo-50">Paternity Leave</SelectItem>
+                    <SelectContent className="bg-white border-indigo-100 shadow-lg rounded-lg cursor-pointer">
+                      <SelectItem value="annual" className="hover:bg-indigo-50 cursor-pointer">Annual Leave</SelectItem>
+                      <SelectItem value="sick" className="hover:bg-indigo-50 cursor-pointer">Sick Leave</SelectItem>
+                      <SelectItem value="personal" className="hover:bg-indigo-50 cursor-pointer">Personal Leave</SelectItem>
+                      <SelectItem value="unpaid" className="hover:bg-indigo-50 cursor-pointer">Unpaid Leave</SelectItem>
+                      <SelectItem value="other" className="hover:bg-indigo-50 cursor-pointer">Other Leave</SelectItem>
+                      <SelectItem value="maternity" className="hover:bg-indigo-50 cursor-pointer">Maternity Leave</SelectItem>
+                      <SelectItem value="paternity" className="hover:bg-indigo-50 cursor-pointer">Paternity Leave</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -494,7 +494,7 @@ const LeaveApplication = () => {
               <motion.div  whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
-                  className="w-full inline-flex items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
                 >
                   Submit Application
                 </Button>
