@@ -2,10 +2,17 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchTasks } from "../api/tasks";
 import { fetchProjects } from "../api/projects";
+import { motion, AnimatePresence } from "framer-motion";
 import CreateTaskModal from "../components/CreateTaskModal";
-import { FaGreaterThan } from "react-icons/fa";
-import { FaLessThan } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  PlusCircleIcon,
+  ClipboardDocumentListIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -35,8 +42,7 @@ const Tasks = () => {
     total: 0,
   });
 
-  const {role} = useAuth()
-
+  const { role } = useAuth();
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -55,28 +61,24 @@ const Tasks = () => {
         fetchTasks({ ...filters, page: currentPage, limit: 10 }),
         fetchProjects(),
       ]);
-  
-      // Set tasks
+
       setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
       console.log("Tasks:", tasksData.tasks);
-  
-      // Set projects
+
       setProjects(Array.isArray(projectsData.data) ? projectsData.data : []);
-  
-      // Set team members
+
       setTeamMembers(
         Array.isArray(tasksData.tasks)
           ? tasksData.tasks.map((task) => task.assignedTo).filter(Boolean)
           : []
       );
-  
-      // Set pagination
+
       setPaginations({
         page: currentPage,
         total: tasksData.total,
         limit: tasksData.pagination?.next?.limit || 10,
       });
-  
+
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch data:", err);
@@ -85,18 +87,15 @@ const Tasks = () => {
     }
   };
 
-  console.log(paginations,'page');
-  
-  
+  console.log(paginations, "page");
 
   useEffect(() => {
     loadTasksAndProjects();
   }, [filters, currentPage]);
-  
+
   const handlePageChanges = (newPage) => {
     setCurrentPage(newPage);
   };
-  
 
   const handleTaskCreated = (newTask) => {
     setTasks((prevTasks) => [...prevTasks, newTask]);
@@ -121,15 +120,6 @@ const Tasks = () => {
     });
   };
 
-  // Apply filters to tasks
-  // const filteredTasks = tasks.filter((task) => {
-  //   if (filters.status && task.status !== filters.status) return false;
-  //   if (filters.priority && task.priority !== filters.priority) return false;
-  //   if (filters.project && task.project?.id !== filters.project) return false;
-  //   if (filters.assignedTo && task.assignedTo?.id !== filters.assignedTo)
-  //     return false;
-  //   return true;
-  // });
   const uniqueMembers = Array.from(
     new Map(
       tasks
@@ -140,75 +130,117 @@ const Tasks = () => {
   const totalPage = Math.ceil(paginations.total / paginations.limit);
   const pages = Array.from({ length: totalPage }, (_, i) => i + 1);
 
-  console.log('total',totalPage,pages,'page');
-
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex justify-center items-center h-screen"
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="h-16 w-16 border-t-2 border-b-2 border-indigo-500 rounded-full"
+        ></motion.div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white text-black">
-        <div className="bg-red-50 p-4 rounded-md">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+      >
+        <div className="bg-red-50 p-4 rounded-md border border-red-200">
           <p className="text-red-700">{error}</p>
-          <button
+          <motion.button
             onClick={loadTasksAndProjects}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             Try Again
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white text-black">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+    >
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Tasks</h1>
-          {role !== "staff" && (
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center space-x-3 mb-4 sm:mb-0"
         >
-          Create Task
-        </button>
-          )}
+          <ClipboardDocumentListIcon className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+        </motion.div>
+        {role !== "staff" && (
+          <motion.button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex items-center space-x-2">
+              <PlusIcon className="h-5 w-5" />
+              <span>Create Task</span>
+            </div>
+          </motion.button>
+        )}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6 bg-white text-black">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
+      >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <h2 className="text-lg font-medium text-gray-900 mb-2 md:mb-0">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 md:mb-0 flex items-center">
+            <ClipboardDocumentListIcon className="h-6 w-6 text-indigo-600 mr-2" />
             Filters
           </h2>
-          <button
+          <motion.button
             onClick={resetFilters}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
           >
             Reset Filters
-          </button>
+          </motion.button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white text-black">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label
               htmlFor="status"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-semibold text-gray-700 mb-1"
             >
               Status
             </label>
-            <select
+            <motion.select
               id="status"
               name="status"
               value={filters.status}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-300 transition-all duration-300 cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
@@ -216,43 +248,49 @@ const Tasks = () => {
               <option value="review">Review</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
-            </select>
+            </motion.select>
           </div>
 
           <div>
             <label
               htmlFor="priority"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-semibold text-gray-700 mb-1"
             >
               Priority
             </label>
-            <select
+            <motion.select
               id="priority"
               name="priority"
               value={filters.priority}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-300 transition-all duration-300 cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <option value="">All Priorities</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
-            </select>
+            </motion.select>
           </div>
 
           <div>
             <label
               htmlFor="project"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-semibold text-gray-700 mb-1"
             >
               Project
             </label>
-            <select
+            <motion.select
               id="project"
               name="project"
               value={filters.project}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-300 transition-all duration-300 cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <option value="">All Projects</option>
               {projects &&
@@ -262,22 +300,25 @@ const Tasks = () => {
                     {project.name}
                   </option>
                 ))}
-            </select>
+            </motion.select>
           </div>
 
           <div>
             <label
               htmlFor="assignedTo"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-semibold text-gray-700 mb-1"
             >
               Assigned To
             </label>
-            <select
+            <motion.select
               id="assignedTo"
               name="assignedTo"
               value={filters.assignedTo}
               onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-300 transition-all duration-300 cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <option value="">All Team Members</option>
               {uniqueMembers.map((member) => (
@@ -285,206 +326,251 @@ const Tasks = () => {
                   {member.name}
                 </option>
               ))}
-            </select>
+            </motion.select>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Task List */}
-      {tasks.length === 0  ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <h2 className="text-xl font-medium text-gray-900 mb-4">
-            No tasks found
-          </h2>
-          <p className="text-gray-500 mb-6">
-            {tasks.length === 0
-              ? "Get started by creating your first task."
-              : "Try changing your filters or create a new task."}
-          </p>
-          { role != "staff" && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <AnimatePresence mode="wait">
+        {tasks.length === 0 ? (
+          <motion.div
+            key="no-tasks"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white rounded-lg shadow p-8 text-center border border-gray-200 hover:shadow-lg transition-all duration-300"
           >
-            Create Task
-          </button>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Task Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Priority
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Project
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Assigned To
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {tasks.map((task) => (
-                  <tr key={task.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.title}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
-                          statusColors[task.status]
-                        }`}
-                      >
-                        {task.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
-                          priorityColors[task.priority]
-                        }`}
-                      >
-                        {task.priority}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.project?.name || "No Project"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.assignedTo?.name || "Unassigned"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.amount !== undefined ? `₹${task.amount}` : '-'}
-                    </td>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              No tasks found
+            </h2>
+            <p className="text-gray-500 mb-6">
+              {tasks.length === 0
+                ? "Get started by creating your first task."
+                : "Try changing your filters or create a new task."}
+            </p>
+            {role !== "staff" && (
+              <motion.button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center space-x-2">
+                  <PlusCircleIcon className="h-5 w-5" />
+                  <span>Create Task</span>
+                </div>
+              </motion.button>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="task-list"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white shadow rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300"
+          >
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                      Task Name
+                    </th>
+                    <th className="px-6 py-3 text-center text-sm font-medium text-gray-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-center text-sm font-medium text-gray-500">
+                      Priority
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                      Project
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                      Assigned To
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                      Amount
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      <div className="px-6 py-4 border-t border-gray-200">
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <AnimatePresence>
+                    {tasks.map((task, index) => (
+                      <motion.tr
+                        key={task.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {task.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                          <motion.span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${statusColors[task.status]}`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {task.status}
+                          </motion.span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                          <motion.span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${priorityColors[task.priority]}`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {task.priority}
+                          </motion.span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {task.project?.name || "No Project"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {task.assignedTo?.name || "Unassigned"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {task.amount !== undefined ? `₹${task.amount}` : "-"}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pagination */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="px-6 py-4 border-t border-gray-200"
+      >
         <div className="flex items-center justify-between">
           <div className="flex-1 flex justify-between sm:hidden">
-            <button
+            <motion.button
               onClick={() => handlePageChanges(currentPage - 1)}
-
-              disabled={currentPage=== 1}
+              disabled={currentPage === 1}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                currentPage=== 1
+                currentPage === 1
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "text-blue-600 hover:text-blue-900 border border-gray-300"
-              }`}
+                  : "text-indigo-600 hover:text-indigo-900 border border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+              } transition-all duration-300`}
+              whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
+              whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
             >
+              <ChevronLeftIcon className="h-5 w-5 mr-1" />
               Previous
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => handlePageChanges(currentPage + 1)}
-
-              disabled={currentPage=== totalPage}
+              disabled={currentPage === totalPage}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                currentPage=== totalPage
+                currentPage === totalPage
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "text-blue-600 hover:text-blue-900 border border-gray-300"
-              }`}
+                  : "text-indigo-600 hover:text-indigo-900 border border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+              } transition-all duration-300`}
+              whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
+              whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
             >
               Next
-            </button>
+              <ChevronRightIcon className="h-5 w-5 ml-1" />
+            </motion.button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-                <p className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">
-                    {(currentPage- 1) * paginations.limit + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-medium">
-                    {Math.min(currentPage* paginations.limit, paginations.total)}
-                  </span>{" "}
-                  of <span className="font-medium">{paginations.total}</span> results
-                </p>
-              </div>
-              <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button
-                    onClick={() => handlePageChanges(1)}
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * paginations.limit + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * paginations.limit, paginations.total)}
+                </span>{" "}
+                of <span className="font-medium">{paginations.total}</span>{" "}
+                results
+              </p>
+            </div>
+            <div>
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
+                <motion.button
+                  onClick={() => handlePageChanges(1)}
                   disabled={currentPage === 1}
-
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                      currentPage=== 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
-                    }`}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-indigo-50 border-indigo-200 cursor-pointer"
+                  } transition-all duration-300`}
+                  whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
+                  whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
+                >
+                  <span className="sr-only">First</span>
+                  <ChevronDoubleLeftIcon className="h-5 w-5" />
+                </motion.button>
+                {pages.map((page) => (
+                  <motion.button
+                    key={page}
+                    onClick={() => handlePageChanges(page)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      page === currentPage
+                        ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                        : "bg-white border-indigo-200 text-gray-500 hover:bg-indigo-50 cursor-pointer"
+                    } transition-all duration-300`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                     <span className="sr-only">First</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                  {pages.map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChanges(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === currentPage
-                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                   <button
-                    onClick={() => handlePageChanges(currentPage+ 1)}
-                    disabled={currentPage=== totalPage}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                      currentPage=== totalPage
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300"
-                    }`}
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                    {page}
+                  </motion.button>
+                ))}
+                <motion.button
+                  onClick={() => handlePageChanges(currentPage + 1)}
+                  disabled={currentPage === totalPage}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                    currentPage === totalPage
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-500 hover:bg-indigo-50 border-indigo-200 cursor-pointer"
+                  } transition-all duration-300`}
+                  whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
+                  whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" />
+                </motion.button>
               </nav>
-              </div>
-
-
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Modal */}
-      <CreateTaskModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTaskCreated={handleTaskCreated}
-      />
-    </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CreateTaskModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onTaskCreated={handleTaskCreated}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

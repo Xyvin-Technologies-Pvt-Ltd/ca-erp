@@ -19,7 +19,10 @@ import {
   XCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  UserIcon,
+  SunIcon,
 } from "@heroicons/react/24/outline";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { createLeave, getMyLeaves } from "../../api/Leave.js";
@@ -258,24 +261,24 @@ const LeaveApplication = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
       case "Rejected":
-        return "bg-red-100 text-red-800";
+        return "bg-rose-100 text-rose-800 border-rose-200";
       case "Pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-amber-100 text-amber-800 border-amber-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "Approved":
-        return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
+        return <CheckCircleIcon className="h-5 w-5 text-emerald-600" />;
       case "Rejected":
-        return <XCircleIcon className="h-5 w-5 text-red-600" />;
+        return <XCircleIcon className="h-5 w-5 text-rose-600" />;
       default:
-        return <ClockIcon className="h-5 w-5 text-yellow-600" />;
+        return <ClockIcon className="h-5 w-5 text-amber-600" />;
     }
   };
 
@@ -284,7 +287,7 @@ const LeaveApplication = () => {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       return (
         <div className="flex items-center gap-2">
-          <CalendarIcon className="h-4 w-4 text-blue-600" />
+          <CalendarIcon className="h-5 w-5 text-indigo-600" />
           <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
@@ -295,7 +298,7 @@ const LeaveApplication = () => {
     }
     return (
       <div className="flex items-center gap-2">
-        <CalendarIcon className="h-4 w-4 text-gray-400" />
+        <CalendarIcon className="h-5 w-5 text-gray-400" />
         <span className="text-gray-500">Select date range</span>
       </div>
     );
@@ -325,69 +328,87 @@ const LeaveApplication = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Leave Application</h1>
-        <div className="mt-4 md:mt-0">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 shadow-sm rounded-lg transition-all duration-200"
-          >
-            <DocumentTextIcon className="h-5 w-5 text-gray-600" />
-            <span className="font-medium text-gray-700">Download Leave Policy</span>
-          </Button>
+    <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between mb-8"
+      >
+        <div className="flex items-center space-x-3">
+          <CalendarIcon className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Leave Application</h1>
         </div>
-      </div>
+        <Button
+          variant="outline"
+          className="mt-4 md:mt-0 flex items-center gap-2 bg-white hover:bg-indigo-50 border-indigo-300 shadow-sm rounded-lg transition-all duration-300 hover:shadow-md"
+        >
+          <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
+          <span className="font-medium text-indigo-700">Download Leave Policy</span>
+        </Button>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <Card className="p-6 bg-white shadow-md rounded-xl border-0">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="p-6 bg-white shadow-lg rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300">
+            <motion.form
+              onSubmit={handleSubmit}
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
                     Leave Type
                   </label>
                   <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger className="w-full bg-white border-gray-300 hover:border-gray-400 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200">
+                    <SelectTrigger className="w-full bg-white border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-200 shadow-lg rounded-lg">
-                      <SelectItem value="annual" className="hover:bg-gray-50">Annual Leave</SelectItem>
-                      <SelectItem value="sick" className="hover:bg-gray-50">Sick Leave</SelectItem>
-                      <SelectItem value="personal" className="hover:bg-gray-50">Personal Leave</SelectItem>
-                      <SelectItem value="unpaid" className="hover:bg-gray-50">Unpaid Leave</SelectItem>
-                      <SelectItem value="other" className="hover:bg-gray-50">Other Leave</SelectItem>
-                      <SelectItem value="maternity" className="hover:bg-gray-50">Maternity Leave</SelectItem>
-                      <SelectItem value="paternity" className="hover:bg-gray-50">Paternity Leave</SelectItem>
+                    <SelectContent className="bg-white border-indigo-100 shadow-lg rounded-lg">
+                      <SelectItem value="annual" className="hover:bg-indigo-50">Annual Leave</SelectItem>
+                      <SelectItem value="sick" className="hover:bg-indigo-50">Sick Leave</SelectItem>
+                      <SelectItem value="personal" className="hover:bg-indigo-50">Personal Leave</SelectItem>
+                      <SelectItem value="unpaid" className="hover:bg-indigo-50">Unpaid Leave</SelectItem>
+                      <SelectItem value="other" className="hover:bg-indigo-50">Other Leave</SelectItem>
+                      <SelectItem value="maternity" className="hover:bg-indigo-50">Maternity Leave</SelectItem>
+                      <SelectItem value="paternity" className="hover:bg-indigo-50">Paternity Leave</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <ClockIcon className="h-5 w-5 text-indigo-600 mr-2" />
                     Duration
                   </label>
-                  <div className="text-sm bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+                  <motion.div
+                    className="text-sm bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300"
+                    whileHover={{ scale: 1.02 }}
+                  >
                     {getFormattedDateRange()}
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <SunIcon className="h-5 w-5 text-indigo-600 mr-2" />
                   Date Range
                 </label>
-                <div className="rounded-lg border border-gray-200 p-4 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+                <div className="rounded-lg border border-indigo-100 p-4 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
                   <div className="flex flex-col items-center">
-                    <div className="flex justify-center items-center gap-4 mb-4 pb-2 border-b border-gray-200 w-full">
+                    <div className="flex justify-between items-center gap-4 mb-4 pb-2 border-b border-indigo-100 w-full">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handlePreviousMonth}
-                        className="h-8 w-8 hover:bg-gray-50 border-gray-300 rounded-full transition-all duration-200"
+                        className="h-8 w-8 hover:bg-indigo-50 border-indigo-200 rounded-full transition-all duration-300"
                       >
-                        <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+                        <ChevronLeftIcon className="h-4 w-4 text-indigo-600" />
                       </Button>
                       <div className="text-sm font-semibold text-gray-700">
                         {format(currentMonth, "MMMM yyyy")}
@@ -396,19 +417,18 @@ const LeaveApplication = () => {
                         variant="outline"
                         size="icon"
                         onClick={handleNextMonth}
-                        className="h-8 w-8 hover:bg-gray-50 border-gray-300 rounded-full transition-all duration-200"
+                        className="h-8 w-8 hover:bg-indigo-50 border-indigo-200 rounded-full transition-all duration-300"
                       >
-                        <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                        <ChevronRightIcon className="h-4 w-4 text-indigo-600" />
                       </Button>
                     </div>
-                    <div className="flex justify-center w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                       <Calendar
                         mode="range"
                         selected={dateRange}
                         onSelect={handleDateSelect}
-                        numberOfMonths={1}
                         month={currentMonth}
-                        className="w-full max-w-sm animate-fade-in"
+                        className="w-full animate-fade-in"
                         showOutsideDays={false}
                         disabled={disabledDays}
                         classNames={{
@@ -421,10 +441,35 @@ const LeaveApplication = () => {
                           head_cell: "text-gray-500 w-10 font-normal text-sm",
                           row: "flex w-full",
                           cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
-                          day: "h-10 w-10 p-0 font-normal hover:bg-blue-100 cursor-pointer rounded-full transition-all duration-200",
+                          day: "h-10 w-10 p-0 font-normal hover:bg-indigo-100 cursor-pointer rounded-full transition-all duration-300",
                           day_range_end: "day-range-end",
                           day_range_start: "day-range-start",
-                          day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                          day_selected: "bg-indigo-600 text-white hover:bg-indigo-700",
+                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50",
+                        }}
+                      />
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={handleDateSelect}
+                        month={addMonths(currentMonth, 1)}
+                        className="w-full animate-fade-in"
+                        showOutsideDays={false}
+                        disabled={disabledDays}
+                        classNames={{
+                          months: "flex justify-center",
+                          month: "space-y-4 w-full",
+                          caption: "hidden",
+                          nav: "hidden",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell: "text-gray-500 w-10 font-normal text-sm",
+                          row: "flex w-full",
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
+                          day: "h-10 w-10 p-0 font-normal hover:bg-indigo-100 cursor-pointer rounded-full transition-all duration-300",
+                          day_range_end: "day-range-end",
+                          day_range_start: "day-range-start",
+                          day_selected: "bg-indigo-600 text-white hover:bg-indigo-700",
                           day_disabled: "text-gray-400 cursor-not-allowed opacity-50",
                         }}
                       />
@@ -434,107 +479,155 @@ const LeaveApplication = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Reason</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                  Reason
+                </label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Please provide a reason for your leave request"
-                  className="min-h-[100px] bg-white border-gray-300 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200"
+                  className="min-h-[100px] bg-white border-indigo-200 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full inline-flex items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Submit Application
-              </Button>
-            </form>
+              <motion.div  whileTap={{ scale: 0.98 }}>
+                <Button
+                  type="submit"
+                  className="w-full inline-flex items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
+                >
+                  Submit Application
+                </Button>
+              </motion.div>
+            </motion.form>
           </Card>
 
-          <Card className="p-6 bg-white shadow-md rounded-xl border-0">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Applications</h2>
+          <Card className="p-6 bg-white shadow-lg rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <ClockIcon className="h-6 w-6 text-indigo-600 mr-2" />
+              Recent Applications
+            </h2>
             <div className="space-y-4">
-              {recentApplications.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No leave applications found</p>
-              ) : (
-                recentApplications.map((application, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm"
+              <AnimatePresence>
+                {recentApplications.length === 0 ? (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center text-gray-500 py-8"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <CalendarIcon className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{application.type}</p>
-                        <p className="text-sm text-gray-500">
-                          {application.from} to {application.to}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                            application.status
-                          )}`}
+                    No leave applications found
+                  </motion.p>
+                ) : (
+                  recentApplications.map((application, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-4">
+                        <motion.div
+                          className="p-2 bg-indigo-100 rounded-full"
+                          whileHover={{ scale: 1.1 }}
                         >
-                          {getStatusIcon(application.status)}
-                          <span>{application.status}</span>
+                          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                        </motion.div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{application.type}</p>
+                          <p className="text-sm text-gray-500">
+                            {application.from} to {application.to}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-500">{application.approvedBy}</p>
                       </div>
-                    </div>
-                  </div>
-                ))
-              )}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <motion.div
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                              application.status
+                            )}`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {getStatusIcon(application.status)}
+                            <span>{application.status}</span>
+                          </motion.div>
+                          <p className="text-sm text-gray-500">{application.approvedBy}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
             </div>
           </Card>
         </div>
 
-        {/* <Card className="p-6 bg-white shadow-md rounded-xl border-0">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Leave Balance</h2>
+        <Card className="p-6 bg-white shadow-lg rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <SunIcon className="h-6 w-6 text-indigo-600 mr-2" />
+            Leave Balance
+          </h2>
           <div className="space-y-6">
-            {Object.entries(leaveBalance).map(([type, balance]) => (
-              <div key={type} className="space-y-2 group relative">
-                <div className="flex justify-between items-center">
-                  <span className="capitalize text-gray-700 font-semibold">{type} Leave</span>
-                  <span className="font-semibold text-gray-900">
-                    {balance.total - balance.used} days
-                  </span>
-                </div>
-                <div
-                  className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden relative"
-                  title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
+            <AnimatePresence>
+              {Object.entries(leaveBalance).map(([type, balance], index) => (
+                <motion.div
+                  key={type}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="space-y-2 group relative"
                 >
+                  <div className="flex justify-between items-center">
+                    <span className="capitalize text-gray-700 font-semibold flex items-center">
+                      <UserIcon className="h-4 w-4 text-indigo-600 mr-2" />
+                      {type} Leave
+                    </span>
+                    <motion.span
+                      className="font-semibold text-indigo-600"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {balance.total - balance.used} days
+                    </motion.span>
+                  </div>
                   <div
-                    className="h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-300"
-                    style={{
-                      width: `${
-                        type === "unpaid" || type === "other"
-                          ? balance.used > 0 || balance.pending > 0
-                            ? 100
+                    className="w-full bg-gray-200 rounded-full h-3 overflow-hidden relative"
+                    title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
+                  >
+                    <motion.div
+                      className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-700"
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: `${
+                          type === "unpaid" || type === "other"
+                            ? balance.used > 0 || balance.pending > 0
+                              ? 100
+                              : 0
+                            : balance.total > 0
+                            ? ((balance.used + balance.pending) / balance.total) * 100
                             : 0
-                          : balance.total > 0
-                          ? ((balance.used + balance.pending) / balance.total) * 100
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Used: {balance.used} days</span>
-                  <span>Pending: {balance.pending} days</span>
-                </div>
-                <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2">
-                  Used: {balance.used} days, Pending: {balance.pending} days
-                </div>
-              </div>
-            ))}
+                        }%`,
+                      }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Used: {balance.used} days</span>
+                    <span>Pending: {balance.pending} days</span>
+                  </div>
+                  <motion.div
+                    className="absolute hidden group-hover:block bg-indigo-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Used: {balance.used} days, Pending: {balance.pending} days
+                  </motion.div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </Card> */}
+        </Card>
       </div>
     </div>
   );
