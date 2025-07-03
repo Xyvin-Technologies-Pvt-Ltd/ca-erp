@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "formik": "^2.4.6",
+    "framer-motion": "^12.23.0",
     "frontend": "file:",
     "lucide-react": "^0.522.0",
     "react": "^19.0.0",
