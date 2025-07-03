@@ -389,7 +389,7 @@ const ProjectDetail = () => {
               onClick={() => setIsEditing(true)}
               className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center text-sm sm:text-base"
             >
-              <CiEdit className="mr-1 w-4 h-4 sm:w-4 sm:h-4" />             Edit Project
+              <CiEdit className="mr-1 w-4 h-4 sm:w-4 sm:h-4" />Edit Project
 
             </button>
             <button
