@@ -3,6 +3,15 @@ import { useForm } from "react-hook-form";
 import { projectsApi } from "../api";
 import { clientsApi } from "../api/clientsApi";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
+import {
+  DocumentTextIcon,
+  UserIcon,
+  FlagIcon,
+  CalendarIcon,
+  CurrencyDollarIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
@@ -44,7 +53,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       try {
         const [clientsResponse, projectsResponse] = await Promise.all([
           clientsApi.getAllClients(),
-          projectsApi.getAllProjects({ limit: 1000 })
+          projectsApi.getAllProjects({ limit: 1000 }),
         ]);
         setClients(clientsResponse.data);
         setProjects(projectsResponse.data || []);
@@ -88,8 +97,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     }
 
     const isDuplicateName = projects.some(
-      (p) => p.name.toLowerCase() === data.name.toLowerCase() && 
-             (!isEditMode || p._id !== project?._id)
+      (p) => p.name.toLowerCase() === data.name.toLowerCase() && (!isEditMode || p._id !== project?._id)
     );
     if (isDuplicateName) {
       setError("name", {
@@ -127,7 +135,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       }
 
       setLoading(false);
-      reset(); 
+      reset();
       if (onSuccess) onSuccess(result.data);
     } catch (error) {
       console.error("Error saving project:", error.response ? error.response.data : error);
@@ -152,34 +160,43 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-6">
+    <motion.div
+      className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-indigo-100 hover:shadow-xl transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center">
+        <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 mr-2" />
         {isEditMode ? "Edit Project" : "Create New Project"}
       </h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <DocumentTextIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Project Name <span className="text-red-600">*</span>
             </label>
             <input
               type="text"
               {...register("name", { required: "Project name is required" })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
+              placeholder="Enter project name"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
             )}
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Client <span className="text-red-600">*</span>
             </label>
             <select
               {...register("client.id", { required: "Client is required" })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
             >
               <option value="">Select a client</option>
               {clients.map((client) => (
@@ -191,104 +208,127 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
             {errors.client?.id && (
               <p className="mt-1 text-sm text-red-600">{errors.client.id.message}</p>
             )}
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Status
             </label>
             <select
               {...register("status")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
             >
               <option value="planning">Planning</option>
               <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="archived">Archived</option>
             </select>
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Priority
             </label>
             <select
               {...register("priority")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <CalendarIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Start Date <span className="text-red-600">*</span>
             </label>
             <input
               type="date"
               {...register("startDate", { required: "Start date is required" })}
               min={isEditMode ? undefined : today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
             />
             {errors.startDate && (
               <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>
             )}
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <CalendarIcon className="h-5 w-5 text-indigo-600 mr-2" />
               Due Date <span className="text-red-600">*</span>
             </label>
             <input
               type="date"
               {...register("dueDate", { required: "Due date is required" })}
               min={isEditMode ? undefined : today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
             />
             {errors.dueDate && (
               <p className="mt-1 text-sm text-red-600">{errors.dueDate.message}</p>
             )}
-          </div>
+          </motion.div>
+
+          {/* <motion.div className="relative md:col-span-2" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <CurrencyDollarIcon className="h-5 w-5 text-indigo-600 mr-2" />
+              Budget
+            </label>
+            <input
+              type="number"
+              {...register("budget")}
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
+              placeholder="Enter budget (optional)"
+            />
+          </motion.div> */}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <InformationCircleIcon className="h-5 w-5 text-indigo-600 mr-2" />
             Description <span className="text-red-600">*</span>
           </label>
           <textarea
             {...register("description", { required: "Description is required" })}
             rows="4"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300"
+            placeholder="Enter project description"
           ></textarea>
           {errors.description && (
             <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
           )}
-        </div>
+        </motion.div>
 
         <div className="flex justify-end space-x-3">
-          <button
+          <motion.button
             type="button"
             onClick={handleCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-indigo-300 rounded-lg text-gray-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Cancel
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-300 shadow-sm transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {loading
               ? "Saving..."
               : isEditMode
                 ? "Update Project"
                 : "Create Project"}
-          </button>
+          </motion.button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 };
 

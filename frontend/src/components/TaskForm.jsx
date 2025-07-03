@@ -7,8 +7,19 @@ import { projectsApi } from "../api/projectsApi";
 import { useNotifications } from "../context/NotificationContext";
 import Select from "react-select";
 import TagDocumentUpload from "./TagDocumentUpload";
-import { tagDocumentRequirements } from '../utils/tagDocumentFields';
-
+import { tagDocumentRequirements } from "../utils/tagDocumentFields";
+import { motion } from "framer-motion";
+import {
+  DocumentTextIcon,
+  BriefcaseIcon,
+  FlagIcon,
+  UserIcon,
+  CalendarIcon,
+  CurrencyDollarIcon,
+  InformationCircleIcon,
+  PaperClipIcon,
+  TagIcon,
+} from "@heroicons/react/24/outline";
 
 const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const tagOptions = [
@@ -37,7 +48,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [description, setDescription] = useState(task?.description || "");
   const [file, setFile] = useState(null);
   const [selectedTags, setSelectedTags] = useState(task?.tags?.map(tag => ({ id: tag, text: tag })) || []);
-
   const [projectId, setProjectId] = useState(task?.project?._id || projectIds);
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -47,7 +57,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [projectError, setProjectError] = useState(null);
   const { socket } = useNotifications();
   const token = localStorage.getItem("auth_token");
-
   const [tagDocuments, setTagDocuments] = useState({});
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [clientInfo, setClientInfo] = useState(null);
@@ -56,10 +65,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-
-
   };
-
 
   // Fetch existing tag documents when editing a task
   useEffect(() => {
@@ -123,7 +129,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       console.log('Uploading document:', { tag, documentType, file });
 
       if (!task?._id) {
-        // If we're creating a new task, store the file temporarily
         setTagDocuments(prev => ({
           ...prev,
           [`${tag}-${documentType}`]: {
@@ -141,7 +146,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       formData.append('tag', tag);
       formData.append('documentType', documentType);
 
-      // Log FormData contents
       for (let [key, value] of formData.entries()) {
         console.log('FormData entry:', key, value);
       }
@@ -175,7 +179,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       let taskPayload;
       const tagList = selectedTags.map(tag => tag.text);
 
-      // Create FormData for task creation
       taskPayload = new FormData();
       taskPayload.append("title", title);
       taskPayload.append("project", projectId);
@@ -191,11 +194,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       let response;
       if (task) {
         response = await updateTask(task._id, taskPayload, token);
-        console.log(response, "response")
+        console.log(response, "response");
       } else {
         response = await createTask(taskPayload, token);
 
-        // After creating the task, upload any pending tag documents
         const tempDocs = Object.entries(tagDocuments).filter(([_, doc]) => doc.isTemp);
         for (const [key, doc] of tempDocs) {
           const formData = new FormData();
@@ -231,6 +233,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       alert(err.response?.data?.message || "Failed to create/update task");
     }
   };
+
   const handleTagToggle = (tag) => {
     setSelectedTags((prev) => {
       const exists = prev.find((t) => t.text === tag);
@@ -242,17 +245,12 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
     });
   };
 
-
-
-
-  // Fetch client info when project changes
   useEffect(() => {
     if (projectId) {
       fetchClientInfo(projectId);
     }
   }, [projectId]);
 
-  // Fetch client info for existing task on mount
   useEffect(() => {
     if (task?.project?._id) {
       fetchClientInfo(task.project._id);
@@ -291,29 +289,44 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   }, [token]);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">{task ? "Edit Task" : "Create Task"}</h2>
-      <form onSubmit={handleSubmit}>
+    <motion.div
+      className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-indigo-100 hover:shadow-xl transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center">
+        <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 mr-2" />
+        {task ? "Edit Task" : "Create Task"}
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Task Title</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <DocumentTextIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Task Title <span className="text-red-600">*</span>
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+            placeholder="Enter task title"
             required
           />
-        </div>
+        </motion.div>
 
         {/* Project */}
         {!projectIds && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Project</label>
+          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+              <BriefcaseIcon className="h-5 w-5 text-indigo-600 mr-2" />
+              Project <span className="text-red-600">*</span>
+            </label>
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
               required
             >
               <option value="">Select a project</option>
@@ -329,16 +342,19 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                 ))
               )}
             </select>
-          </div>
+          </motion.div>
         )}
 
         {/* Status */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Status</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Status
+          </label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
           >
             <option value="pending">Pending</option>
             <option value="in-progress">In Progress</option>
@@ -346,78 +362,133 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
             <option value="review">Review</option>
             <option value="cancelled">Cancelled</option>
           </select>
-        </div>
+        </motion.div>
 
         {/* Priority */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Priority</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Priority
+          </label>
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
           >
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
-        </div>
+        </motion.div>
 
         {/* Assigned To */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700"> Select Assigning</label>
+        <motion.div className="relative z-10" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Assigned To
+          </label>
           <Select
-  value={users.find((user) => user._id === assignedTo)}
-  onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
+            value={users.find((user) => user._id === assignedTo)}
+            onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
             getOptionLabel={(e) => e.name || e.email}
             getOptionValue={(e) => e._id}
             isLoading={loadingUsers}
             options={users}
-  placeholder="Select a user"
+            placeholder="Select a user"
             className="mt-1"
+            classNamePrefix="react-select"
+            styles={{
+              control: (base) => ({
+                ...base,
+                borderColor: '#e0e7ff',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  borderColor: '#c7d2fe',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                },
+                borderRadius: '0.5rem',
+                padding: '0.25rem',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                zIndex: 10,
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 20,
+                backgroundColor: '#fff',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }),
+              option: (base, { isFocused }) => ({
+                ...base,
+                backgroundColor: isFocused ? '#e0e7ff' : '#fff',
+                color: '#1f2937',
+                cursor: 'pointer',
+              }),
+            }}
           />
-
-        </div>
+          {userError && (
+            <p className="mt-1 text-sm text-red-600">{userError}</p>
+          )}
+        </motion.div>
 
         {/* Due Date */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Due Date</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <CalendarIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Due Date
+          </label>
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
           />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Amount</label>
+        </motion.div>
+
+        {/* Amount */}
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <CurrencyDollarIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Amount
+          </label>
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
             placeholder="Enter task amount"
             min="0"
             step="0.01"
           />
-        </div>
+        </motion.div>
 
         {/* Description */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Description</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <InformationCircleIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Description
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows="4"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
             placeholder="Enter task details or requirements..."
           />
-        </div>
+        </motion.div>
 
         {/* Attachment */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Attachment</label>
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <PaperClipIcon className="h-5 w-5 text-indigo-600 mr-2" />
+            Attachment
+          </label>
           <div className="flex items-center">
-            <label htmlFor="file" className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <label
+              htmlFor="file"
+              className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300"
+            >
               Upload File
             </label>
             <span className="ml-3 text-sm text-gray-600 truncate max-w-xs">
@@ -430,42 +501,53 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
             onChange={handleFileChange}
             className="hidden"
           />
-        </div>
+        </motion.div>
 
         {/* Tags */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+            <TagIcon className="h-5 w-5 text-indigo-600 mr-2" />
             Tags
           </label>
           <div className="flex flex-wrap gap-2">
             {tagOptions.map((tag) => {
               const isSelected = selectedTags.some(t => t.text === tag);
               return (
-                <button
+                <motion.button
                   key={tag}
                   type="button"
                   onClick={() => handleTagToggle(tag)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${isSelected
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium cursor-pointer ${isSelected
+                    ? "bg-indigo-100 text-indigo-800 border border-indigo-300"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                  } transition-all duration-200`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {tag}
-                </button>
+                </motion.button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Tag Documents */}
         {selectedTags.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">Required Documents</h3>
+          <motion.div
+            className="mt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <DocumentTextIcon className="h-5 w-5 text-indigo-600 mr-2" />
+              Required Documents
+            </h3>
             {isLoadingClient && (
               <div className="text-center text-gray-500 mb-2">Loading client information...</div>
             )}
             {isLoadingDocuments ? (
-              <div className="text-center">Loading documents...</div>
+              <div className="text-center text-gray-500">Loading documents...</div>
             ) : (
               <div className="space-y-4">
                 {selectedTags.map(tag => (
@@ -481,27 +563,31 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Buttons */}
         <div className="flex justify-between mt-6">
-          <button
+          <motion.button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+            className="px-4 py-2 border border-indigo-300 rounded-lg text-gray-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Cancel
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {task ? "Update Task" : "Create Task"}
-          </button>
+          </motion.button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 };
 
