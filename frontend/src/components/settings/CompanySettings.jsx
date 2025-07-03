@@ -1,6 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import api from "../../api/axios";
+import {
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  FileText,
+  DollarSign,
+  Calendar,
+  Clock,
+  Upload,
+  Image as ImageIcon,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  X,
+  Camera,
+  Save
+} from "lucide-react";
 
 const CompanySettings = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
@@ -157,145 +176,236 @@ const CompanySettings = () => {
   }, []);
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-lg font-medium text-gray-900">Company Settings</h2>
-      </div>
+    <div className="space-y-8">
       {/* Success and Error Messages */}
       {successMessage && (
-        <div className="mb-6 bg-green-50 p-4 rounded-md">
-          <p className="text-green-700">{successMessage}</p>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="mb-6 bg-red-50 p-4 rounded-md">
-          <p className="text-red-700">{errorMessage}</p>
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-medium text-emerald-900">Success!</p>
+                <p className="text-emerald-700">{successMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setSuccessMessage("")}
+              className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg p-2 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
 
-      {loading && <p className="text-gray-500">Loading settings...</p>}
+      {errorMessage && (
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="font-medium text-red-900">Error</p>
+                <p className="text-red-700">{errorMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setErrorMessage("")}
+              className="text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg p-2 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+            <p className="text-gray-600 font-medium">Loading settings...</p>
+          </div>
+        </div>
+      )}
 
       {!loading && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="bg-white mb-6 p-6 rounded-lg shadow overflow-hidden">
-  <div className="px-6 py-4 mb-6 border-b">
-    <h3 className="text-md font-medium text-gray-900">Basic Information</h3>
-  </div>
-  {/* Company Name */}
-  <div>
-    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
-      Company Name <span className="text-red-600">*</span>
-    </label>
-    <input
-      id="companyName"
-      {...register("company.name", { required: "Company name is required" })}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-    />
-    {errors.company?.name && (
-      <span className="text-red-600 text-sm">{errors.company.name.message}</span>
-    )}
-  </div>
-
-  {/* Contact Email */}
-  <div>
-    <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-1">
-      Contact Email <span className="text-red-600">*</span>
-    </label>
-    <input
-      id="contactEmail"
-      type="email"
-      {...register("company.contactEmail", { required: "Email is required" })}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-    />
-    {errors.company?.contactEmail && (
-      <span className="text-red-600 text-sm">{errors.company.contactEmail.message}</span>
-    )}
-  </div>
-
-  {/* Phone */}
-  <div>
-    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-      Phone <span className="text-red-600">*</span>
-    </label>
-    <input
-      id="phone"
-      type="tel"
-      {...register("company.phone", { required: "Phone number is required" })}
-      pattern="[0-9+\-\s]*"
-      onKeyPress={(e) => {
-        const char = String.fromCharCode(e.which);
-        if (!/[0-9+\-\s]/.test(char)) {
-          e.preventDefault();
-        }
-      }}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-    />
-    {errors.company?.phone && (
-      <span className="text-red-600 text-sm">{errors.company.phone.message}</span>
-    )}
-  </div>
-
-  {/* Address */}
-  <div>
-    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-      Address <span className="text-red-600">*</span>
-    </label>
-    <input
-      id="address"
-      {...register("company.address", { required: "Address is required" })}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-    />
-    {errors.company?.address && (
-      <span className="text-red-600 text-sm">{errors.company.address.message}</span>
-    )}
-  </div>
-
-  {/* Website */}
-  <div>
-    <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
-      Website <span className="text-red-600">*</span>
-    </label>
-    <input
-      id="website"
-      type="url"
-      {...register("company.website", { required: "Website URL is required" })}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-    />
-    {errors.company?.website && (
-      <span className="text-red-600 text-sm">{errors.company.website.message}</span>
-    )}
-  </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b">
-                <h3 className="text-md font-medium text-gray-900">Financial Settings</h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* Basic Information Section */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+                  <p className="text-gray-600">Essential company details and contact information</p>
+                </div>
               </div>
-              <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+            
+            <div className="p-8 space-y-6">
+              {/* Company Name */}
+              <div>
+                <label htmlFor="companyName" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <Building2 className="w-4 h-4 text-gray-500" />
+                  Company Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="companyName"
+                  {...register("company.name", { required: "Company name is required" })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  placeholder="Enter your company name"
+                />
+                {errors.company?.name && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-red-600 text-sm">{errors.company.name.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Email */}
+              <div>
+                <label htmlFor="contactEmail" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  Contact Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="contactEmail"
+                  type="email"
+                  {...register("company.contactEmail", { required: "Email is required" })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  placeholder="company@example.com"
+                />
+                {errors.company?.contactEmail && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-red-600 text-sm">{errors.company.contactEmail.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  Phone <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  {...register("company.phone", { required: "Phone number is required" })}
+                  pattern="[0-9+\-\s]*"
+                  onKeyPress={(e) => {
+                    const char = String.fromCharCode(e.which);
+                    if (!/[0-9+\-\s]/.test(char)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  placeholder="+1 (555) 123-4567"
+                />
+                {errors.company?.phone && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-red-600 text-sm">{errors.company.phone.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Address */}
+              <div>
+                <label htmlFor="address" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="address"
+                  {...register("company.address", { required: "Address is required" })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  placeholder="123 Business Street, City, State, ZIP"
+                />
+                {errors.company?.address && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-red-600 text-sm">{errors.company.address.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Website */}
+              <div>
+                <label htmlFor="website" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <Globe className="w-4 h-4 text-gray-500" />
+                  Website <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="website"
+                  type="url"
+                  {...register("company.website", { required: "Website URL is required" })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  placeholder="https://www.company.com"
+                />
+                {errors.company?.website && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-red-600 text-sm">{errors.company.website.message}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Settings Section */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-8 py-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Financial Settings</h3>
+                  <p className="text-gray-600">Configure financial and tax information</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Tax ID */}
                 <div>
-                  <label htmlFor="taxId" className="block text-sm font-medium text-gray-700 mb-1">
-                    Tax ID / GST NUMBER <span className="text-red-600">*</span>
+                  <label htmlFor="taxId" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <FileText className="w-4 h-4 text-gray-500" />
+                    Tax ID / GST NUMBER <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="taxId"
                     {...register("company.taxId", { required: "Tax ID is required" })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    placeholder="Enter Tax ID or GST Number"
                   />
                   {errors.company?.taxId && (
-                    <span className="text-red-600 text-sm">{errors.company.taxId.message}</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-red-600 text-sm">{errors.company.taxId.message}</span>
+                    </div>
                   )}
                 </div>
 
                 {/* Currency */}
                 <div>
-                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                    Default Currency <span className="text-red-600">*</span>
+                  <label htmlFor="currency" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    Default Currency <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="currency"
                     {...register("company.currency", { required: "Currency is required" })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   >
                     <option value="INR">Indian Rupee (₹)</option>
                     <option value="USD">US Dollar ($)</option>
@@ -306,19 +416,23 @@ const CompanySettings = () => {
                     <option value="SGD">Singapore Dollar (S$)</option>
                   </select>
                   {errors.company?.currency && (
-                    <span className="text-red-600 text-sm">{errors.company.currency.message}</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-red-600 text-sm">{errors.company.currency.message}</span>
+                    </div>
                   )}
                 </div>
 
                 {/* Financial Year Start */}
                 <div>
-                  <label htmlFor="financialYearStart" className="block text-sm font-medium text-gray-700 mb-1">
-                    Financial Year Start <span className="text-red-600">*</span>
+                  <label htmlFor="financialYearStart" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    Financial Year Start <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="financialYearStart"
                     {...register("company.financialYearStart", { required: "Financial year start is required" })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   >
                     <option value="January">January</option>
                     <option value="February">February</option>
@@ -334,19 +448,23 @@ const CompanySettings = () => {
                     <option value="December">December</option>
                   </select>
                   {errors.company?.financialYearStart && (
-                    <span className="text-red-600 text-sm">{errors.company.financialYearStart.message}</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-red-600 text-sm">{errors.company.financialYearStart.message}</span>
+                    </div>
                   )}
                 </div>
 
                 {/* Date Format */}
                 <div>
-                  <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
-                    Date Format <span className="text-red-600">*</span>
+                  <label htmlFor="dateFormat" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    Date Format <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="dateFormat"
                     {...register("company.dateFormat", { required: "Date format is required" })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   >
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -354,68 +472,93 @@ const CompanySettings = () => {
                     <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
                   </select>
                   {errors.company?.dateFormat && (
-                    <span className="text-red-600 text-sm">{errors.company.dateFormat.message}</span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-red-600 text-sm">{errors.company.dateFormat.message}</span>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
+          </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b">
-              <h3 className="text-md font-medium text-gray-900">Branding</h3>
+          {/* Branding Section */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-8 py-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <ImageIcon className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Branding</h3>
+                  <p className="text-gray-600">Upload and manage your company logo</p>
+                </div>
+              </div>
             </div>
-            <div className="px-6 py-4">
+            
+            <div className="p-8">
               <div>
-                <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="logo" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4">
+                  <Camera className="w-4 h-4 text-gray-500" />
                   Company Logo
                 </label>
-                <div className="mt-1 flex items-center">
-                  <div className="flex-shrink-0 h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                    {tempImage?.preview ? (
-                      <img
-                        src={tempImage.preview}
-                        alt="Logo Preview"
-                        className="h-full w-full object-contain"
-                      />
-                    ) : logoPath && logoPath !== "/Uploads/logos/default-logo.png" ? (
-                      <img
-                        src={`${BASE_URL}${logoPath}`}
-                        alt="Company Logo"
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <svg
-                        className="h-6 w-6 text-gray-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                
+                <div className="flex items-start gap-6">
+                  {/* Logo Preview */}
+                  <div className="flex-shrink-0">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
+                      {tempImage?.preview ? (
+                        <img
+                          src={tempImage.preview}
+                          alt="Logo Preview"
+                          className="w-full h-full object-contain"
                         />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="ml-4">
-                    <div className="relative bg-white rounded-md">
-                      <input
-                        id="logo"
-                        type="file"
-                        className="sr-only"
-                        accept="image/jpeg,image/png,image/svg+xml"
-                        onChange={handleImageChange}
-                      />
-                      <label
-                        htmlFor="logo"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
-                      >
-                        <span>Upload a file</span>
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, SVG up to 2MB</p>
+                      ) : logoPath && logoPath !== "/Uploads/logos/default-logo.png" ? (
+                        <img
+                          src={`${BASE_URL}${logoPath}`}
+                          alt="Company Logo"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                      )}
                     </div>
+                  </div>
+                  
+                  {/* Upload Controls */}
+                  <div className="flex-1">
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50 hover:bg-blue-50">
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                      <div className="space-y-2">
+                        <label className="cursor-pointer">
+                          <span className="text-blue-600 hover:text-blue-700 font-medium">
+                            Click to upload
+                          </span>
+                          <span className="text-gray-600"> or drag and drop</span>
+                          <input
+                            id="logo"
+                            type="file"
+                            className="sr-only"
+                            accept="image/jpeg,image/png,image/svg+xml"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <p className="text-sm text-gray-500">
+                          PNG, JPG, SVG up to 2MB
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {(tempImage || logoPath) && (
+                      <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-blue-800 font-medium">
+                            {tempImage ? "New logo ready to upload" : "Current logo"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -423,13 +566,25 @@ const CompanySettings = () => {
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {loading ? "Saving..." : "Save Settings"}
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Save Settings
+                </>
+              )}
+            </button>
+          </div>
         </form>
       )}
     </div>

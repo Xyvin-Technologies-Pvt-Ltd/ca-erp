@@ -4,7 +4,7 @@ import { Avatar } from '../ui';
 import { useAuth } from '../context/AuthContext';
 import NotificationDropdown from "../components/NotificationDropdown";
 import { ROUTES } from '../config/constants';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Menu, Search, User, Settings, LogOut, Tag } from 'lucide-react';
 import { fetchTasks } from "../api/tasks";
 import { projectsApi } from "../api/projectsApi";
 import { clientsApi } from "../api/clientsApi";
@@ -13,23 +13,16 @@ const AvatarWithFallback = ({ name, src, size }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden shadow-lg border-2 border-white transition-all duration-300 hover:shadow-xl hover:scale-105">
       {src && !imageError ? (
         <Avatar
           name={name}
           src={src}
           size={size}
-          onError={() => setImageError(true)} // Handle image load failure
+          onError={() => setImageError(true)}
         />
       ) : (
-        <svg
-          className="w-full h-full text-gray-400"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-        </svg>
+        <User className="w-5 h-5 text-white" />
       )}
     </div>
   );
@@ -42,6 +35,7 @@ const Header = ({ onOpenSidebar }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef(null);
 
@@ -50,6 +44,10 @@ const Header = ({ onOpenSidebar }) => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowResults(false);
+        setIsSearchFocused(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
       }
     };
 
@@ -139,22 +137,49 @@ const Header = ({ onOpenSidebar }) => {
   const handleResultClick = (result) => {
     setShowResults(false);
     setSearchTerm('');
+    setIsSearchFocused(false);
     navigate(result.route);
   };
 
+  const getResultIcon = (type) => {
+    switch (type) {
+      case 'task':
+        return <Tag className="w-3 h-3" />;
+      case 'project':
+        return <Tag className="w-3 h-3" />;
+      case 'client':
+        return <User className="w-3 h-3" />;
+      default:
+        return <Tag className="w-3 h-3" />;
+    }
+  };
+
+  const getResultColor = (type) => {
+    switch (type) {
+      case 'task':
+        return 'text-blue-700 bg-blue-50 border-blue-200';
+      case 'project':
+        return 'text-green-700 bg-green-50 border-green-200';
+      case 'client':
+        return 'text-purple-700 bg-purple-50 border-purple-200';
+      default:
+        return 'text-gray-700 bg-gray-50 border-gray-200';
+    }
+  };
+
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-10">
-      <div className="mx-auto px-2 sm:px-4 lg:px-8">
+    <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 sticky top-0 z-50">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
               onClick={onOpenSidebar}
             >
               <span className="sr-only">Open sidebar</span>
-              <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+              <Menu className="h-6 w-6" />
             </button>
           </div>
 
@@ -163,135 +188,155 @@ const Header = ({ onOpenSidebar }) => {
             <div className="flex-1 flex items-center md:ml-6" ref={searchRef}>
               <div className="max-w-lg w-full relative">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className={`h-5 w-5 transition-colors duration-200 ${
+                      isSearchFocused ? 'text-blue-500' : 'text-slate-400'
+                    }`} />
                   </div>
                   <input
                     id="search"
                     name="search"
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl leading-5 bg-white/50 backdrop-blur-sm placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white sm:text-sm transition-all duration-300 ${
+                      isSearchFocused 
+                        ? 'border-blue-300 shadow-lg shadow-blue-500/10' 
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
                     placeholder="Search tasks, projects, clients..."
                     type="search"
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
                   />
                 </div>
 
                 {/* Search Results Dropdown */}
                 {showResults && searchResults.length > 0 && (
-  <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-50">
-    <ul className="max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-      {searchResults.map((result) => (
-        <li
-          key={`${result.type}-${result.id}`}
-          className="cursor-pointer hover:bg-gray-100 px-4 py-2"
-          onClick={() => handleResultClick(result)}
-        >
-          <div className="flex items-center">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize mr-2">
-              {result.type === 'task' && (
-                <span className="text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full">Task</span>
-              )}
-              {result.type === 'project' && (
-                <span className="text-green-800 bg-green-100 px-2 py-0.5 rounded-full">Project</span>
-              )}
-              {result.type === 'client' && (
-                <span className="text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">Client</span>
-              )}
-            </span>
-            <div className="flex flex-col">
-              <span className="text-gray-900">{result.title}</span>
-              {result.subtitle && (
-                <span className="text-xs text-gray-500">{result.subtitle}</span>
-              )}
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
-
+                  <div className="absolute mt-2 w-full bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/50 z-50 overflow-hidden">
+                    <div className="max-h-80 overflow-auto">
+                      {searchResults.map((result, index) => (
+                        <div
+                          key={`${result.type}-${result.id}`}
+                          className={`cursor-pointer hover:bg-slate-50 px-4 py-3 transition-all duration-200 ${
+                            index !== searchResults.length - 1 ? 'border-b border-slate-100' : ''
+                          }`}
+                          onClick={() => handleResultClick(result)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getResultColor(result.type)}`}>
+                              {getResultIcon(result.type)}
+                              <span className="capitalize">{result.type}</span>
+                            </div>
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="text-slate-900 font-medium truncate">{result.title}</span>
+                              {result.subtitle && (
+                                <span className="text-xs text-slate-500 truncate">{result.subtitle}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Right side icons */}
-            <div className="ml-4 flex items-center md:ml-6">
+            <div className="ml-6 flex items-center gap-4">
               {/* Notifications dropdown */}
               <NotificationDropdown />
 
               {/* Profile dropdown */}
-              <div className="ml-3 relative" ref={userMenuRef}>
-                <div>
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    id="user-menu"
-                    aria-expanded="false"
-                    aria-haspopup="true"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    <AvatarWithFallback
-                      name={user?.name || 'User'}
-                      src={
-                        user?.avatar
-                          ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
-                          : undefined
-                      }
-                      size="sm"
-                    />
-                  </button>
-                </div>
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  id="user-menu"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <AvatarWithFallback
+                    name={user?.name || 'User'}
+                    src={
+                      user?.avatar
+                        ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
+                        : undefined
+                    }
+                    size="sm"
+                  />
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-semibold text-slate-800 leading-tight">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-slate-500 leading-tight">
+                      {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'Role'}
+                    </p>
+                  </div>
+                </button>
 
                 {showUserMenu && (
-                  <div
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="user-menu"
-                  >
-                    <div className="px-4 py-2 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
+                  <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-50">
+                    <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                      <div className="flex items-center gap-3">
+                        <AvatarWithFallback
+                          name={user?.name || 'User'}
+                          src={
+                            user?.avatar
+                              ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
+                              : undefined
+                          }
+                          size="sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {user?.name || 'User'}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                        </div>
+                      </div>
                     </div>
-                    <Link
-                      to={ROUTES.PROFILE}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      Your Profile
-                    </Link>
-                    {['admin', 'manager'].includes(user?.role) && (
+                    
+                    <div className="py-2">
                       <Link
-                        to={ROUTES.SETTINGS}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        to={ROUTES.PROFILE}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
                         role="menuitem"
                         onClick={() => setShowUserMenu(false)}
                       >
-                        Settings
+                        <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium">Your Profile</span>
                       </Link>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Sign out
-                    </button>
+                      
+                      {['admin', 'manager'].includes(user?.role) && (
+                        <Link
+                          to={ROUTES.SETTINGS}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                          role="menuitem"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+                            <Settings className="w-4 h-4" />
+                          </div>
+                          <span className="font-medium">Settings</span>
+                        </Link>
+                      )}
+                      
+                      <div className="border-t border-slate-100 mt-2 pt-2">
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
+                          role="menuitem"
+                        >
+                          <div className="p-1.5 rounded-lg bg-red-100 text-red-600">
+                            <LogOut className="w-4 h-4" />
+                          </div>
+                          <span className="font-medium">Sign out</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
