@@ -420,7 +420,7 @@ const TaskDetail = () => {
             <p className="text-yellow-700 mb-4">Task not found.</p>
             <button
               onClick={() => navigate("/tasks")}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Tasks
@@ -487,7 +487,7 @@ const TaskDetail = () => {
             {role !== "staff" && (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 hover:scale-105 flex items-center shadow-lg"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 hover:scale-105 flex items-center shadow-lg"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
@@ -573,14 +573,14 @@ const TaskDetail = () => {
 
             {/* Subtasks */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-emerald-50 flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <CheckCircle2 className="w-5 h-5 mr-2 text-green-600" />
+                  <CheckCircle2 className="w-5 h-5 mr-2 text-blue-600" />
                   Subtasks
                 </h2>
                 <button
                   onClick={() => setShowAddSubtaskModal(true)}
-                  className="text-sm text-green-600 hover:text-green-800 flex items-center transition-all duration-200 hover:scale-105 bg-green-100 px-3 py-1 rounded-lg"
+                  className="text-sm text-blue-500 hover:text-blue-700 flex items-center transition-all duration-200 hover:scale-105 bg-blue-100 px-3 py-1 rounded-lg"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Subtask
@@ -596,8 +596,8 @@ const TaskDetail = () => {
                             onClick={() => handleToggleSubtaskStatus(subtask.id)}
                             className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${
                               subtask.status === "completed"
-                                ? "bg-green-500 border-green-500"
-                                : "bg-white border-gray-300 hover:border-green-400"
+                                ? "bg-blue-500 border-blue-500"
+                                : "bg-white border-gray-300 hover:border-blue-400"
                             }`}
                           >
                             {subtask.status === "completed" && (
@@ -632,9 +632,9 @@ const TaskDetail = () => {
 
             {/* Comments */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="px-6 py-5 border-b border-gray-100 bg-blue-50">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
+                  <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
                   Comments
                 </h2>
               </div>
@@ -644,7 +644,7 @@ const TaskDetail = () => {
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
                     rows="3"
                     placeholder="Add a comment..."
                   ></textarea>
@@ -652,7 +652,7 @@ const TaskDetail = () => {
                     <button
                       onClick={handleAddComment}
                       disabled={!newComment.trim() || addingComment}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-purple-300 transition-all duration-200 hover:scale-105 flex items-center"
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300 transition-all duration-200 hover:scale-105 flex items-center"
                     >
                       {addingComment ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
@@ -670,7 +670,7 @@ const TaskDetail = () => {
                     {task.comments.map((comment) => (
                       <li key={comment.id} className="bg-gray-50 p-4 rounded-xl transition-all duration-200 hover:bg-gray-100">
                         <div className="flex items-start">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                          <div className="flex-shrink-0 h-10 w-10  rounded-full flex items-center justify-center">
                             {comment.user.avatar ? (
                               <img
                                 className="h-10 w-10 rounded-full"
@@ -711,14 +711,14 @@ const TaskDetail = () => {
 
             {/* Attachments */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-red-50 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-gray-100 bg-blue-50 flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Paperclip className="w-5 h-5 mr-2 text-orange-600" />
+                  <Paperclip className="w-5 h-5 mr-2 text-blue-600" />
                   Attachments
                 </h2>
                 <button
                   onClick={() => setShowAddAttachmentModal(true)}
-                  className="text-sm text-orange-600 hover:text-orange-800 flex items-center transition-all duration-200 hover:scale-105 bg-orange-100 px-3 py-1 rounded-lg"
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-all duration-200 hover:scale-105 bg-blue-100 px-3 py-1 rounded-lg"
                 >
                   <Upload className="w-4 h-4 mr-1" />
                   Add Attachment
@@ -733,8 +733,8 @@ const TaskDetail = () => {
                         className="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
                       >
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 p-2 bg-orange-100 rounded-lg">
-                            <Paperclip className="w-5 h-5 text-orange-600" />
+                          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                            <Paperclip className="w-5 h-5 text-blue-600" />
                           </div>
                           <div className="ml-3">
                             <p className="text-sm font-medium text-gray-900">
@@ -747,7 +747,7 @@ const TaskDetail = () => {
                         </div>
                         <button 
                           onClick={() => handleDownloadDocument(attachment._id || attachment.id, attachment.name)}
-                          className="text-sm text-orange-600 hover:text-orange-800 flex items-center transition-all duration-200 hover:scale-105 opacity-0 group-hover:opacity-100 bg-orange-100 px-3 py-1 rounded-lg"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-all duration-200 hover:scale-105 opacity-0 group-hover:opacity-100 bg-blue-100 px-3 py-1 rounded-lg"
                         >
                           <Download className="w-4 h-4 mr-1" />
                           Download
@@ -767,7 +767,7 @@ const TaskDetail = () => {
             </div>
 
             {/* Time Tracking */}
-            <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <div className="bg-white/70  shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50 flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                   <Clock className="w-5 h-5 mr-2 text-blue-600" />
@@ -1049,7 +1049,7 @@ const TaskDetail = () => {
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                  <Plus className="w-5 h-5 mr-2 text-green-600" />
+                  <Plus className="w-5 h-5 mr-2 text-blue-500" />
                   Add Subtask
                 </h3>
                 <button
@@ -1080,7 +1080,7 @@ const TaskDetail = () => {
                       setNewSubtask({ ...newSubtask, title: e.target.value })
                     }
                     placeholder="Enter subtask title"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     required
                   />
                 </div>
@@ -1096,7 +1096,7 @@ const TaskDetail = () => {
                   <button
                     type="submit"
                     disabled={!newSubtask.title.trim() || addingSubtask}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-300 transition-all duration-200 flex items-center"
+                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200 flex items-center"
                   >
                     {addingSubtask ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
@@ -1151,7 +1151,7 @@ const TaskDetail = () => {
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                  <Upload className="w-5 h-5 mr-2 text-orange-600" />
+                  <Upload className="w-5 h-5 mr-2 text-blue-500" />
                   Add Attachment
                 </h3>
                 <button
@@ -1171,13 +1171,13 @@ const TaskDetail = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     File
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors duration-200">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors duration-200">
                     <div className="flex justify-center">
                       <Upload className="h-12 w-12 text-gray-400" />
                     </div>
                     <div className="mt-2">
                       <label className="text-sm text-gray-600">
-                        <span className="text-orange-600 hover:text-orange-500 cursor-pointer font-medium">
+                        <span className="text-blue-600 hover:text-blue-500 cursor-pointer font-medium">
                           Click to upload
                         </span>
                         {" or drag and drop"}
@@ -1203,7 +1203,7 @@ const TaskDetail = () => {
                       Any file up to 10MB
                     </p>
                     {newAttachment.name && (
-                      <p className="text-sm text-orange-600 mt-2 font-medium">
+                      <p className="text-sm text-blue-600 mt-2 font-medium">
                         Selected: {newAttachment.name}
                       </p>
                     )}
@@ -1243,7 +1243,7 @@ const TaskDetail = () => {
                   <button
                     type="submit"
                     disabled={!newAttachment.name.trim() || addingAttachment}
-                    className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-orange-300 transition-all duration-200 flex items-center"
+                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-500 disabled:bg-blue-300 transition-all duration-200 flex items-center"
                   >
                     {addingAttachment ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
@@ -1355,7 +1355,7 @@ const TaskDetail = () => {
                   <button
                     type="submit"
                     disabled={!newTimeEntry.hours || !newTimeEntry.description || addingTimeEntry}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-all duration-200 flex items-center"
+                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 transition-all duration-200 flex items-center"
                   >
                     {addingTimeEntry ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
