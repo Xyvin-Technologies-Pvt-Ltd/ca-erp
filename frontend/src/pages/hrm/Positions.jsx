@@ -80,9 +80,9 @@ const Positions = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+            className="min-h-[80vh] max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
         >
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-6  flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -123,7 +123,7 @@ const Positions = () => {
                         </p>
                         <motion.button
                             onClick={() => setShowModal(true)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >

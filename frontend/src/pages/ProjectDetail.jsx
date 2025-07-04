@@ -229,7 +229,7 @@ const ProjectDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
       </div>
     );
   }
@@ -257,7 +257,7 @@ const ProjectDetail = () => {
           <p className="text-amber-700 font-medium text-sm sm:text-base">Project not found.</p>
           <button
             onClick={() => navigate("/projects")}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
           >
             Back to Projects
           </button>
@@ -272,7 +272,7 @@ const ProjectDetail = () => {
         <div className="mb-4 sm:mb-6">
           <button
             onClick={() => setIsEditing(false)}
-            className="flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-200 text-sm sm:text-base"
+            className="flex items-center text-blue-600 hover:text-blue-700 transition-colors duration-200 text-sm sm:text-base"
           >
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5 mr-1"
@@ -341,7 +341,7 @@ const ProjectDetail = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10  bg-gradient-to-br from-gray-50 to-indigo-60 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10  bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
       <style>
         {`
           @keyframes fadeIn {
@@ -372,7 +372,7 @@ const ProjectDetail = () => {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <button
           onClick={() => navigate("/projects")}
-          className="flex items-center text-indigo-600 hover:text-indigo-800 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
+          className="flex items-center text-blue-500 hover:text-blue-700 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
         >
           <svg
             className="w-5 h-5 sm:w-6 sm:h-6 mr-2 group-hover:-translate-x-1 transition-transform duration-300"
@@ -389,7 +389,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-5 py-2.5  bg-blue-500 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5  bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
               <CiEdit className="w-5 h-5 mr-2 text-white" />
               Edit Project
@@ -411,7 +411,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                <MdFolder className="w-7 h-7 mr-2 text-indigo-500" />
+                <MdFolder className="w-7 h-7 mr-2 text-blue-500" />
                 {project.name}
               </h1>
               <p className="mt-2 text-sm text-gray-600 flex items-center">
@@ -442,15 +442,15 @@ const ProjectDetail = () => {
           <div className="mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center">
-                <svg className="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span className="text-sm font-semibold text-indigo-600">
+                <span className="text-sm font-semibold text-blue-500">
                   {project.completionPercentage}% Complete
                 </span>
               </div>
               <div className="text-left sm:text-right">
-                <span className="text-sm font-semibold text-indigo-600 flex items-center">
+                <span className="text-sm font-semibold text-blue-600 flex items-center">
                   <MdTaskAlt className="w-5 h-5 mr-2" />
                   {project.completedTasks}/{project.totalTasks} Tasks
                 </span>
@@ -459,7 +459,7 @@ const ProjectDetail = () => {
             <div className="overflow-hidden h-3 mt-3 text-xs flex rounded-full bg-gray-200">
               <div
                 style={{ width: `${project.completionPercentage}%` }}
-                className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full animate-fill-bar"
+                className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 rounded-full animate-fill-bar"
               ></div>
             </div>
           </div>
@@ -483,7 +483,7 @@ const ProjectDetail = () => {
                 className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
                     ? "border-blue-500 text-blue-600 bg-blue-50"
-                    : "border-transparent text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
+                    : "border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50"
                 } rounded-t-lg`}
               >
                 {tab.icon}
@@ -548,7 +548,7 @@ const ProjectDetail = () => {
                                   className="h-10 w-10 rounded-full border border-gray-200"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-medium text-sm">
+                                <div className="h-10 w-10 rounded-full bg-bl-100 flex items-center justify-center text-blue-700 font-medium text-sm">
                                   {member.name.charAt(0)}
                                 </div>
                               )}
@@ -641,7 +641,7 @@ const ProjectDetail = () => {
                             <div className="flex space-x-3 mt-3 sm:mt-0">
                               <button
                                 onClick={() => handleDownloadDocument(doc._id, doc.name)}
-                                className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
+                                className="text-blue-500 hover:text-blue-700 transition-colors duration-200"
                                 title="Download"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -685,7 +685,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           docCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-indigo-600 hover:text-indigo-800"
+                            : "text-blue-500 hover:text-blur-600"
                         }`}
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -729,7 +729,7 @@ const ProjectDetail = () => {
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddDocumentModalOpen(true)}
-                      className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
+                      className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
                       <MdUpload className="mr-2 w-5 h-5" />
                       Upload Document
@@ -750,7 +750,7 @@ const ProjectDetail = () => {
                 {project.notes?.length > 0 && role !== "staff" && (
                   <button
                     onClick={() => setIsAddNotesModalOpen(true)}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                   >
                     <MdNoteAdd className="mr-2 w-5 h-5" />
                     Add Note
@@ -806,7 +806,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-indigo-600 hover:text-indigo-800"
+                            : "text-blue-500 hover:text-blue-600"
                         }`}
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -823,7 +823,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === totalNotePages
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-indigo-600 hover:text-indigo-800"
+                            : "text-blue-500 hover:text-blue-600"
                         }`}
                       >
                         Next
@@ -850,7 +850,7 @@ const ProjectDetail = () => {
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddNotesModalOpen(true)}
-                      className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
+                      className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
                       <MdNoteAdd className="mr-2 w-5 h-5" />
                       Add Note
@@ -920,7 +920,7 @@ const ProjectDetail = () => {
           <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                <MdUpload className="w-5 h-5 mr-2 text-indigo-600" />
+                <MdUpload className="w-5 h-5 mr-2 text-blue-600" />
                 {editingDocument ? "Edit Document" : "Upload Document"}
               </h3>
               <button
@@ -942,7 +942,7 @@ const ProjectDetail = () => {
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-all duration-300 bg-gray-50">
                   <div className="flex justify-center">
                     <svg
-                      className="h-12 w-12 text-indigo-500"
+                      className="h-12 w-12 text-blue-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -957,7 +957,7 @@ const ProjectDetail = () => {
                   </div>
                   <div className="mt-3">
                     <label className="text-sm text-gray-600 cursor-pointer">
-                      <span className="text-indigo-600 hover:text-indigo-500 font-medium">Click to upload</span>
+                      <span className="text-blue-600 hover:text-blue-500 font-medium">Click to upload</span>
                       {" or drag and drop"}
                       <input
                         type="file"
@@ -969,7 +969,7 @@ const ProjectDetail = () => {
                     </label>
                     {file && (
                       <p className="mt-3 text-sm text-gray-800 font-medium">
-                        Selected File: <span className="text-indigo-700">{file.name}</span>
+                        Selected File: <span className="text-blue-700">{file.name}</span>
                       </p>
                     )}
                   </div>
@@ -992,7 +992,7 @@ const ProjectDetail = () => {
                   onChange={(e) => setEditDocDescription(e.target.value)}
                   placeholder="Enter document description"
                   rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 text-sm bg-gray-50"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm bg-gray-50"
                   required
                 ></textarea>
               </div>
@@ -1007,7 +1007,7 @@ const ProjectDetail = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                  className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                 >
                   <MdUpload className="mr-2 w-5 h-5" />
                   Upload
@@ -1054,7 +1054,7 @@ const ProjectDetail = () => {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Enter your note here"
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 text-sm bg-gray-50"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm bg-gray-50"
                 required
               ></textarea>
             </div>
@@ -1070,7 +1070,7 @@ const ProjectDetail = () => {
               <button
                 type="button"
                 onClick={handleAddNote}
-                className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
                 <MdNoteAdd className="mr-2 w-5 h-5" />
                 {editingNoteId ? "Update Note" : "Add Note"}

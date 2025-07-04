@@ -376,7 +376,7 @@ const TaskDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex justify-center items-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-50 flex justify-center items-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Loading task details...</p>
@@ -479,7 +479,7 @@ const TaskDetail = () => {
           <div className="flex space-x-3">
             <button
               onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 hover:scale-105 flex items-center shadow-lg"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 hover:scale-105 flex items-center shadow-lg"
             >
               <Edit3 className="w-4 h-4 mr-2" />
               Edit Task

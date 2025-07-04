@@ -84,7 +84,7 @@ const Departments = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+            className="min-h-[80vh] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
         >
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <motion.div
@@ -98,7 +98,7 @@ const Departments = () => {
                 </motion.div>
                 <motion.button
                     onClick={() => setShowModal(true)}
-                    className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
+                    className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-550 hover:blue-550 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -127,7 +127,7 @@ const Departments = () => {
                         </p>
                         <motion.button
                             onClick={() => setShowModal(true)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 cursor-pointer"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
@@ -171,7 +171,7 @@ const Departments = () => {
                                             >
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <div className="flex items-center space-x-2">
-                                                        <CodeBracketIcon className="h-5 w-5 text-indigo-600" />
+                                                        <CodeBracketIcon className="h-5 w-5 text-blue-600" />
                                                         {department.code}
                                                     </div>
                                                 </td>
@@ -180,7 +180,7 @@ const Departments = () => {
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                                     <div className="flex items-center space-x-2">
-                                                        <MapPinIcon className="h-5 w-5 text-indigo-600" />
+                                                        <MapPinIcon className="h-5 w-5 text-blue-500" />
                                                         {department.location}
                                                     </div>
                                                 </td>
