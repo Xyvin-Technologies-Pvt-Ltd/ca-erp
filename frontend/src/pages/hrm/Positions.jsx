@@ -69,7 +69,7 @@ const Positions = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="h-12 w-12 border-t-2 border-b-2 border-indigo-500 rounded-full"
+                    className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full"
                 ></motion.div>
             </motion.div>
         );
@@ -89,7 +89,7 @@ const Positions = () => {
                     transition={{ duration: 0.5 }}
                     className="flex items-center space-x-3 mb-4 sm:mb-0"
                 >
-                    <BriefcaseIcon className="h-8 w-8 text-indigo-600" />
+                    <BriefcaseIcon className="h-8 w-8 text-blue-600" />
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Positions</h1>
                 </motion.div>
                 <motion.button
@@ -164,14 +164,14 @@ const Positions = () => {
                                         >
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <div className="flex items-center space-x-2">
-                                                    <UserCircleIcon className="h-5 w-5 text-indigo-600" />
+                                                    <UserCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {position.title}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
-                                                <div className="flex items-center space-x-2">
-                                                    <BuildingOfficeIcon className="h-5 w-5 text-indigo-600" />
-                                                    {position.department?.name || ''}
+                                                <div className="flex items-center space-x-3">
+                                                    <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                     {position.department?.name || ''}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -179,7 +179,7 @@ const Positions = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                 <motion.span
-                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[position.isActive]}`}
+                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium mr-1 ${statusColors[position.isActive]}`}
                                                     whileHover={{ scale: 1.05 }}
                                                 >
                                                     {position.isActive ? (

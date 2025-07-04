@@ -105,7 +105,7 @@ const Leave = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center space-x-3 mb-4 sm:mb-0"
         >
-          <CalendarIcon className="h-8 w-8 text-indigo-600" />
+          <CalendarIcon className="h-8 w-8 text-blue-500" />
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Leave Requests</h1>
         </motion.div>
         {/* <motion.button
@@ -134,7 +134,7 @@ const Leave = () => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-12 w-12 border-t-2 border-b-2 border-indigo-500 rounded-full mx-auto mb-4"
+              className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full mx-auto mb-4"
             ></motion.div>
             <p className="text-sm sm:text-base text-gray-500 font-medium">Loading leave requests...</p>
           </motion.div>
@@ -163,7 +163,7 @@ const Leave = () => {
             className="bg-white rounded-lg shadow p-8 sm:p-10 text-center border border-gray-200 hover:shadow-lg transition-all duration-300"
           >
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CalendarIcon className="h-6 w-6 text-indigo-600" />
+              <CalendarIcon className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No leave requests found</h3>
             <p className="text-sm sm:text-base text-gray-500 mb-6">Get started by creating your first leave request</p>
@@ -212,19 +212,19 @@ const Leave = () => {
                     >
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <div className="flex items-center space-x-2">
-                          <UserCircleIcon className="h-5 w-5 text-indigo-600" />
+                          <UserCircleIcon className="h-5 w-5 text-blue-500" />
                           <span className="truncate">{leave.employee ? leave.employee.name : "N/A"}</span>
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
-                          <TagIcon className="h-5 w-5 text-indigo-600" />
+                          <TagIcon className="h-5 w-5 text-blue-500" />
                           <span>{leave.leaveType?.charAt(0).toUpperCase() + leave.leaveType?.slice(1) || "N/A"}</span>
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
-                          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                          <CalendarIcon className="h-5 w-5 text-blue-500" />
                           <span>
                             {leave.startDate
                               ? new Date(leave.startDate).toLocaleDateString("en-US", {
@@ -238,7 +238,7 @@ const Leave = () => {
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                         <div className="flex items-center space-x-2">
-                          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                          <CalendarIcon className="h-5 w-5 text-blue-500" />
                           <span>
                             {leave.endDate
                               ? new Date(leave.endDate).toLocaleDateString("en-US", {
@@ -252,7 +252,7 @@ const Leave = () => {
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                         <div className="flex items-center space-x-2">
-                          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                          <CalendarIcon className="h-5 w-5 text-blue-500" />
                           <span>{leave.duration ? `${leave.duration} ${leave.duration === 1 ? "day" : "days"}` : "N/A"}</span>
                         </div>
                       </td>
@@ -335,7 +335,7 @@ const Leave = () => {
               <div className="flex justify-end space-x-3">
                 <motion.button
                   onClick={() => setDeleteModal({ isOpen: false, leave: null })}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

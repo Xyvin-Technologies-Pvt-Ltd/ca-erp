@@ -81,7 +81,7 @@ const Events = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="h-12 w-12 border-t-2 border-b-2 border-indigo-500 rounded-full"
+                    className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full"
                 ></motion.div>
             </motion.div>
         );
@@ -101,7 +101,7 @@ const Events = () => {
                     transition={{ duration: 0.5 }}
                     className="flex items-center space-x-3 mb-4 sm:mb-0"
                 >
-                    <CalendarIcon className="h-8 w-8 text-indigo-600" />
+                    <CalendarIcon className="h-8 w-8 text-blue-500" />
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Events</h1>
                 </motion.div>
                 <motion.button
@@ -177,19 +177,19 @@ const Events = () => {
                                         >
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <div className="flex items-center space-x-2">
-                                                    <MegaphoneIcon className="h-5 w-5 text-indigo-600" />
+                                                    <MegaphoneIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {event.title}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-2">
-                                                    <InformationCircleIcon className="h-5 w-5 text-indigo-600" />
+                                                    <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {event.description}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex items-center space-x-2">
-                                                    <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                                                    <CalendarIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {event.startDate ? new Date(event.startDate).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -199,7 +199,7 @@ const Events = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-2">
-                                                    <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                                                    <CalendarIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {event.endDate ? new Date(event.endDate).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -209,7 +209,7 @@ const Events = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                 <motion.span
-                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[event.status] || statusColors.others}`}
+                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium mr-1 ${statusColors[event.status] || statusColors.others}`}
                                                     whileHover={{ scale: 1.05 }}
                                                 >
                                                     {getStatusIcon(event.status)}
@@ -220,7 +220,7 @@ const Events = () => {
                                                 <div className="flex space-x-2 sm:space-x-3">
                                                     <motion.button
                                                         onClick={() => handleEdit(event)}
-                                                        className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                                                        className="text-blue-600 hover:text-blue-900 cursor-pointer "
                                                         whileHover={{ scale: 1.05 }}
                                                         whileTap={{ scale: 0.98 }}
                                                     >
@@ -284,7 +284,7 @@ const Events = () => {
                             <div className="flex justify-end space-x-3">
                                 <motion.button
                                     onClick={() => setShowDeleteConfirm(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
