@@ -35,7 +35,6 @@ const Tasks = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPage, settotalPage] = useState(1);
   const [paginations, setPaginations] = useState({
     page: 1,
     limit: 10,
@@ -57,14 +56,16 @@ const Tasks = () => {
   const loadTasksAndProjects = async () => {
     try {
       setLoading(true);
+      console.log("Filters sent to fetchTasks:", { ...filters, page: currentPage, limit: 10 });
       const [tasksData, projectsData] = await Promise.all([
         fetchTasks({ ...filters, page: currentPage, limit: 10 }),
         fetchProjects(),
       ]);
 
-      setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
-      console.log("Tasks:", tasksData.tasks);
+      console.log("Tasks received:", tasksData.tasks);
+      console.log("Projects received:", projectsData.data);
 
+      setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
       setProjects(Array.isArray(projectsData.data) ? projectsData.data : []);
 
       setTeamMembers(
@@ -87,8 +88,6 @@ const Tasks = () => {
     }
   };
 
-  console.log(paginations, "page");
-
   useEffect(() => {
     loadTasksAndProjects();
   }, [filters, currentPage]);
@@ -109,6 +108,7 @@ const Tasks = () => {
       ...prev,
       [name]: value,
     }));
+    setCurrentPage(1);
   };
 
   const resetFilters = () => {
@@ -118,6 +118,7 @@ const Tasks = () => {
       project: "",
       assignedTo: "",
     });
+    setCurrentPage(1);
   };
 
   const uniqueMembers = Array.from(
@@ -127,9 +128,9 @@ const Tasks = () => {
         .map((t) => [t.assignedTo._id, t.assignedTo])
     ).values()
   );
+
   const totalPage = Math.ceil(paginations.total / paginations.limit);
   const pages = Array.from({ length: totalPage }, (_, i) => i + 1);
-
 
   if (loading) {
     return (
@@ -176,7 +177,7 @@ const Tasks = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+      className="max îndex-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
     >
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <motion.div
@@ -275,7 +276,7 @@ const Tasks = () => {
             </motion.select>
           </div>
 
-          <div>
+          {/* <div>
             <label
               htmlFor="project"
               className="block text-sm font-semibold text-gray-700 mb-1"
@@ -296,12 +297,12 @@ const Tasks = () => {
               {projects &&
                 Array.isArray(projects) &&
                 projects.map((project) => (
-                  <option key={project.id} value={project.id}>
+                  <option key={project._id} value={project._id}>
                     {project.name}
                   </option>
                 ))}
             </motion.select>
-          </div>
+          </div> */}
 
           <div>
             <label
@@ -401,7 +402,7 @@ const Tasks = () => {
                   <AnimatePresence>
                     {tasks.map((task, index) => (
                       <motion.tr
-                        key={task.id}
+                        key={task._id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
@@ -409,12 +410,10 @@ const Tasks = () => {
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {/* {task.title} */}
-                          <Link to={`/tasks/${task.id}`} className="text-grey-500 hover:text-blue-600">
+                          <Link to={`/tasks/${task._id}`} className="text-gray-500 hover:text-blue-600">
                             {task.title}
                           </Link>
                         </td>
-                        
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                           <motion.span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${statusColors[task.status]}`}
