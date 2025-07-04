@@ -121,7 +121,7 @@ const Positions = () => {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Get started by adding your first position.
                         </p>
-                        <motion.button
+                        {/* <motion.button
                             onClick={() => setShowModal(true)}
                             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                             whileHover={{ scale: 1.02 }}
@@ -131,7 +131,7 @@ const Positions = () => {
                                 <PlusIcon className="h-5 w-5" />
                                 <span>Add Position</span>
                             </div>
-                        </motion.button>
+                        </motion.button> */}
                     </motion.div>
                 ) : (
                     <motion.div
