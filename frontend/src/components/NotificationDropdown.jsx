@@ -54,7 +54,7 @@ const NotificationDropdown = () => {
         leaveFrom="transform opacity-100 scale-100 translate-y-0"
         leaveTo="transform opacity-0 scale-95 translate-y-2"
       >
-        <Menu.Items className="origin-top-right absolute right-0 mt-3 w-96 rounded-xl shadow-xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200/50 focus:outline-none z-50 overflow-hidden">
+        <Menu.Items className="origin-top-right absolute right-0 mt-3 w-96 rounded-xl shadow-xl bg-white ring-1 ring-slate-200/50 focus:outline-none z-50 overflow-hidden">
           <div className="py-1">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-slate-50 to-white">

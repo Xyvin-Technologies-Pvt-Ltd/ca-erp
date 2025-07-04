@@ -143,34 +143,40 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      toast.error("Please fill in all required fields");
-      return;
-    }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    toast.error("Please fill in all required fields");
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const attendanceData = formData.selectedEmployees.map((employeeId) => ({
+  setLoading(true);
+  try {
+    const attendanceData = formData.selectedEmployees.map((employeeId) => {
+      // Combine date and time from inputs without forcing UTC
+      const dateTimeString = `${formData.date}T${formData.time}:00`;
+      const attendanceDateTime = new Date(dateTimeString);
+
+      return {
         employee: employeeId,
-        date: formData.date,
-        [formData.type]: { time: new Date(`${formData.date}T${formData.time}`) },
+        date: attendanceDateTime, // Use raw Date object for date
+        [formData.type]: { time: attendanceDateTime }, // Use same Date object for checkIn/checkOut
         status: formData.status,
         shift: formData.shift,
         notes: formData.notes || getDefaultNotes(formData.status),
-      }));
-      await createBulkAttendance(attendanceData);
-      toast.success("Attendance recorded successfully");
-      onSuccess();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to record attendance");
-    } finally {
-      setLoading(false);
-    }
-  };
+      };
+    });
+    await createBulkAttendance(attendanceData);
+    toast.success("Attendance recorded successfully");
+    onSuccess();
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to record attendance");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen) return null;
 
