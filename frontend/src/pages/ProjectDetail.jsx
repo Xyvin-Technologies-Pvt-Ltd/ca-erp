@@ -56,6 +56,8 @@ const ProjectDetail = () => {
   const [noteCurrentPage, setNoteCurrentPage] = useState(1);
   const notesPerPage = 5;
 
+  
+
   useEffect(() => {
     const loadProject = async () => {
       try {

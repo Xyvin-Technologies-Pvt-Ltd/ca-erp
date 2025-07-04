@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDepartments, deleteDepartment } from '../../api/department.api';
@@ -73,7 +73,7 @@ const Departments = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="h-12 w-12 border-t-2 border-b-2 border-indigo-500 rounded-full"
+                    className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full"
                 ></motion.div>
             </motion.div>
         );
@@ -84,7 +84,7 @@ const Departments = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="min-h-[80vh] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+            className="min-h-[85vh] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
         >
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <motion.div
@@ -93,7 +93,7 @@ const Departments = () => {
                     transition={{ duration: 0.5 }}
                     className="flex items-center space-x-3 mb-4 sm:mb-0"
                 >
-                    <BuildingOfficeIcon className="h-8 w-8 text-indigo-600" />
+                    <BuildingOfficeIcon className="h-8 w-8 text-blue-500" />
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Departments</h1>
                 </motion.div>
                 <motion.button
@@ -125,17 +125,7 @@ const Departments = () => {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Get started by adding your first department.
                         </p>
-                        <motion.button
-                            onClick={() => setShowModal(true)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 cursor-pointer"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <div className="flex items-center space-x-2">
-                                <PlusIcon className="h-5 w-5" />
-                                <span>Add Department</span>
-                            </div>
-                        </motion.button>
+                       
                     </motion.div>
                 ) : (
                     <motion.div
@@ -171,16 +161,19 @@ const Departments = () => {
                                             >
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <div className="flex items-center space-x-2">
-                                                        <CodeBracketIcon className="h-5 w-5 text-blue-600" />
+                                                        <CodeBracketIcon className="h-5 w-5 text-blue-600 mr-1" />
                                                         {department.code}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <div className="flex items-center space-x-2">
+                                                        <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {department.name}
+                                                    </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                                     <div className="flex items-center space-x-2">
-                                                        <MapPinIcon className="h-5 w-5 text-blue-500" />
+                                                        <MapPinIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                         {department.location}
                                                     </div>
                                                 </td>
@@ -269,7 +262,7 @@ const Departments = () => {
                             <div className="flex justify-end space-x-3">
                                 <motion.button
                                     onClick={() => setShowDeleteConfirm(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >

@@ -19,9 +19,10 @@ import {
   TagIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import toast from "react-hot-toast";
+import { toast } from 'react-toastify'; // Correct import
+import 'react-toastify/dist/ReactToastify.css'; // Add CSS import
 
-const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
+const TaskForm = ({ projectIds, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const tagOptions = [
     "GST",
     "Income Tax",
@@ -61,7 +62,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
   const [clientInfo, setClientInfo] = useState(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
-  const [amount, setAmount] = useState(task?.amount || 0);
+  const [amount, setAmount] = useState(task?.amount);
   const dueDateRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -478,12 +479,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                       onChange={(e) => setDueDate(e.target.value)}
                       onClick={() => openDatePicker(dueDateRef)}
                       className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer appearance-none"
-                      // style={{
-                      //   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E")`,
-                      //   backgroundRepeat: 'no-repeat',
-                      //   backgroundPosition: 'right 0.75rem center',
-                      //   backgroundSize: '1.5rem',
-                      // }}
                     />
                   </div>
                 </div>
@@ -495,8 +490,8 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                   </label>
                   <input
                     type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    value={amount !== null ? amount : ""}
+                    onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                     placeholder="Enter task amount"
                     min="0"
@@ -621,9 +616,6 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                 className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 <span className="flex items-center">
-                  {/* <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={task ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4'} />
-                  </svg> */}
                   {task ? 'Update Task' : 'Create Task'}
                 </span>
               </button>

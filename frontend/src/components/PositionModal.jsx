@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { XMarkIcon, BriefcaseIcon, CodeBracketIcon, BuildingOffice2Icon, DocumentTextIcon, UserGroupIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import { createPosition, updatePosition, getNextPositionCode } from '../api/positions.api';
 import { getDepartments } from '../api/department.api';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify'; // Corrected import
+import 'react-toastify/dist/ReactToastify.css'; // Added CSS import
 
 const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
   const [formData, setFormData] = useState({
