@@ -406,7 +406,7 @@ const ProjectDetail = () => {
       </div>
 
       {/* Project header */}
-      <div className="border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50  rounded-2xl mb-8 transform transition-all duration-500 ease-in-out ">
+      <div className="border border-blue-100 bg-white  rounded-2xl mb-8 transform transition-all duration-500 ease-in-out ">
         <div className="px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
@@ -456,7 +456,7 @@ const ProjectDetail = () => {
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden h-4 mt-3 text-xs flex rounded-full bg-gray-200">
+            <div className="overflow-hidden h-3 mt-3 text-xs flex rounded-full bg-gray-200">
               <div
                 style={{ width: `${project.completionPercentage}%` }}
                 className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full animate-fill-bar"
