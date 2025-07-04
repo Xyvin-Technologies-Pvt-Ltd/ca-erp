@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { createEvent, updateEvent } from '../api/events.api';
-import toast from 'react-hot-toast';
+import { toast } from "react-toastify";
 import { CalendarDays } from 'lucide-react';
 
 const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
@@ -65,7 +65,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
-                              <CalendarDays className="h-6 w-6" />
+               <CalendarDays className="h-6 w-6" />
 
               </div>
               <div>

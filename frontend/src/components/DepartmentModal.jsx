@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon, BuildingOffice2Icon, CodeBracketIcon, MapPinIcon, CurrencyDollarIcon, DocumentTextIcon, PowerIcon } from '@heroicons/react/24/outline';
 import { createDepartment, updateDepartment, getNextDepartmentCode } from '../api/department.api';
-import toast from 'react-hot-toast';
+import { toast } from "react-toastify";
 
 const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
   const [formData, setFormData] = useState({

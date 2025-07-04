@@ -188,7 +188,7 @@ const UserManagement = () => {
         </motion.div>
         <motion.button
           onClick={() => setShowAddModal(true)}
-           className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
+           className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -310,7 +310,7 @@ const UserManagement = () => {
                                   alt={`${user.name}'s avatar`}
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                   <span className="text-white font-medium text-sm">
                                     {user.name.charAt(0)}
                                   </span>

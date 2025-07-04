@@ -128,7 +128,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
                 {isEditMode ? (
                   <UserCog className="h-6 w-6 animate-wiggle" />
                 ) : (
@@ -441,7 +441,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>

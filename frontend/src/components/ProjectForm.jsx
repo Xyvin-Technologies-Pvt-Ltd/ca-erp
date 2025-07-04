@@ -173,7 +173,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -378,7 +378,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">

@@ -336,7 +336,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? "Saving..." : "Record Attendance"}
             </button>

@@ -108,7 +108,7 @@ const Leave = () => {
           <CalendarIcon className="h-8 w-8 text-indigo-600" />
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Leave Requests</h1>
         </motion.div>
-        <motion.button
+        {/* <motion.button
           onClick={handleAdd}
           className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
@@ -118,7 +118,7 @@ const Leave = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
             <span>Add Leave Request</span>
-        </motion.button>
+        </motion.button> */}
       </div>
 
       <AnimatePresence mode="wait">
@@ -167,7 +167,7 @@ const Leave = () => {
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No leave requests found</h3>
             <p className="text-sm sm:text-base text-gray-500 mb-6">Get started by creating your first leave request</p>
-            <motion.button
+            {/* <motion.button
               onClick={handleAdd}
                className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
@@ -177,7 +177,7 @@ const Leave = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                 <span>Add Leave Request</span>
-            </motion.button>
+            </motion.button> */}
           </motion.div>
         ) : (
           <motion.div

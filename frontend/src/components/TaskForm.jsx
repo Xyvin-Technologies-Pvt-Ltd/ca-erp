@@ -19,6 +19,7 @@ import {
   TagIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 
 const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const tagOptions = [
@@ -158,7 +159,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       }));
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert('Failed to upload document');
+      toast.error('Failed to upload document');
     }
   };
 
@@ -166,12 +167,12 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
     e.preventDefault();
 
     if (!token) {
-      alert("Unauthorized: No token found");
+      toast.error("Unauthorized: No token found");
       return;
     }
 
     if (!projectId) {
-      alert("Please select a project.");
+      toast.error("Please select a project.");
       return;
     }
 
@@ -194,9 +195,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       let response;
       if (task) {
         response = await updateTask(task._id, taskPayload, token);
-        console.log(response, "response");
+        toast.success("Task updated successfully");
       } else {
         response = await createTask(taskPayload, token);
+        toast.success("Task created successfully");
 
         const tempDocs = Object.entries(tagDocuments).filter(([_, doc]) => doc.isTemp);
         for (const [key, doc] of tempDocs) {
@@ -230,7 +232,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       onSuccess(response.data);
     } catch (err) {
       console.error("Failed to create/update task", err);
-      alert(err.response?.data?.message || "Failed to create/update task");
+      toast.error(err.response?.data?.message || "Failed to create/update task");
     }
   };
 
@@ -301,7 +303,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -531,7 +533,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
                 <div className="flex items-center space-x-3">
                   <label
                     htmlFor="file"
-                    className="cursor-pointer px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
+                    className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
                   >
                     Upload File
                   </label>
@@ -616,7 +618,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 <span className="flex items-center">
                   {/* <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

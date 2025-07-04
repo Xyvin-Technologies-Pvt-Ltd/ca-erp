@@ -193,7 +193,7 @@ const Projects = () => {
           <p className="text-red-700">{error}</p>
           <motion.button
             onClick={loadProjects}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -254,7 +254,7 @@ const Projects = () => {
           {role !== "staff" && (
             <motion.button
               onClick={() => setIsModalOpen(true)}
-              className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+              className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -347,7 +347,7 @@ const Projects = () => {
 
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-indigo-600">
+                        <span className="text-xs font-medium text-blue-600">
                           {project.tasks && project.tasks.length > 0
                             ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
                             : 0}% Complete
@@ -358,7 +358,7 @@ const Projects = () => {
                       </div>
                       <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                         <motion.div
-                          className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-700"
+                          className="h-2 rounded-full bg-blue-500"
                           initial={{ width: 0 }}
                           animate={{
                             width: `${
