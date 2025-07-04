@@ -13,7 +13,7 @@ const AvatarWithFallback = ({ name, src, size }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden shadow-lg border-2 border-white transition-all duration-300 hover:shadow-xl hover:scale-105">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center overflow-hidden shadow-lg border-2 border-white transition-all duration-300 hover:shadow-xl hover:scale-105">
       {src && !imageError ? (
         <Avatar
           name={name}
@@ -168,7 +168,7 @@ const Header = ({ onOpenSidebar }) => {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 sticky top-0 z-50">
+    <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 sticky top-0 z-0">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Mobile menu button */}
@@ -276,7 +276,7 @@ const Header = ({ onOpenSidebar }) => {
                 </button>
 
                 {showUserMenu && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-50">
+                  <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-40">
                     <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                       <div className="flex items-center gap-3">
                         <AvatarWithFallback
