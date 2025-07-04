@@ -409,8 +409,12 @@ const Tasks = () => {
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {task.title}
+                          {/* {task.title} */}
+                          <Link to={`/tasks/${task.id}`} className="text-grey-500 hover:text-blue-600">
+                            {task.title}
+                          </Link>
                         </td>
+                        
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                           <motion.span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${statusColors[task.status]}`}
