@@ -161,7 +161,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             </button>
             
             <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3 rounded-xl shadow-lg">
+              <div className="bg-blue-500 text-white p-3 rounded-xl shadow-lg">
                 {isEditMode ? (
                   <Building2 className="h-6 w-6" />
                 ) : (
@@ -477,7 +477,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
+                className="px-8 py-3 bg-blue-500  text-white rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">

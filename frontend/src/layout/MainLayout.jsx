@@ -22,7 +22,7 @@ const MainLayout = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex overflow-hidden">
       {/* Sidebar for mobile */}
       <div className="md:hidden">
         {sidebarOpen && (

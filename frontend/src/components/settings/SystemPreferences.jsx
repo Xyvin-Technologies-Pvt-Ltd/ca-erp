@@ -113,7 +113,7 @@ const SystemPreferences = () => {
         htmlFor={id}
         className={`block w-12 h-6 rounded-full cursor-pointer transition-all duration-300 ease-in-out ${
           checked
-            ? "bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg"
+            ? "bg-blue-500 shadow-lg"
             : "bg-gray-300 hover:bg-gray-400"
         } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       >
@@ -506,7 +506,7 @@ const SystemPreferences = () => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="inline-flex items-center gap-3 px-8 py-4 bg-blue-500  text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {loading ? (
             <>

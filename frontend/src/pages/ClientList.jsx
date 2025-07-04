@@ -101,7 +101,7 @@ const ClientCard = ({ client }) => {
         className="block bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 overflow-hidden backdrop-blur-sm"
       >
         {/* Header with gradient accent */}
-        <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        <div className="h-2 bg-blue-500"></div>
         
         <div className="p-6">
           <div className="flex items-center">
@@ -113,7 +113,7 @@ const ClientCard = ({ client }) => {
                   className="w-16 h-16 rounded-2xl object-cover shadow-md ring-2 ring-white"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md ring-2 ring-white">
+                <div className="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-md ring-2 ring-white">
                   {getInitials(client.name)}
                 </div>
               )}
@@ -354,7 +354,7 @@ const ClientList = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsModalOpen(true)}
-          className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+          className="group px-6 py-3 bg-blue-500  text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
         >
           <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -574,7 +574,7 @@ const ClientList = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl"
+                className="px-8 py-4 bg-blue-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl"
               >
                 Add Your First Client
               </motion.button>

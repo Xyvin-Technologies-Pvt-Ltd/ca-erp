@@ -242,7 +242,7 @@ const Finance = () => {
               <p className="text-gray-600 mb-6">{error}</p>
               <button
                 onClick={loadProjects}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -262,7 +262,7 @@ const Finance = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -279,7 +279,7 @@ const Finance = () => {
                   <span className="text-gray-600">Ready to Invoice</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <TrendingUp className="w-4 h-4 text-blue-500" />
                   <span className="text-gray-600">{projects.length} Projects</span>
                 </div>
               </div>
@@ -290,7 +290,7 @@ const Finance = () => {
                 className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
                   selectedProjects.length === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                    : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-105"
+                    : "bg-blue-500  text-white transform hover:scale-105"
                 }`}
               >
                 <Receipt className="w-4 h-4" />
@@ -335,7 +335,7 @@ const Finance = () => {
               </div>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-blue-500 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reset Filters
@@ -428,7 +428,7 @@ const Finance = () => {
               
               <button
                 onClick={openInvoiceModal}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Receipt className="w-4 h-4" />
                 Create Invoice
@@ -457,7 +457,7 @@ const Finance = () => {
                   type="checkbox"
                   checked={selectedProjects.length === projects.length && projects.length > 0}
                   onChange={handleSelectAll}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 />
                 <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
                   Select All
@@ -824,7 +824,7 @@ const Finance = () => {
                   type="button"
                   onClick={handleCreateInvoice}
                   disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

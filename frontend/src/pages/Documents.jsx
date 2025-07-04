@@ -265,7 +265,7 @@ const Documents = () => {
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Plus className="w-5 h-5 mr-2" />
               Upload Document
@@ -695,7 +695,7 @@ const Documents = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="px-6 py-2 bg-blue-500 to-blue-700 text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       Upload Document
                     </button>

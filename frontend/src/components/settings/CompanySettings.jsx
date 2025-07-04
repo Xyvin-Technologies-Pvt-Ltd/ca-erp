@@ -225,7 +225,7 @@ const CompanySettings = () => {
       {loading && (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <div className="flex items-center justify-center gap-3">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+            <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
             <p className="text-gray-600 font-medium">Loading settings...</p>
           </div>
         </div>
@@ -368,7 +368,7 @@ const CompanySettings = () => {
                   <DollarSign className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Financial Settings</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">Financial Details</h3>
                   <p className="text-gray-600">Configure financial and tax information</p>
                 </div>
               </div>
@@ -570,7 +570,7 @@ const CompanySettings = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-blue-500  text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? (
                 <>
