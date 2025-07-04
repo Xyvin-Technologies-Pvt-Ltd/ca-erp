@@ -268,7 +268,7 @@ const EmployeeAttendance = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-4 text-base text-gray-900">{dateStr.split("-").reverse().join("/")}</td>
+                        <td className="px-6 py-4 text-base text-gray-900">{att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "-"}</td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
                         </td>
