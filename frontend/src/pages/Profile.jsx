@@ -430,7 +430,7 @@ const Profile = () => {
                   <motion.button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-blue-500 hover:blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: isLoading ? 1 : 1.02 }}
                     whileTap={{ scale: isLoading ? 1 : 0.98 }}
                   >
@@ -451,7 +451,7 @@ const Profile = () => {
                 <motion.button
                   key="view"
                   onClick={handleEditToggle}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2"
+                  className="px-8 py-3 bg-blue-500 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, scale: 0.9 }}

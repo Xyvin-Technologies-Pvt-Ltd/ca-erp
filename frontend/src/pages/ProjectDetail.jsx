@@ -229,7 +229,7 @@ const ProjectDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
       </div>
     );
   }
@@ -257,7 +257,7 @@ const ProjectDetail = () => {
           <p className="text-amber-700 font-medium text-sm sm:text-base">Project not found.</p>
           <button
             onClick={() => navigate("/projects")}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
           >
             Back to Projects
           </button>
@@ -272,7 +272,7 @@ const ProjectDetail = () => {
         <div className="mb-4 sm:mb-6">
           <button
             onClick={() => setIsEditing(false)}
-            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200 text-sm sm:text-base"
+            className="flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-200 text-sm sm:text-base"
           >
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5 mr-1"
@@ -341,83 +341,95 @@ const ProjectDetail = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10  bg-gradient-to-br from-gray-50 to-indigo-60 animate-fade-in">
       <style>
         {`
           @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
           }
           @keyframes pulseSlow {
             0% { opacity: 1; }
-            50% { opacity: 0.8; }
+            50% { opacity: 0.7; }
             100% { opacity: 1; }
           }
+          @keyframes fillBar {
+            from { width: 0%; }
+            to { width: ${project.completionPercentage}%; }
+          }
           .animate-fade-in {
-            animation: fadeIn 0.5s ease-out;
+            animation: fadeIn 0.6s ease-out;
           }
           .animate-pulse-slow {
-            animation: pulseSlow 2s infinite;
+            animation: pulseSlow 2.5s infinite ease-in-out;
+          }
+          .animate-fill-bar {
+            animation: fillBar 1.5s ease-out forwards;
           }
         `}
       </style>
       {/* Header with back button and actions */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <button
           onClick={() => navigate("/projects")}
-          className="flex items-center text-blue-600 hover:text-blue-800 transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+          className="flex items-center text-indigo-600 hover:text-indigo-800 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
         >
           <svg
-            className="w-4 h-4 sm:w-5 sm:h-5 mr-1"
+            className="w-5 h-5 sm:w-6 sm:h-6 mr-2 group-hover:-translate-x-1 transition-transform duration-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M15 19l-7-7 7-7"
-            ></path>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
           Back to Projects
         </button>
         {role !== "staff" && (
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center text-sm sm:text-base"
+              className="inline-flex items-center px-5 py-2.5  bg-blue-500 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <CiEdit className="mr-1 w-4 h-4 sm:w-4 sm:h-4" />Edit Project
-
+              <CiEdit className="w-5 h-5 mr-2 text-white" />
+              Edit Project
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
-              className="px-3 py-1.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center text-sm sm:text-base"
+              className="inline-flex items-center px-5 py-2.5 bg-rose-500 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <MdDelete className="mr-1 w-4 h-4 sm:w-4 sm:h-4" /> Delete
+              <MdDelete className="w-5 h-5 mr-2 text-white" />
+              Delete
             </button>
           </div>
         )}
       </div>
 
       {/* Project header */}
-      <div className="bg-white shadow-lg rounded-xl mb-6 transform transition-all duration-500 ease-in-out">
-        <div className="px-4 sm:px-6 py-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="border border-blue-100 bg-white  rounded-2xl mb-8 transform transition-all duration-500 ease-in-out ">
+        <div className="px-6 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{project.name}</h1>
-              <p className="mt-1 text-sm text-gray-500">Client: {project.client?.name}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+                <MdFolder className="w-7 h-7 mr-2 text-indigo-500" />
+                {project.name}
+              </h1>
+              <p className="mt-2 text-sm text-gray-600 flex items-center">
+                <svg className="w-5 h-5 mr-1 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                </svg>
+                Client: {project.client?.name}
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
+            <div className="flex flex-wrap gap-3">
               <span
-                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${statusColors[project.status] || "bg-gray-100"} animate-pulse-slow`}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
               >
                 {project.status}
               </span>
               <span
-                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${priorityColors[project.priority] || "bg-gray-100"} animate-pulse-slow`}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${priorityColors[project.priority] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
               >
                 {project.priority} Priority
               </span>
@@ -426,24 +438,28 @@ const ProjectDetail = () => {
         </div>
 
         {/* Progress bar */}
-        <div className="px-4 sm:px-6 pb-4">
-          <div className="mt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <span className="text-xs sm:text-sm font-semibold inline-block text-blue-600">
+        <div className="px-6 pb-6">
+          <div className="mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm font-semibold text-indigo-600">
                   {project.completionPercentage}% Complete
                 </span>
               </div>
               <div className="text-left sm:text-right">
-                <span className="text-xs sm:text-sm font-semibold inline-block text-blue-600">
+                <span className="text-sm font-semibold text-indigo-600 flex items-center">
+                  <MdTaskAlt className="w-5 h-5 mr-2" />
                   {project.completedTasks}/{project.totalTasks} Tasks
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden h-3 mt-2 text-xs flex rounded bg-blue-100">
+            <div className="overflow-hidden h-3 mt-3 text-xs flex rounded-full bg-gray-200">
               <div
                 style={{ width: `${project.completionPercentage}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-1000 ease-in-out"
+                className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full animate-fill-bar"
               ></div>
             </div>
           </div>
@@ -451,24 +467,24 @@ const ProjectDetail = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white shadow-lg rounded-xl">
-        <div className="border-b border-gray-200">
-          <nav className="flex overflow-x-auto space-x-2 p-2 whitespace-nowrap">
+      <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+        <div className="border-b border-gray-200 ">
+          <nav className="flex overflow-x-auto space-x-3 p-3 whitespace-nowrap ">
             {[
-              { name: "overview", icon: <MdInfo className="mr-1 w-4 h-4 sm:w-5 sm:h-5" /> },
-              { name: "tasks", icon: <MdTaskAlt className="mr-1 w-4 h-4 sm:w-5 sm:h-5" /> },
-              { name: "documents", icon: <MdFolder className="mr-1 w-4 h-4 sm:w-5 sm:h-5" /> },
-              { name: "notes", icon: <MdNote className="mr-1 w-4 h-4 sm:w-5 sm:h-5" /> },
-              { name: "datalog", icon: <MdTimeline className="mr-1 w-4 h-4 sm:w-5 sm:h-5" /> },
+              { name: "overview", icon: <MdInfo className="mr-2 w-5 h-5 text-grey-500" /> },
+              { name: "tasks", icon: <MdTaskAlt className="mr-2 w-5 h-5 text-grey-500" /> },
+              { name: "documents", icon: <MdFolder className="mr-2 w-5 h-5 text-grey-500" /> },
+              { name: "notes", icon: <MdNote className="mr-2 w-5 h-5 text-grey-300" /> },
+              { name: "datalog", icon: <MdTimeline className="mr-2 w-5 h-5 text-grey-500" /> },
             ].map((tab) => (
               <button
                 key={tab.name}
                 onClick={() => setActiveTab(tab.name)}
-                className={`flex items-center px-3 sm:px-4 py-2 border-b-2 text-xs sm:text-sm font-medium transition-all duration-200 shrink-0 ${
+                className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
+                } rounded-t-lg`}
               >
                 {tab.icon}
                 {tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}
@@ -477,28 +493,33 @@ const ProjectDetail = () => {
           </nav>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div className="p-6 ">
           {activeTab === "overview" && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-8 animate-fade-in">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Project Details</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" />
+                    </svg>
+                    Project Details
+                  </h3>
+                  <div className="bg-gray-50 rounded-xl p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                     <div>
-                      <span className="text-sm text-gray-500 block">Timeline</span>
+                      <span className="text-sm text-gray-600 block">Timeline</span>
                       <span className="text-sm font-medium text-gray-900">
                         {formatDate(project.startDate)} to {formatDate(project.dueDate)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500 block">Budget</span>
+                      <span className="text-sm text-gray-600 block">Budget</span>
                       <span className="text-sm font-medium text-gray-900">
                         {formatCurrency(project.budget)}
                       </span>
                     </div>
                     {project.spent && (
                       <div>
-                        <span className="text-sm text-gray-500 block">Spent</span>
+                        <span className="text-sm text-gray-600 block">Spent</span>
                         <span className="text-sm font-medium text-gray-900">
                           {formatCurrency(project.spent)}
                         </span>
@@ -508,34 +529,44 @@ const ProjectDetail = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Team Members</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                    Team Members
+                  </h3>
+                  <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
                     {project.team?.length > 0 ? (
                       <ul className={`grid gap-y-4 gap-x-4 sm:gap-x-6 ${project.team.length > 5 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         {project.team.map((member) => (
-                          <li key={member.id} className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-all duration-200">
+                          <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
                             <div className="flex-shrink-0">
                               {member.avatar ? (
                                 <img
                                   src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
                                   alt={member.name}
-                                  className="h-8 w-8 rounded-full"
+                                  className="h-10 w-10 rounded-full border border-gray-200"
                                 />
                               ) : (
-                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-sm">
+                                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-medium text-sm">
                                   {member.name.charAt(0)}
                                 </div>
                               )}
                             </div>
-                            <div className="ml-3">
+                            <div className="ml-4">
                               <p className="text-sm font-medium text-gray-900">{member.name}</p>
-                              <p className="text-xs text-gray-500">{member.role}</p>
+                              <p className="text-xs text-gray-600">{member.role}</p>
                             </div>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-gray-500">No team members assigned to this project yet.</p>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
+                        </svg>
+                        No team members assigned to this project yet.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -543,9 +574,14 @@ const ProjectDetail = () => {
 
               {project.description && (
                 <div>
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Project Description</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-700">{project.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm3 3a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" />
+                    </svg>
+                    Project Description
+                  </h3>
+                  <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm text-gray-700 leading-relaxed">{project.description}</p>
                   </div>
                 </div>
               )}
@@ -558,27 +594,31 @@ const ProjectDetail = () => {
 
           {activeTab === "documents" && (
             <div className="animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">Documents</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <MdFolder className="w-5 h-5 mr-2 text-blue-500" />
+                  Documents
+                </h3>
                 {project.documents?.length > 0 && role !== "staff" && (
                   <button
                     onClick={() => setIsAddDocumentModalOpen(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center text-sm sm:text-base"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                   >
-                    <MdUpload className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> Add Document
+                    <MdUpload className="mr-2 w-5 h-5" />
+                    Add Document
                   </button>
                 )}
               </div>
               {project.documents?.length > 0 ? (
                 <>
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm">
                     <ul className="divide-y divide-gray-200">
                       {currentDocuments.map((doc) => (
-                        <li key={doc._id} className="p-4 hover:bg-gray-100 transition-all duration-200">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <li key={doc._id} className="p-5 hover:bg-gray-100 transition-all duration-200">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex items-center">
                               <svg
-                                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 mr-3"
+                                className="h-6 w-6 text-purple-500 mr-3"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -589,33 +629,28 @@ const ProjectDetail = () => {
                                   strokeLinejoin="round"
                                   strokeWidth="2"
                                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                ></path>
+                                />
                               </svg>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">{doc.name}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-600">
                                   Uploaded by {doc.uploadedBy.name} on {new Date(doc.createdAt).toLocaleDateString()}
                                 </p>
                               </div>
                             </div>
-                            <div className="flex space-x-2 mt-2 sm:mt-0">
+                            <div className="flex space-x-3 mt-3 sm:mt-0">
                               <button
                                 onClick={() => handleDownloadDocument(doc._id, doc.name)}
-                                className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                                className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
+                                title="Download"
                               >
-                                <svg
-                                  className="w-4 h-4 sm:w-5 sm:h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                  ></path>
+                                  />
                                 </svg>
                               </button>
                               {role !== "staff" && (
@@ -623,14 +658,16 @@ const ProjectDetail = () => {
                                   <button
                                     onClick={() => handleEditDocumentClick(doc)}
                                     className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                                    title="Edit"
                                   >
-                                    <CiEdit size={16} className="sm:w-4 sm:h-4" />
+                                    <CiEdit className="w-5 h-5" />
                                   </button>
                                   <button
                                     onClick={() => setDocToDelete(doc)}
                                     className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
+                                    title="Delete"
                                   >
-                                    <MdDelete size={16} className="sm:w-4 sm:h-4" />
+                                    <MdDelete className="w-5 h-5" />
                                   </button>
                                 </>
                               )}
@@ -641,72 +678,61 @@ const ProjectDetail = () => {
                     </ul>
                   </div>
                   {totalDocPages > 1 && (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-2 border-t gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 pt-4 border-t border-gray-200 gap-4">
                       <button
                         onClick={goToPrevDocPage}
                         disabled={docCurrentPage === 1}
-                        className={`flex items-center text-xs sm:text-sm font-medium p-1 transition-all duration-200 ${
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           docCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
+                            : "text-indigo-600 hover:text-indigo-800"
                         }`}
                       >
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 19l-7-7 7-7"
-                          ></path>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Previous
                       </button>
-                      <span className="text-xs sm:text-sm text-gray-600">
+                      <span className="text-sm text-gray-600">
                         Page {docCurrentPage} of {totalDocPages}
                       </span>
                       <button
                         onClick={goToNextDocPage}
                         disabled={docCurrentPage === totalDocPages}
-                        className={`flex items-center text-xs sm:text-sm font-medium p-1 transition-all duration-200 ${
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           docCurrentPage === totalDocPages
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
+                            : "text-indigo-600 hover:text-indigo-800"
                         }`}
                       >
                         Next
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 ml-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 5l7 7-7 7"
-                          ></path>
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center animate-fade-in">
-                  <p className="text-gray-500 mb-4 text-sm sm:text-base">No documents uploaded for this project yet.</p>
+                <div className="bg-gray-50 rounded-xl p-8 text-center animate-fade-in shadow-sm">
+                  <p className="text-gray-600 mb-6 text-sm sm:text-base flex items-center justify-center">
+                    <svg className="w-6 h-6 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    No documents uploaded for this project yet.
+                  </p>
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddDocumentModalOpen(true)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto text-sm sm:text-base"
+                      className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
-                      <MdUpload className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> Upload Document
+                      <MdUpload className="mr-2 w-5 h-5" />
+                      Upload Document
                     </button>
                   )}
                 </div>
@@ -716,29 +742,33 @@ const ProjectDetail = () => {
 
           {activeTab === "notes" && (
             <div className="animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">Notes</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <MdNote className="w-5 h-5 mr-2 text-blue-500" />
+                  Notes
+                </h3>
                 {project.notes?.length > 0 && role !== "staff" && (
                   <button
                     onClick={() => setIsAddNotesModalOpen(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center text-sm sm:text-base"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                   >
-                    <MdNoteAdd className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> Add Note
+                    <MdNoteAdd className="mr-2 w-5 h-5" />
+                    Add Note
                   </button>
                 )}
               </div>
               {project.notes?.length > 0 ? (
                 <>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {paginatedNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200"
+                        className="bg-gray-50 rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all duration-300"
                       >
-                        <p className="text-sm text-gray-700">{note.content}</p>
-                        <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 gap-2">
+                        <p className="text-sm text-gray-700 leading-relaxed">{note.content}</p>
+                        <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-600 gap-3">
                           <div className="flex items-center">
-                            <span className="font-medium text-gray-700 mr-2">
+                            <span className="font-medium text-gray-800 mr-2">
                               {note.author?.name || "Unknown Author"}
                             </span>
                             <span>
@@ -747,18 +777,20 @@ const ProjectDetail = () => {
                             </span>
                           </div>
                           {role !== "staff" && (
-                            <div className="flex space-x-2 mt-2 sm:mt-0">
+                            <div className="flex space-x-3 mt-3 sm:mt-0">
                               <button
                                 onClick={() => handleEditNote(note)}
                                 className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                                title="Edit"
                               >
-                                <CiEdit size={16} className="sm:w-4 sm:h-4" />
+                                <CiEdit className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => setNoteToDelete(note)}
                                 className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
+                                title="Delete"
                               >
-                                <MdDelete size={16} className="sm:w-4 sm:h-4" />
+                                <MdDelete className="w-5 h-5" />
                               </button>
                             </div>
                           )}
@@ -767,70 +799,61 @@ const ProjectDetail = () => {
                     ))}
                   </div>
                   {totalNotePages > 1 && (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 border-t gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 pt-4 border-t border-gray-200 gap-4">
                       <button
                         onClick={() => setNoteCurrentPage((prev) => Math.max(prev - 1, 1))}
                         disabled={noteCurrentPage === 1}
-                        className={`flex items-center text-xs sm:text-sm font-medium transition-all duration-200 ${
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
+                            : "text-indigo-600 hover:text-indigo-800"
                         }`}
                       >
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 19l-7-7 7-7"
-                          />
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Previous
                       </button>
-                      <span className="text-xs sm:text-sm text-gray-600">
+                      <span className="text-sm text-gray-600">
                         Page {noteCurrentPage} of {totalNotePages}
                       </span>
                       <button
                         onClick={() => setNoteCurrentPage((prev) => Math.min(prev + 1, totalNotePages))}
                         disabled={noteCurrentPage === totalNotePages}
-                        className={`flex items-center text-xs sm:text-sm font-medium transition-all duration-200 ${
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === totalNotePages
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
+                            : "text-indigo-600 hover:text-indigo-800"
                         }`}
                       >
                         Next
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 ml-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 5l7 7-7 7"
-                          />
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center animate-fade-in">
-                  <p className="text-gray-500 mb-4 text-sm sm:text-base">No notes added for this project yet.</p>
+                <div className="bg-gray-50 rounded-xl p-8 text-center animate-fade-in shadow-sm">
+                  <p className="text-gray-600 mb-6 text-sm sm:text-base flex items-center justify-center">
+                    <svg className="w-6 h-6 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    No notes added for this project yet.
+                  </p>
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddNotesModalOpen(true)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto text-sm sm:text-base"
+                      className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
-                      <MdNoteAdd className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> Add Note
+                      <MdNoteAdd className="mr-2 w-5 h-5" />
+                      Add Note
                     </button>
                   )}
                 </div>
@@ -840,9 +863,12 @@ const ProjectDetail = () => {
 
           {activeTab === "datalog" && (
             <div className="animate-fade-in">
-              <div className="mb-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">Project Activity Log</h3>
-                <p className="text-sm text-gray-500 mt-1">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <MdTimeline className="w-5 h-5 mr-2 text-blue-500" />
+                  Project Activity Log
+                </h3>
+                <p className="text-sm text-gray-600 mt-2">
                   Timeline of all activities for this project including document uploads, reminders, and other actions.
                 </p>
               </div>
@@ -854,24 +880,34 @@ const ProjectDetail = () => {
 
       {/* Delete confirmation modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in px-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-full sm:max-w-md w-full shadow-xl transform transition-all duration-300">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Confirm Deletion</h3>
-            <p className="text-gray-500 mb-6 text-sm sm:text-base">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6v10h6V6H7zm5 2a1 1 0 00-1 1v6a1 1 0 102 0V9a1 1 0 00-1-1zm-3 1a1 1 0 00-1 1v4a1 1 0 102 0V9a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Confirm Deletion
+            </h3>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
               Are you sure you want to delete this project? This action cannot be undone.
             </p>
-            <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="px-5 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteProject}
-                className="px-3 py-1.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all duration-200 transform hover:scale-105 flex items-center text-sm sm:text-base"
+                className="px-5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
-                <MdDelete className="mr-1 w-4 h-4 sm:w-4 sm:h-4" /> Delete
+                <MdDelete className="mr-2 w-5 h-5" />
+                Delete
               </button>
             </div>
           </div>
@@ -880,32 +916,33 @@ const ProjectDetail = () => {
 
       {/* Add Document Modal */}
       {isAddDocumentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in px-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-full sm:max-w-md w-full shadow-xl transform transition-all duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <MdUpload className="w-5 h-5 mr-2 text-indigo-600" />
                 {editingDocument ? "Edit Document" : "Upload Document"}
               </h3>
               <button
-                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
                 onClick={() => setIsAddDocumentModalOpen(false)}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                     clipRule="evenodd"
-                  ></path>
+                  />
                 </svg>
               </button>
             </div>
             <form onSubmit={handleUploadSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-blue-400 transition-colors duration-200">
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-all duration-300 bg-gray-50">
                   <div className="flex justify-center">
                     <svg
-                      className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400"
+                      className="h-12 w-12 text-indigo-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -915,12 +952,12 @@ const ProjectDetail = () => {
                         strokeLinejoin="round"
                         strokeWidth="2"
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      ></path>
+                      />
                     </svg>
                   </div>
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <label className="text-sm text-gray-600 cursor-pointer">
-                      <span className="text-blue-600 hover:text-blue-500">Click to upload</span>
+                      <span className="text-indigo-600 hover:text-indigo-500 font-medium">Click to upload</span>
                       {" or drag and drop"}
                       <input
                         type="file"
@@ -932,20 +969,20 @@ const ProjectDetail = () => {
                     </label>
                     {file && (
                       <p className="mt-3 text-sm text-gray-800 font-medium">
-                        Selected File: <span className="text-blue-700">{file.name}</span>
+                        Selected File: <span className="text-indigo-700">{file.name}</span>
                       </p>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-2">
                     PDF, Word, Excel, PowerPoint up to 10MB
                   </p>
                 </div>
               </div>
 
-              <div className="mb-4">
+              <div className="mb-5">
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Description
                 </label>
@@ -954,25 +991,26 @@ const ProjectDetail = () => {
                   value={editDocDescription}
                   onChange={(e) => setEditDocDescription(e.target.value)}
                   placeholder="Enter document description"
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-sm"
+                  rows="4"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 text-sm bg-gray-50"
                   required
                 ></textarea>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+              <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
                 <button
                   type="button"
                   onClick={() => setIsAddDocumentModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                  className="px-5 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 flex items-center text-sm sm:text-base"
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                 >
-                  <MdUpload className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> Upload
+                  <MdUpload className="mr-2 w-5 h-5" />
+                  Upload
                 </button>
               </div>
             </form>
@@ -982,28 +1020,31 @@ const ProjectDetail = () => {
 
       {/* Add Note Modal */}
       {isAddNoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in px-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-full sm:max-w-md w-full shadow-xl transform transition-all duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">{editingNoteId ? "Edit Note" : "Add Note"}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <MdNoteAdd className="w-5 h-5 mr-2 text-blue-500" />
+                {editingNoteId ? "Edit Note" : "Add Note"}
+              </h3>
               <button
-                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
                 onClick={() => setIsAddNotesModalOpen(false)}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                     clipRule="evenodd"
-                  ></path>
+                  />
                 </svg>
               </button>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-5">
               <label
                 htmlFor="noteContent"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Note Content
               </label>
@@ -1012,26 +1053,27 @@ const ProjectDetail = () => {
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Enter your note here"
-                rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-sm"
+                rows="4"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 text-sm bg-gray-50"
                 required
               ></textarea>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 type="button"
                 onClick={() => setIsAddNotesModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="px-5 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddNote}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 flex items-center text-sm sm:text-base"
+                className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
-                <MdNoteAdd className="mr-2 w-4 h-4 sm:w-5 sm:h-5" /> {editingNoteId ? "Update Note" : "Add Note"}
+                <MdNoteAdd className="mr-2 w-5 h-5" />
+                {editingNoteId ? "Update Note" : "Add Note"}
               </button>
             </div>
           </div>

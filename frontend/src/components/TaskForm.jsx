@@ -1,14 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { userApi } from "../api/userApi";
 import { createTask, updateTask, uploadTagDocument, getTaskTagDocuments, remindClientForDocument } from "../api/tasks";
-import { WithContext as ReactTags } from "react-tag-input";
 import { projectsApi } from "../api/projectsApi";
 import { useNotifications } from "../context/NotificationContext";
 import Select from "react-select";
 import TagDocumentUpload from "./TagDocumentUpload";
 import { tagDocumentRequirements } from "../utils/tagDocumentFields";
-import { motion } from "framer-motion";
 import {
   DocumentTextIcon,
   BriefcaseIcon,
@@ -19,7 +17,9 @@ import {
   InformationCircleIcon,
   PaperClipIcon,
   TagIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 
 const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const tagOptions = [
@@ -62,6 +62,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   const [clientInfo, setClientInfo] = useState(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [amount, setAmount] = useState(task?.amount || 0);
+  const dueDateRef = useRef(null);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -158,7 +159,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       }));
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert('Failed to upload document');
+      toast.error('Failed to upload document');
     }
   };
 
@@ -166,12 +167,12 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
     e.preventDefault();
 
     if (!token) {
-      alert("Unauthorized: No token found");
+      toast.error("Unauthorized: No token found");
       return;
     }
 
     if (!projectId) {
-      alert("Please select a project.");
+      toast.error("Please select a project.");
       return;
     }
 
@@ -194,9 +195,10 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       let response;
       if (task) {
         response = await updateTask(task._id, taskPayload, token);
-        console.log(response, "response");
+        toast.success("Task updated successfully");
       } else {
         response = await createTask(taskPayload, token);
+        toast.success("Task created successfully");
 
         const tempDocs = Object.entries(tagDocuments).filter(([_, doc]) => doc.isTemp);
         for (const [key, doc] of tempDocs) {
@@ -230,7 +232,7 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
       onSuccess(response.data);
     } catch (err) {
       console.error("Failed to create/update task", err);
-      alert(err.response?.data?.message || "Failed to create/update task");
+      toast.error(err.response?.data?.message || "Failed to create/update task");
     }
   };
 
@@ -243,6 +245,12 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
         return [...prev, { id: tag, text: tag }];
       }
     });
+  };
+
+  const openDatePicker = (dateInputRef) => {
+    if (dateInputRef.current) {
+      dateInputRef.current.showPicker?.();
+    }
   };
 
   useEffect(() => {
@@ -289,305 +297,341 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null }) => {
   }, [token]);
 
   return (
-    <motion.div
-      className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-indigo-100 hover:shadow-xl transition-all duration-300"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center">
-        <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600 mr-2" />
-        {task ? "Edit Task" : "Create Task"}
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <DocumentTextIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Task Title <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-            placeholder="Enter task title"
-            required
-          />
-        </motion.div>
-
-        {/* Project */}
-        {!projectIds && (
-          <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-            <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-              <BriefcaseIcon className="h-5 w-5 text-indigo-600 mr-2" />
-              Project <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-              required
-            >
-              <option value="">Select a project</option>
-              {loadingProjects ? (
-                <option disabled>Loading...</option>
-              ) : projectError ? (
-                <option disabled>{projectError}</option>
-              ) : (
-                projects.map(proj => (
-                  <option key={proj._id} value={proj._id}>
-                    {proj.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </motion.div>
-        )}
-
-        {/* Status */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Status
-          </label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-          >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="review">Review</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </motion.div>
-
-        {/* Priority */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <FlagIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Priority
-          </label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-          >
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-        </motion.div>
-
-        {/* Assigned To */}
-        <motion.div className="relative z-10" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Assigned To
-          </label>
-          <Select
-            value={users.find((user) => user._id === assignedTo)}
-            onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
-            getOptionLabel={(e) => e.name || e.email}
-            getOptionValue={(e) => e._id}
-            isLoading={loadingUsers}
-            options={users}
-            placeholder="Select a user"
-            className="mt-1"
-            classNamePrefix="react-select"
-            styles={{
-              control: (base) => ({
-                ...base,
-                borderColor: '#e0e7ff',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                '&:hover': {
-                  borderColor: '#c7d2fe',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                },
-                borderRadius: '0.5rem',
-                padding: '0.25rem',
-                backgroundColor: '#fff',
-                cursor: 'pointer',
-                zIndex: 10,
-              }),
-              menu: (base) => ({
-                ...base,
-                zIndex: 20,
-                backgroundColor: '#fff',
-                borderRadius: '0.5rem',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              }),
-              option: (base, { isFocused }) => ({
-                ...base,
-                backgroundColor: isFocused ? '#e0e7ff' : '#fff',
-                color: '#1f2937',
-                cursor: 'pointer',
-              }),
-            }}
-          />
-          {userError && (
-            <p className="mt-1 text-sm text-red-600">{userError}</p>
-          )}
-        </motion.div>
-
-        {/* Due Date */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <CalendarIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Due Date
-          </label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-          />
-        </motion.div>
-
-        {/* Amount */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <CurrencyDollarIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Amount
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-            placeholder="Enter task amount"
-            min="0"
-            step="0.01"
-          />
-        </motion.div>
-
-        {/* Description */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <InformationCircleIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows="4"
-            className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-            placeholder="Enter task details or requirements..."
-          />
-        </motion.div>
-
-        {/* Attachment */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <PaperClipIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Attachment
-          </label>
-          <div className="flex items-center">
-            <label
-              htmlFor="file"
-              className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300"
-            >
-              Upload File
-            </label>
-            <span className="ml-3 text-sm text-gray-600 truncate max-w-xs">
-              {file ? file.name : "No file selected"}
-            </span>
-          </div>
-          <input
-            id="file"
-            type="file"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </motion.div>
-
-        {/* Tags */}
-        <motion.div className="relative" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <TagIcon className="h-5 w-5 text-indigo-600 mr-2" />
-            Tags
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {tagOptions.map((tag) => {
-              const isSelected = selectedTags.some(t => t.text === tag);
-              return (
-                <motion.button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleTagToggle(tag)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium cursor-pointer ${isSelected
-                    ? "bg-indigo-100 text-indigo-800 border border-indigo-300"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                  } transition-all duration-200`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {tag}
-                </motion.button>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Tag Documents */}
-        {selectedTags.length > 0 && (
-          <motion.div
-            className="mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <DocumentTextIcon className="h-5 w-5 text-indigo-600 mr-2" />
-              Required Documents
-            </h3>
-            {isLoadingClient && (
-              <div className="text-center text-gray-500 mb-2">Loading client information...</div>
-            )}
-            {isLoadingDocuments ? (
-              <div className="text-center text-gray-500">Loading documents...</div>
-            ) : (
-              <div className="space-y-4">
-                {selectedTags.map(tag => (
-                  <TagDocumentUpload
-                    key={tag.text}
-                    tag={tag.text}
-                    onUpload={handleTagDocumentUpload}
-                    onRemindClient={task?._id ? handleRemindClient : null}
-                    existingDocuments={tagDocuments}
-                    clientInfo={clientInfo}
-                    isLoading={isLoadingClient || isLoadingDocuments}
-                  />
-                ))}
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+                <DocumentTextIcon className="h-6 w-6" />
               </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Buttons */}
-        <div className="flex justify-between mt-6">
-          <motion.button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-indigo-300 rounded-lg text-gray-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300 cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Cancel
-          </motion.button>
-          <motion.button
-            type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all duration-300 cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {task ? "Update Task" : "Create Task"}
-          </motion.button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {task ? 'Edit Task' : 'Create Task'}
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {task ? 'Update task details below' : 'Fill in the details to create a new task'}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={onCancel} 
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
         </div>
-      </form>
-    </motion.div>
+
+        {/* Scrollable Form Content */}
+        <div className="max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-100">
+          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+            {/* Task Information Section */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <DocumentTextIcon className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Task Details</h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Task Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Task Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    placeholder="Enter task title"
+                    required
+                  />
+                </div>
+
+                {/* Project */}
+                {!projectIds && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Project <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={projectId}
+                      onChange={(e) => setProjectId(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      required
+                    >
+                      <option value="">Select a project</option>
+                      {loadingProjects ? (
+                        <option disabled>Loading...</option>
+                      ) : projectError ? (
+                        <option disabled>{projectError}</option>
+                      ) : (
+                        projects.map(proj => (
+                          <option key={proj._id} value={proj._id}>
+                            {proj.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                )}
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="review">Review</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Priority <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+
+                {/* Assigned To */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assigned To
+                  </label>
+                  <Select
+                    value={users.find((user) => user._id === assignedTo)}
+                    onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
+                    getOptionLabel={(e) => e.name || e.email}
+                    getOptionValue={(e) => e._id}
+                    isLoading={loadingUsers}
+                    options={users}
+                    placeholder="Select a user"
+                    className="mt-1"
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        borderColor: '#d1d5db',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          borderColor: '#3b82f6',
+                        },
+                        borderRadius: '0.5rem',
+                        padding: '0.25rem',
+                        backgroundColor: '#fff',
+                        cursor: 'pointer',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 20,
+                        backgroundColor: '#fff',
+                        borderRadius: '0.5rem',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      }),
+                      option: (base, { isFocused }) => ({
+                        ...base,
+                        backgroundColor: isFocused ? '#e0f2fe' : '#fff',
+                        color: '#1f2937',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                  {userError && (
+                    <div className="text-red-500 text-sm mt-1 flex items-center">
+                      <span className="text-red-500 mr-1">⚠</span>
+                      {userError}
+                    </div>
+                  )}
+                </div>
+
+                {/* Due Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Due Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      ref={dueDateRef}
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      onClick={() => openDatePicker(dueDateRef)}
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer appearance-none"
+                      // style={{
+                      //   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E")`,
+                      //   backgroundRepeat: 'no-repeat',
+                      //   backgroundPosition: 'right 0.75rem center',
+                      //   backgroundSize: '1.5rem',
+                      // }}
+                    />
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    placeholder="Enter task amount"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="4"
+                  maxLength={500}
+                  placeholder="Enter task details or requirements..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                />
+                <div className="flex justify-end items-center mt-2">
+                  <p className={`text-sm ${description?.length > 400 ? 'text-amber-600' : 'text-gray-500'}`}>
+                    {description?.length || 0}/500
+                  </p>
+                </div>
+              </div>
+
+              {/* Attachment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Attachment
+                </label>
+                <div className="flex items-center space-x-3">
+                  <label
+                    htmlFor="file"
+                    className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
+                  >
+                    Upload File
+                  </label>
+                  <span className="text-sm text-gray-600 truncate max-w-xs">
+                    {file ? file.name : "No file selected"}
+                  </span>
+                </div>
+                <input
+                  id="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {tagOptions.map((tag) => {
+                    const isSelected = selectedTags.some(t => t.text === tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => handleTagToggle(tag)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium cursor-pointer ${isSelected
+                          ? "bg-blue-100 text-blue-800 border border-blue-300"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                        } transition-all duration-200`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tag Documents */}
+              {selectedTags.length > 0 && (
+                <div>
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <DocumentTextIcon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Required Documents</h3>
+                  </div>
+                  {isLoadingClient && (
+                    <div className="text-center text-gray-500 mb-2">Loading client information...</div>
+                  )}
+                  {isLoadingDocuments ? (
+                    <div className="text-center text-gray-500">Loading documents...</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {selectedTags.map(tag => (
+                        <TagDocumentUpload
+                          key={tag.text}
+                          tag={tag.text}
+                          onUpload={handleTagDocumentUpload}
+                          onRemindClient={task?._id ? handleRemindClient : null}
+                          existingDocuments={tagDocuments}
+                          clientInfo={clientInfo}
+                          isLoading={isLoadingClient || isLoadingDocuments}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+              >
+                <span className="flex items-center">
+                  {/* <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={task ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4'} />
+                  </svg> */}
+                  {task ? 'Update Task' : 'Create Task'}
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 

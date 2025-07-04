@@ -494,7 +494,7 @@ const LeaveApplication = () => {
               <motion.div  whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
-                  className="w-full group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+                  className="w-full group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
                 >
                   Submit Application
                 </Button>
@@ -595,7 +595,7 @@ const LeaveApplication = () => {
                     title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
                   >
                     <motion.div
-                      className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-700"
+                      className="h-3 rounded-full bg-blue-500"
                       initial={{ width: 0 }}
                       animate={{
                         width: `${
