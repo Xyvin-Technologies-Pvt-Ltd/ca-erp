@@ -14,10 +14,11 @@ import {
   Plus
 } from "lucide-react";
 
+
+
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const isEditMode = !!client;
-
   // Industry options for CA firm clients
   const industryOptions = [
     "IT Services",
@@ -116,10 +117,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
           onSuccess(result.data);
         }
         
-        // Auto-refresh the page/component after a short delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        
       } else {
         throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
       }
