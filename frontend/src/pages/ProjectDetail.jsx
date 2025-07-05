@@ -10,6 +10,7 @@ import { documentsApi } from "../api/documentsApi";
 import { projectsApi } from "../api";
 import ConfirmModal from "../components/settings/DeleteModal";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const statusColors = {
   completed: "bg-emerald-100 text-emerald-800",
@@ -30,6 +31,7 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
@@ -56,8 +58,6 @@ const ProjectDetail = () => {
   const [noteCurrentPage, setNoteCurrentPage] = useState(1);
   const notesPerPage = 5;
 
-  
-
   useEffect(() => {
     const loadProject = async () => {
       try {
@@ -76,6 +76,24 @@ const ProjectDetail = () => {
     loadProject();
   }, [id, reloadDocuments, reloadProject]);
 
+  const handleTabChange = async (tabName) => {
+    if (tabName === "overview") {
+      setTabLoading(true);
+      try {
+        const data = await fetchProjectById(id);
+        setProject(data.data);
+        setActiveTab(tabName);
+      } catch (err) {
+        console.error("Failed to fetch project for overview:", err);
+        setError("Failed to load overview. Please try again later.");
+      } finally {
+        setTabLoading(false);
+      }
+    } else {
+      setActiveTab(tabName);
+    }
+  };
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -83,6 +101,7 @@ const ProjectDetail = () => {
   const handleProjectUpdate = async (updatedProject) => {
     setReloadProject((prev) => !prev);
     setIsEditing(false);
+    toast.success("Project updated successfully");
   };
 
   const handleUploadSuccess = (newDocument) => {
@@ -177,6 +196,7 @@ const ProjectDetail = () => {
     try {
       setLoading(true);
       await projectsApi.updateProject(id, { deleted: true });
+      toast.success("Project deleted successfully");
       setLoading(false);
       navigate("/projects", {
         state: { message: "Project deleted successfully" },
@@ -343,7 +363,7 @@ const ProjectDetail = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10  bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
       <style>
         {`
           @keyframes fadeIn {
@@ -391,7 +411,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-5 py-2.5  bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
               <CiEdit className="w-5 h-5 mr-2 text-white" />
               Edit Project
@@ -408,7 +428,7 @@ const ProjectDetail = () => {
       </div>
 
       {/* Project header */}
-      <div className="border border-blue-100 bg-white  rounded-2xl mb-8 transform transition-all duration-500 ease-in-out ">
+      <div className="border border-blue-100 bg-white rounded-2xl mb-8 transform transition-all duration-500 ease-in-out">
         <div className="px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
@@ -470,8 +490,8 @@ const ProjectDetail = () => {
 
       {/* Tabs */}
       <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-        <div className="border-b border-gray-200 ">
-          <nav className="flex overflow-x-auto space-x-3 p-3 whitespace-nowrap ">
+        <div className="border-b border-gray-200">
+          <nav className="flex overflow-x-auto space-x-3 p-3 whitespace-nowrap">
             {[
               { name: "overview", icon: <MdInfo className="mr-2 w-5 h-5 text-grey-500" /> },
               { name: "tasks", icon: <MdTaskAlt className="mr-2 w-5 h-5 text-grey-500" /> },
@@ -481,7 +501,7 @@ const ProjectDetail = () => {
             ].map((tab) => (
               <button
                 key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
+                onClick={() => handleTabChange(tab.name)}
                 className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
                     ? "border-blue-500 text-blue-600 bg-blue-50"
@@ -495,8 +515,12 @@ const ProjectDetail = () => {
           </nav>
         </div>
 
-        <div className="p-6 ">
-          {activeTab === "overview" && (
+        <div className="p-6">
+          {activeTab === "overview" && tabLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+            </div>
+          ) : activeTab === "overview" ? (
             <div className="space-y-8 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
@@ -588,13 +612,9 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "tasks" && (
+          ) : activeTab === "tasks" ? (
             <ProjectTasks projectId={id} tasks={project.tasks} />
-          )}
-
-          {activeTab === "documents" && (
+          ) : activeTab === "documents" ? (
             <div className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -740,9 +760,7 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "notes" && (
+          ) : activeTab === "notes" ? (
             <div className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -861,9 +879,7 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "datalog" && (
+          ) : activeTab === "datalog" ? (
             <div className="animate-fade-in">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -876,7 +892,7 @@ const ProjectDetail = () => {
               </div>
               <ProjectTimeline projectId={id} />
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
