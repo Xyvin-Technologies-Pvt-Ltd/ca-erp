@@ -11,6 +11,7 @@ import { projectsApi } from "../api";
 import ConfirmModal from "../components/settings/DeleteModal";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 const statusColors = {
   completed: "bg-emerald-100 text-emerald-800",
@@ -420,7 +421,7 @@ const ProjectDetail = () => {
               onClick={() => setConfirmDelete(true)}
               className="inline-flex items-center px-5 py-2.5 bg-rose-500 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <MdDelete className="w-5 h-5 mr-2 text-white" />
+               <TrashIcon className="h-5 w-5" />
               Delete
             </button>
           </div>
@@ -689,7 +690,7 @@ const ProjectDetail = () => {
                                     className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
                                     title="Delete"
                                   >
-                                    <MdDelete className="w-5 h-5" />
+                                    <TrashIcon className="w-5 h-5" />
                                   </button>
                                 </>
                               )}
@@ -810,7 +811,7 @@ const ProjectDetail = () => {
                                 className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
                                 title="Delete"
                               >
-                                <MdDelete className="w-5 h-5" />
+                                <TrashIcon className="h-5 w-5" />
                               </button>
                             </div>
                           )}
@@ -924,7 +925,7 @@ const ProjectDetail = () => {
                 onClick={handleDeleteProject}
                 className="px-5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
-                <MdDelete className="mr-2 w-5 h-5" />
+               <TrashIcon className="h-5 w-5" />
                 Delete
               </button>
             </div>

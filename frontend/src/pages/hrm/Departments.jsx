@@ -105,7 +105,7 @@ const Departments = () => {
                     <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                        <span>Add Department</span>
+                    <span>Add Department</span>
                 </motion.button>
             </div>
 
@@ -125,7 +125,6 @@ const Departments = () => {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Get started by adding your first department.
                         </p>
-                       
                     </motion.div>
                 ) : (
                     <motion.div
@@ -143,7 +142,6 @@ const Departments = () => {
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Code</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Department Name</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Location</th>
-                                        {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th> */}
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
@@ -159,7 +157,7 @@ const Departments = () => {
                                                 transition={{ duration: 0.3, delay: index * 0.05 }}
                                                 className="hover:bg-gray-50 transition-colors duration-200"
                                             >
-                                                <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     <div className="flex items-center space-x-2">
                                                         <CodeBracketIcon className="h-5 w-5 text-blue-600 mr-1" />
                                                         {department.code}
@@ -168,7 +166,7 @@ const Departments = () => {
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     <div className="flex items-center space-x-2">
                                                         <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
-                                                    {department.name}
+                                                        {department.name}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -182,7 +180,7 @@ const Departments = () => {
                                                 </td> */}
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                     <motion.span
-                                                        className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[department.isActive]}`}
+                                                        className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[department.isActive]}`}
                                                         whileHover={{ scale: 1.05 }}
                                                     >
                                                         {department.isActive ? (
@@ -270,7 +268,7 @@ const Departments = () => {
                                 </motion.button>
                                 <motion.button
                                     onClick={confirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300 "
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
