@@ -8,45 +8,118 @@ import { Card, StatusBadge, Avatar, StatIcon } from "../ui";
 import { projectsApi, clientsApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { fetchDashboardData } from "../api/dashboard";
+import { getEvents, getEvent } from "../api/events.api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  UserIcon,
+  SunIcon,
+  MoonIcon,
+  CalendarDaysIcon,
+} from "@heroicons/react/24/outline";
+import Modal from "react-modal";
+import { Calendar, CheckCircle, ChevronLeft, ChevronRight, Clock, IndianRupee, MapPin, Play, User } from "lucide-react";
+
+Modal.setAppElement('#root');
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-rose-600 text-center p-6">
+          <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p>Something went wrong with the calendar. Please try again later.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Status colors for events (customized based on event status)
+const statusColors = {
+  upcoming: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
+  ongoing: { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200", icon: ClockIcon },
+  completed: { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200", icon: CalendarDaysIcon },
+  cancelled: { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200", icon: XCircleIcon },
+};
+
+// Utility functions for calendar
+function getMonthRange(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return {
+    startDate: start.toISOString().split("T")[0],
+    endDate: end.toISOString().split("T")[0],
+  };
+}
+
+function getDaysInMonth(year, month) {
+  const days = [];
+  const date = new Date(year, month, 1);
+  while (date.getMonth() === month) {
+    days.push(new Date(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return days;
+}
 
 const StatCard = ({ title, value, change, iconType, color }) => {
   const isPositive = change >= 0;
   const changeClass = isPositive ? "text-emerald-600" : "text-rose-600";
   const changeIcon = isPositive ? (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
   ) : (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-      />
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
     </svg>
   );
+
+  const titleIcons = {
+    "Total Projects": (
+      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      </svg>
+    ),
+    "Active Tasks": (
+      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    ),
+    "Team Members": (
+      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+    "Revenue": (
+      <IndianRupee className="w-6 h-6 text-yellow-600" />
+    ),
+  };
 
   return (
     <div className="group bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300 hover:transform hover:-translate-y-1">
       <div className="flex justify-between items-center">
         <div className="flex-1">
-          <p className="text-sm font-medium text-slate-600 mb-1">{title}</p>
+          <div className="flex items-center space-x-2 mb-1">
+            {titleIcons[title]}
+            <p className="text-sm font-medium text-slate-600">{title}</p>
+          </div>
           <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-200">{value}</p>
           {change !== null && (
             <div className={`flex items-center ${changeClass}`}>
@@ -60,11 +133,6 @@ const StatCard = ({ title, value, change, iconType, color }) => {
               </span>
             </div>
           )}
-        </div>
-        <div className={`p-4 rounded-xl ${color} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          <div className="text-current opacity-80 group-hover:opacity-100 transition-opacity duration-200">
-            {iconType}
-          </div>
         </div>
       </div>
     </div>
@@ -591,8 +659,8 @@ const UpcomingDeadlines = ({ projects }) => {
                 }`}
               >
                 Next
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
@@ -606,8 +674,565 @@ const UpcomingDeadlines = ({ projects }) => {
     </div>
   );
 };
+
+const eventStatusColors = {
+  upcoming: {
+    bg: 'bg-blue-50 hover:bg-blue-100',
+    border: 'border-blue-200',
+    text: 'text-blue-700',
+    icon: Clock,
+    gradient: 'from-blue-400 to-blue-600',
+    dot: 'bg-blue-500',
+    statusBg: 'bg-blue-100',
+    statusText: 'text-blue-800'
+  },
+  ongoing: {
+    bg: 'bg-emerald-50 hover:bg-emerald-100',
+    border: 'border-emerald-200',
+    text: 'text-emerald-700',
+    icon: Play,
+    gradient: 'from-emerald-400 to-emerald-600',
+    dot: 'bg-emerald-500',
+    statusBg: 'bg-emerald-100',
+    statusText: 'text-emerald-800'
+  },
+  completed: {
+    bg: 'bg-gray-50 hover:bg-gray-100',
+    border: 'border-gray-200',
+    text: 'text-gray-700',
+    icon: CheckCircle,
+    gradient: 'from-gray-400 to-gray-600',
+    dot: 'bg-gray-500',
+    statusBg: 'bg-gray-100',
+    statusText: 'text-gray-800'
+  }
+};
+
+const priorityColors = {
+  high: 'bg-red-500',
+  medium: 'bg-yellow-500',
+  low: 'bg-green-500'
+};
+
+
+
+const EventCalendar = () => {
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Helper function to get local date string (YYYY-MM-DD)
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to get today's date string
+  const getTodayString = () => {
+    return getLocalDateString(new Date());
+  };
+
+  const { data: eventsData, isLoading, error } = useQuery({
+    queryKey: ['events', selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split("-");
+      const range = getMonthRange(new Date(year, month - 1));
+      const response = await getEvents({ ...range });
+      console.log('getEvents response:', response);
+      return response;
+    },
+  });
+
+  const handleDateClick = async (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    const clickedDate = new Date(year, month - 1, day);
+    setSelectedDate(clickedDate);
+    
+    try {
+      const eventResponse = await getEvent(dateStr);
+      console.log('getEvent response for', dateStr, ':', eventResponse);
+      const fetchedEvents = eventResponse?.data?.events || [];
+      setSelectedEvents(fetchedEvents);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching events for date:', dateStr, err);
+      const fallbackEvents = eventsData?.data?.filter(event => {
+        try {
+          if (!event.startDate) return false;
+          
+          const startDate = new Date(event.startDate);
+          const endDate = event.endDate ? new Date(event.endDate) : startDate;
+          
+          const actualStartDate = startDate <= endDate ? startDate : endDate;
+          const actualEndDate = startDate <= endDate ? endDate : startDate;
+          
+          const clickedDate = new Date(dateStr);
+          return clickedDate >= actualStartDate && clickedDate <= actualEndDate;
+        } catch (error) {
+          console.warn('Invalid event date in fallback:', event, error);
+          return false;
+        }
+      }) || [];
+      console.log('Fallback events for', dateStr, ':', fallbackEvents);
+      setSelectedEvents(fallbackEvents);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvents([]);
+    setSelectedDate(null);
+  };
+
+  const eventsByDate = {};
+  eventsData?.data?.forEach((event) => {
+    try {
+      if (event.startDate) {
+        const startDate = new Date(event.startDate);
+        const endDate = event.endDate ? new Date(event.endDate) : startDate;
+        
+        const actualStartDate = startDate <= endDate ? startDate : endDate;
+        const actualEndDate = startDate <= endDate ? endDate : startDate;
+        
+        const currentDate = new Date(actualStartDate);
+        while (currentDate <= actualEndDate) {
+          const dateStr = getLocalDateString(currentDate);
+          if (!eventsByDate[dateStr]) {
+            eventsByDate[dateStr] = [];
+          }
+          eventsByDate[dateStr].push(event);
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    } catch (err) {
+      console.warn('Invalid event date:', event, err);
+    }
+  });
+  console.log('Events by date:', eventsByDate);
+
+  const [year, month] = selectedMonth.split("-");
+  const days = getDaysInMonth(Number(year), Number(month) - 1);
+  const firstDayOfWeek = days[0].getDay();
+  const eventDays = days.filter((day) => eventsByDate[getLocalDateString(day)]);
+
+  const todayStr = getTodayString();
+
+  return (
+    <ErrorBoundary>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-500 backdrop-blur-sm"
+      >
+        {/* Header with enhanced controls */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-6"
+        >
+          {/* Title Section */}
+          <div className="flex items-center space-x-4">
+            <motion.div
+              className="p-3 bg-blue-500 rounded-xl shadow-lg"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Calendar className="h-8 w-8 text-white" />
+            </motion.div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Events Calendar</h2>
+              <p className="text-sm text-gray-500 mt-1">Manage your upcoming events</p>
+            </div>
+          </div>
+
+          {/* Controls Section */}
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+            {/* Month Navigation */}
+            <div className="flex items-center space-x-2 bg-gray-50 rounded-xl p-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => {
+                  const date = new Date(selectedMonth);
+                  date.setMonth(date.getMonth() - 1);
+                  setSelectedMonth(date.toISOString().slice(0, 7));
+                }}
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </motion.button>
+              
+              <motion.input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="border-0 bg-transparent text-center font-semibold text-gray-900 focus:outline-none focus:ring-0 min-w-[140px]"
+                whileFocus={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              />
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => {
+                  const date = new Date(selectedMonth);
+                  date.setMonth(date.getMonth() + 1);
+                  setSelectedMonth(date.toISOString().slice(0, 7));
+                }}
+              >
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </motion.button>
+            </div>
+
+            {/* Status Legend */}
+            <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3">
+              {Object.entries(eventStatusColors).map(([status, colors]) => {
+                const Icon = colors.icon;
+                return (
+                  <div key={status} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${colors.dot}`}></div>
+                    <Icon className={`h-4 w-4 ${colors.text}`} />
+                    <span className="text-sm font-medium capitalize text-gray-700">{status}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Calendar Content */}
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="animate-pulse"
+          >
+            <div className="h-6 bg-gray-200 rounded-lg w-1/3 mb-6"></div>
+            <div className="grid grid-cols-7 gap-3">
+              {Array.from({ length: 42 }, (_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </motion.div>
+        ) : error ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12"
+          >
+            <div className="w-16 h-16 mx-auto mb-4 bg-rose-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-rose-600 font-medium">Error loading events</p>
+            <p className="text-gray-500 text-sm mt-2">Please try refreshing the page</p>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-3">
+              {/* Day Headers */}
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                <motion.div
+                  key={day}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="text-center font-bold text-gray-700 text-sm py-3 bg-gray-50 rounded-xl"
+                >
+                  {day}
+                </motion.div>
+              ))}
+              
+              {/* Empty cells for days before month start */}
+              {Array.from({ length: firstDayOfWeek }, (_, i) => (
+                <div key={`empty-${i}`} className="h-24"></div>
+              ))}
+              
+              {/* Calendar Days */}
+              <AnimatePresence mode="wait">
+                {days.map((day, index) => {
+                  const dateStr = getLocalDateString(day);
+                  const events = eventsByDate[dateStr] || [];
+                  const firstEvent = events[0];
+                  const isToday = dateStr === todayStr;
+                  const hasMultipleEvents = events.length > 1;
+                  
+                  // Group events by status for better display
+                  const eventsByStatus = events.reduce((acc, event) => {
+                    if (!acc[event.status]) acc[event.status] = [];
+                    acc[event.status].push(event);
+                    return acc;
+                  }, {});
+                  
+                  return (
+                    <motion.div
+                      key={dateStr}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.02,
+                        type: "spring",
+                        stiffness: 300 
+                      }}
+                      className={`relative rounded-2xl p-3 h-24 flex flex-col justify-between group cursor-pointer overflow-hidden ${
+                        isToday 
+                          ? 'bg-blue-500 text-white shadow-lg ring-2 ring-indigo-200' 
+                          : firstEvent 
+                            ? `${eventStatusColors[firstEvent.status]?.bg} border-2 ${eventStatusColors[firstEvent.status]?.border}` 
+                            : "bg-gray-50 border-2 border-gray-100 hover:border-gray-200"
+                      } transition-all duration-300`}
+                      whileHover={{ 
+                        scale: 1.05, 
+                        y: -2,
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)"
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleDateClick(dateStr)}
+                    >
+                      {/* Priority indicator */}
+                      {firstEvent?.priority && (
+                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${priorityColors[firstEvent.priority]}`} />
+                      )}
+                      
+                      {/* Day number */}
+                      <motion.span 
+                        className={`font-bold text-lg ${
+                          isToday 
+                            ? 'text-white' 
+                            : firstEvent 
+                              ? eventStatusColors[firstEvent.status]?.text 
+                              : 'text-gray-900'
+                        }`}
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        {day.getDate()}
+                      </motion.span>
+                      
+                      {/* Event indicators with status */}
+                      <div className="flex flex-col gap-1 mt-1">
+                        {Object.entries(eventsByStatus).slice(0, 2).map(([status, statusEvents]) => {
+                          const Icon = eventStatusColors[status]?.icon;
+                          return (
+                            <motion.div
+                              key={status}
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ delay: 0.1 }}
+                              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                                isToday 
+                                  ? 'bg-white/20 text-white' 
+                                  : `${eventStatusColors[status]?.statusBg} ${eventStatusColors[status]?.statusText}`
+                              }`}
+                            >
+                              <Icon className="h-3 w-3" />
+                              <span className="capitalize">{status}</span>
+                              {statusEvents.length > 1 && (
+                                <span className="ml-1 text-xs">({statusEvents.length})</span>
+                              )}
+                            </motion.div>
+                          );
+                        })}
+                        
+                        {/* Show additional events indicator */}
+                        {Object.keys(eventsByStatus).length > 2 && (
+                          <div className={`text-xs px-2 py-1 rounded-md ${
+                            isToday 
+                              ? 'bg-white/20 text-white' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            +{Object.keys(eventsByStatus).length - 2} more
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Hover overlay */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        initial={false}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={closeModal}
+          className="bg-white rounded-2xl shadow-2xl p-0 max-w-4xl mx-auto mt-20 max-h-[80vh] overflow-hidden"
+          overlayClassName="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="relative"
+          >
+            {/* Modal Header */}
+            <div className="bg-blue-600 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {selectedDate?.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </h2>
+                  <p className="text-indigo-100 mt-1">
+                    {selectedEvents.length} {selectedEvents.length === 1 ? 'event' : 'events'} scheduled
+                  </p>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={closeModal}
+                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {selectedEvents.length > 0 ? (
+                <div className="space-y-6">
+                  {selectedEvents.map((event, index) => {
+                    const StatusIcon = eventStatusColors[event.status]?.icon;
+                    return (
+                      <motion.div
+                        key={event._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className={`p-6 rounded-2xl border-2 ${eventStatusColors[event.status]?.bg} ${eventStatusColors[event.status]?.border} hover:shadow-lg transition-all duration-300 relative overflow-hidden`}
+                      >
+                        {/* Background gradient for visual appeal */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${eventStatusColors[event.status]?.gradient} opacity-5`}></div>
+                        
+                        {/* Event Header */}
+                        <div className="flex items-start justify-between mb-4 relative z-10">
+                          <div className="flex items-center gap-3">
+                            {StatusIcon && (
+                              <div className={`p-3 rounded-xl bg-gradient-to-br ${eventStatusColors[event.status]?.gradient} shadow-lg`}>
+                                <StatusIcon className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900">{event.title}</h3>
+                              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${eventStatusColors[event.status]?.statusBg} ${eventStatusColors[event.status]?.statusText} border-2 ${eventStatusColors[event.status]?.border} mt-2`}>
+                                <div className={`w-2 h-2 rounded-full ${eventStatusColors[event.status]?.dot}`}></div>
+                                {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+                          {event.priority && (
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full ${priorityColors[event.priority]}`} />
+                              <span className="text-sm font-medium text-gray-600 capitalize">{event.priority}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Event Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Description</p>
+                              <p className="text-gray-900">{event.description || 'No description available'}</p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Date Range</p>
+                              <p className="text-gray-900 flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(event.startDate).toLocaleDateString()}
+                                {event.endDate && event.endDate !== event.startDate && 
+                                  ` - ${new Date(event.endDate).toLocaleDateString()}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Created By</p>
+                              <p className="text-gray-900 flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                {event.createdBy?.name || 'Unknown'}
+                              </p>
+                            </div>
+                            
+                            {event.location && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-600 mb-1">Location</p>
+                                <p className="text-gray-900 flex items-center gap-2">
+                                  <MapPin className="h-4 w-4" />
+                                  {event.location}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-lg">No events scheduled for this date</p>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 p-6 rounded-b-2xl flex justify-end gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={closeModal}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+              >
+                Close
+              </motion.button>
+            </div>
+          </motion.div>
+        </Modal>
+      </motion.div>
+    </ErrorBoundary>
+  );
+};
+
 const Dashboard = () => {
-  const { user,role } = useAuth();
+  const { user, role } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     clients: { count: 0, change: 0 },
@@ -618,7 +1243,6 @@ const Dashboard = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [complianceTasks, setComplianceTasks] = useState([]);
 
-  // Get logged-in user id from localStorage
   let userId = undefined;
   try {
     const userData = JSON.parse(localStorage.getItem('userData'));
@@ -634,219 +1258,8 @@ const Dashboard = () => {
   } = useQuery({
     queryKey: ["dashboardData", userId],
     queryFn: () => fetchDashboardData(userId),
-    // Sample data for testing
-    initialData: {
-      stats: {
-        totalProjects: {
-          value: 12,
-          change: 8.5,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              />
-            </svg>
-          ),
-          color: "bg-blue-100",
-        },
-        activeTasks: {
-          value: 48,
-          change: 12.3,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-          ),
-          color: "bg-green-100",
-        },
-        teamMembers: {
-          value: 16,
-          change: 0,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-purple-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-          ),
-          color: "bg-purple-100",
-        },
-        revenue: {
-          value: "$24,500",
-          change: -2.7,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-yellow-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          ),
-          color: "bg-yellow-100",
-        },
-      },
-      projects: [
-        {
-          id: "1",
-          name: "Website Redesign",
-          status: "On Track",
-          progress: 75,
-          dueDate: "Aug 20, 2023",
-        },
-        {
-          id: "2",
-          name: "Mobile App Development",
-          status: "At Risk",
-          progress: 45,
-          dueDate: "Sep 15, 2023",
-        },
-        {
-          id: "3",
-          name: "Database Migration",
-          status: "Delayed",
-          progress: 30,
-          dueDate: "Jul 30, 2023",
-        },
-      ],
-      tasks: [
-        {
-          id: "1",
-          title: "Design Homepage",
-          status: "In Progress",
-          assignee: "John Doe",
-        },
-        {
-          id: "2",
-          title: "API Integration",
-          status: "In Progress",
-          assignee: "Jane Smith",
-        },
-        {
-          id: "3",
-          title: "User Testing",
-          status: "Pending",
-          assignee: "Mike Johnson",
-        },
-        {
-          id: "4",
-          title: "Documentation",
-          status: "Completed",
-          assignee: "Sarah Williams",
-        },
-        {
-          id: "5",
-          title: "Bug Fixes",
-          status: "Review",
-          assignee: "Alex Brown",
-        },
-        {
-          id: "6",
-          title: "Performance Testing",
-          status: "Pending",
-          assignee: "Lisa Green",
-        },
-        {
-          id: "7",
-          title: "Security Audit",
-          status: "Completed",
-          assignee: "Tom Wilson",
-        },
-      ],
-      activities: [
-        {
-          id: "1",
-          type: "task",
-          user: "John Doe",
-          action: 'completed "Design Homepage" task',
-          time: "2 hours ago",
-        },
-        {
-          id: "2",
-          type: "comment",
-          user: "Jane Smith",
-          action: 'commented on "API Integration" task',
-          time: "4 hours ago",
-        },
-        {
-          id: "3",
-          type: "project",
-          user: "Mike Johnson",
-          action: 'created "Mobile App" project',
-          time: "1 day ago",
-        },
-        {
-          id: "4",
-          type: "task",
-          user: "Sarah Williams",
-          action: 'assigned "Bug Fixes" to Alex',
-          time: "2 days ago",
-        },
-      ],
-      deadlines: [
-        {
-          id: "1",
-          title: "Complete API Documentation",
-          date: "Jul 28, 2023",
-          daysLeft: 0,
-          project: "Website Redesign",
-          projectId: "1",
-        },
-        {
-          id: "2",
-          title: "User Testing Phase 1",
-          date: "Jul 30, 2023",
-          daysLeft: 2,
-          project: "Mobile App Development",
-          projectId: "2",
-        },
-        {
-          id: "3",
-          title: "Server Migration",
-          date: "Aug 05, 2023",
-          daysLeft: 8,
-          project: "Database Migration",
-          projectId: "3",
-        },
-      ],
-    },
   });
 
-  if (dashboardLoading) {
-    return <div>Loading...</div>; 
-  }
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -863,7 +1276,7 @@ const Dashboard = () => {
     fetchData();
   }, [userId]);
 
-  if (isLoading) {
+  if (isLoading || dashboardLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -918,7 +1331,6 @@ const Dashboard = () => {
         </p>
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Projects"
@@ -941,29 +1353,23 @@ const Dashboard = () => {
           iconType={dashboardStats.teamMembers.iconType}
           color={dashboardStats.teamMembers.color}
         />
-       
-              <StatCard
-                title="Revenue"
-                value={dashboardStats.revenue.value}
-                change={dashboardStats.revenue.change}
-                iconType={dashboardStats.revenue.iconType}
-                color={dashboardStats.revenue.color}
-              />
-        </div>
+        <StatCard
+          title="Revenue"
+          value={dashboardStats.revenue.value}
+          change={dashboardStats.revenue.change}
+          iconType={dashboardStats.revenue.iconType}
+          color={dashboardStats.revenue.color}
+        />
+      </div>
 
-
-      {/* Project progress and Task summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div>
           <h2 className="text-lg font-medium mb-4">Project Progress</h2>
-
           {projects.length > 0 ? (
             <>
-              {projects.slice(0,3).map((project) => (
+              {projects.slice(0, 3).map((project) => (
                 <ProjectProgress key={project.id} project={project} />
               ))}
-
-              {/* only show link when there actually are projects */}
               <div className="text-center mt-4">
                 <Link
                   to={ROUTES.PROJECTS}
@@ -974,25 +1380,24 @@ const Dashboard = () => {
               </div>
             </>
           ) : (
-          <div className="bg-white p-6 rounded-lg shadow text-center">
-            <p className="text-gray-500 italic">
-              No projects available.
-            </p>
-          </div>
-        )}
+            <div className="bg-white p-6 rounded-lg shadow text-center">
+              <p className="text-gray-500 italic">No projects available.</p>
+            </div>
+          )}
         </div>
-
         <TaskSummary tasks={tasks} />
       </div>
 
-
-
-      {/* Recent Activity and Upcoming Deadlines */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <RecentActivity activities={activities} />
         <UpcomingDeadlines projects={projects} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <EventCalendar />
       </div>
     </div>
   );
 };
+
 export default Dashboard;

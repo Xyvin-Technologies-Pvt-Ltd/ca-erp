@@ -602,8 +602,14 @@ const Documents = () => {
 
         {/* Enhanced Upload Modal */}
         {showUploadModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowUploadModal(false)}
+          >
+            <div 
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
@@ -623,27 +629,31 @@ const Documents = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select File
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
+                    <div 
+                      className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('fileInput').click()}
+                    >
                       <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <div className="space-y-2">
-                        <label className="text-sm text-gray-600 cursor-pointer">
+                        <div className="text-sm text-gray-600">
                           <span className="text-blue-600 hover:text-blue-700 font-medium">
                             Click to upload
                           </span>
                           {" or drag and drop"}
-                          <input
-                            type="file"
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept=".pdf,.docx,.xlsx,.pptx"
-                            required
-                          />
-                        </label>
+                        </div>
                         <p className="text-xs text-gray-500">
                           PDF, Word, Excel, PowerPoint up to 10MB
                         </p>
                       </div>
                     </div>
+                    <input
+                      id="fileInput"
+                      type="file"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept=".pdf,.docx,.xlsx,.pptx"
+                      required
+                    />
                     {file && (
                       <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                         <p className="text-sm text-blue-800 font-medium">Selected: {file.name}</p>
@@ -695,7 +705,7 @@ const Documents = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-500 to-blue-700 text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="px-6 py-2 bg-blue-500 to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       Upload Document
                     </button>
