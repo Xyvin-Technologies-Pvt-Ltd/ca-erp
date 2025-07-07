@@ -617,39 +617,39 @@ const ProjectDetail = () => {
                     Team Members
                   </h3>
                 <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
-  {project.team?.length > 0 ? (
-    <ul className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${project.team.length >= 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-      {project.team.map((member) => (
-        <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
-          <div className="flex-shrink-0">
-            {member.avatar ? (
-              <img
-                src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
-                alt={member.name}
-                className="h-10 w-10 rounded-full border border-gray-200"
-              />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">
-                {member.name.charAt(0)}
-              </div>
-            )}
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-900">{member.name}</p>
-            <p className="text-xs text-gray-600">{member.role}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p className="text-sm text-gray-600 flex items-center">
-      <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
-      </svg>
-      No team members assigned to this project yet.
-    </p>
-  )}
-</div>
+                    {project.team?.length > 0 ? (
+                      <ul className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${project.team.length >= 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {project.team.map((member) => (
+                          <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
+                            <div className="flex-shrink-0">
+                              {member.avatar ? (
+                                <img
+                                  src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
+                                  alt={member.name}
+                                  className="h-10 w-10 rounded-full border border-gray-200"
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">
+                                  {member.name.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              <p className="text-sm font-medium text-gray-900">{member.name}</p>
+                              <p className="text-xs text-gray-600">{member.role}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-600 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
+                        </svg>
+                        No team members assigned to this project yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
