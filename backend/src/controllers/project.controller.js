@@ -66,8 +66,7 @@ exports.getProjects = async (req, res, next) => {
         let query = Project.find(filter)
             .sort(sort)
             .populate({
-                path: 'client',
-                select: 'name contactName contactEmail contactPhone'
+                path: 'client'
             })
             .populate({
                 path: 'assignedTo',
@@ -219,8 +218,7 @@ exports.getProject = async (req, res, next) => {
     try {
         const project = await Project.findById(req.params.id)
             .populate({
-                path: 'client',
-                select: 'name contactName contactEmail contactPhone'
+                path: 'client'
             })
             .populate({
                 path: 'assignedTo',

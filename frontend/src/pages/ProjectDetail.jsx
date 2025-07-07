@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete, MdUpload, MdNoteAdd, MdTimeline, MdInfo, MdTaskAlt, MdFolder, MdNote } from "react-icons/md";
@@ -26,6 +26,49 @@ const priorityColors = {
   medium: "bg-orange-100 text-orange-800",
   low: "bg-emerald-100 text-emerald-800",
 };
+
+function ClientDropdown({ client }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    if (open) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+  if (!client) return <span>Client: N/A</span>;
+  return (
+    <span className="relative" ref={ref}>
+      <button
+        className="text-blue-700 font-semibold hover:underline focus:outline-none"
+        onClick={() => setOpen((v) => !v)}
+      >
+        Client: {client.name}
+        <svg className="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-4 animate-fade-in">
+          <h4 className="text-lg font-bold text-gray-900 mb-2">Client Details</h4>
+          <div className="space-y-2">
+            <div><span className="font-medium text-gray-600">Name:</span> {client.name || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">Contact Person:</span> {client.contactName || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">Contact Number:</span> {client.contactPhone || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">Email:</span> {client.contactEmail || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">Industry:</span> {client.industry || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">GSTIN:</span> {client.gstin || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">PAN:</span> {client.pan || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">CIN:</span> {client.cin || 'N/A'}</div>
+            <div><span className="font-medium text-gray-600">Currency Format:</span> {client.currencyFormat || 'N/A'}</div>
+          </div>
+        </div>
+      )}
+    </span>
+  );
+}
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -442,7 +485,7 @@ const ProjectDetail = () => {
                   <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                   <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                 </svg>
-                Client: {project.client?.name}
+                <ClientDropdown client={project.client} />
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

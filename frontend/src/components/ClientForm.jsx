@@ -53,27 +53,57 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       contactPhone: "",
       industry: "",
       status: "active",
-      address: "",
-      website: "",
+      country: "",
+      state: "",
+      city: "",
+      pin: "",
       gstin: "",
       pan: "",
+      cin: "",
+      currencyFormat: "",
       notes: "",
     },
   });
 
   // Watch address and notes for character counting
-  const addressValue = watch("address");
+  const countryValue = watch("country");
   const notesValue = watch("notes");
+  const currencyValue = watch("currencyFormat");
 
   // Define max character limits
   const maxAddressLength = 200;
   const maxNotesLength = 500;
+
+  // Currency auto-fill map
+  const countryCurrencyMap = {
+    India: "INR",
+    USA: "USD",
+    "United States": "USD",
+    "United Kingdom": "GBP",
+    UK: "GBP",
+    Canada: "CAD",
+    Australia: "AUD",
+    Germany: "EUR",
+    France: "EUR",
+    Japan: "JPY",
+    China: "CNY",
+    // Add more as needed
+  };
 
   useEffect(() => {
     if (client) {
       reset(client);
     }
   }, [client, reset]);
+
+  useEffect(() => {
+    // Auto-fill currency format when country changes
+    const currency = countryCurrencyMap[countryValue] || "";
+    if (currency && currency !== currencyValue) {
+      reset({ ...watch(), currencyFormat: currency });
+    }
+    // eslint-disable-next-line
+  }, [countryValue]);
 
   const onSubmit = async (formData) => {
     setLoading(true);
@@ -334,6 +364,53 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
+
+                {/* Address Subsection */}
+                <div className="md:col-span-2 mt-6">
+                  <h4 className="text-md font-semibold text-gray-800 mb-2">Address</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Country */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                      <input
+                        type="text"
+                        {...register("country")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. India"
+                      />
+                    </div>
+                    {/* State */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                      <input
+                        type="text"
+                        {...register("state")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. Maharashtra"
+                      />
+                    </div>
+                    {/* City */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                      <input
+                        type="text"
+                        {...register("city")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. Mumbai"
+                      />
+                    </div>
+                    {/* Pin */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN</label>
+                      <input
+                        type="text"
+                        {...register("pin")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. 400021"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -349,9 +426,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* GSTIN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    GSTIN
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">GSTIN</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -377,12 +452,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
-
                 {/* PAN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    PAN
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">PAN</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -408,6 +480,27 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
+                {/* CIN */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">CIN</label>
+                  <input
+                    type="text"
+                    {...register("cin")}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    placeholder="e.g. L12345MH2000PLC123456"
+                  />
+                </div>
+                {/* Currency Format */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Currency Format</label>
+                  <input
+                    type="text"
+                    {...register("currencyFormat")}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    placeholder="e.g. INR"
+                    readOnly={!!countryCurrencyMap[countryValue]}
+                  />
+                </div>
               </div>
             </div>
 
@@ -421,26 +514,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               </div>
 
               <div className="space-y-6">
-                {/* Address */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Address
-                  </label>
-                  <textarea
-                    {...register("address")}
-                    rows="3"
-                    maxLength={maxAddressLength}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none hover:border-gray-400"
-                    placeholder="Enter complete address"
-                  ></textarea>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-sm text-gray-500">Complete business address</p>
-                    <p className={`text-sm ${(addressValue?.length || 0) > maxAddressLength * 0.8 ? 'text-amber-600' : 'text-gray-500'}`}>
-                      {addressValue?.length || 0}/{maxAddressLength}
-                    </p>
-                  </div>
-                </div>
-
                 {/* Notes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">

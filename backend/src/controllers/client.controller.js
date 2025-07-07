@@ -114,20 +114,27 @@ exports.getClient = async (req, res, next) => {
  */
 exports.createClient = async (req, res, next) => {
     try {
-        // Add user to req.body
-        req.body.createdBy = req.user.id;
-
+        // DEBUG: Log incoming body
+        console.log('CreateClient req.body:', req.body);
+        // Accept new address and tax fields
+        const allowedFields = [
+            'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
+            'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'createdBy'
+        ];
+        const clientData = {};
+        allowedFields.forEach(field => {
+            // Always assign, even if empty string or null
+            clientData[field] = req.body[field] !== undefined ? req.body[field] : '';
+        });
+        clientData.createdBy = req.user.id;
         // Check if client with same name already exists
-        const existingClient = await Client.findOne({ name: req.body.name });
+        const existingClient = await Client.findOne({ name: clientData.name });
         if (existingClient) {
-            return next(new ErrorResponse(`Client with name ${req.body.name} already exists`, 400));
+            return next(new ErrorResponse(`Client with name ${clientData.name} already exists`, 400));
         }
-
-        const client = await Client.create(req.body);
-
+        const client = await Client.create(clientData);
         // Log the client creation
         logger.info(`Client created: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
-
         res.status(201).json({
             success: true,
             data: client,
@@ -145,27 +152,34 @@ exports.createClient = async (req, res, next) => {
 exports.updateClient = async (req, res, next) => {
     try {
         let client = await Client.findById(req.params.id);
-
         if (!client) {
             return next(new ErrorResponse(`Client not found with id of ${req.params.id}`, 404));
         }
-
+        // DEBUG: Log incoming body
+        console.log('UpdateClient req.body:', req.body);
+        // Accept new address and tax fields for update
+        const allowedFields = [
+            'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
+            'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat'
+        ];
+        const updateData = {};
+        allowedFields.forEach(field => {
+            // Always assign, even if empty string or null
+            updateData[field] = req.body[field] !== undefined ? req.body[field] : '';
+        });
         // If name is being updated, check if it already exists
-        if (req.body.name && req.body.name !== client.name) {
-            const existingClient = await Client.findOne({ name: req.body.name });
+        if (updateData.name && updateData.name !== client.name) {
+            const existingClient = await Client.findOne({ name: updateData.name });
             if (existingClient) {
-                return next(new ErrorResponse(`Client with name ${req.body.name} already exists`, 400));
+                return next(new ErrorResponse(`Client with name ${updateData.name} already exists`, 400));
             }
         }
-
-        client = await Client.findByIdAndUpdate(req.params.id, req.body, {
+        client = await Client.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true,
         });
-
         // Log the client update
         logger.info(`Client updated: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
-
         res.status(200).json({
             success: true,
             data: client,
