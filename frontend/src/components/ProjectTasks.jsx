@@ -5,6 +5,8 @@ import CreateTaskModal from "./CreateTaskModal";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete } from "react-icons/md";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -76,6 +78,7 @@ const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated }) => {
     try {
       await updateTask(taskToDelete.id, { deleted: true });
       setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id));
+      toast.success("Project deleted successfully");
     } catch (err) {
       console.error("Failed to delete task:", err);
       setError("Failed to delete task. Please try again.");
@@ -132,32 +135,43 @@ const goToPrevTaskPage = () => {
 
   return (
     <div className="bg-white rounded-lg shadow">
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+          }
+        `}
+      </style>
       <div className="flex justify-between items-center p-6 border-b">
         <h2 className="text-xl font-semibold">Project Tasks</h2>
-        {tasks.length > 0 && role != "staff" ?(
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Add Task
-        </button>
-         ) :([])}
+        {tasks.length > 0 && role !== "staff" ? (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Add Task
+          </button>
+        ) : null}
       </div>
 
       {tasks.length === 0 ? (
-        <div className="p-6 text-center text-gray-500">
+        <div className="p-6 text-center text-gray-500 animate-fade-in" key={`empty-${reload}`}>
           <p>No tasks found for this project.</p>
-          { role != 'staff' && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Create First Task
-          </button>
+          {role !== "staff" && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Create First Task
+            </button>
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto animate-fade-in" key={`tasks-${reload}-${taskCurrentPage}`}>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -167,7 +181,7 @@ const goToPrevTaskPage = () => {
                   "Priority",
                   "Assigned To",
                   "Due Date",
-                  "Amount"
+                  "Amount",
                 ]
                   .concat(role !== "staff" ? ["Actions"] : [])
                   .map((head) => (
@@ -242,28 +256,26 @@ const goToPrevTaskPage = () => {
                     {new Date(task.dueDate).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {task.amount !== undefined ? `₹${task.amount}` : '-'}
+                    {task.amount !== undefined ? `₹${task.amount}` : "-"}
                   </td>
-                  { role != 'staff' && (
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    
-                    <div className="flex space-x-2">     
-                      <button
-                        onClick={() => handleEditTask(task)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <CiEdit size={20} />
-                      </button>
-                      <button
-                        onClick={() => confirmDeleteTask(task)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <MdDelete size={20} />
-                      </button>
-                    </div>
-                  </td>
-                )}
-
+                  {role !== "staff" && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEditTask(task)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <CiEdit size={20} />
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteTask(task)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                         <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -272,64 +284,64 @@ const goToPrevTaskPage = () => {
       )}
 
       {totalTaskPages > 1 && (
-  <div className="flex justify-between items-center px-6 py-4 border-t">
-    <button
-      onClick={goToPrevTaskPage}
-      disabled={taskCurrentPage === 1}
-      className={`flex items-center text-sm font-medium ${
-        taskCurrentPage === 1
-          ? "text-gray-400 cursor-not-allowed"
-          : "text-blue-600 hover:text-blue-800"
-      }`}
-    >
-      <svg
-        className="w-5 h-5 mr-1"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M15 19l-7-7 7-7"
-        ></path>
-      </svg>
-      Previous
-    </button>
+        <div className="flex justify-between items-center px-6 py-4 border-t">
+          <button
+            onClick={goToPrevTaskPage}
+            disabled={taskCurrentPage === 1}
+            className={`flex items-center text-sm font-medium ${
+              taskCurrentPage === 1
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-blue-600 hover:text-blue-800"
+            }`}
+          >
+            <svg
+              className="w-5 h-5 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 19l-7-7 7-7"
+              ></path>
+            </svg>
+            Previous
+          </button>
 
-    <span className="text-sm text-gray-600">
-      Page {taskCurrentPage} of {totalTaskPages}
-    </span>
+          <span className="text-sm text-gray-600">
+            Page {taskCurrentPage} of {totalTaskPages}
+          </span>
 
-    <button
-      onClick={goToNextTaskPage}
-      disabled={taskCurrentPage === totalTaskPages}
-      className={`flex items-center text-sm font-medium ${
-        taskCurrentPage === totalTaskPages
-          ? "text-gray-400 cursor-not-allowed"
-          : "text-blue-600 hover:text-blue-800"
-      }`}
-    >
-      Next
-      <svg
-        className="w-5 h-5 ml-1"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M9 5l7 7-7 7"
-        ></path>
-      </svg>
-    </button>
-  </div>
-)}
+          <button
+            onClick={goToNextTaskPage}
+            disabled={taskCurrentPage === totalTaskPages}
+            className={`flex items-center text-sm font-medium ${
+              taskCurrentPage === totalTaskPages
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-blue-600 hover:text-blue-800"
+            }`}
+          >
+            Next
+            <svg
+              className="w-5 h-5 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5l7 7-7 7"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      )}
 
       <CreateTaskModal
         isOpen={isModalOpen}

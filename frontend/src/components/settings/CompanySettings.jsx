@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import api from "../../api/axios";
 import {
@@ -20,16 +20,28 @@ import {
   Camera,
   Save
 } from "lucide-react";
+import countryCurrency from "../../api/countryCurrency.json";
 
 const CompanySettings = () => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [tempImage, setTempImage] = useState(null);
-  const [logoPath, setLogoPath] = useState(""); // New state to store logo path
+  const [logoPath, setLogoPath] = useState("");
+  const [countries, setCountries] = useState([]);
+  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [states, setStates] = useState([]);
+  const [filteredStates, setFilteredStates] = useState([]);
+  const [stateSearch, setStateSearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showStateDropdown, setShowStateDropdown] = useState(false);
+  const countryInputRef = useRef(null);
+  const stateInputRef = useRef(null);
+  const logoInputRef = useRef(null);
 
   // Base URL for backend (adjust to your backend's URL)
   const BASE_URL = "http://localhost:5001"; // Replace with your backend URL
@@ -50,7 +62,21 @@ const CompanySettings = () => {
     }
   };
 
-  
+  useEffect(() => {
+    setFilteredCountries(countryCurrency);
+  }, []);
+
+  const selectedCountry = watch('company.address.country');
+  useEffect(() => {
+    if (selectedCountry) {
+      const found = countryCurrency.find(c => c.name.toLowerCase() === selectedCountry.toLowerCase());
+      if (found && found.currency) {
+        setValue('company.currency', found.currency);
+      }
+      
+    }
+  }, [selectedCountry, setValue]);
+
   // Function to load company settings
   const loadCompanySettings = async () => {
     setLoading(true);
@@ -69,7 +95,13 @@ const CompanySettings = () => {
           name: data.company?.name || "",
           contactEmail: data.company?.contactEmail || "",
           phone: data.company?.phone || "",
-          address: data.company?.address || "",
+          address: {
+            country: data.company?.address?.country || "",
+            state: data.company?.address?.state || "",
+            city: data.company?.address?.city || "",
+            pin: data.company?.address?.pin || "",
+            street: data.company?.address?.street || "",
+          },
           website: data.company?.website || "",
           taxId: data.company?.taxId || "",
           financialYearStart: data.company?.financialYearStart || "April",
@@ -319,22 +351,145 @@ const CompanySettings = () => {
 
               {/* Address */}
               <div>
-                <label htmlFor="address" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                   <MapPin className="w-4 h-4 text-gray-500" />
                   Address <span className="text-red-500">*</span>
                 </label>
-                <input
-                  id="address"
-                  {...register("company.address", { required: "Address is required" })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
-                  placeholder="123 Business Street, City, State, ZIP"
-                />
-                {errors.company?.address && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <AlertCircle className="w-4 h-4 text-red-500" />
-                    <span className="text-red-600 text-sm">{errors.company.address.message}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Country Autocomplete */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      ref={countryInputRef}
+                      autoComplete="off"
+                      {...register("company.address.country", { required: "Country is required" })}
+                      value={countrySearch || watch("company.address.country") || ""}
+                      onChange={e => {
+                        setCountrySearch(e.target.value);
+                        setShowCountryDropdown(true);
+                        const filtered = countryCurrency.filter(c => c.name.toLowerCase().startsWith(e.target.value.toLowerCase()));
+                        setFilteredCountries(filtered);
+                        setValue("company.address.country", e.target.value);
+                      }}
+                      onFocus={() => setShowCountryDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      placeholder="Country"
+                    />
+                    {showCountryDropdown && filteredCountries.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                        {filteredCountries.map((c, idx) => (
+                          <li
+                            key={c.name}
+                            className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                            onClick={() => {
+                              setValue("company.address.country", c.name);
+                              setCountrySearch(c.name);
+                              setShowCountryDropdown(false);
+                            }}
+                          >
+                            {c.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {errors.company?.address?.country && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{errors.company.address.country.message}</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                  {/* State Autocomplete */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      ref={stateInputRef}
+                      autoComplete="off"
+                      {...register("company.address.state", { required: "State is required" })}
+                      value={stateSearch || watch("company.address.state") || ""}
+                      onChange={e => {
+                        setStateSearch(e.target.value);
+                        setShowStateDropdown(true);
+                        const filtered = states.filter(s => s.toLowerCase().includes(e.target.value.toLowerCase()));
+                        setFilteredStates(filtered);
+                        setValue("company.address.state", e.target.value);
+                      }}
+                      onFocus={() => setShowStateDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowStateDropdown(false), 200)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      placeholder="State"
+                    />
+                    {showStateDropdown && filteredStates.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                        {filteredStates.map((s, idx) => (
+                          <li
+                            key={s}
+                            className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                            onClick={() => {
+                              setValue("company.address.state", s);
+                              setStateSearch(s);
+                              setShowStateDropdown(false);
+                            }}
+                          >
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {errors.company?.address?.state && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{errors.company.address.state.message}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* City */}
+                  <div>
+                    <input
+                      type="text"
+                      {...register("company.address.city", { required: "City is required" })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      placeholder="City"
+                    />
+                    {errors.company?.address?.city && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{errors.company.address.city.message}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Pin */}
+                  <div>
+                    <input
+                      type="text"
+                      {...register("company.address.pin", { required: "Pin/Postal Code is required" })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      placeholder="Pin/Postal Code"
+                    />
+                    {errors.company?.address?.pin && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{errors.company.address.pin.message}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Street */}
+                  <div className="md:col-span-2">
+                    <input
+                      type="text"
+                      {...register("company.address.street", { required: "Street/Address Line is required" })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      placeholder="Street/Address Line"
+                    />
+                    {errors.company?.address?.street && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{errors.company.address.street.message}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Website */}
@@ -402,19 +557,14 @@ const CompanySettings = () => {
                     <DollarSign className="w-4 h-4 text-gray-500" />
                     Default Currency <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <input
                     id="currency"
+                    type="text"
                     {...register("company.currency", { required: "Currency is required" })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
-                  >
-                    <option value="INR">Indian Rupee (₹)</option>
-                    <option value="USD">US Dollar ($)</option>
-                    <option value="EUR">Euro (€)</option>
-                    <option value="GBP">British Pound (£)</option>
-                    <option value="CAD">Canadian Dollar (C$)</option>
-                    <option value="AUD">Australian Dollar (A$)</option>
-                    <option value="SGD">Singapore Dollar (S$)</option>
-                  </select>
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    placeholder="Currency"
+                    disabled
+                  />
                   {errors.company?.currency && (
                     <div className="flex items-center gap-2 mt-2">
                       <AlertCircle className="w-4 h-4 text-red-500" />
@@ -527,22 +677,24 @@ const CompanySettings = () => {
                   
                   {/* Upload Controls */}
                   <div className="flex-1">
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50 hover:bg-blue-50">
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50 hover:bg-blue-50 cursor-pointer"
+                      onClick={() => logoInputRef.current && logoInputRef.current.click()}
+                    >
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
                       <div className="space-y-2">
-                        <label className="cursor-pointer">
-                          <span className="text-blue-600 hover:text-blue-700 font-medium">
-                            Click to upload
-                          </span>
-                          <span className="text-gray-600"> or drag and drop</span>
-                          <input
-                            id="logo"
-                            type="file"
-                            className="sr-only"
-                            accept="image/jpeg,image/png,image/svg+xml"
-                            onChange={handleImageChange}
-                          />
-                        </label>
+                        <span className="text-blue-600 hover:text-blue-700 font-medium">
+                          Click or tap anywhere to upload
+                        </span>
+                        <span className="text-gray-600"> or drag and drop</span>
+                        <input
+                          id="logo"
+                          type="file"
+                          className="sr-only"
+                          accept="image/jpeg,image/png,image/svg+xml"
+                          onChange={handleImageChange}
+                          ref={logoInputRef}
+                        />
                         <p className="text-sm text-gray-500">
                           PNG, JPG, SVG up to 2MB
                         </p>

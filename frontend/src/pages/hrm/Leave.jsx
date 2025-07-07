@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import {
   PlusIcon,
   PencilIcon,
@@ -210,7 +210,7 @@ const Leave = () => {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="hover:bg-gray-50 transition-colors duration-200"
                     >
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
                           <UserCircleIcon className="h-5 w-5 text-blue-500" />
                           <span className="truncate">{leave.employee ? leave.employee.name : "N/A"}</span>
@@ -258,14 +258,14 @@ const Leave = () => {
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <motion.span
-                          className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[leave.status] || statusColors.Pending}`}
+                          className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[leave.status] || statusColors.Pending}`}
                           whileHover={{ scale: 1.05 }}
                         >
                           {getStatusIcon(leave.status)}
                           {leave.status || "Pending"}
                         </motion.span>
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex space-x-2 sm:space-x-3">
                           <motion.button
                             onClick={() => handleEdit(leave)}

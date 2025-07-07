@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { PlusIcon, PencilIcon, TrashIcon, CalendarIcon, MegaphoneIcon, InformationCircleIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getEvents, deleteEvent } from '../../api/events.api';
@@ -175,7 +175,7 @@ const Events = () => {
                                             transition={{ duration: 0.3, delay: index * 0.05 }}
                                             className="hover:bg-gray-50 transition-colors duration-200"
                                         >
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <div className="flex items-center space-x-2">
                                                     <MegaphoneIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {event.title}
@@ -209,18 +209,18 @@ const Events = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                 <motion.span
-                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium mr-1 ${statusColors[event.status] || statusColors.others}`}
+                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[event.status] || statusColors.others}`}
                                                     whileHover={{ scale: 1.05 }}
                                                 >
                                                     {getStatusIcon(event.status)}
                                                     {event.status ? event.status.toUpperCase() : 'UNKNOWN'}
                                                 </motion.span>
                                             </td>
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex space-x-2 sm:space-x-3">
                                                     <motion.button
                                                         onClick={() => handleEdit(event)}
-                                                        className="text-blue-600 hover:text-blue-900 cursor-pointer "
+                                                        className="text-blue-600 hover:text-blue-900 cursor-pointer"
                                                         whileHover={{ scale: 1.05 }}
                                                         whileTap={{ scale: 0.98 }}
                                                     >

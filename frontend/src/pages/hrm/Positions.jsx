@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { PlusIcon, PencilIcon, TrashIcon, BriefcaseIcon, BuildingOfficeIcon, UserCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPositions, deletePosition } from '../../api/positions.api';
@@ -162,7 +162,7 @@ const Positions = () => {
                                             transition={{ duration: 0.3, delay: index * 0.05 }}
                                             className="hover:bg-gray-50 transition-colors duration-200"
                                         >
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm  text-gray-900">
                                                 <div className="flex items-center space-x-2">
                                                     <UserCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {position.title}
@@ -171,7 +171,7 @@ const Positions = () => {
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-3">
                                                     <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
-                                                     {position.department?.name || ''}
+                                                    {position.department?.name || ''}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -179,7 +179,7 @@ const Positions = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                 <motion.span
-                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium mr-1 ${statusColors[position.isActive]}`}
+                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[position.isActive]}`}
                                                     whileHover={{ scale: 1.05 }}
                                                 >
                                                     {position.isActive ? (
@@ -190,7 +190,7 @@ const Positions = () => {
                                                     {position.isActive ? 'ACTIVE' : 'INACTIVE'}
                                                 </motion.span>
                                             </td>
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex space-x-2 sm:space-x-3">
                                                     <motion.button
                                                         onClick={() => handleEdit(position)}
