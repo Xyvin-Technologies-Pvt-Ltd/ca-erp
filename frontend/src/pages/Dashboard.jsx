@@ -136,11 +136,6 @@ const StatCard = ({ title, value, change, iconType, color }) => {
             </div>
           )}
         </div>
-        <div className={`p-4 rounded-xl ${color} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          <div className="text-current opacity-80 group-hover:opacity-100 transition-opacity duration-200">
-            {iconType}
-          </div>
-        </div>
       </div>
     </div>
   );
