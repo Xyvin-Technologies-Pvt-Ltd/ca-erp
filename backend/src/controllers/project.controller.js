@@ -69,6 +69,11 @@ exports.getProjects = async (req, res, next) => {
                 path: 'client'
             })
             .populate({
+                path: 'team',
+                model: 'User', 
+                select: 'name email role department avatar', 
+            })
+            .populate({
                 path: 'assignedTo',
                 select: 'name email avatar'
             })
@@ -230,8 +235,8 @@ exports.getProject = async (req, res, next) => {
             })
             .populate({
                 path: 'team',
-                model: 'User', // 👈 Ensures it's pulling from User collection
-                select: 'name email role department avatar', // ⬅️ Add any fields you want
+                model: 'User', 
+                select: 'name email role department avatar', 
             })
             .populate({
                 path: 'documents',

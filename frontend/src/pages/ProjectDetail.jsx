@@ -365,6 +365,7 @@ const ProjectDetail = () => {
   const goToPrevDocPage = () => {
     setDocCurrentPage((prev) => Math.max(prev - 1, 1));
   };
+// console.log(project,'project');
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
@@ -615,39 +616,40 @@ const ProjectDetail = () => {
                     </svg>
                     Team Members
                   </h3>
-                  <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
-                    {project.team?.length > 0 ? (
-                      <div className="flex items-center space-x-4">
-                        {project.team.map((member, idx) => (
-                          <div key={member._id || member.id || member} className="relative group">
-                            {member.avatar ? (
-                              <img
-                                src={member.avatar.startsWith('http') ? member.avatar : `${import.meta.env.VITE_BASE_URL}${member.avatar}`}
-                                alt={member.name || 'User'}
-                                className="h-10 w-10 rounded-full border border-gray-200 object-cover shadow-sm"
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-base border border-gray-200">
-                                {(member.name ? member.name.charAt(0) : '?')}
-                              </div>
-                            )}
-                            {/* Tooltip on hover */}
-                            <div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-800 whitespace-nowrap">
-                              <span className="font-semibold">{member.name || 'Unknown'}</span>
-                              {member.role && <span className="ml-2 text-gray-500">({member.role})</span>}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-gray-500 text-sm">
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
-                        </svg>
-                        No team members assigned to this project yet.
-                      </div>
-                    )}
-                  </div>
+                <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+  {project.team?.length > 0 ? (
+    <ul className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${project.team.length >= 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      {project.team.map((member) => (
+        <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
+          <div className="flex-shrink-0">
+            {member.avatar ? (
+              <img
+                src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
+                alt={member.name}
+                className="h-10 w-10 rounded-full border border-gray-200"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">
+                {member.name.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-900">{member.name}</p>
+            <p className="text-xs text-gray-600">{member.role}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-sm text-gray-600 flex items-center">
+      <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
+      </svg>
+      No team members assigned to this project yet.
+    </p>
+  )}
+</div>
                 </div>
               </div>
 

@@ -373,17 +373,20 @@ const Projects = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                       {project.team && project.team.length > 0 ? (
                         <div className="flex -space-x-2">
-                          {project.team.slice(0, 3).map((member) => (
+                          {project.team.slice(0, 3).map((member, index) => (
                             <motion.div
-                              key={member}
+                              key={member._id || member.id || index}
                               className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
-                              title={member}
+                              title={member.name || member.email || 'Team Member'}
                               whileHover={{ scale: 1.1 }}
                             >
-                              <UsersIcon className="h-5 w-5 text-gray-400" />
+                              <span className="text-xs font-medium text-gray-500">
+                                {member.name ? member.name.charAt(0).toUpperCase() : 
+                                member.email ? member.email.charAt(0).toUpperCase() : '?'}
+                              </span>
                             </motion.div>
                           ))}
                           {project.team.length > 3 && (
