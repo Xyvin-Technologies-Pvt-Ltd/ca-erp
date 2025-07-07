@@ -27,48 +27,6 @@ const priorityColors = {
   low: "bg-emerald-100 text-emerald-800",
 };
 
-function ClientDropdown({ client }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef();
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    if (open) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
-  if (!client) return <span>Client: N/A</span>;
-  return (
-    <span className="relative" ref={ref}>
-      <button
-        className="text-blue-700 font-semibold hover:underline focus:outline-none"
-        onClick={() => setOpen((v) => !v)}
-      >
-        Client: {client.name}
-        <svg className="inline w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute left-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-4 animate-fade-in">
-          <h4 className="text-lg font-bold text-gray-900 mb-2">Client Details</h4>
-          <div className="space-y-2">
-            <div><span className="font-medium text-gray-600">Name:</span> {client.name || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">Contact Person:</span> {client.contactName || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">Contact Number:</span> {client.contactPhone || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">Email:</span> {client.contactEmail || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">Industry:</span> {client.industry || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">GSTIN:</span> {client.gstin || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">PAN:</span> {client.pan || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">CIN:</span> {client.cin || 'N/A'}</div>
-            <div><span className="font-medium text-gray-600">Currency Format:</span> {client.currencyFormat || 'N/A'}</div>
-          </div>
-        </div>
-      )}
-    </span>
-  );
-}
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -101,6 +59,8 @@ const ProjectDetail = () => {
   const docsPerPage = 5;
   const [noteCurrentPage, setNoteCurrentPage] = useState(1);
   const notesPerPage = 5;
+
+  const [showClientDetails, setShowClientDetails] = useState(false);
 
   useEffect(() => {
     const loadProject = async () => {
@@ -480,25 +440,75 @@ const ProjectDetail = () => {
                 <MdFolder className="w-7 h-7 mr-2 text-blue-500" />
                 {project.name}
               </h1>
-              <p className="mt-2 text-sm text-gray-600 flex items-center">
-                <svg className="w-5 h-5 mr-1 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                </svg>
-                <ClientDropdown client={project.client} />
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
-              >
-                {project.status}
-              </span>
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${priorityColors[project.priority] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
-              >
-                {project.priority} Priority
-              </span>
+              <div className="flex items-center space-x-3 mt-3">
+                <button
+                  type="button"
+                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-blue-500 font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${showClientDetails ? 'ring-2 ring-blue-300' : ''}`}
+                  onClick={() => setShowClientDetails((v) => !v)}
+                >
+                  {/* <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg> */}
+                  Client Information
+                  <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${showClientDetails ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {/* Status and Priority Chips */}
+                <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[project.status] || 'bg-gray-200 text-gray-800'} shadow-sm`}>{project.status}</span>
+                <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${priorityColors[project.priority] || 'bg-gray-200 text-gray-800'} shadow-sm`}>{project.priority} Priority</span>
+              </div>
+              {/* Client Info Card (collapsible) */}
+              {showClientDetails && project.client && (
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow animate-fade-in max-w-2xl">
+                  <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    Client Information
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Name <span className="pl-18 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.name || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Contact Person<span className="pl-1 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactName || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Contact Number<span className="pl-2 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactPhone || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Email<span className="pl-16 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactEmail || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Industry<span className="pl-15 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.industry || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">GSTIN<span className="pl-15 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.gstin || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">PAN<span className="pl-21 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.pan || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">CIN<span className="pl-19 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.cin || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Currency Format<span className="pl-1 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.currencyFormat || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -607,36 +617,35 @@ const ProjectDetail = () => {
                   </h3>
                   <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
                     {project.team?.length > 0 ? (
-                      <ul className={`grid gap-y-4 gap-x-4 sm:gap-x-6 ${project.team.length > 5 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        {project.team.map((member) => (
-                          <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
-                            <div className="flex-shrink-0">
-                              {member.avatar ? (
-                                <img
-                                  src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
-                                  alt={member.name}
-                                  className="h-10 w-10 rounded-full border border-gray-200"
-                                />
-                              ) : (
-                                <div className="h-10 w-10 rounded-full bg-bl-100 flex items-center justify-center text-blue-700 font-medium text-sm">
-                                  {member.name.charAt(0)}
-                                </div>
-                              )}
+                      <div className="flex items-center space-x-4">
+                        {project.team.map((member, idx) => (
+                          <div key={member._id || member.id || member} className="relative group">
+                            {member.avatar ? (
+                              <img
+                                src={member.avatar.startsWith('http') ? member.avatar : `${import.meta.env.VITE_BASE_URL}${member.avatar}`}
+                                alt={member.name || 'User'}
+                                className="h-10 w-10 rounded-full border border-gray-200 object-cover shadow-sm"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-base border border-gray-200">
+                                {(member.name ? member.name.charAt(0) : '?')}
+                              </div>
+                            )}
+                            {/* Tooltip on hover */}
+                            <div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-800 whitespace-nowrap">
+                              <span className="font-semibold">{member.name || 'Unknown'}</span>
+                              {member.role && <span className="ml-2 text-gray-500">({member.role})</span>}
                             </div>
-                            <div className="ml-4">
-                              <p className="text-sm font-medium text-gray-900">{member.name}</p>
-                              <p className="text-xs text-gray-600">{member.role}</p>
-                            </div>
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     ) : (
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.184-.66.39-.959C15.243 13.88 13.72 10 10 10c-3.72 0-5.243 3.88-3.32 6.041.206.3.344.632.39.959H3a2 2 0 01-2-2v-1a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2h-4.07z" />
                         </svg>
                         No team members assigned to this project yet.
-                      </p>
+                      </div>
                     )}
                   </div>
                 </div>

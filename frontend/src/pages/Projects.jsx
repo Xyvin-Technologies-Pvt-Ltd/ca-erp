@@ -300,14 +300,15 @@ const Projects = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.3 }}
+                className="flex h-full"
               >
                 <Link
                   to={`/projects/${project.id}`}
-                  className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
                 >
-                  <div className="px-6 py-5 border-b border-gray-200">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-h-[84px]">
+                  <div className="px-6 py-5 border-b border-gray-200 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between gap-3 flex-1">
+                      <div className="min-h-[84px] flex flex-col flex-1">
                         <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
                           {project.name}
                         </h2>
