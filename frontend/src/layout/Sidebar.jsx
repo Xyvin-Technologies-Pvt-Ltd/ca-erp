@@ -207,8 +207,8 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 flex flex-col overflow-y-auto pt-6 pb-4">
-        <nav className="flex-1 px-4 space-y-2">
+      <div className="flex-1 flex flex-col overflow-y-auto pt-6 pb-4 ">
+        <nav className="flex-1 px-4 space-y-2 ">
           {filteredNavigation.map((item) => {
             const isExpanded = expandedItems[item.name];
             const hasChildren = item.children && item.children.length > 0;
@@ -219,7 +219,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                   <div>
                     <button
                       onClick={() => toggleExpand(item.name)}
-                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group ${
+                      className={`w-full flex items-center cursor-pointer px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group ${
                         isExpanded
                           ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-100"
                           : "text-slate-700 hover:bg-white hover:shadow-md hover:border hover:border-slate-200"
