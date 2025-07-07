@@ -175,7 +175,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-white shadow-xl border-r border-slate-200/50">
       {/* Logo and mobile close button */}
-      <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm ml-5">
         <Link to={ROUTES.DASHBOARD} className="flex-shrink-0 group">
           {logoFilename ? (
             <img 
@@ -185,7 +185,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
             />
           ) : (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg ml-5">
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <span className="text-slate-800 font-bold text-xl tracking-tight">

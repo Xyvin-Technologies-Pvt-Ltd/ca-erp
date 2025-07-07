@@ -15,12 +15,9 @@ import {
 } from "lucide-react";
 import countryCurrency from "../api/countryCurrency.json";
 
-
-
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const isEditMode = !!client;
-  // Industry options for CA firm clients
   const industryOptions = [
     "IT Services",
     "Banking",
@@ -66,12 +63,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     },
   });
 
-  // Watch address and notes for character counting
   const countryValue = watch("country");
   const notesValue = watch("notes");
   const currencyValue = watch("currencyFormat");
 
-  // Define max character limits
   const maxAddressLength = 200;
   const maxNotesLength = 500;
 
@@ -93,7 +88,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         reset({ ...watch(), currencyFormat: found.currency });
       }
     }
-    // eslint-disable-next-line
   }, [countryValue]);
 
   const onSubmit = async (formData) => {
@@ -102,8 +96,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       let result;
       if (isEditMode) {
         result = await clientsApi.updateClient(client._id, formData);
-        
-        // Show success toast for update
         toast.success(
           `Client "${formData.name}" updated successfully!`,
           {
@@ -117,8 +109,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         );
       } else {
         result = await clientsApi.createClient(formData);
-        
-        // Show success toast for create
         toast.success(
           `Client "${formData.name}" created successfully!`,
           {
@@ -133,19 +123,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       }
 
       if (result.success) {
-        // Trigger automatic refresh by calling onSuccess
         if (onSuccess) {
           onSuccess(result.data);
         }
-        
-        
       } else {
         throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
       }
     } catch (error) {
       console.error("Error saving client:", error);
-      
-      // Show error toast
       toast.error(
         error.message || `Failed to ${isEditMode ? 'update' : 'create'} client. Please try again.`,
         {
@@ -162,14 +147,25 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     }
   };
 
+  // Prevent clicks inside the modal from closing it
+  const handleModalContentClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <>
       {/* Blur Background Overlay */}
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onCancel}></div>
       
       {/* Modal Container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+        onClick={onCancel} // This ensures clicking anywhere outside the modal content triggers onCancel
+      >
+        <div
+          className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
+          onClick={handleModalContentClick} // Prevent clicks inside the modal from closing it
+        >
           {/* Enhanced Form Header */}
           <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-200 relative">
             <button
@@ -212,7 +208,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Client Name */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Client Name*
+                    Client Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -251,7 +247,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Contact Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Contact Email*
+                    Contact Email<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
