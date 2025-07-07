@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { clientsApi } from "../api/clientsApi";
 import { toast } from "react-toastify";
@@ -13,6 +13,7 @@ import {
   Save,
   Plus
 } from "lucide-react";
+import countryCurrency from "../api/countryCurrency.json";
 
 
 
@@ -74,21 +75,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const maxAddressLength = 200;
   const maxNotesLength = 500;
 
-  // Currency auto-fill map
-  const countryCurrencyMap = {
-    India: "INR",
-    USA: "USD",
-    "United States": "USD",
-    "United Kingdom": "GBP",
-    UK: "GBP",
-    Canada: "CAD",
-    Australia: "AUD",
-    Germany: "EUR",
-    France: "EUR",
-    Japan: "JPY",
-    China: "CNY",
-    // Add more as needed
-  };
+  const [filteredCountries, setFilteredCountries] = useState(countryCurrency);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryInputRef = useRef(null);
 
   useEffect(() => {
     if (client) {
@@ -97,10 +87,11 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   }, [client, reset]);
 
   useEffect(() => {
-    // Auto-fill currency format when country changes
-    const currency = countryCurrencyMap[countryValue] || "";
-    if (currency && currency !== currencyValue) {
-      reset({ ...watch(), currencyFormat: currency });
+    if (countryValue) {
+      const found = countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase());
+      if (found && found.currency) {
+        reset({ ...watch(), currencyFormat: found.currency });
+      }
     }
     // eslint-disable-next-line
   }, [countryValue]);
@@ -372,12 +363,45 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     {/* Country */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
-                      <input
-                        type="text"
-                        {...register("country")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
-                        placeholder="e.g. India"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          ref={countryInputRef}
+                          value={countrySearch || countryValue || ""}
+                          onChange={e => {
+                            setCountrySearch(e.target.value);
+                            const filtered = countryCurrency.filter(c => c.name.toLowerCase().startsWith(e.target.value.toLowerCase()));
+                            setFilteredCountries(filtered);
+                            reset({ ...watch(), country: e.target.value });
+                            setShowCountryDropdown(true);
+                          }}
+                          onFocus={() => {
+                            setShowCountryDropdown(true);
+                            setFilteredCountries(countryCurrency.filter(c => c.name.toLowerCase().startsWith((countrySearch || countryValue || "").toLowerCase())));
+                          }}
+                          onBlur={() => setTimeout(() => setShowCountryDropdown(false), 150)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                          placeholder="e.g. India"
+                        />
+                        {showCountryDropdown && filteredCountries.length > 0 && (countrySearch || countryValue) && (
+                          <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                            {filteredCountries.map((c, idx) => (
+                              <li
+                                key={c.name}
+                                className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                onMouseDown={e => {
+                                  e.stopPropagation();
+                                  reset({ ...watch(), country: c.name, currencyFormat: c.currency });
+                                  setCountrySearch(c.name);
+                                  setShowCountryDropdown(false);
+                                }}
+                              >
+                                {c.name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </div>
                     {/* State */}
                     <div>
@@ -498,7 +522,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     {...register("currencyFormat")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. INR"
-                    readOnly={!!countryCurrencyMap[countryValue]}
+                    readOnly={!!countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase())}
                   />
                 </div>
               </div>

@@ -20,7 +20,18 @@ const mongoose = require('mongoose');
  *             phone:
  *               type: string
  *             address:
- *               type: string
+ *               type: object
+ *               properties:
+ *                 country:
+ *                   type: string
+ *                 state:
+ *                   type: string
+ *                 city:
+ *                   type: string
+ *                 pin:
+ *                   type: string
+ *                 street:
+ *                   type: string
  *             website:
  *               type: string
  *             taxId:
@@ -76,7 +87,12 @@ const mongoose = require('mongoose');
  *           name: CA-ERP Solutions
  *           contactEmail: contact@ca-erp.com
  *           phone: "+1 234 567 8900"
- *           address: "123 Business Avenue, Suite 456, New York, NY 10001"
+ *           address:
+ *             country: USA
+ *             state: New York
+ *             city: New York
+ *             pin: 10001
+ *             street: 123 Business Avenue, Suite 456
  *           website: https://ca-erp.com
  *           taxId: "12-3456789"
  *           financialYearStart: April
@@ -108,7 +124,11 @@ const SettingsSchema = new mongoose.Schema(
                 type: String,
             },
             address: {
-                type: String,
+                country: { type: String },
+                state: { type: String },
+                city: { type: String },
+                pin: { type: String },
+                street: { type: String }, 
             },
             website: {
                 type: String,
