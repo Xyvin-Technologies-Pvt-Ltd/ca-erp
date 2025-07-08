@@ -237,6 +237,7 @@ const Departments = () => {
             </AnimatePresence>
 
             {/* Pagination Controls */}
+             {departments.length > 0 && (
             <div className="px-6 py-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -299,6 +300,7 @@ const Departments = () => {
                     </div>
                 </div>
             </div>
+             )}
 
             <AnimatePresence>
                 {showModal && (
