@@ -431,6 +431,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     placeholder="Select a user"
                     className="mt-1"
                     classNamePrefix="react-select"
+                    required
                     styles={{
                       control: (base) => ({
                         ...base,
@@ -479,6 +480,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
                       onClick={() => openDatePicker(dueDateRef)}
+                      required
                       className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer appearance-none"
                     />
                   </div>
@@ -511,6 +513,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   onChange={(e) => setDescription(e.target.value)}
                   rows="4"
                   maxLength={500}
+                  required
                   placeholder="Enter task details or requirements..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
                 />
