@@ -187,6 +187,8 @@ const EmployeeAttendance = () => {
           <AnimatePresence>
             {days.map((day, index) => {
               const dateStr = day.toISOString().split("T")[0];
+              const today = new Date().toISOString().split("T")[0];
+              const isToday = dateStr === today;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
               return (
@@ -196,17 +198,31 @@ const EmployeeAttendance = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${att ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border}` : "bg-gray-50 border-gray-100"} hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}
+                  className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${
+                    isToday 
+                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-indigo-400 ring-opacity-50" 
+                      : att 
+                        ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border}` 
+                        : "bg-gray-50 border-gray-100"
+                  } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isToday ? 'shadow-lg' : ''}`}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <span className="font-bold text-sm text-gray-900">{day.getDate()}</span>
+                  <span className={`font-bold text-sm ${isToday ? 'text-indigo-900' : 'text-gray-900'}`}>
+                    {day.getDate()}
+                  </span>
                   <div className="flex items-center space-x-1">
                     {Icon && <Icon className={`h-4 w-4 ${statusColors[att?.status]?.text}`} />}
                     <motion.span
-                      className={`text-xs ${att ? statusColors[att.status]?.text : "text-gray-400"}`}
+                      className={`text-xs ${
+                        isToday 
+                          ? "text-indigo-700 font-semibold" 
+                          : att 
+                            ? statusColors[att.status]?.text 
+                            : "text-gray-400"
+                      }`}
                       whileHover={{ scale: 1.05 }}
                     >
-                      {att ? att.status : "-"}
+                      {isToday && !att ? "Today" : att ? att.status : "-"}
                     </motion.span>
                   </div>
                 </motion.div>
