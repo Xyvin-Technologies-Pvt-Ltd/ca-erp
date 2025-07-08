@@ -22,7 +22,7 @@ import {
 import { toast } from 'react-toastify'; // Correct import
 import 'react-toastify/dist/ReactToastify.css'; // Add CSS import
 
-const TaskForm = ({ projectIds, onSuccess, onCancel, task = null, onTaskUpdate }) => {
+const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const tagOptions = [
     "GST",
     "Income Tax",
@@ -298,7 +298,8 @@ const TaskForm = ({ projectIds, onSuccess, onCancel, task = null, onTaskUpdate }
   }, [token]);
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+  <div className="fixed bg-black/20 bg-opacity-50 backdrop-blur-sm inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+    onClick={onClose}>
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
