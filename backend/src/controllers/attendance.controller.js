@@ -4,7 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const { createError } = require('../utils/errors');
 
 exports.getAllAttendance = catchAsync(async (req, res) => {
-  const { startDate, endDate, employeeId, departmentId } = req.query;
+  const { startDate, endDate, employeeId, departmentId, page = 1, limit = 10 } = req.query;
   
   let query = { isDeleted: false };
   
@@ -24,22 +24,31 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
     query.employee = { $in: employees.map(emp => emp._id) };
   }
 
-  const attendance = await Attendance.find(query)
-    .populate({
-      path: 'employee',
-      match: { status: 'active' },
-      select: 'name department position',
-      populate: [
-        { path: 'department', select: 'name' },
-        { path: 'position', select: 'title' }
-      ]
-    })
-    .sort('-date');
+  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+  const [attendance, total] = await Promise.all([
+    Attendance.find(query)
+      .populate({
+        path: 'employee',
+        match: { status: 'active' },
+        select: 'name department position',
+        populate: [
+          { path: 'department', select: 'name' },
+          { path: 'position', select: 'title' }
+        ]
+      })
+      .sort('-date')
+      .skip(skip)
+      .limit(parseInt(limit, 10)),
+    Attendance.countDocuments(query)
+  ]);
 
   res.status(200).json({
     status: 'success',
     results: attendance.length,
-    data: { attendance }
+    data: { attendance },
+    total,
+    page: parseInt(page, 10),
+    totalPages: Math.ceil(total / parseInt(limit, 10))
   });
 });
 

@@ -1,14 +1,13 @@
 import api from "./axios";
 
-export const getLeaves = async () => {
+export const getLeaves = async (params = {}) => {
   try {
-    const response = await api.get("/leaves");
-    console.log(response);
-    
-    return Array.isArray(response.data.data.leaves) ? response.data.data.leaves : [];
+    const { page = 1, limit = 10, ...rest } = params;
+    const response = await api.get("/leaves", { params: { page, limit, ...rest } });
+    return response.data;
   } catch (error) {
     console.error("Error fetching leaves:", error);
-    return [];
+    return { data: { leaves: [] }, total: 0, page: 1, totalPages: 1 };
   }
 };
 
