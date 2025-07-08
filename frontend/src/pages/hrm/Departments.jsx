@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDepartments, deleteDepartment } from '../../api/department.api';
 import DepartmentModal from '../../components/DepartmentModal';
@@ -16,13 +16,28 @@ const Departments = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [paginations, setPaginations] = useState({ page: 1, total: 0, limit: 10 });
+    const [totalPage, setTotalPage] = useState(0);
+    const [pages, setPages] = useState([]);
 
-    const fetchDepartments = async () => {
+    const fetchDepartments = async (page = currentPage, limit = paginations.limit) => {
         try {
             setLoading(true);
-            const data = await getDepartments();
-            console.log(data.data, "values");
+            const data = await getDepartments({ page, limit });
             setDepartments(Array.isArray(data.data) ? data.data : []);
+            setPaginations({
+                page: page,
+                total: data.total || 0,
+                limit: limit,
+            });
+            const totalPages = Math.ceil((data.total || 0) / limit);
+            setTotalPage(totalPages);
+            const pageNumbers = [];
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+            setPages(pageNumbers);
         } catch (error) {
             console.error('Error fetching departments:', error);
             toast.error('Failed to fetch departments');
@@ -33,8 +48,8 @@ const Departments = () => {
     };
 
     useEffect(() => {
-        fetchDepartments();
-    }, []);
+        fetchDepartments(currentPage, paginations.limit);
+    }, [currentPage]);
 
     const handleEdit = (department) => {
         setSelectedDepartment(department);
@@ -220,6 +235,70 @@ const Departments = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Pagination Controls */}
+            <div className="px-6 py-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <p className="text-sm text-gray-700">
+                            Showing{' '}
+                            <span className="font-medium">
+                                {(currentPage - 1) * paginations.limit + 1}
+                            </span>{' '}
+                            to{' '}
+                            <span className="font-medium">
+                                {Math.min(currentPage * paginations.limit, paginations.total)}
+                            </span>{' '}
+                            of <span className="font-medium">{paginations.total}</span>{' '}
+                            results
+                        </p>
+                    </div>
+                    <div>
+                        <nav
+                            className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                            aria-label="Pagination"
+                        >
+                            <button
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                                    currentPage === 1
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-white text-blue-600 hover:bg-blue-50 border-gray-200'
+                                }`}
+                            >
+                                <span className="sr-only">First</span>
+                                <ChevronLeftIcon className="h-5 w-5" />
+                            </button>
+                            {pages.map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                        page === currentPage
+                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-blue-50'
+                                    }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage(currentPage + 1)}
+                                disabled={currentPage === totalPage}
+                                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                                    currentPage === totalPage
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-white text-blue-600 hover:bg-blue-50 border-gray-200'
+                                }`}
+                            >
+                                <span className="sr-only">Next</span>
+                                <ChevronRightIcon className="h-5 w-5" />
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
 
             <AnimatePresence>
                 {showModal && (

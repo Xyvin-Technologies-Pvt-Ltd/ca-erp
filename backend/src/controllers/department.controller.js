@@ -5,11 +5,46 @@ const { createError } = require('../utils/errors');
 
 // Get all departments
 const getAllDepartments = catchAsync(async (req, res) => {
-    const departments = await Department.find()
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const shouldLimit = limit > 0 && limit <= 100;
+    const startIndex = shouldLimit ? (page - 1) * limit : 0;
+    const endIndex = shouldLimit ? page * limit : undefined;
+
+    // Filtering (add more filters as needed)
+    const filter = {};
+    // Example: if (req.query.isActive) filter.isActive = req.query.isActive;
+
+    const total = await Department.countDocuments(filter);
+
+    let query = Department.find(filter)
         .populate('manager', 'firstName lastName email');
-    
+    if (shouldLimit) {
+        query = query.skip(startIndex).limit(limit);
+    }
+    const departments = await query;
+
+    // Pagination result
+    const pagination = {};
+    if (endIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit,
+        };
+    }
+    if (startIndex > 0) {
+        pagination.prev = {
+            page: page - 1,
+            limit,
+        };
+    }
+
     res.status(200).json({
         status: 'success',
+        count: departments.length,
+        pagination,
+        total,
         data: departments
     });
 });
