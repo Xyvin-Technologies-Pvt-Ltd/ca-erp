@@ -12,7 +12,7 @@ export const fetchTasks = async (filters = {}) => {
         const response = await api.get(`/tasks?${query}`);
         
         return {
-            tasks: response.data.data, // ✅ This is the array of tasks
+            tasks: response.data.data, 
             pagination: response.data.pagination,
             total: response.data.total,
             team: response.data.team // if this exists

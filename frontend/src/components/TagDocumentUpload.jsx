@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { tagDocumentRequirements } from '../utils/tagDocumentFields';
 
-const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = {}, clientInfo, isLoading = false }) => {
+const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = {}, clientInfo, isLoading = false, verifications = {}, onVerifyChange, remindingDocs = {} }) => {
     const requirements = tagDocumentRequirements[tag] || [];
     const [remindingDocuments, setRemindingDocuments] = useState(new Set());
 
@@ -66,10 +66,18 @@ const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = 
                     const existingDoc = existingDocuments[documentKey];
                     const isReminding = remindingDocuments.has(doc.type);
                     const canRemind = clientInfo && clientInfo.contactPhone && onRemindClient;
-
+                    const isVerified = verifications[documentKey] || false;
                     return (
                         <div key={doc.type} className="flex items-center justify-between">
-                            <div className="flex-1">
+                            <div className="flex-1 flex items-center gap-2">
+                                {/* Checkbox for verification */}
+                                <input
+                                    type="checkbox"
+                                    checked={isVerified}
+                                    onChange={e => onVerifyChange && onVerifyChange(documentKey, e.target.checked)}
+                                    disabled={!existingDoc}
+                                    className="mr-2"
+                                />
                                 <label className="block text-sm font-medium text-gray-700">
                                     {doc.name}
                                     {doc.required && <span className="text-red-500 ml-1">*</span>}
@@ -88,22 +96,24 @@ const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = 
                                 )}
                             </div>
                             <div className="flex items-center space-x-2">
-                                {/* Remind Client Button */}
+                                {/* Remind Client Button always visible, but disabled if uploaded */}
                                 <button
                                     type="button"
                                     onClick={() => handleRemindClient(doc)}
-                                    disabled={!canRemind || isReminding || isLoading}
+                                    disabled={!canRemind || isReminding || isLoading || !!existingDoc}
                                     className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                                        canRemind && !isReminding && !isLoading
+                                        canRemind && !isReminding && !isLoading && !existingDoc
                                             ? 'bg-orange-600 text-white hover:bg-orange-700'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     }`}
                                     title={
-                                        !clientInfo?.contactPhone 
-                                            ? 'Client phone number not available'
-                                            : isReminding 
-                                                ? 'Sending reminder...'
-                                                : 'Send reminder to client'
+                                        !!existingDoc
+                                            ? 'Document already uploaded'
+                                            : !clientInfo?.contactPhone
+                                                ? 'Client phone number not available'
+                                                : isReminding
+                                                    ? 'Sending reminder...'
+                                                    : 'Send reminder to client'
                                     }
                                 >
                                     {isReminding ? (
@@ -118,7 +128,6 @@ const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = 
                                         'Remind Client'
                                     )}
                                 </button>
-
                                 {/* Upload Button */}
                                 <label className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
                                     {existingDoc ? 'Replace' : 'Upload'}
