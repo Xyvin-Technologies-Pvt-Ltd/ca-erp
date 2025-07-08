@@ -1071,6 +1071,7 @@ const EventCalendar = () => {
             </div>
           </div>
         )}
+        
 
         {/* Enhanced Modal */}
         <Modal
