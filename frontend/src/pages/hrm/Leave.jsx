@@ -46,13 +46,19 @@ const Leave = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, leave: null });
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const fetchLeavesData = async () => {
+  const fetchLeavesData = async (pageNum = page) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getLeaves();
-      setLeaves(data);
+      const data = await getLeaves({ page: pageNum, limit });
+      setLeaves(Array.isArray(data.data?.leaves) ? data.data.leaves : []);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
     } catch (err) {
       setError("Failed to fetch leave requests");
     } finally {
@@ -61,8 +67,8 @@ const Leave = () => {
   };
 
   useEffect(() => {
-    fetchLeavesData();
-  }, []);
+    fetchLeavesData(page);
+  }, [page]);
 
   const handleEdit = (leave) => {
     setSelectedLeave(leave);
@@ -295,6 +301,84 @@ const Leave = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Pagination Controls */}
+      {totalPages > 0 && (
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  page === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                }`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={page === totalPages}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  page === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                }`}
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of <span className="font-medium">{total}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                      page === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                        : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    &lt;
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                        p === page
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page === totalPages}
+                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                      page === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                        : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    &gt;
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showModal && (

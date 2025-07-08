@@ -182,13 +182,13 @@ const taskValidation = {
     create: Joi.object({
         body: Joi.object({
             title: Joi.string().max(100).required(),
-            description: Joi.string().max(500),
+            description: Joi.string().max(500).required(),
             project: Joi.string().required(),
-            assignedTo: Joi.string(),
+            assignedTo: Joi.string().required(),
             amount: Joi.number().min(0),
             status: Joi.string().valid('pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'),
             priority: Joi.string().valid('low', 'medium', 'high', 'urgent'),
-            dueDate: Joi.date(),
+            dueDate: Joi.date().required(),
             estimatedHours: Joi.number().min(0),
             parent: Joi.string(),
             tags: Joi.array().items(Joi.string()).default([]),

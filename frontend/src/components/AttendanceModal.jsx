@@ -348,7 +348,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const existingAttendanceCount = existingAttendance.length;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
           <h2 className="text-2xl font-semibold text-gray-800">Record Bulk Attendance</h2>

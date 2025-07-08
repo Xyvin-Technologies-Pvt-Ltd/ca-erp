@@ -4,11 +4,24 @@ const { createError } = require('../utils/errors');
 
 // Get all positions
 const getAllPositions = catchAsync(async (req, res) => {
-    const positions = await Position.find()
-        .populate('department', 'name');
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const [positions, total] = await Promise.all([
+        Position.find()
+            .populate('department', 'name')
+            .skip(skip)
+            .limit(limit),
+        Position.countDocuments()
+    ]);
+
     res.status(200).json({
         status: 'success',
-        data: positions
+        data: positions,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
     });
 });
 
