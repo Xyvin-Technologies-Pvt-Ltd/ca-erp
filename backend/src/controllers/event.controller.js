@@ -20,12 +20,25 @@ const createEvent = catchAsync(async (req, res) => {
 
 // Get all events
 const getEvents = catchAsync(async (req, res) => {
-  const events = await Event.find()
-    .populate('createdBy', 'name email')
-    .sort({ startDate: 1 });
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const [events, total] = await Promise.all([
+    Event.find()
+      .populate('createdBy', 'name email')
+      .sort({ startDate: 1 })
+      .skip(skip)
+      .limit(limit),
+    Event.countDocuments()
+  ]);
+
   res.status(200).json({
     status: 'success',
-    data: events
+    data: events,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit)
   });
 });
 

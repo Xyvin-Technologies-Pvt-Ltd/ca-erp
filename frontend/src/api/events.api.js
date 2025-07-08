@@ -1,7 +1,10 @@
 import api from './axios';
 
-export const getEvents = async () => {
-    const response = await api.get('/events');
+export const getEvents = async (params = {}) => {
+    let { page = 1, limit = 10 } = params;
+    page = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    limit = Number.isInteger(Number(limit)) && Number(limit) > 0 ? Number(limit) : 10;
+    const response = await api.get('/events', { params: { page, limit } });
     return response.data;
 };
 
