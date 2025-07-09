@@ -7,6 +7,7 @@ on:
       - ".github/workflows/backend.yml"
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
