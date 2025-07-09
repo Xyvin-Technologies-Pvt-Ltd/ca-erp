@@ -419,7 +419,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 {/* Assigned To */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To
+                    Assigned To <span className="text-red-500">*</span>
                   </label>
                   <Select
                     value={users.find((user) => user._id === assignedTo)}
@@ -471,7 +471,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 {/* Due Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Due Date
+                    Due Date <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -506,7 +506,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={description}
