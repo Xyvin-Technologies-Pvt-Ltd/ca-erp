@@ -373,21 +373,22 @@ const Projects = () => {
                       </div>
                     </div>
 
-                  <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                       {project.team && project.team.length > 0 ? (
-                        <div className="flex -space-x-2">
+                        <motion.div
+                          className="relative flex -space-x-2"
+                          whileHover={{ scale: 1.05 }}
+                        >
                           {project.team.slice(0, 3).map((member, index) => (
-                            <motion.div
+                            <div
                               key={member._id || member.id || index}
                               className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
-                              title={member.name || member.email || 'Team Member'}
-                              whileHover={{ scale: 1.1 }}
                             >
                               <span className="text-xs font-medium text-gray-500">
                                 {member.name ? member.name.charAt(0).toUpperCase() : 
                                 member.email ? member.email.charAt(0).toUpperCase() : '?'}
                               </span>
-                            </motion.div>
+                            </div>
                           ))}
                           {project.team.length > 3 && (
                             <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
@@ -396,7 +397,19 @@ const Projects = () => {
                               </span>
                             </div>
                           )}
-                        </div>
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileHover={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute bottom-7 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
+                          >
+                            {project.team.map((member, index) => (
+                              <div key={member._id || member.id || index}>
+                                {member.name || member.email || 'Unknown Member'}
+                              </div>
+                            ))}
+                          </motion.div>
+                        </motion.div>
                       ) : (
                         <div className="text-xs text-gray-500 flex items-center">
                           <UsersIcon className="h-4 w-4 mr-1 text-gray-400" />
