@@ -205,7 +205,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="max-w-7xl min-h-[80vh] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Success message notification */}
       <AnimatePresence>
         {successMessage && (
@@ -281,7 +281,7 @@ const Projects = () => {
           {role !== "staff" && (
             <motion.button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -420,6 +420,7 @@ const Projects = () => {
       )}
 
       {/* Pagination Controls */}
+       {projects.length > 0 && (
       <div className="px-6 py-4 border-t border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -488,7 +489,7 @@ const Projects = () => {
           </div>
         </div>
       </div>
-
+       )}
       <CreateProjectModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

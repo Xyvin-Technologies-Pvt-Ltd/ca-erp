@@ -23,11 +23,7 @@ const departmentSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    budget: {
-        type: Number,
-        required: true,
-        min: 0
-    },
+    
     manager: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Employee'

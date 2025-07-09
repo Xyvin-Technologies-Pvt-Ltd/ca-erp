@@ -354,7 +354,7 @@ const Tasks = () => {
             {role !== "staff" && (
               <motion.button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -450,6 +450,7 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Pagination */}
+       {tasks.length > 0 && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -519,7 +520,7 @@ const Tasks = () => {
                   whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
                 >
                   <span className="sr-only">First</span>
-                  <ChevronDoubleLeftIcon className="h-5 w-5" />
+              <ChevronLeftIcon className="h-5 w-5 mr-1" />
                 </motion.button>
                 {pages.map((page) => (
                   <motion.button
@@ -555,7 +556,7 @@ const Tasks = () => {
           </div>
         </div>
       </motion.div>
-
+       )}
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
