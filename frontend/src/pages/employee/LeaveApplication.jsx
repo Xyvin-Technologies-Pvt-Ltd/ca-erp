@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
-import { format, differenceInDays, addMonths, subMonths, addDays } from "date-fns";
+import { format, differenceInDays, addMonths, subMonths, addDays, isSameDay, isAfter, isBefore, startOfDay } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -51,6 +51,9 @@ const LeaveApplication = () => {
 
   useEffect(() => {
     const fetchLeaveData = async () => {
+      const loadingToast = toast.loading("Loading leave information...", {
+        id: "loading-leave-data",
+      });
       try {
         if (!user) {
           toast.error("User information not found");
@@ -244,7 +247,18 @@ const LeaveApplication = () => {
       setReason("");
       setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
 
-      toast.success("Leave request submitted successfully");
+      if (response && response.data) {
+      toast.success("Leave request submitted successfully", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } else {
+      toast.error("Failed to submit leave request");
+    }
 
       await refreshLeaveData();
     } catch (error) {
@@ -280,6 +294,68 @@ const LeaveApplication = () => {
       default:
         return <ClockIcon className="h-5 w-5 text-amber-600" />;
     }
+  };
+
+  const handleDateClick = (date) => {
+    if (!date || isBefore(date, addDays(startOfDay(new Date()), 6))) {
+      return; // Don't allow selection of disabled dates
+    }
+
+    if (!dateRange.from || (dateRange.from && dateRange.to)) {
+      // Start new selection
+      setDateRange({ from: date, to: null });
+    } else if (dateRange.from && !dateRange.to) {
+      // Complete the range
+      if (isBefore(date, dateRange.from)) {
+        setDateRange({ from: date, to: dateRange.from });
+      } else {
+        setDateRange({ from: dateRange.from, to: date });
+      }
+    }
+  };
+
+  const isDateInRange = (date) => {
+    if (!dateRange.from || !dateRange.to || !date) return false;
+    return (isAfter(date, dateRange.from) || isSameDay(date, dateRange.from)) &&
+           (isBefore(date, dateRange.to) || isSameDay(date, dateRange.to));
+  };
+
+  const isDateSelected = (date) => {
+    if (!date) return false;
+    return (dateRange.from && isSameDay(date, dateRange.from)) ||
+           (dateRange.to && isSameDay(date, dateRange.to));
+  };
+
+  const isDateDisabled = (date) => {
+    if (!date) return true;
+    return isBefore(date, addDays(startOfDay(new Date()), 6));
+  };
+
+  const isToday = (date) => {
+    if (!date) return false;
+    return isSameDay(date, new Date());
+  };
+   const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
   };
 
   const getFormattedDateRange = () => {
@@ -318,7 +394,63 @@ const LeaveApplication = () => {
   const disabledDays = {
     before: addDays(new Date(), 6),
   };
+  const renderCalendar = (month) => {
+    const days = getDaysInMonth(month);
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+    return (
+      <div className="w-full">
+        {/* Week day headers */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {weekDays.map(day => (
+            <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        {/* Calendar days */}
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((date, index) => {
+            if (!date) {
+              return <div key={`empty-${index}`} className="h-10 w-10"></div>;
+            }
+
+            const disabled = isDateDisabled(date);
+            const selected = isDateSelected(date);
+            const inRange = isDateInRange(date);
+            const today = isToday(date);
+
+            let dayClasses = "h-10 w-10 flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ";
+
+            if (disabled) {
+              dayClasses += "text-gray-400 cursor-not-allowed opacity-50 ";
+            } else if (selected) {
+              dayClasses += "bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-600 text-white font-semibold shadow-lg transform scale-105 ring-2 ring-indigo-300 ring-offset-1 ";
+            } else if (inRange) {
+              dayClasses += "bg-gradient-to-r from-indigo-200 to-indigo-100 text-indigo-900 font-medium shadow-sm ";
+            } else if (today) {
+              dayClasses += "bg-indigo-50 text-indigo-600 font-semibold border-2 border-indigo-300 ";
+            } else {
+              dayClasses += "text-gray-700 hover:bg-indigo-100 hover:scale-105 hover:shadow-md ";
+            }
+
+            return (
+              <motion.div
+                key={date.toISOString()}
+                className={dayClasses}
+                onClick={() => handleDateClick(date)}
+                whileHover={!disabled ? { scale: 1.05 } : {}}
+                whileTap={!disabled ? { scale: 0.95 } : {}}
+              >
+                {date.getDate()}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center text-gray-600">
@@ -394,7 +526,7 @@ const LeaveApplication = () => {
                 </div>
               </div>
 
-              <div>
+             <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <SunIcon className="h-5 w-5 text-indigo-600 mr-2" />
                   Date Range
@@ -423,56 +555,8 @@ const LeaveApplication = () => {
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={handleDateSelect}
-                        month={currentMonth}
-                        className="w-full animate-fade-in"
-                        showOutsideDays={false}
-                        disabled={disabledDays}
-                        classNames={{
-                          months: "flex justify-center",
-                          month: "space-y-4 w-full",
-                          caption: "hidden",
-                          nav: "hidden",
-                          table: "w-full border-collapse space-y-1",
-                          head_row: "flex",
-                          head_cell: "text-gray-500 w-10 font-normal text-sm",
-                          row: "flex w-full",
-                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
-                          day: "h-10 w-10 p-0 font-normal hover:bg-indigo-100 cursor-pointer rounded-full transition-all duration-300",
-                          day_range_end: "day-range-end",
-                          day_range_start: "day-range-start",
-                          day_selected: "bg-indigo-600 text-white hover:bg-indigo-700",
-                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50",
-                        }}
-                      />
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={handleDateSelect}
-                        month={addMonths(currentMonth, 1)}
-                        className="w-full animate-fade-in"
-                        showOutsideDays={false}
-                        disabled={disabledDays}
-                        classNames={{
-                          months: "flex justify-center",
-                          month: "space-y-4 w-full",
-                          caption: "hidden",
-                          nav: "hidden",
-                          table: "w-full border-collapse space-y-1",
-                          head_row: "flex",
-                          head_cell: "text-gray-500 w-10 font-normal text-sm",
-                          row: "flex w-full",
-                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent",
-                          day: "h-10 w-10 p-0 font-normal hover:bg-indigo-100 cursor-pointer rounded-full transition-all duration-300",
-                          day_range_end: "day-range-end",
-                          day_range_start: "day-range-start",
-                          day_selected: "bg-indigo-600 text-white hover:bg-indigo-700",
-                          day_disabled: "text-gray-400 cursor-not-allowed opacity-50",
-                        }}
-                      />
+                      {renderCalendar(currentMonth)}
+                      {renderCalendar(addMonths(currentMonth, 1))}
                     </div>
                   </div>
                 </div>

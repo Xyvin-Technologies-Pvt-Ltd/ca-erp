@@ -227,6 +227,36 @@ const ClientDetails = () => {
             </div>
           </div>
 
+          {/* Tax Information */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <div className="flex items-center space-x-2 mb-6">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Tax Information</h3>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-2">GSTIN</p>
+                <p className="text-gray-900 font-medium">{client.gstin || "N/A"}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-2">PAN</p>
+                <p className="text-gray-900 font-medium">{client.pan || "N/A"}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-2">CIN</p>
+                <p className="text-gray-900 font-medium">{client.cin || "N/A"}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-2">Currency Format</p>
+                <p className="text-gray-900 font-medium">{client.currencyFormat || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Additional Information */}
           <div className="mt-8 pt-8 border-t border-gray-200">
             <div className="flex items-center space-x-2 mb-6">
@@ -239,10 +269,6 @@ const ClientDetails = () => {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-sm font-medium text-gray-500 mb-2">Address</p>
-                <p className="text-gray-900 font-medium">{client.address || "N/A"}</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <p className="text-sm font-medium text-gray-500 mb-2">Created At</p>
                 <p className="text-gray-900 font-medium">
                   {new Date(client.createdAt).toLocaleDateString('en-US', {
@@ -251,6 +277,15 @@ const ClientDetails = () => {
                     day: 'numeric'
                   })}
                 </p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-2">Address</p>
+                <div className="text-gray-900 font-medium">
+                  <div>Country: {client.country || "N/A"}</div>
+                  <div>State: {client.state || "N/A"}</div>
+                  <div>City: {client.city || "N/A"}</div>
+                  <div>PIN: {client.pin || "N/A"}</div>
+                </div>
               </div>
             </div>
             <div className="mt-6">

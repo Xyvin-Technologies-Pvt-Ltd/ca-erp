@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { clientsApi } from "../api/clientsApi";
 import { toast } from "react-toastify";
@@ -13,12 +13,11 @@ import {
   Save,
   Plus
 } from "lucide-react";
+import countryCurrency from "../api/countryCurrency.json";
 
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const isEditMode = !!client;
-
-  // Industry options for CA firm clients
   const industryOptions = [
     "IT Services",
     "Banking",
@@ -52,21 +51,29 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       contactPhone: "",
       industry: "",
       status: "active",
-      address: "",
-      website: "",
+      country: "",
+      state: "",
+      city: "",
+      pin: "",
       gstin: "",
       pan: "",
+      cin: "",
+      currencyFormat: "",
       notes: "",
     },
   });
 
-  // Watch address and notes for character counting
-  const addressValue = watch("address");
+  const countryValue = watch("country");
   const notesValue = watch("notes");
+  const currencyValue = watch("currencyFormat");
 
-  // Define max character limits
   const maxAddressLength = 200;
   const maxNotesLength = 500;
+
+  const [filteredCountries, setFilteredCountries] = useState(countryCurrency);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryInputRef = useRef(null);
 
   useEffect(() => {
     if (client) {
@@ -74,14 +81,21 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     }
   }, [client, reset]);
 
+  useEffect(() => {
+    if (countryValue) {
+      const found = countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase());
+      if (found && found.currency) {
+        reset({ ...watch(), currencyFormat: found.currency });
+      }
+    }
+  }, [countryValue]);
+
   const onSubmit = async (formData) => {
     setLoading(true);
     try {
       let result;
       if (isEditMode) {
         result = await clientsApi.updateClient(client._id, formData);
-        
-        // Show success toast for update
         toast.success(
           `Client "${formData.name}" updated successfully!`,
           {
@@ -95,8 +109,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         );
       } else {
         result = await clientsApi.createClient(formData);
-        
-        // Show success toast for create
         toast.success(
           `Client "${formData.name}" created successfully!`,
           {
@@ -111,22 +123,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       }
 
       if (result.success) {
-        // Trigger automatic refresh by calling onSuccess
         if (onSuccess) {
           onSuccess(result.data);
         }
-        
-        // Auto-refresh the page/component after a short delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
       } else {
         throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
       }
     } catch (error) {
       console.error("Error saving client:", error);
-      
-      // Show error toast
       toast.error(
         error.message || `Failed to ${isEditMode ? 'update' : 'create'} client. Please try again.`,
         {
@@ -143,14 +147,25 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     }
   };
 
+  // Prevent clicks inside the modal from closing it
+  const handleModalContentClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <>
       {/* Blur Background Overlay */}
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onCancel}></div>
       
       {/* Modal Container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+        onClick={onCancel} // This ensures clicking anywhere outside the modal content triggers onCancel
+      >
+        <div
+          className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
+          onClick={handleModalContentClick} // Prevent clicks inside the modal from closing it
+        >
           {/* Enhanced Form Header */}
           <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-200 relative">
             <button
@@ -193,7 +208,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Client Name */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Client Name*
+                    Client Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -232,7 +247,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Contact Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Contact Email*
+                    Contact Email<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -336,6 +351,86 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
+
+                {/* Address Subsection */}
+                <div className="md:col-span-2 mt-6">
+                  <h4 className="text-md font-semibold text-gray-800 mb-2">Address</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Country */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          ref={countryInputRef}
+                          value={countrySearch || countryValue || ""}
+                          onChange={e => {
+                            setCountrySearch(e.target.value);
+                            const filtered = countryCurrency.filter(c => c.name.toLowerCase().startsWith(e.target.value.toLowerCase()));
+                            setFilteredCountries(filtered);
+                            reset({ ...watch(), country: e.target.value });
+                            setShowCountryDropdown(true);
+                          }}
+                          onFocus={() => {
+                            setShowCountryDropdown(true);
+                            setFilteredCountries(countryCurrency.filter(c => c.name.toLowerCase().startsWith((countrySearch || countryValue || "").toLowerCase())));
+                          }}
+                          onBlur={() => setTimeout(() => setShowCountryDropdown(false), 150)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                          placeholder="e.g. India"
+                        />
+                        {showCountryDropdown && filteredCountries.length > 0 && (countrySearch || countryValue) && (
+                          <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                            {filteredCountries.map((c, idx) => (
+                              <li
+                                key={c.name}
+                                className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                onMouseDown={e => {
+                                  e.stopPropagation();
+                                  reset({ ...watch(), country: c.name, currencyFormat: c.currency });
+                                  setCountrySearch(c.name);
+                                  setShowCountryDropdown(false);
+                                }}
+                              >
+                                {c.name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                    {/* State */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                      <input
+                        type="text"
+                        {...register("state")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. Maharashtra"
+                      />
+                    </div>
+                    {/* City */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                      <input
+                        type="text"
+                        {...register("city")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. Mumbai"
+                      />
+                    </div>
+                    {/* Pin */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN</label>
+                      <input
+                        type="text"
+                        {...register("pin")}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        placeholder="e.g. 400021"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -351,9 +446,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* GSTIN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    GSTIN
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">GSTIN</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -379,12 +472,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
-
                 {/* PAN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    PAN
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">PAN</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -410,6 +500,27 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </p>
                   )}
                 </div>
+                {/* CIN */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">CIN</label>
+                  <input
+                    type="text"
+                    {...register("cin")}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    placeholder="e.g. L12345MH2000PLC123456"
+                  />
+                </div>
+                {/* Currency Format */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Currency Format</label>
+                  <input
+                    type="text"
+                    {...register("currencyFormat")}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    placeholder="e.g. INR"
+                    readOnly={!!countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase())}
+                  />
+                </div>
               </div>
             </div>
 
@@ -423,26 +534,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               </div>
 
               <div className="space-y-6">
-                {/* Address */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Address
-                  </label>
-                  <textarea
-                    {...register("address")}
-                    rows="3"
-                    maxLength={maxAddressLength}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none hover:border-gray-400"
-                    placeholder="Enter complete address"
-                  ></textarea>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-sm text-gray-500">Complete business address</p>
-                    <p className={`text-sm ${(addressValue?.length || 0) > maxAddressLength * 0.8 ? 'text-amber-600' : 'text-gray-500'}`}>
-                      {addressValue?.length || 0}/{maxAddressLength}
-                    </p>
-                  </div>
-                </div>
-
                 {/* Notes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">

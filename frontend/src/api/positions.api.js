@@ -1,7 +1,8 @@
 import api from './axios';
 
-export const getPositions = async () => {
-    const response = await api.get('/positions');
+export const getPositions = async (params = {}) => {
+    const { page = 1, limit = 10, ...rest } = params;
+    const response = await api.get('/positions', { params: { page, limit, ...rest } });
     return response.data;
 };
 

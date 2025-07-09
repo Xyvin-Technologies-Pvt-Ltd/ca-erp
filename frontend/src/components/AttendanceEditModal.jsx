@@ -16,25 +16,36 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Helper function to format date without timezone issues
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    // Use local date components to avoid timezone conversion
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to format time without timezone issues
+  const formatTimeForInput = (timeString) => {
+    if (!timeString) return "";
+    const date = new Date(timeString);
+    // Use local time components to avoid timezone conversion
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     if (attendance) {
       setFormData({
-        date: attendance.date
-          ? new Date(attendance.date).toISOString().split("T")[0]
-          : "",
+        date: formatDateForInput(attendance.date),
         checkIn: attendance.checkIn?.time
-          ? new Date(attendance.checkIn.time).toLocaleTimeString("en-US", {
-              hour12: false,
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+          ? formatTimeForInput(attendance.checkIn.time)
           : "",
         checkOut: attendance.checkOut?.time
-          ? new Date(attendance.checkOut.time).toLocaleTimeString("en-US", {
-              hour12: false,
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+          ? formatTimeForInput(attendance.checkOut.time)
           : "",
         status: attendance.status || "Present",
         notes: attendance.notes || "",
@@ -141,9 +152,10 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
   };
 
   if (!attendance) return null;
+  console.log(formData,'form data');
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">Edit Attendance</h2>

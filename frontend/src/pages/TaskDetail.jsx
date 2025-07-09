@@ -28,6 +28,9 @@ import {
   Send,
   Timer
 } from "lucide-react";
+import TagDocumentUpload from "../components/TagDocumentUpload";
+import { tagDocumentRequirements } from "../utils/tagDocumentFields";
+import { uploadTagDocument, getTaskTagDocuments, remindClientForDocument } from "../api/tasks";
 
 const statusColors = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -88,6 +91,62 @@ const TaskDetail = () => {
     date: new Date().toISOString().split("T")[0],
   });
   const [notifyingFinance, setNotifyingFinance] = useState(false);
+  const [tagDocuments, setTagDocuments] = useState({});
+  const [isLoadingTagDocs, setIsLoadingTagDocs] = useState(false);
+  const [verifications, setVerifications] = useState({});
+  const [remindingDocs, setRemindingDocs] = useState({});
+  const [clientInfo, setClientInfo] = useState(null);
+  const [isLoadingClient, setIsLoadingClient] = useState(false);
+
+  // Fetch tag documents on mount or refresh (same as TaskForm)
+  useEffect(() => {
+    const fetchTagDocs = async () => {
+      if (task?._id) {
+        setIsLoadingTagDocs(true);
+        try {
+          const response = await getTaskTagDocuments(task._id);
+          setTagDocuments(response.data || {});
+        } catch (error) {
+          setTagDocuments({});
+        } finally {
+          setIsLoadingTagDocs(false);
+        }
+      }
+    };
+    fetchTagDocs();
+  }, [task?._id, refresh]);
+
+  // Fetch client info for the project (same as TaskForm)
+  useEffect(() => {
+    const fetchClient = async () => {
+      if (task?.project?._id) {
+        setIsLoadingClient(true);
+        try {
+          // Use the same API as TaskForm (projectsApi.getProjectById)
+          const { projectsApi } = await import("../api/projectsApi");
+          const response = await projectsApi.getProjectById(task.project._id);
+          if (response.success && response.data.client) {
+            setClientInfo(response.data.client);
+          } else {
+            setClientInfo(null);
+          }
+        } catch (error) {
+          setClientInfo(null);
+        } finally {
+          setIsLoadingClient(false);
+        }
+      }
+    };
+    fetchClient();
+  }, [task?.project?._id]);
+
+  // Persistent verification state (localStorage)
+  useEffect(() => {
+    if (task?._id) {
+      const saved = localStorage.getItem(`taskdoc-verify-${task._id}`);
+      if (saved) setVerifications(JSON.parse(saved));
+    }
+  }, [task?._id]);
 
   useEffect(() => {
     const loadTask = async () => {
@@ -95,6 +154,7 @@ const TaskDetail = () => {
         setLoading(true);
         const data = await fetchTaskById(id);
         setTask(data);
+        
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch task:", err);
@@ -105,6 +165,10 @@ const TaskDetail = () => {
 
     loadTask();
   }, [id, refresh]);
+  // console.log(task,'ggf');
+  
+
+   
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -372,6 +436,49 @@ const TaskDetail = () => {
       console.error('Error downloading document:', error);
       setError("Failed to download document. Please try again later.");
     }
+  };
+
+  const handleTagDocUpload = async (tag, documentType, file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("tag", tag);
+      formData.append("documentType", documentType);
+      const res = await uploadTagDocument(task._id, formData, token);
+      setTagDocuments((prev) => ({ ...prev, [`${tag}-${documentType}`]: res.data }));
+      setVerifications((prev) => {
+        const updated = { ...prev, [`${tag}-${documentType}`]: false };
+        if (task?._id) {
+          localStorage.setItem(`taskdoc-verify-${task._id}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
+      setRefresh((prev) => !prev);
+    } catch (e) {
+      setError("Failed to upload tag document");
+    }
+  };
+
+  const handleRemindClient = async ({ documentName, documentType, tag }) => {
+    setRemindingDocs((prev) => ({ ...prev, [`${tag}-${documentType}`]: true }));
+    try {
+      await remindClientForDocument(task._id, { documentName, documentType, tag }, token);
+      setError(null);
+    } catch (e) {
+      console.log("Failed to send reminder");
+    } finally {
+      setRemindingDocs((prev) => ({ ...prev, [`${tag}-${documentType}`]: false }));
+    }
+  };
+
+  const handleVerifyChange = (key, checked) => {
+    setVerifications((prev) => {
+      const updated = { ...prev, [key]: checked };
+      if (task?._id) {
+        localStorage.setItem(`taskdoc-verify-${task._id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   if (loading) {
@@ -708,9 +815,118 @@ const TaskDetail = () => {
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Attachments */}
+          
+
+          {/* Right column - Sidebar */}
+          <div className="space-y-8">
+            {/* Status Change */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <AlertCircle className="w-5 h-5 mr-2 text-indigo-600" />
+                  Status
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-3">
+                  {[
+                    "pending",
+                    "in-progress",
+                    "review",
+                    "completed",
+                    "cancelled",
+                  ].map((status) => {
+                    const StatusIcon = statusIcons[status] || AlertCircle;
+                    return (
+                      <button
+                        key={status}
+                        onClick={() => handleStatusChange(status)}
+                        className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${
+                          task.status === status
+                            ? `${statusColors[status]} shadow-lg`
+                            : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                        }`}
+                      >
+                        <StatusIcon className="w-4 h-4 mr-2" />
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Task Details */}
+            <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-gray-600" />
+                  Details
+                </h2>
+              </div>
+              <div className="p-6">
+                <dl className="space-y-6">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-2">Assigned To</dt>
+                    <dd className="flex items-center">
+                      <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center mr-3">
+                        {task.assignedTo?.avatar ? (
+                          <img
+                            className="h-8 w-8 rounded-full"
+                            src={task.assignedTo.avatar}
+                            alt=""
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-white">
+                            {task.assignedTo?.name?.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{task.assignedTo?.name}</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-2">Project</dt>
+                    <dd>
+                      <Link
+                        to={`/projects/${task.project?.id}`}
+                        className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center"
+                      >
+                        <FolderOpen className="w-4 h-4 mr-2" />
+                        {task.project?.name}
+                      </Link>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-2">Created</dt>
+                    <dd className="text-sm text-gray-900 flex items-center">
+                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                      {formatDate(task.createdAt)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-2">Due Date</dt>
+                    <dd className="text-sm text-gray-900 flex items-center">
+                      <Calendar className="w-4 h-4 mr-2 text-red-400" />
+                      {formatDate(task.dueDate)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-2">Estimated Hours</dt>
+                    <dd className="text-sm text-gray-900 flex items-center">
+                      <Clock className="w-4 h-4 mr-2 text-blue-400" />
+                      {calculateEstimatedHours()}h
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+            <div className="bg-white/70 backdrop-blur-sm shadow-xl mt-10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-blue-50 flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                   <Paperclip className="w-5 h-5 mr-2 text-blue-600" />
@@ -766,8 +982,43 @@ const TaskDetail = () => {
               </div>
             </div>
 
+            {/* Tag Documents Section (use TagDocumentUpload for each tag, as in TaskForm) */}
+            {task && Array.isArray(task.tags) && (
+              <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl mt-8">
+                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50 flex items-center">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    Tag Documents
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {isLoadingTagDocs ? (
+                    <div className="text-center text-gray-500">Loading tag documents...</div>
+                  ) : (task.tags.length > 0 ? (
+                    <div className="space-y-6">
+                      {task.tags.map((tag) => (
+                        <TagDocumentUpload
+                          key={tag}
+                          tag={tag}
+                          onUpload={handleTagDocUpload}
+                          onRemindClient={handleRemindClient}
+                          existingDocuments={tagDocuments}
+                          clientInfo={clientInfo}
+                          isLoading={isLoadingTagDocs || isLoadingClient}
+                          verifications={verifications}
+                          onVerifyChange={handleVerifyChange}
+                          remindingDocs={remindingDocs}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500">No tags selected for this task.</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Time Tracking */}
-            <div className="bg-white/70  shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <div className="bg-white/70 mt-9 shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50 flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                   <Clock className="w-5 h-5 mr-2 text-blue-600" />
@@ -933,114 +1184,8 @@ const TaskDetail = () => {
                 )}
               </div>
             </div> */}
-          </div>
 
-          {/* Right column - Sidebar */}
-          <div className="space-y-8">
-            {/* Status Change */}
-            <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-indigo-600" />
-                  Status
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-3">
-                  {[
-                    "pending",
-                    "in-progress",
-                    "review",
-                    "completed",
-                    "cancelled",
-                  ].map((status) => {
-                    const StatusIcon = statusIcons[status] || AlertCircle;
-                    return (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusChange(status)}
-                        className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${
-                          task.status === status
-                            ? `${statusColors[status]} shadow-lg`
-                            : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                        }`}
-                      >
-                        <StatusIcon className="w-4 h-4 mr-2" />
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
 
-            {/* Task Details */}
-            <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-gray-600" />
-                  Details
-                </h2>
-              </div>
-              <div className="p-6">
-                <dl className="space-y-6">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Assigned To</dt>
-                    <dd className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center mr-3">
-                        {task.assignedTo?.avatar ? (
-                          <img
-                            className="h-8 w-8 rounded-full"
-                            src={task.assignedTo.avatar}
-                            alt=""
-                          />
-                        ) : (
-                          <span className="text-sm font-medium text-white">
-                            {task.assignedTo?.name?.charAt(0)}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{task.assignedTo?.name}</span>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Project</dt>
-                    <dd>
-                      <Link
-                        to={`/projects/${task.project?.id}`}
-                        className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center"
-                      >
-                        <FolderOpen className="w-4 h-4 mr-2" />
-                        {task.project?.name}
-                      </Link>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Created</dt>
-                    <dd className="text-sm text-gray-900 flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {formatDate(task.createdAt)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Due Date</dt>
-                    <dd className="text-sm text-gray-900 flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-red-400" />
-                      {formatDate(task.dueDate)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Estimated Hours</dt>
-                    <dd className="text-sm text-gray-900 flex items-center">
-                      <Clock className="w-4 h-4 mr-2 text-blue-400" />
-                      {calculateEstimatedHours()}h
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Modals */}
         {/* Add Subtask Modal */}

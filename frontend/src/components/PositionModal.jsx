@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { XMarkIcon, BriefcaseIcon, CodeBracketIcon, BuildingOffice2Icon, DocumentTextIcon, UserGroupIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import { createPosition, updatePosition, getNextPositionCode } from '../api/positions.api';
 import { getDepartments } from '../api/department.api';
-import { toast } from 'react-toastify'; // Corrected import
-import 'react-toastify/dist/ReactToastify.css'; // Added CSS import
+import { toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css';
 
 const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
   const [formData, setFormData] = useState({
@@ -109,8 +109,14 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100">
+    <div
+      className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">

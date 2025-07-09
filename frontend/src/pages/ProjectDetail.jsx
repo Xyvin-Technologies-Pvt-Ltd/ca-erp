@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete, MdUpload, MdNoteAdd, MdTimeline, MdInfo, MdTaskAlt, MdFolder, MdNote } from "react-icons/md";
@@ -10,6 +10,8 @@ import { documentsApi } from "../api/documentsApi";
 import { projectsApi } from "../api";
 import ConfirmModal from "../components/settings/DeleteModal";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 const statusColors = {
   completed: "bg-emerald-100 text-emerald-800",
@@ -25,11 +27,13 @@ const priorityColors = {
   low: "bg-emerald-100 text-emerald-800",
 };
 
+
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +60,7 @@ const ProjectDetail = () => {
   const [noteCurrentPage, setNoteCurrentPage] = useState(1);
   const notesPerPage = 5;
 
-  
+  const [showClientDetails, setShowClientDetails] = useState(false);
 
   useEffect(() => {
     const loadProject = async () => {
@@ -76,6 +80,24 @@ const ProjectDetail = () => {
     loadProject();
   }, [id, reloadDocuments, reloadProject]);
 
+  const handleTabChange = async (tabName) => {
+    if (tabName === "overview") {
+      setTabLoading(true);
+      try {
+        const data = await fetchProjectById(id);
+        setProject(data.data);
+        setActiveTab(tabName);
+      } catch (err) {
+        console.error("Failed to fetch project for overview:", err);
+        setError("Failed to load overview. Please try again later.");
+      } finally {
+        setTabLoading(false);
+      }
+    } else {
+      setActiveTab(tabName);
+    }
+  };
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -83,6 +105,7 @@ const ProjectDetail = () => {
   const handleProjectUpdate = async (updatedProject) => {
     setReloadProject((prev) => !prev);
     setIsEditing(false);
+    toast.success("Project updated successfully");
   };
 
   const handleUploadSuccess = (newDocument) => {
@@ -177,6 +200,7 @@ const ProjectDetail = () => {
     try {
       setLoading(true);
       await projectsApi.updateProject(id, { deleted: true });
+      toast.success("Project deleted successfully");
       setLoading(false);
       navigate("/projects", {
         state: { message: "Project deleted successfully" },
@@ -341,9 +365,10 @@ const ProjectDetail = () => {
   const goToPrevDocPage = () => {
     setDocCurrentPage((prev) => Math.max(prev - 1, 1));
   };
+// console.log(project,'project');
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10  bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">
       <style>
         {`
           @keyframes fadeIn {
@@ -391,7 +416,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-5 py-2.5  bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
               <CiEdit className="w-5 h-5 mr-2 text-white" />
               Edit Project
@@ -400,7 +425,7 @@ const ProjectDetail = () => {
               onClick={() => setConfirmDelete(true)}
               className="inline-flex items-center px-5 py-2.5 bg-rose-500 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <MdDelete className="w-5 h-5 mr-2 text-white" />
+               <TrashIcon className="h-5 w-5" />
               Delete
             </button>
           </div>
@@ -408,7 +433,7 @@ const ProjectDetail = () => {
       </div>
 
       {/* Project header */}
-      <div className="border border-blue-100 bg-white  rounded-2xl mb-8 transform transition-all duration-500 ease-in-out ">
+      <div className="border border-blue-100 bg-white rounded-2xl mb-8 transform transition-all duration-500 ease-in-out">
         <div className="px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
@@ -416,25 +441,75 @@ const ProjectDetail = () => {
                 <MdFolder className="w-7 h-7 mr-2 text-blue-500" />
                 {project.name}
               </h1>
-              <p className="mt-2 text-sm text-gray-600 flex items-center">
-                <svg className="w-5 h-5 mr-1 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                </svg>
-                Client: {project.client?.name}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
-              >
-                {project.status}
-              </span>
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${priorityColors[project.priority] || "bg-gray-200 text-gray-800"} animate-pulse-slow shadow-sm`}
-              >
-                {project.priority} Priority
-              </span>
+              <div className="flex items-center space-x-3 mt-3">
+                <button
+                  type="button"
+                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-blue-500 font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${showClientDetails ? 'ring-2 ring-blue-300' : ''}`}
+                  onClick={() => setShowClientDetails((v) => !v)}
+                >
+                  {/* <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg> */}
+                  Client Information
+                  <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${showClientDetails ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {/* Status and Priority Chips */}
+                <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[project.status] || 'bg-gray-200 text-gray-800'} shadow-sm`}>{project.status}</span>
+                <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${priorityColors[project.priority] || 'bg-gray-200 text-gray-800'} shadow-sm`}>{project.priority} Priority</span>
+              </div>
+              {/* Client Info Card (collapsible) */}
+              {showClientDetails && project.client && (
+                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow animate-fade-in max-w-2xl">
+                  <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    Client Information
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Name <span className="pl-18 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.name || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Contact Person<span className="pl-1 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactName || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Contact Number<span className="pl-2 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactPhone || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Email<span className="pl-16 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.contactEmail || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Industry<span className="pl-15 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.industry || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">GSTIN<span className="pl-15 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.gstin || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">PAN<span className="pl-21 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.pan || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">CIN<span className="pl-19 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.cin || 'N/A'}</span>
+                    </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Currency Format<span className="pl-1 pr-1">:</span></span>
+                      <span className="text-gray-900 ">{project.client.currencyFormat || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -470,8 +545,8 @@ const ProjectDetail = () => {
 
       {/* Tabs */}
       <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-        <div className="border-b border-gray-200 ">
-          <nav className="flex overflow-x-auto space-x-3 p-3 whitespace-nowrap ">
+        <div className="border-b border-gray-200">
+          <nav className="flex overflow-x-auto space-x-3 p-3 whitespace-nowrap">
             {[
               { name: "overview", icon: <MdInfo className="mr-2 w-5 h-5 text-grey-500" /> },
               { name: "tasks", icon: <MdTaskAlt className="mr-2 w-5 h-5 text-grey-500" /> },
@@ -481,7 +556,7 @@ const ProjectDetail = () => {
             ].map((tab) => (
               <button
                 key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
+                onClick={() => handleTabChange(tab.name)}
                 className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
                     ? "border-blue-500 text-blue-600 bg-blue-50"
@@ -495,8 +570,12 @@ const ProjectDetail = () => {
           </nav>
         </div>
 
-        <div className="p-6 ">
-          {activeTab === "overview" && (
+        <div className="p-6">
+          {activeTab === "overview" && tabLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+            </div>
+          ) : activeTab === "overview" ? (
             <div className="space-y-8 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
@@ -537,9 +616,9 @@ const ProjectDetail = () => {
                     </svg>
                     Team Members
                   </h3>
-                  <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
                     {project.team?.length > 0 ? (
-                      <ul className={`grid gap-y-4 gap-x-4 sm:gap-x-6 ${project.team.length > 5 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      <ul className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${project.team.length >= 3 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         {project.team.map((member) => (
                           <li key={member.id} className="flex items-center hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
                             <div className="flex-shrink-0">
@@ -550,7 +629,7 @@ const ProjectDetail = () => {
                                   className="h-10 w-10 rounded-full border border-gray-200"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-bl-100 flex items-center justify-center text-blue-700 font-medium text-sm">
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">
                                   {member.name.charAt(0)}
                                 </div>
                               )}
@@ -588,13 +667,9 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "tasks" && (
+          ) : activeTab === "tasks" ? (
             <ProjectTasks projectId={id} tasks={project.tasks} />
-          )}
-
-          {activeTab === "documents" && (
+          ) : activeTab === "documents" ? (
             <div className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -669,7 +744,7 @@ const ProjectDetail = () => {
                                     className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
                                     title="Delete"
                                   >
-                                    <MdDelete className="w-5 h-5" />
+                                    <TrashIcon className="w-5 h-5" />
                                   </button>
                                 </>
                               )}
@@ -740,10 +815,8 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "notes" && (
-            <div className="animate-fade-in">
+          ) : activeTab === "notes" ? (
+            <div className="animate-fade-in ">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                   <MdNote className="w-5 h-5 mr-2 text-blue-500" />
@@ -765,7 +838,7 @@ const ProjectDetail = () => {
                     {paginatedNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="bg-gray-50 rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all duration-300"
+                        className="rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all duration-300"
                       >
                         <p className="text-sm text-gray-700 leading-relaxed">{note.content}</p>
                         <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-600 gap-3">
@@ -792,7 +865,7 @@ const ProjectDetail = () => {
                                 className="text-rose-600 hover:text-rose-800 transition-colors duration-200"
                                 title="Delete"
                               >
-                                <MdDelete className="w-5 h-5" />
+                                <TrashIcon className="h-5 w-5" />
                               </button>
                             </div>
                           )}
@@ -861,9 +934,7 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === "datalog" && (
+          ) : activeTab === "datalog" ? (
             <div className="animate-fade-in">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -876,13 +947,13 @@ const ProjectDetail = () => {
               </div>
               <ProjectTimeline projectId={id} />
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
       {/* Delete confirmation modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
           <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <svg className="w-5 h-5 mr-2 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
@@ -908,7 +979,7 @@ const ProjectDetail = () => {
                 onClick={handleDeleteProject}
                 className="px-5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
-                <MdDelete className="mr-2 w-5 h-5" />
+               <TrashIcon className="h-5 w-5" />
                 Delete
               </button>
             </div>
@@ -918,7 +989,7 @@ const ProjectDetail = () => {
 
       {/* Add Document Modal */}
       {isAddDocumentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
           <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -1022,7 +1093,7 @@ const ProjectDetail = () => {
 
       {/* Add Note Modal */}
       {isAddNoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
           <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">

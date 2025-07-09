@@ -300,14 +300,15 @@ const Projects = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.3 }}
+                className="flex h-full"
               >
                 <Link
                   to={`/projects/${project.id}`}
-                  className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
                 >
-                  <div className="px-6 py-5 border-b border-gray-200">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-h-[84px]">
+                  <div className="px-6 py-5 border-b border-gray-200 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between gap-3 flex-1">
+                      <div className="min-h-[84px] flex flex-col flex-1">
                         <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
                           {project.name}
                         </h2>
@@ -372,17 +373,20 @@ const Projects = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                       {project.team && project.team.length > 0 ? (
                         <div className="flex -space-x-2">
-                          {project.team.slice(0, 3).map((member) => (
+                          {project.team.slice(0, 3).map((member, index) => (
                             <motion.div
-                              key={member}
+                              key={member._id || member.id || index}
                               className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
-                              title={member}
+                              title={member.name || member.email || 'Team Member'}
                               whileHover={{ scale: 1.1 }}
                             >
-                              <UsersIcon className="h-5 w-5 text-gray-400" />
+                              <span className="text-xs font-medium text-gray-500">
+                                {member.name ? member.name.charAt(0).toUpperCase() : 
+                                member.email ? member.email.charAt(0).toUpperCase() : '?'}
+                              </span>
                             </motion.div>
                           ))}
                           {project.team.length > 3 && (

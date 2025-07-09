@@ -9,7 +9,7 @@ const User = require('../models/User');
 
 // Get all leave requests
 exports.getAllLeaves = catchAsync(async (req, res) => {
-  const { status, employeeId, departmentId, startDate, endDate , userId} = req.query;
+  const { status, employeeId, departmentId, startDate, endDate, userId, page = 1, limit = 10 } = req.query;
   
   let query = {};
   
@@ -46,24 +46,34 @@ exports.getAllLeaves = catchAsync(async (req, res) => {
     ];
   }
 
-  const leaves = await Leave.find(query)
-    .populate({
-      path: 'employee',
-      select: 'name department position',
-      populate: [
-        { path: 'position', select: 'title' }
-      ]
-    })
-    .populate({
-      path: 'user',
-      select: 'name'
-    })
-    .sort('-createdAt');
+  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+  const [leaves, total] = await Promise.all([
+    Leave.find(query)
+      .populate({
+        path: 'employee',
+        select: 'name department position',
+        populate: [
+          { path: 'position', select: 'title' }
+        ]
+      })
+      .populate({
+        path: 'user',
+        select: 'name'
+      })
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(parseInt(limit, 10)),
+    Leave.countDocuments(query)
+  ]);
 
   res.status(200).json({
     status: 'success',
     results: leaves.length,
-    data: { leaves }
+    data: { leaves },
+    total,
+    page: parseInt(page, 10),
+    totalPages: Math.ceil(total / parseInt(limit, 10))
   });
 });
 // exports.getAllMyLeaves = catchAsync(async (req, res) => {

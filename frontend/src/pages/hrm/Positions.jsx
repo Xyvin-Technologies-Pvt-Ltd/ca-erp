@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { PlusIcon, PencilIcon, TrashIcon, BriefcaseIcon, BuildingOfficeIcon, UserCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
+import { PlusIcon, PencilIcon, TrashIcon, BriefcaseIcon, BuildingOfficeIcon, UserCircleIcon, CheckCircleIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPositions, deletePosition } from '../../api/positions.api';
 import PositionModal from '../../components/PositionModal';
@@ -16,12 +16,24 @@ const Positions = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    // Example filter state (add more as needed)
+    const [departmentFilter, setDepartmentFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
-    const fetchPositions = async () => {
+    const fetchPositions = async (pageNum = page, filters = {}) => {
         try {
             setLoading(true);
-            const data = await getPositions();
+            const params = { page: pageNum, limit };
+            if (departmentFilter) params.department = departmentFilter;
+            if (statusFilter) params.isActive = statusFilter;
+            const data = await getPositions(params);
             setPositions(Array.isArray(data.data) ? data.data : []);
+            setTotalPages(data.totalPages || 1);
+            setTotal(data.total || 0);
         } catch (error) {
             toast.error('Failed to fetch positions');
             setPositions([]);
@@ -31,8 +43,8 @@ const Positions = () => {
     };
 
     useEffect(() => {
-        fetchPositions();
-    }, []);
+        fetchPositions(page);
+    }, [page, departmentFilter, statusFilter]);
 
     const handleEdit = (position) => {
         setSelectedPosition(position);
@@ -49,7 +61,11 @@ const Positions = () => {
         try {
             await deletePosition(selectedPosition._id);
             toast.success('Position deleted successfully');
-            fetchPositions();
+            if (positions.length === 1 && page > 1) {
+                setPage(page - 1);
+            } else {
+                fetchPositions(page);
+            }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete position');
         } finally {
@@ -162,7 +178,7 @@ const Positions = () => {
                                             transition={{ duration: 0.3, delay: index * 0.05 }}
                                             className="hover:bg-gray-50 transition-colors duration-200"
                                         >
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm  text-gray-900">
                                                 <div className="flex items-center space-x-2">
                                                     <UserCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
                                                     {position.title}
@@ -171,7 +187,7 @@ const Positions = () => {
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-3">
                                                     <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
-                                                     {position.department?.name || ''}
+                                                    {position.department?.name || ''}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -179,7 +195,7 @@ const Positions = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                 <motion.span
-                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium mr-1 ${statusColors[position.isActive]}`}
+                                                    className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[position.isActive]}`}
                                                     whileHover={{ scale: 1.05 }}
                                                 >
                                                     {position.isActive ? (
@@ -190,7 +206,7 @@ const Positions = () => {
                                                     {position.isActive ? 'ACTIVE' : 'INACTIVE'}
                                                 </motion.span>
                                             </td>
-                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex space-x-2 sm:space-x-3">
                                                     <motion.button
                                                         onClick={() => handleEdit(position)}
@@ -215,6 +231,84 @@ const Positions = () => {
                                 </tbody>
                             </table>
                         </div>
+                        {totalPages > 0 && (
+                          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 flex justify-between sm:hidden">
+                                <button
+                                  onClick={() => setPage(page - 1)}
+                                  disabled={page === 1}
+                                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                    page === 1
+                                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                      : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                                  }`}
+                                >
+                                  {/* <ChevronLeftIcon className="w-4 h-4 mr-1" /> */}
+                                  Previous
+                                </button>
+                                <button
+                                  onClick={() => setPage(page + 1)}
+                                  disabled={page === totalPages}
+                                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                    page === totalPages
+                                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                      : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                                  }`}
+                                >
+                                  Next
+                                  <ChevronRightIcon className="w-4 h-4 ml-1" />
+                                </button>
+                              </div>
+                              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div>
+                                  <p className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of <span className="font-medium">{total}</span> results
+                                  </p>
+                                </div>
+                                <div>
+                                  <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button
+                                      onClick={() => setPage(page - 1)}
+                                      disabled={page === 1}
+                                      className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                        page === 1
+                                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                                          : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                                      }`}
+                                    >
+                                      <ChevronLeftIcon className="w-4 h-4" />
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                      <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                                          p === page
+                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
+                                        }`}
+                                      >
+                                        {p}
+                                      </button>
+                                    ))}
+                                    <button
+                                      onClick={() => setPage(page + 1)}
+                                      disabled={page === totalPages}
+                                      className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                        page === totalPages
+                                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                                          : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                                      }`}
+                                    >
+                                      <ChevronRightIcon className="w-4 h-4" />
+                                    </button>
+                                  </nav>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
