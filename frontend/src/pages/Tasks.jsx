@@ -411,7 +411,7 @@ const Tasks = () => {
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <Link to={`/tasks/${task._id}`} className="text-gray-500 hover:text-blue-600">
-                            {task.title}
+                            {task.title.charAt(0).toUpperCase() + task.title.slice(1)}
                           </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">

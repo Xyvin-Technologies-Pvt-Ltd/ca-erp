@@ -43,8 +43,7 @@ const CompanySettings = () => {
   const stateInputRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  // Base URL for backend (adjust to your backend's URL)
-  const BASE_URL = "http://localhost:5001"; // Replace with your backend URL
+  const BASE_URL = "https://api-ca-erp.xyvin.com/api/"; 
 
   // Function to upload logo
   const uploadLogo = async (formData) => {
