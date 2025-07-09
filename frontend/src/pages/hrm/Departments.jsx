@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDepartments, deleteDepartment } from '../../api/department.api';
 import DepartmentModal from '../../components/DepartmentModal';
@@ -16,28 +16,13 @@ const Departments = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [paginations, setPaginations] = useState({ page: 1, total: 0, limit: 10 });
-    const [totalPage, setTotalPage] = useState(0);
-    const [pages, setPages] = useState([]);
 
-    const fetchDepartments = async (page = currentPage, limit = paginations.limit) => {
+    const fetchDepartments = async () => {
         try {
             setLoading(true);
-            const data = await getDepartments({ page, limit });
+            const data = await getDepartments();
+            console.log(data.data, "values");
             setDepartments(Array.isArray(data.data) ? data.data : []);
-            setPaginations({
-                page: page,
-                total: data.total || 0,
-                limit: limit,
-            });
-            const totalPages = Math.ceil((data.total || 0) / limit);
-            setTotalPage(totalPages);
-            const pageNumbers = [];
-            for (let i = 1; i <= totalPages; i++) {
-                pageNumbers.push(i);
-            }
-            setPages(pageNumbers);
         } catch (error) {
             console.error('Error fetching departments:', error);
             toast.error('Failed to fetch departments');
@@ -48,8 +33,8 @@ const Departments = () => {
     };
 
     useEffect(() => {
-        fetchDepartments(currentPage, paginations.limit);
-    }, [currentPage]);
+        fetchDepartments();
+    }, []);
 
     const handleEdit = (department) => {
         setSelectedDepartment(department);
@@ -120,7 +105,7 @@ const Departments = () => {
                     <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <span>Add Department</span>
+                        <span>Add Department</span>
                 </motion.button>
             </div>
 
@@ -140,6 +125,7 @@ const Departments = () => {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Get started by adding your first department.
                         </p>
+                       
                     </motion.div>
                 ) : (
                     <motion.div
@@ -157,6 +143,7 @@ const Departments = () => {
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Code</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Department Name</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Location</th>
+                                        {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th> */}
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
@@ -172,16 +159,15 @@ const Departments = () => {
                                                 transition={{ duration: 0.3, delay: index * 0.05 }}
                                                 className="hover:bg-gray-50 transition-colors duration-200"
                                             >
-                                                <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <div className="flex items-center space-x-2">
-                                                        <CodeBracketIcon className="h-5 w-5 text-blue-600 mr-1" />
                                                         {department.code}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     <div className="flex items-center space-x-2">
                                                         <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
-                                                        {department.name}
+                                                    {department.name}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -195,7 +181,7 @@ const Departments = () => {
                                                 </td> */}
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                     <motion.span
-                                                        className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-sm font-normal ${statusColors[department.isActive]}`}
+                                                        className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[department.isActive]}`}
                                                         whileHover={{ scale: 1.05 }}
                                                     >
                                                         {department.isActive ? (
@@ -236,72 +222,6 @@ const Departments = () => {
                 )}
             </AnimatePresence>
 
-            {/* Pagination Controls */}
-             {departments.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <p className="text-sm text-gray-700">
-                            Showing{' '}
-                            <span className="font-medium">
-                                {(currentPage - 1) * paginations.limit + 1}
-                            </span>{' '}
-                            to{' '}
-                            <span className="font-medium">
-                                {Math.min(currentPage * paginations.limit, paginations.total)}
-                            </span>{' '}
-                            of <span className="font-medium">{paginations.total}</span>{' '}
-                            results
-                        </p>
-                    </div>
-                    <div>
-                        <nav
-                            className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                            aria-label="Pagination"
-                        >
-                            <button
-                                onClick={() => setCurrentPage(1)}
-                                disabled={currentPage === 1}
-                                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                                    currentPage === 1
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : 'bg-white text-blue-600 hover:bg-blue-50 border-gray-200'
-                                }`}
-                            >
-                                <span className="sr-only">First</span>
-                                <ChevronLeftIcon className="h-5 w-5" />
-                            </button>
-                            {pages.map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                        page === currentPage
-                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-blue-50'
-                                    }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setCurrentPage(currentPage + 1)}
-                                disabled={currentPage === totalPage}
-                                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                                    currentPage === totalPage
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : 'bg-white text-blue-600 hover:bg-blue-50 border-gray-200'
-                                }`}
-                            >
-                                <span className="sr-only">Next</span>
-                                <ChevronRightIcon className="h-5 w-5" />
-                            </button>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-             )}
-
             <AnimatePresence>
                 {showModal && (
                     <motion.div
@@ -331,7 +251,7 @@ const Departments = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center"
+                        className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center"
                     >
                         <div className="bg-white rounded-lg p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow border border-gray-200 hover:shadow-lg transition-all duration-300">
                             <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Department</h3>
@@ -349,7 +269,7 @@ const Departments = () => {
                                 </motion.button>
                                 <motion.button
                                     onClick={confirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300 "
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >

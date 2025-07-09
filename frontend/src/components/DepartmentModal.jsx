@@ -9,7 +9,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
     code: '',
     description: '',
     location: '',
-    budget: '',
     isActive: true,
   });
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
             code: department.code || '',
             description: department.description || '',
             location: department.location || '',
-            budget: department.budget || '',
             isActive: department.isActive,
           });
         } else {
@@ -170,21 +168,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       placeholder="e.g. Building A, Floor 3"
                     />
                     <MapPinIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Budget</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      name="budget"
-                      value={formData.budget}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                      placeholder="e.g. 100000"
-                    />
-                    <CurrencyDollarIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
               </div>
