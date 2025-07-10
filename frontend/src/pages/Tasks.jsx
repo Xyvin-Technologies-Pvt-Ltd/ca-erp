@@ -132,6 +132,15 @@ const Tasks = () => {
   const totalPage = Math.ceil(paginations.total / paginations.limit);
   const pages = Array.from({ length: totalPage }, (_, i) => i + 1);
 
+  const capitalizeText = (text) => {
+  if (!text) return text;
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
   if (loading) {
     return (
       <motion.div
@@ -171,6 +180,7 @@ const Tasks = () => {
       </motion.div>
     );
   }
+
 
   return (
     <motion.div
@@ -434,7 +444,7 @@ const Tasks = () => {
                           {task.project?.name || "No Project"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {task.assignedTo?.name || "Unassigned"}
+                          {capitalizeText(task.assignedTo?.name || "Unassigned")}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {task.amount !== undefined ? `₹${task.amount}` : "-"}

@@ -302,10 +302,11 @@ const UserManagement = () => {
                                   src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
                                   onError={(e) => {
                                     e.target.outerHTML = `
-                                      <svg className="h-10 w-10 rounded-full" fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="20" cy="20" r="20" fill="#9CA3AF"/>
-                                        <path d="M20 12a4 4 0 100 8 4 4 0 000-8zm0 10c-4.42 0-8 3.58-8 8v2h16v-2c0-4.42-3.58-8-8-8z" fill="white"/>
-                                      </svg>`
+                                      <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                        <span class="text-white font-medium text-sm">
+                                          ${user.name?.charAt(0).toUpperCase() || ''}
+                                        </span>
+                                      </div>`
                                   }}
                                   alt={`${user.name}'s avatar`}
                                 />

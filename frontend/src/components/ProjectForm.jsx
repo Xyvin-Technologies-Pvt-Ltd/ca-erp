@@ -35,8 +35,8 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       name: "",
       client: { id: "" },
       description: "",
-      status: "planning",
-      priority: "medium",
+      status: "", 
+      priority: "",
       startDate: "",
       dueDate: "",
       budget: "",
@@ -78,7 +78,8 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
           id: String(project.client?._id || project.client?.id || ""),
           name: project.client?.name || "",
         },
-        priority: project.priority?.toLowerCase() || "medium",
+        priority: project.priority?.toLowerCase() || "",
+        status: project.status?.toLowerCase() || "",
       };
       reset(formattedProject);
     }
@@ -256,14 +257,21 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     Status <span className="text-red-500">*</span>
                   </label>
                   <select
-                    {...register("status")}
+                    {...register("status", { required: "Status is required", validate: value => value !== "" || "Please select a valid status" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
+                    <option value="" disabled>Select status</option>
                     <option value="planning">Planning</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="archived">Archived</option>
                   </select>
+                  {errors.status && (
+                    <div className="text-red-500 text-sm mt-1 flex items-center">
+                      <span className="text-red-500 mr-1">⚠</span>
+                      {errors.status.message}
+                    </div>
+                  )}
                 </div>
 
                 {/* Priority */}
@@ -272,13 +280,20 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     Priority <span className="text-red-500">*</span>
                   </label>
                   <select
-                    {...register("priority")}
+                    {...register("priority", { required: "Priority is required", validate: value => value !== "" || "Please select a valid priority" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
+                    <option value="" disabled>Select priority</option>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
                   </select>
+                  {errors.priority && (
+                    <div className="text-red-500 text-sm mt-1 flex items-center">
+                      <span className="text-red-500 mr-1">⚠</span>
+                      {errors.priority.message}
+                    </div>
+                  )}
                 </div>
 
                 {/* Start Date */}
