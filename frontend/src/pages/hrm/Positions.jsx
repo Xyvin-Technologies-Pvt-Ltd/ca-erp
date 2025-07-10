@@ -96,7 +96,7 @@ const Positions = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="min-h-[80vh] max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
+            className="min-h-[90vh] max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100"
         >
             <div className="mb-6  flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <motion.div
