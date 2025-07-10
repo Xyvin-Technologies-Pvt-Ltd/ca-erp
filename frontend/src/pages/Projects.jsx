@@ -205,7 +205,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="max-w-7xl min-h-[80vh] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="max-w-7xl min-h-[90vh] mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Success message notification */}
       <AnimatePresence>
         {successMessage && (
@@ -291,141 +291,141 @@ const Projects = () => {
           )}
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence>
-            {projects.map((project) => (
-              <motion.div
-                key={project._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-                className="flex h-full"
-              >
-                <Link
-                  to={`/projects/${project.id}`}
-                  className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {projects.map((project) => (
+                <motion.div
+                  key={project._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex w-full"
                 >
-                  <div className="px-6 py-5 border-b border-gray-200 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-3 flex-1">
-                      <div className="min-h-[84px] flex flex-col flex-1">
-                        <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
-                          {project.name}
-                        </h2>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Client: {project.client?.name}
-                        </p>
-                      </div>
-                      <motion.span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"}`}
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status].split(' ')[0]}`}></span>
-                        {project.status}
-                      </motion.span>
-                    </div>
-                  </div>
-
-                  <div className="px-6 py-4 space-y-4">
-                    <div>
-                      <p className="text-sm text-gray-500 flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-2 text-indigo-600" />
-                        Timeline
-                      </p>
-                      <p className="text-sm font-medium text-gray-900 mt-1">
-                        {new Date(project.startDate).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })} -{" "}
-                        {new Date(project.dueDate).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-blue-600">
-                          {project.tasks && project.tasks.length > 0
-                            ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
-                            : 0}% Complete
-                        </span>
-                        <span className="text-xs font-medium text-gray-500">
-                          {project.completedTasks || 0} / {project.tasks ? project.tasks.length : 0} Tasks
-                        </span>
-                      </div>
-                      <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <motion.div
-                          className="h-2 rounded-full bg-blue-500"
-                          initial={{ width: 0 }}
-                          animate={{
-                            width: `${
-                              project.tasks && project.tasks.length > 0
-                                ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
-                                : 0
-                            }%`,
-                          }}
-                          transition={{ duration: 0.5, ease: "easeOut" }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      {project.team && project.team.length > 0 ? (
-                        <motion.div
-                          className="relative flex -space-x-2"
+                  <Link
+                    to={`/projects/${project.id}`}
+                    className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col w-full h-80"
+                  >
+                    <div className="px-6 py-5 border-b border-gray-200 h-42 flex flex-col">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col flex-1">
+                          <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
+                            {project.name}
+                          </h2>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Client: {project.client?.name}
+                          </p>
+                        </div>
+                        <motion.span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"}`}
                           whileHover={{ scale: 1.05 }}
                         >
-                          {project.team.slice(0, 3).map((member, index) => (
-                            <div
-                              key={member._id || member.id || index}
-                              className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
-                            >
-                              <span className="text-xs font-medium text-gray-500">
-                                {member.name ? member.name.charAt(0).toUpperCase() : 
-                                member.email ? member.email.charAt(0).toUpperCase() : '?'}
-                              </span>
-                            </div>
-                          ))}
-                          {project.team.length > 3 && (
-                            <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
-                              <span className="text-xs font-medium text-gray-600">
-                                +{project.team.length - 3}
-                              </span>
-                            </div>
-                          )}
+                          <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status].split(' ')[0]}`}></span>
+                          {project.status}
+                        </motion.span>
+                      </div>
+                    </div>
+
+                    <div className="px-6 py-4 space-y-4 h-56 flex flex-col">
+                      <div>
+                        <p className="text-sm text-gray-500 flex items-center">
+                          <CalendarIcon className="h-4 w-4 mr-2 text-indigo-600" />
+                          Timeline
+                        </p>
+                        <p className="text-sm font-medium text-gray-900 mt-1">
+                          {new Date(project.startDate).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })} -{" "}
+                          {new Date(project.dueDate).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-blue-600">
+                            {project.tasks && project.tasks.length > 0
+                              ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
+                              : 0}% Complete
+                          </span>
+                          <span className="text-xs font-medium text-gray-500">
+                            {project.completedTasks || 0} / {project.tasks ? project.tasks.length : 0} Tasks
+                          </span>
+                        </div>
+                        <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                           <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            whileHover={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="absolute bottom-7 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
+                            className="h-2 rounded-full bg-blue-500"
+                            initial={{ width: 0 }}
+                            animate={{
+                              width: `${
+                                project.tasks && project.tasks.length > 0
+                                  ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
+                                  : 0
+                              }%`,
+                            }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        {project.team && project.team.length > 0 ? (
+                          <motion.div
+                            className="relative flex -space-x-2"
+                            whileHover={{ scale: 1.05 }}
                           >
-                            {project.team.map((member, index) => (
-                              <div key={member._id || member.id || index}>
-                                {member.name || member.email || 'Unknown Member'}
+                            {project.team.slice(0, 3).map((member, index) => (
+                              <div
+                                key={member._id || member.id || index}
+                                className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
+                              >
+                                <span className="text-xs font-medium text-gray-500">
+                                  {member.name ? member.name.charAt(0).toUpperCase() : 
+                                  member.email ? member.email.charAt(0).toUpperCase() : '?'}
+                                </span>
                               </div>
                             ))}
+                            {project.team.length > 3 && (
+                              <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+                                <span className="text-xs font-medium text-gray-600">
+                                  +{project.team.length - 3}
+                                </span>
+                              </div>
+                            )}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              whileHover={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute bottom-7 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
+                            >
+                              {project.team.map((member, index) => (
+                                <div key={member._id || member.id || index}>
+                                  {member.name || member.email || 'Unknown Member'}
+                                </div>
+                              ))}
+                            </motion.div>
                           </motion.div>
-                        </motion.div>
-                      ) : (
-                        <div className="text-xs text-gray-500 flex items-center">
-                          <UsersIcon className="h-4 w-4 mr-1 text-gray-400" />
-                          No team members
-                        </div>
-                      )}
-                      <motion.span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <span className={`h-2 w-2 rounded-full mr-1 ${priorityColors[project.priority].split(' ')[0]}`}></span>
-                        {project.priority}
-                      </motion.span>
+                        ) : (
+                          <div className="text-xs text-gray-500 flex items-center">
+                            <UsersIcon className="h-4 w-4 mr-1 text-gray-400" />
+                            No team members
+                          </div>
+                        )}
+                        <motion.span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <span className={`h-2 w-2 rounded-full mr-1 ${priorityColors[project.priority].split(' ')[0]}`}></span>
+                          {project.priority}
+                        </motion.span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -434,7 +434,7 @@ const Projects = () => {
 
       {/* Pagination Controls */}
        {projects.length > 0 && (
-      <div className="px-6 py-4 border-t border-gray-200">
+      <div className="px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-sm text-gray-700">
