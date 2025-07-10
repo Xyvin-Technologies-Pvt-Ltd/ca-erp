@@ -19,8 +19,8 @@ import {
   TagIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { toast } from 'react-toastify'; // Correct import
-import 'react-toastify/dist/ReactToastify.css'; // Add CSS import
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const tagOptions = [
@@ -64,10 +64,29 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [amount, setAmount] = useState(task?.amount);
   const dueDateRef = useRef(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setIsFormDirty(true);
   };
+
+  // Update form dirty status on input changes
+  useEffect(() => {
+    const isDirty =
+      title !== (task?.title || "") ||
+      status !== (task?.status || "pending") ||
+      priority !== (task?.priority?.charAt(0).toUpperCase() + task?.priority?.slice(1) || "Medium") ||
+      assignedTo !== (task?.assignedTo?._id || "") ||
+      dueDate !== (task?.dueDate ? task.dueDate.split("T")[0] : "") ||
+      description !== (task?.description || "") ||
+      file !== null ||
+      JSON.stringify(selectedTags) !== JSON.stringify(task?.tags?.map(tag => ({ id: tag, text: tag })) || []) ||
+      projectId !== (task?.project?._id || projectIds) ||
+      amount !== (task?.amount || undefined) ||
+      Object.keys(tagDocuments).length > 0;
+    setIsFormDirty(isDirty);
+  }, [title, status, priority, assignedTo, dueDate, description, file, selectedTags, projectId, amount, tagDocuments, task]);
 
   // Fetch existing tag documents when editing a task
   useEffect(() => {
@@ -140,6 +159,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
             isTemp: true
           }
         }));
+        setIsFormDirty(true);
         return;
       }
 
@@ -158,6 +178,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
         ...prev,
         [`${tag}-${documentType}`]: response.data
       }));
+      setIsFormDirty(true);
     } catch (error) {
       console.error('Error uploading document:', error);
       toast.error('Failed to upload document');
@@ -246,6 +267,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
         return [...prev, { id: tag, text: tag }];
       }
     });
+    setIsFormDirty(true);
   };
 
   const openDatePicker = (dateInputRef) => {
@@ -297,10 +319,24 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
     }
   }, [token]);
 
+  const handleCancel = () => {
+    if (isFormDirty) {
+      const confirmClose = window.confirm(
+        "You have unsaved changes. Are you sure you want to cancel and discard them?"
+      );
+      if (confirmClose) {
+        onCancel();
+      }
+    } else {
+      onCancel();
+    }
+  };
+
   return (
-  <div className="fixed bg-black/20 bg-opacity-50 backdrop-blur-sm inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300"
-    onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100">
+    <div className="fixed bg-black/20 bg-opacity-50 backdrop-blur-sm inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+      onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100"
+        onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -318,7 +354,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               </div>
             </div>
             <button 
-              onClick={onCancel} 
+              onClick={handleCancel} 
               className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -347,7 +383,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   <input
                     type="text"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => { setTitle(e.target.value); setIsFormDirty(true); }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                     placeholder="Enter task title"
                     required
@@ -362,7 +398,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     </label>
                     <select
                       value={projectId}
-                      onChange={(e) => setProjectId(e.target.value)}
+                      onChange={(e) => { setProjectId(e.target.value); setIsFormDirty(true); }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                       required
                     >
@@ -389,7 +425,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   </label>
                   <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value)}
+                    onChange={(e) => { setStatus(e.target.value); setIsFormDirty(true); }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
                     <option value="pending">Pending</option>
@@ -407,7 +443,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   </label>
                   <select
                     value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
+                    onChange={(e) => { setPriority(e.target.value); setIsFormDirty(true); }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
                     <option value="High">High</option>
@@ -419,11 +455,11 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 {/* Assigned To */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To
+                    Assigned To <span className="text-red-500">*</span>
                   </label>
                   <Select
                     value={users.find((user) => user._id === assignedTo)}
-                    onChange={(selectedOption) => setAssignedTo(selectedOption?._id)}
+                    onChange={(selectedOption) => { setAssignedTo(selectedOption?._id); setIsFormDirty(true); }}
                     getOptionLabel={(e) => e.name || e.email}
                     getOptionValue={(e) => e._id}
                     isLoading={loadingUsers}
@@ -471,14 +507,14 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 {/* Due Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Due Date
+                    Due Date <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
                       ref={dueDateRef}
                       type="date"
                       value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
+                      onChange={(e) => { setDueDate(e.target.value); setIsFormDirty(true); }}
                       onClick={() => openDatePicker(dueDateRef)}
                       required
                       className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer appearance-none"
@@ -494,7 +530,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   <input
                     type="number"
                     value={amount !== null ? amount : ""}
-                    onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}
+                    onChange={(e) => { setAmount(e.target.value === "" ? null : Number(e.target.value)); setIsFormDirty(true); }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                     placeholder="Enter task amount"
                     min="0"
@@ -506,11 +542,11 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => { setDescription(e.target.value); setIsFormDirty(true); }}
                   rows="4"
                   maxLength={500}
                   required
@@ -610,7 +646,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={onCancel}
+                onClick={handleCancel}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
               >
                 Cancel

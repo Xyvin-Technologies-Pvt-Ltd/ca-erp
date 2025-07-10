@@ -562,18 +562,23 @@ const LeaveApplication = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  Reason
-                </label>
-                <Textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Please provide a reason for your leave request"
-                  className="min-h-[100px] bg-white border-indigo-200 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
-                />
+             <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                Reason
+              </label>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                maxLength={500}
+                placeholder="Please provide a reason for your leave request"
+                className="min-h-[100px] bg-white border-indigo-200 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
+              />
+              <div className="text-right text-sm text-gray-500 mt-1">
+                {reason.length}/500
               </div>
+            </div>
+
 
               <motion.div  whileTap={{ scale: 0.98 }}>
                 <Button
