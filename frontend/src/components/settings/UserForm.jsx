@@ -24,7 +24,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     defaultValues: user || {
       name: "",
       email: "",
-      role: ROLES.STAFF,
+      role: "",
       phone: "",
       department: "",
       avatar: null,
@@ -240,6 +240,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     {...register("role", { required: "Role is required" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
+                    <option value="">Select a role</option>
                     <option value={ROLES.ADMIN}>Administrator</option>
                     <option value={ROLES.MANAGER}>Manager</option>
                     <option value={ROLES.FINANCE}>Finance</option>
@@ -439,7 +440,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to cancel? Any unsaved changes will be lost.")) {
+                  onCancel();
+                }
+              }}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
             >
               Cancel

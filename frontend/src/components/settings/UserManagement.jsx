@@ -320,7 +320,9 @@ const UserManagement = () => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              <div className="text-[12px] text-gray-500">{user.phone}</div>
+                              <div className="text-[12px] text-gray-500">{user.phone ? 
+                                `(${user.phone.slice(0, 3)}) ${user.phone.slice(3, 6)}-${user.phone.slice(6, 10)}` : 
+                                'N/A'}</div>
                             </div>
                           </div>
                         </td>
