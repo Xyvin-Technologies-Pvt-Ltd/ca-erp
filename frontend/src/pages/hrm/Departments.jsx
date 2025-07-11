@@ -234,7 +234,7 @@ const Departments = () => {
                                                 setPage(page - 1);
                                             }}
                                             disabled={page === 1}
-                                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                            className={`relative inline-flex  items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                                                 page === 1
                                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                     : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
@@ -274,7 +274,7 @@ const Departments = () => {
                                                         setPage(page - 1);
                                                     }}
                                                     disabled={page === 1}
-                                                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                                    className={`relative inline-flex rounded-l-md  items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                                                         page === 1
                                                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
                                                             : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
@@ -304,7 +304,7 @@ const Departments = () => {
                                                         setPage(page + 1);
                                                     }}
                                                     disabled={page === totalPages}
-                                                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                                    className={`relative inline-flex items-center rounded-r-md px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                                                         page === totalPages
                                                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
                                                             : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
