@@ -11,6 +11,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
   const isEditMode = !!user;
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
@@ -21,47 +22,51 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     reset,
     watch
   } = useForm({
-    defaultValues: user || {
+    defaultValues: {
       name: "",
       email: "",
       role: "",
       phone: "",
       department: "",
+      position: "",
       avatar: null,
     },
   });
 
+  // Load departments and positions first
   useEffect(() => {
-    if (user) {
+    const fetchData = async () => {
+      try {
+        const [departmentsResponse, positionsResponse] = await Promise.all([
+          getDepartments(),
+          getPositions()
+        ]);
+        
+        setDepartments(departmentsResponse.data || []);
+        setPositions(positionsResponse.data || []);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast.error("Could not load departments and positions");
+        setDataLoaded(true); // Set to true even on error to prevent infinite loading
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Reset form values only after data is loaded
+  useEffect(() => {
+    if (user && dataLoaded) {
       reset({
         ...user,
         department: user.department || '',
         position: user.position?._id || user.position || '',
       });
     }
-  }, [user, reset]);
-
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await getDepartments();
-        setDepartments(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch departments:", error);
-        toast.error("Could not load departments");
-      }
-    };
-    const fetchPositions = async () => {
-      try {
-        const response = await getPositions();
-        setPositions(response.data || []);
-      } catch (error) {
-        setPositions([]);
-      }
-    };
-    fetchDepartments();
-    fetchPositions();
-  }, []);
+  }, [user, reset, dataLoaded]);
+  console.log(user,'user');
+  
 
   const submitHandler = async (data) => {
     setLoading(true);
@@ -74,6 +79,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         }
         
         response = await userApi.updateUser(user._id, updateData);
+        
         onSubmit(response.data);
       } else {
         if (!data.password) {
@@ -83,9 +89,10 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         
         if (!createData.role) {
           createData.role = ROLES.STAFF;
-        }
+        }        
         
         onSubmit(createData);
+
       }
     } catch (error) {
       console.error("Error saving user:", error);
@@ -95,6 +102,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
       setLoading(false);
     }
   };
+console.log(positions,'new');
+console.log(departments,'dept');
 
   return (
     <div 
@@ -280,8 +289,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
                   )}
                 </div>
-
-                <div>
+                   <div>
                   <label
                     htmlFor="position"
                     className="block text-sm font-medium text-gray-700 mb-2"
@@ -291,15 +299,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   <select
                     id="position"
                     {...register("position", {
-                      required: "Position is required",
+                      required: "position is required",
                     })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
-                    <option value="">Select a position</option>
+                    <option value="">Select a department</option>
                     {positions.length > 0 ? (
-                      positions.map((pos) => (
-                        <option key={pos._id} value={pos._id}>
-                          {pos.title}
+                      positions.map((dept) => (
+                        <option key={dept._id || dept.title} value={dept.title}>
+                          {dept.title}
                         </option>
                       ))
                     ) : (
@@ -452,7 +460,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>

@@ -370,14 +370,14 @@ const Attendance = () => {
       </motion.div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
+      {totalPages >= 1 && (
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                className={`relative inline-flex items-center rounded-l-md px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                   page === 1
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
@@ -388,7 +388,7 @@ const Attendance = () => {
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page === totalPages}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                className={`relative inline-flex items-center rounded-l-md px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                   page === totalPages
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
@@ -408,7 +408,7 @@ const Attendance = () => {
                   <button
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
-                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                    className={`relative inline-flex rounded-l-md items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                       page === 1
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
                         : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
@@ -420,7 +420,7 @@ const Attendance = () => {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                      className={`relative inline-flex   items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
                         p === page
                           ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                           : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
@@ -432,7 +432,7 @@ const Attendance = () => {
                   <button
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
-                    className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                    className={`relative inline-flex  rounded-r-md items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                       page === totalPages
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
                         : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
