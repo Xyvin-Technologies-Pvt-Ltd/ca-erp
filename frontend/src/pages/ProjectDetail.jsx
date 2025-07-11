@@ -423,7 +423,7 @@ const ProjectDetail = () => {
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex items-center px-5 py-2.5 bg-rose-500 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-red-500 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
                <TrashIcon className="h-5 w-5" />
               Delete

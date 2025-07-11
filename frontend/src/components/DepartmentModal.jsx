@@ -12,6 +12,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
     isActive: true,
   });
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
   const maxDescriptionLength = 500;
 
   useEffect(() => {
@@ -77,8 +78,21 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
   // Handle click outside modal
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
-      onClose();
+      handleCancel();
     }
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(true); // Show popup
+  };
+
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
+    onClose();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
   };
 
   if (!isOpen) return null;
@@ -105,7 +119,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -230,7 +244,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCancel}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
               >
                 Cancel
@@ -261,6 +275,40 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
           </form>
         </div>
       </div>
+
+      {/* Confirmation Popup */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+              <button
+                onClick={cancelDiscard}
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to discard changes? Any unsaved changes will be lost.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelDiscard}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDiscard}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
