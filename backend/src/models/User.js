@@ -61,61 +61,66 @@ require('dotenv').config();
  *         status: active
  */
 
-const UserSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: [true, 'Please add a name'],
-            trim: true,
-            maxlength: [50, 'Name cannot be more than 50 characters'],
-        },
-        email: {
-            type: String,
-            required: [true, 'Please add an email'],
-            unique: true,
-            match: [
-                /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-                'Please add a valid email',
-            ],
-        },
-        password: {
-            type: String,
-            required: [true, 'Please add a password'],
-            minlength: [6, 'Password must be at least 6 characters'],
-            select: false, // Don't return password in queries
-        },
-        role: {
-            type: String,
-            enum: ['admin', 'manager', 'staff', 'finance'],
-            default: 'staff',
-        },
-        phone: {
-            type: String,
-            maxlength: [20, 'Phone number cannot be longer than 20 characters'],
-        },
-        department: {
-            type: String,
-            maxlength: [50, 'Department name cannot be more than 50 characters'],
-        },
-        avatar: {
-            type: String,
-        },
-        status: {
-            type: String,
-            enum: ['active', 'inactive'],
-            default: 'active',
-        },
-        resetPasswordToken: String,
-        resetPasswordExpire: Date,
-        position: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Position',
-        },
+const UserSchema = new mongoose.Schema({
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
     },
-    {
-        timestamps: true,
-    }
-);
+    name: {
+        type: String,
+        required: [true, 'Please add a name'],
+        trim: true
+    },
+    email: {
+        type: String,
+        required: [true, 'Please add an email'],
+        unique: true,
+        trim: true,
+        lowercase: true,
+        match: [
+            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+            'Please add a valid email',
+        ],
+    },
+    role: {
+        type: String,
+        enum: ['admin', 'staff', 'manager', 'finance'],
+        default: 'staff',
+    },
+    password: {
+        type: String,
+        required: [true, 'Please add a password'],
+        minlength: 6,
+        select: false,
+    },
+    phone: {
+        type: String,
+        trim: true
+    },
+    avatar: {
+        type: String,
+    },
+    department: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: [true, 'Please assign a department'],
+        index: true
+    },
+    position: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Position',
+        required: [true, 'Please assign a position'],
+        index: true
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
 
 // Encrypt password using bcrypt before saving
 UserSchema.pre('save', async function (next) {
@@ -133,13 +138,16 @@ UserSchema.pre('save', async function (next) {
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE,
+        expiresIn: process.env.JWT_EXPIRE
     });
 };
+
+// Add timestamps to the schema
+UserSchema.set('timestamps', true);
 
 // Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('User', UserSchema); 
+module.exports = mongoose.model('User', UserSchema);
