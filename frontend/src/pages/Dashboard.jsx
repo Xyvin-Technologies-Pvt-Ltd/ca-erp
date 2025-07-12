@@ -21,9 +21,274 @@ import {
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import Modal from "react-modal";
-import { Calendar, CheckCircle, ChevronLeft, ChevronRight, Clock, IndianRupee, MapPin, Play, User } from "lucide-react";
+import { Calendar, CheckCircle, ChevronLeft, ChevronRight, Clock, IndianRupee, MapPin, Play, User, TrendingUp, BarChart3 } from "lucide-react";
+import { Pie, PieChart, Bar, BarChart, Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 Modal.setAppElement('#root');
+
+
+//******chart
+const ChartContainer = ({ children, className }) => (
+  <div className={`relative ${className}`}>
+    {children}
+  </div>
+);
+
+const ChartTooltip = ({ cursor, content, ...props }) => (
+  <Tooltip cursor={cursor} content={content} {...props} />
+);
+
+const ChartTooltipContent = ({ active, payload, label, hideLabel }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        {!hideLabel && <p className="font-medium text-gray-900">{label}</p>}
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+// Static chart data
+const projectStatusData = [
+  { status: "Completed", count: 23, fill: "#1c6ead" },   // Fixed dark blue
+  { status: "In Progress", count: 15, fill: "#f59e0b" }, 
+  { status: "Planning", count: 12, fill: "#10b981" },    
+  { status: "Archived", count: 3, fill: "#ef4444" },     
+];
+
+const monthlyRevenueData = [
+  { month: "Jan", revenue: 45000, projects: 8 },
+  { month: "Feb", revenue: 52000, projects: 12 },
+  { month: "Mar", revenue: 48000, projects: 10 },
+  { month: "Apr", revenue: 61000, projects: 15 },
+  { month: "May", revenue: 55000, projects: 13 },
+  { month: "Jun", revenue: 67000, projects: 18 },
+];
+
+// Project Status Pie Chart Component
+const ProjectStatusChart = () => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="bg-white rounded-2xl shadow-xl p-6 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="p-3 bg-[#1c6ead] rounded-xl shadow-lg"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <BarChart3 className="h-6 w-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Project Status Overview</h3>
+            <p className="text-sm text-gray-500">Distribution of current projects</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-green-600">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-sm font-semibold">+12.5%</span>
+        </div>
+      </div>
+
+      <ChartContainer className="mx-auto aspect-square max-h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={projectStatusData}
+              dataKey="count"
+              nameKey="status"
+              stroke="0"
+              strokeWidth={2}
+              onMouseEnter={(_, index) => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        {projectStatusData.map((item, index) => (
+          <motion.div
+            key={item.status}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${
+              hoveredIndex === index ? 'bg-gray-50 scale-105' : ''
+            }`}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: item.fill }}
+            />
+            <span className="text-xs font-medium text-gray-700">{item.status}</span>
+            <span className="text-xs font-bold text-gray-900 ml-auto">{item.count}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span>Total Active Projects: {projectStatusData.reduce((sum, item) => sum + item.count, 0)}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Monthly Revenue Chart Component
+const MonthlyRevenueChart = () => {
+  const [activeBar, setActiveBar] = useState(null);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-xl p-6 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="p-3 bg-[#1c6ead] rounded-xl shadow-lg"
+            whileHover={{ scale: 1.05, rotate: -5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <IndianRupee className="h-6 w-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Monthly Revenue</h3>
+            <p className="text-sm text-gray-500">Revenue trends over 6 months</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-green-600">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-sm font-semibold">+18.2%</span>
+        </div>
+      </div>
+
+      <ChartContainer className="h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={monthlyRevenueData}>
+            <defs>
+              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1c6ead" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#1c6ead" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="month" 
+              stroke="#6b7280"
+              fontSize={12}
+              fontWeight={500}
+            />
+            <YAxis 
+              stroke="#6b7280"
+              fontSize={12}
+              fontWeight={500}
+              tickFormatter={(value) => `₹${value/1000}k`}
+            />
+            <ChartTooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white p-4 border border-gray-200 rounded-xl shadow-lg">
+                      <p className="font-semibold text-gray-900 mb-2">{label} 2024</p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-blue-600">
+                          Revenue: ₹{payload[0]?.value?.toLocaleString()}
+                        </p>
+                        <p className="text-sm text-purple-600">
+                          Projects: {payload[1]?.value}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              fill="url(#revenueGradient)"
+              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2, fill: "#ffffff" }}
+            />
+            <Bar
+              dataKey="projects"
+              fill="#8b5cf6"
+              radius={[4, 4, 0, 0]}
+              opacity={0.7}
+              onMouseEnter={(_, index) => setActiveBar(index)}
+              onMouseLeave={() => setActiveBar(null)}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="p-4 bg-blue-50 rounded-xl border border-blue-200"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full" />
+            <span className="text-sm font-medium text-blue-700">Avg Revenue</span>
+          </div>
+          <p className="text-xl font-bold text-blue-900">
+            ₹{Math.round(monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / monthlyRevenueData.length).toLocaleString()}
+          </p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="p-4 bg-purple-50 rounded-xl border border-purple-200"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full" />
+            <span className="text-sm font-medium text-purple-700">Total Projects</span>
+          </div>
+          <p className="text-xl font-bold text-purple-900">
+            {monthlyRevenueData.reduce((sum, item) => sum + item.projects, 0)}
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span>Growth rate increasing month over month</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -113,7 +378,7 @@ const StatCard = ({ title, value, change, iconType, color }) => {
   };
 
   return (
-    <div className="group bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300 hover:transform hover:-translate-y-1">
+    <div className="group bg-white rounded-xl  border-2 border-[#1c6ead] shadow-lg  p-6 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 hover:transform hover:-translate-y-1">
       <div className="flex justify-between items-center">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
@@ -218,7 +483,7 @@ const ActivityItem = ({ activity }) => {
     };
 
     return (
-      <div className={`p-3 rounded-xl ${config.bg} ${config.text} hover:scale-110 transition-all duration-200`}>
+      <div className={`p-3 rounded-xl ${config.bg} ${config.text} hover:scale-110 transition-all duration-200 border-[#1c6ead]`}>
         {config.icon}
       </div>
     );
@@ -253,7 +518,7 @@ const ActivityItem = ({ activity }) => {
   };
 
   return (
-    <div className="flex items-start space-x-4 py-4 px-2 rounded-lg hover:bg-slate-50 transition-all duration-200 group">
+    <div className="flex items-start space-x-4 py-4 px-2 rounded-lg hover:bg-slate-50 transition-all duration-200 group shadow-lg border-[#1c6ead]">
       {getActivityIcon(activity.type)}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start">
@@ -281,7 +546,7 @@ const ProjectProgress = ({ project }) => {
   const statusConfig = getStatusConfig(project.status);
 
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-4 hover:shadow-md hover:border-slate-300 transition-all duration-300 group">
+    <div className="bg-white p-5 rounded-xl shadow-lg border border-[#1c6ead] mb-4 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 group">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{project.name}</h3>
         <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
@@ -326,7 +591,7 @@ const TaskSummary = ({ tasks }) => {
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-lg border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-slate-900">Task Summary</h2>
         <Link
@@ -341,7 +606,7 @@ const TaskSummary = ({ tasks }) => {
         {statusMap.map(({ status, count }) => {
           const config = getStatusConfig(status);
           return (
-            <div key={status} className="flex items-center p-4 border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all duration-300 group">
+            <div key={status} className="flex items-center p-4 border-2 border-blue-200 rounded-xl hover:border-[#1c6ead] hover:shadow-md transition-all duration-300 group">
               <div className={`w-3 h-3 rounded-full mr-3 ${config.dot} group-hover:scale-125 transition-transform duration-200`} />
               <div>
                 <p className="text-xs text-slate-500 font-medium">{status}</p>
@@ -352,7 +617,7 @@ const TaskSummary = ({ tasks }) => {
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-slate-50 rounded-xl">
+      <div className="mt-6 p-4 bg-slate-50 rounded-xl border-[#1c6ead]">
         <div className="flex justify-between text-sm text-slate-600 mb-2 font-medium">
           <span>Overall Completion</span>
           <span className="font-bold text-slate-900">{completionPercentage}%</span>
@@ -382,7 +647,7 @@ const RecentActivity = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6">
         <div className="animate-pulse">
           <div className="h-5 bg-slate-200 rounded-lg w-1/3 mb-6"></div>
           <div className="space-y-4">
@@ -403,7 +668,7 @@ const RecentActivity = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6">
         <div className="text-rose-600 text-center">
           <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -432,7 +697,7 @@ const RecentActivity = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
         <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -580,7 +845,7 @@ const UpcomingDeadlines = ({ projects }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-slate-900">Upcoming Deadlines</h2>
         <Link
@@ -597,7 +862,7 @@ const UpcomingDeadlines = ({ projects }) => {
             {currentDeadlines.map((deadline) => {
               const urgencyConfig = getUrgencyConfig(deadline.daysLeft);
               return (
-                <div key={deadline.id} className={`p-4 border-2 ${urgencyConfig.border} rounded-xl hover:shadow-md transition-all duration-300 group`}>
+                <div key={deadline.id} className={`p-4 border-2 ${urgencyConfig.border} rounded-xl hover:shadow-md transition-all duration-300 group border-[#1c6ead]`}>
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-slate-900 flex-1 mr-3 group-hover:text-indigo-600 transition-colors duration-200">
                       {deadline.title}
@@ -714,8 +979,6 @@ const priorityColors = {
   low: 'bg-green-500'
 };
 
-
-
 const EventCalendar = () => {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -830,7 +1093,7 @@ const EventCalendar = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-500 backdrop-blur-sm"
+        className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500 backdrop-blur-sm"
       >
         {/* Header with enhanced controls */}
         <motion.div
@@ -842,7 +1105,7 @@ const EventCalendar = () => {
           {/* Title Section */}
           <div className="flex items-center space-x-4">
             <motion.div
-              className="p-3 bg-blue-500 rounded-xl shadow-lg"
+              className="p-3 bg-blue-500 rounded-xl shadow-lg border-[#1c6ead]"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -857,7 +1120,7 @@ const EventCalendar = () => {
           {/* Controls Section */}
           <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
             {/* Month Navigation */}
-            <div className="flex items-center space-x-2 bg-gray-50 rounded-xl p-2">
+            <div className="flex items-center space-x-2 bg-gray-50 rounded-xl p-2 border-[#1c6ead]">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
@@ -895,7 +1158,7 @@ const EventCalendar = () => {
             </div>
 
             {/* Status Legend */}
-            <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3">
+            <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3 border-[#1c6ead]">
               {Object.entries(eventStatusColors).map(([status, colors]) => {
                 const Icon = colors.icon;
                 return (
@@ -920,7 +1183,7 @@ const EventCalendar = () => {
             <div className="h-6 bg-gray-200 rounded-lg w-1/3 mb-6"></div>
             <div className="grid grid-cols-7 gap-3">
               {Array.from({ length: 42 }, (_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+                <div key={i} className="h-24 bg-gray-200 rounded-xl border-[#1c6ead]"></div>
               ))}
             </div>
           </motion.div>
@@ -949,7 +1212,7 @@ const EventCalendar = () => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="text-center font-bold text-gray-700 text-sm py-3 bg-gray-50 rounded-xl"
+                  className="text-center font-bold text-gray-700 text-sm py-3 bg-gray-50 rounded-xl border-[#1c6ead]"
                 >
                   {day}
                 </motion.div>
@@ -990,7 +1253,7 @@ const EventCalendar = () => {
                       }}
                       className={`relative rounded-2xl p-3 h-24 flex flex-col justify-between group cursor-pointer overflow-hidden ${
                         isToday 
-                          ? 'bg-blue-500 text-white shadow-lg ring-2 ring-indigo-200' 
+                          ? 'bg-blue-500 text-white shadow-lg ring-2 ring-indigo-200 border-[#1c6ead]' 
                           : firstEvent 
                             ? `${eventStatusColors[firstEvent.status]?.bg} border-2 ${eventStatusColors[firstEvent.status]?.border}` 
                             : "bg-gray-50 border-2 border-gray-100 hover:border-gray-200"
@@ -1077,7 +1340,7 @@ const EventCalendar = () => {
         <Modal
           isOpen={isModalOpen}
           onRequestClose={closeModal}
-          className="bg-white rounded-2xl shadow-2xl p-0 max-w-4xl mx-auto mt-20 max-h-[80vh] overflow-hidden"
+          className="bg-white rounded-2xl shadow-2xl p-0 max-w-4xl mx-auto mt-20 max-h-[80vh] overflow-hidden border-[#1c6ead]"
           overlayClassName="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
         >
           <motion.div
@@ -1088,7 +1351,7 @@ const EventCalendar = () => {
             className="relative"
           >
             {/* Modal Header */}
-            <div className="bg-blue-600 text-white p-6 rounded-t-2xl">
+            <div className="bg-blue-600 text-white p-6 rounded-t-2xl border-[#1c6ead]">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">
@@ -1128,8 +1391,7 @@ const EventCalendar = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className={`p-6 rounded-2xl border-2 ${eventStatusColors[event.status]?.bg} ${eventStatusColors[event.status]?.border} hover:shadow-lg transition-all duration-300 relative overflow-hidden`}
-                      >
+                        className={`p-6 rounded-2xl border-2 ${eventStatusColors[event.status]?.bg} ${eventStatusColors[event.status]?.border} hover:shadow-lg transition-all duration-300 relative overflow-hidden border-[#1c6ead]`}>
                         {/* Background gradient for visual appeal */}
                         <div className={`absolute inset-0 bg-gradient-to-br ${eventStatusColors[event.status]?.gradient} opacity-5`}></div>
                         
@@ -1215,7 +1477,7 @@ const EventCalendar = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-gray-50 p-6 rounded-b-2xl flex justify-end gap-3">
+            <div className="bg-gray-50 p-6 rounded-b-2xl flex justify-end gap-3 border-[#1c6ead]">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -1364,6 +1626,11 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <ProjectStatusChart />
+        <MonthlyRevenueChart />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div>
           <h2 className="text-lg font-medium mb-4">Project Progress</h2>
           {projects.length > 0 ? (
@@ -1381,7 +1648,7 @@ const Dashboard = () => {
               </div>
             </>
           ) : (
-            <div className="bg-white p-6 rounded-lg shadow text-center">
+            <div className="bg-white p-6 rounded-lg shadow text-center border-[#1c6ead]">
               <p className="text-gray-500 italic">No projects available.</p>
             </div>
           )}
