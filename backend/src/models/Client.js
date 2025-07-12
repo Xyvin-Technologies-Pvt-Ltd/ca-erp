@@ -149,6 +149,18 @@ const ClientSchema = new mongoose.Schema(
                 'Please use a valid URL with HTTP or HTTPS',
             ],
         },
+        directors: {
+        type: [String], // Array of strings
+        default: [],
+        validate: {
+            validator: function(directors) {
+                // Filter out empty strings and check minimum requirement
+                const validDirectors = directors.filter(d => d && d.trim());
+                return validDirectors.length >= 2;
+            },
+            message: 'At least 2 directors are required'
+        }
+    },
         industry: {
             type: String,
             maxlength: [50, 'Industry cannot be more than 50 characters'],

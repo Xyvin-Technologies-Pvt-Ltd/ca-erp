@@ -65,7 +65,15 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const user = await userApi.getUserById(userId);
-        setProfileData(user.data);
+        
+        // Process the user data to handle nested objects
+        const processedData = {
+          ...user.data,
+          department: user.data.department?.name || user.data.department || "",
+          position: user.data.position?.title || user.data.position || "",
+        };
+        
+        setProfileData(processedData);
         if (user.data.avatar) {
           const fullUrl = `${import.meta.env.VITE_BASE_URL}${user.data.avatar}`;
           setProfileImage(fullUrl);
@@ -115,7 +123,15 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const user = await userApi.getUserById(userId);
-        setProfileData(user.data);
+        
+        // Process the user data to handle nested objects
+        const processedData = {
+          ...user.data,
+          department: user.data.department?.name || user.data.department || "",
+          position: user.data.position?.title || user.data.position || "",
+        };
+        
+        setProfileData(processedData);
       } catch (error) {
         console.error("Failed to fetch user:", error);
       }
@@ -132,7 +148,15 @@ const Profile = () => {
         await userApi.uploadAvatar(userId, formData);
       }
 
-      const updatedUser = await userApi.updateUser(userId, profileData);
+      // Prepare data for update - only send the fields that can be updated
+      const updateData = {
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        // Don't send department and position as they're likely managed separately
+      };
+
+      const updatedUser = await userApi.updateUser(userId, updateData);
       localStorage.setItem("userData", JSON.stringify(updatedUser.data));
 
       if (updatedUser.data.avatar) {
@@ -430,7 +454,7 @@ const Profile = () => {
                   <motion.button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="px-6 py-3 bg-blue-500 hover:blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: isLoading ? 1 : 1.02 }}
                     whileTap={{ scale: isLoading ? 1 : 0.98 }}
                   >
@@ -451,7 +475,7 @@ const Profile = () => {
                 <motion.button
                   key="view"
                   onClick={handleEditToggle}
-                  className="px-8 py-3 bg-blue-500 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2"
+                  className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, scale: 0.9 }}

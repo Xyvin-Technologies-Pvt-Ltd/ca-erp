@@ -11,7 +11,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
-  const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
+  const [dataLoaded, setDataLoaded] = useState(false);
   const isEditMode = !!user;
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
@@ -30,10 +30,12 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
       department: "",
       position: "",
       avatar: null,
+      password: "",
+      confirmPassword: "",
     },
   });
 
-  // Load departments and positions first
+  // Load departments and positions
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,58 +44,102 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           getPositions()
         ]);
         
+        console.log("Departments fetched:", departmentsResponse.data);
+        console.log("Positions fetched:", positionsResponse.data);
+        
         setDepartments(departmentsResponse.data || []);
         setPositions(positionsResponse.data || []);
         setDataLoaded(true);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast.error("Could not load departments and positions");
-        setDataLoaded(true); // Set to true even on error to prevent infinite loading
+        setDataLoaded(true);
       }
     };
 
     fetchData();
   }, []);
 
-  // Reset form values only after data is loaded
+  // Reset form values with user data
   useEffect(() => {
     if (user && dataLoaded) {
+      console.log("Editing user:", user);
+      const departmentId = user.department?._id ;
+      const positionId = user.position?._id ;
+      
+      console.log("Setting department:", departmentId);
+      console.log("Setting position:", positionId);
+      
       reset({
-        ...user,
-        department: user.department || '',
-        position: user.position?._id || user.position || '',
+        name: user.name || "",
+        email: user.email || "",
+        role: user.role || "",
+        phone: user.phone || "",
+        department: departmentId,
+        position: positionId,
+        avatar: user.avatar || null,
       });
     }
   }, [user, reset, dataLoaded]);
-  console.log(user,'user');
-  
 
   const submitHandler = async (data) => {
     setLoading(true);
     try {
+      console.log("Form data submitted:", data);
       let response;
+
+      // Validate required fields
+      if (!data.department) {
+        throw new Error("Department is required");
+      }
+      if (!data.position) {
+        throw new Error("Position is required");
+      }
+      if (!data.role) {
+        data.role = ROLES.STAFF;
+      }
+
+      // Prepare the data
+      const preparedData = {
+        ...data,
+        department: data.department,
+        position: data.position
+      };
+      console.log('Department ID:', data.department);
+      console.log('Position ID:', data.position);
+      console.log('Full request payload:', preparedData);
+      console.log("Prepared data:", preparedData);
+
       if (isEditMode) {
-        const { confirmPassword, ...updateData } = data;
+        const { confirmPassword, ...updateData } = preparedData;
         if (!showPasswordReset) {
           delete updateData.password;
         }
         
         response = await userApi.updateUser(user._id, updateData);
+        console.log("Update user response:", response);
+        
+        if (!response.data.department || !response.data.position) {
+          throw new Error("Failed to update user's department or position");
+        }
         
         onSubmit(response.data);
       } else {
         if (!data.password) {
           throw new Error("Password is required for new users");
         }
-        const { confirmPassword, ...createData } = data;
+        const { confirmPassword, ...createData } = preparedData;
         
-        if (!createData.role) {
-          createData.role = ROLES.STAFF;
-        }        
+        response = await userApi.createUser(createData);
+        console.log("Create user response:", response);
         
-        onSubmit(createData);
-
+        if (!response.data.department || !response.data.position) {
+          throw new Error("Failed to assign department or position to user");
+        }
+        
+        onSubmit(response.data);
       }
+      toast.success(isEditMode ? "User updated successfully!" : "User created successfully!");
     } catch (error) {
       console.error("Error saving user:", error);
       const errorMessage = error.response?.data?.error || error.message || "Failed to save user. Please try again.";
@@ -102,8 +148,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
       setLoading(false);
     }
   };
-console.log(positions,'new');
-console.log(departments,'dept');
 
   return (
     <div 
@@ -277,7 +321,7 @@ console.log(departments,'dept');
                     <option value="">Select a department</option>
                     {departments.length > 0 ? (
                       departments.map((dept) => (
-                        <option key={dept._id || dept.name} value={dept.name}>
+                        <option key={dept._id} value={dept._id}>
                           {dept.name}
                         </option>
                       ))
@@ -289,7 +333,8 @@ console.log(departments,'dept');
                     <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
                   )}
                 </div>
-                   <div>
+
+                <div>
                   <label
                     htmlFor="position"
                     className="block text-sm font-medium text-gray-700 mb-2"
@@ -299,15 +344,15 @@ console.log(departments,'dept');
                   <select
                     id="position"
                     {...register("position", {
-                      required: "position is required",
+                      required: "Position is required",
                     })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
-                    <option value="">Select a department</option>
+                    <option value="">Select a position</option>
                     {positions.length > 0 ? (
-                      positions.map((dept) => (
-                        <option key={dept._id || dept.title} value={dept.title}>
-                          {dept.title}
+                      positions.map((pos) => (
+                        <option key={pos._id} value={pos._id}>
+                          {pos.title}
                         </option>
                       ))
                     ) : (
@@ -405,12 +450,6 @@ console.log(departments,'dept');
                           value: 6,
                           message: "Password must be at least 6 characters",
                         },
-                        validate: (value) => {
-                          if (!isEditMode && !value) {
-                            return "Password is required for new users";
-                          }
-                          return true;
-                        }
                       })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     />
@@ -431,8 +470,8 @@ console.log(departments,'dept');
                       type="password"
                       {...register("confirmPassword", {
                         required: "Please confirm your password",
-                        validate: (value, formValues) =>
-                          value === formValues.password || "Passwords do not match",
+                        validate: (value) =>
+                          value === watch("password") || "Passwords do not match",
                       })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     />

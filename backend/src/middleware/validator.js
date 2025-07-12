@@ -45,7 +45,7 @@ const userValidation = {
         body: Joi.object({
             name: Joi.string().max(50).required(),
             email: Joi.string().email().required(),
-            password: Joi.string().min(6).required(),
+            password: Joi.string().min(6),
             role: Joi.string().valid('admin', 'manager', 'staff', 'finance'),
             department: Joi.string().max(50),
             position: Joi.string().max(50),
@@ -57,7 +57,7 @@ const userValidation = {
         body: Joi.object({
             name: Joi.string().max(50).required(),
             email: Joi.string().email().required(),
-            password: Joi.string().min(6).required(),
+            password: Joi.string().min(6),
             role: Joi.string().valid('admin', 'manager', 'staff', 'finance'),
             department: Joi.string().max(50),
             position: Joi.string().max(50),

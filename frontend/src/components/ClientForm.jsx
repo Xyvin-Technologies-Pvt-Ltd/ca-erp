@@ -2,22 +2,23 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { clientsApi } from "../api/clientsApi";
 import { toast } from "react-toastify";
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  User, 
-  Building2, 
-  FileText, 
+import {
+  CheckCircle,
+  AlertCircle,
+  User,
+  Building2,
+  FileText,
   X,
   Loader2,
   Save,
-  Plus
+  Plus,
+  UserPlus
 } from "lucide-react";
 import countryCurrency from "../api/countryCurrency.json";
 
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
+  const [directors, setDirectors] = useState(client?.directors || ['', '']);
   const isEditMode = !!client;
   const industryOptions = [
     "IT Services",
@@ -44,6 +45,8 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     formState: { errors },
     reset,
     watch,
+    setValue,
+    getValues
   } = useForm({
     defaultValues: client || {
       name: "",
@@ -61,8 +64,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       cin: "",
       currencyFormat: "",
       notes: "",
+      directors: ['', '']
     },
   });
+
+  // Update form directors when directors state changes
+  useEffect(() => {
+    setValue('directors', directors);
+  }, [directors, setValue]);
 
   const countryValue = watch("country");
   const notesValue = watch("notes");
@@ -79,6 +88,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   useEffect(() => {
     if (client) {
       reset(client);
+      setDirectors(client.directors || ['', '']);
     }
   }, [client, reset]);
 
@@ -86,67 +96,118 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     if (countryValue) {
       const found = countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase());
       if (found && found.currency) {
-        reset({ ...watch(), currencyFormat: found.currency });
+        setValue('currencyFormat', found.currency);
       }
     }
-  }, [countryValue]);
+  }, [countryValue, setValue]);
 
-  const onSubmit = async (formData) => {
-    setLoading(true);
-    try {
-      let result;
-      if (isEditMode) {
-        result = await clientsApi.updateClient(client._id, formData);
-        toast.success(
-          `Client "${formData.name}" updated successfully!`,
-          {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          }
-        );
-      } else {
-        result = await clientsApi.createClient(formData);
-        toast.success(
-          `Client "${formData.name}" created successfully!`,
-          {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          }
-        );
-      }
+  const addDirectorField = () => {
+    const newDirectors = [...directors, ''];
+    setDirectors(newDirectors);
+    setValue('directors', newDirectors);
+  };
 
-      if (result.success) {
-        if (onSuccess) {
-          onSuccess(result.data);
-        }
-      } else {
-        throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
-      }
-    } catch (error) {
-      console.error("Error saving client:", error);
-      toast.error(
-        error.message || `Failed to ${isEditMode ? 'update' : 'create'} client. Please try again.`,
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
-      );
-    } finally {
-      setLoading(false);
+  const removeDirectorField = (index) => {
+    if (directors.length > 2) {
+      const newDirectors = directors.filter((_, i) => i !== index);
+      setDirectors(newDirectors);
+      setValue('directors', newDirectors);
     }
   };
+
+  const updateDirector = (index, value) => {
+    const newDirectors = [...directors];
+    newDirectors[index] = value;
+    setDirectors(newDirectors);
+    setValue('directors', newDirectors);
+  };
+
+  const onSubmit = async (formData) => {
+  setLoading(true);
+  try {
+    const validDirectors = directors
+      .map(d => d ? d.trim() : '')
+      .filter(d => d !== '');
+
+    console.log('Original directors from state:', directors);
+    console.log('Valid directors after filtering:', validDirectors);
+
+    if (validDirectors.length < 2) {
+      toast.error("At least two directors with non-empty names are required", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setLoading(false);
+      return;
+    }
+
+    const uniqueDirectors = [...new Set(validDirectors.map(d => d.toLowerCase()))];
+    if (uniqueDirectors.length !== validDirectors.length) {
+      toast.error("Duplicate director names are not allowed", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setLoading(false);
+      return;
+    }
+
+    const finalFormData = {
+      ...formData,
+      directors: validDirectors
+    };
+
+    console.log('Form data being sent:', finalFormData);
+
+    let result;
+    if (isEditMode) {
+      result = await clientsApi.updateClient(client._id, finalFormData);
+      toast.success(`Client "${finalFormData.name}" updated successfully!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } else {
+      result = await clientsApi.createClient(finalFormData);
+      toast.success(`Client "${finalFormData.name}" created successfully!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+
+    if (result.success) {
+      onSuccess(result.data);
+    } else {
+      throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
+    }
+  } catch (error) {
+    console.error("Error saving client:", error);
+    toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} client. Please try again.`, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Prevent clicks inside the modal from closing it
   const handleModalContentClick = (e) => {
@@ -169,16 +230,16 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   return (
     <>
       {/* Blur Background Overlay */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={handleCancel}></div>
-      
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onCancel}></div>
+
       {/* Modal Container */}
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
-        onClick={handleCancel} // This ensures clicking anywhere outside the modal content triggers the popup
+        onClick={onCancel}
       >
         <div
           className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
-          onClick={handleModalContentClick} // Prevent clicks inside the modal from closing it
+          onClick={handleModalContentClick}
         >
           {/* Enhanced Form Header */}
           <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-200 relative">
@@ -188,7 +249,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             >
               <X className="h-5 w-5" />
             </button>
-            
+
             <div className="flex items-center space-x-4">
               <div className="bg-blue-500 text-white p-3 rounded-xl shadow-lg">
                 {isEditMode ? (
@@ -366,6 +427,66 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   )}
                 </div>
 
+                {/* Directors */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="bg-purple-100 p-2 rounded-xl">
+                      <UserPlus className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <h4 className="text-md font-semibold text-gray-800">Directors <span className="text-red-500">*</span></h4>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-3">Minimum of 2 directors required</p>
+                  
+                  {/* Hidden input to register directors with react-hook-form */}
+                  <input
+                    type="hidden"
+                    {...register("directors", { 
+                      required: "At least 2 directors are required",
+                      validate: value => {
+                        const valid = Array.isArray(value) ? value.filter(d => d && d.trim()).length >= 2 : false;
+                        return valid || "At least 2 directors are required";
+                      }
+                    })}
+                  />
+                  
+                  {directors.map((director, index) => (
+  <div key={index} className="flex items-center space-x-4 mb-2">
+    <div className="flex-1 relative">
+      <input
+        type="text"
+        value={director}
+        onChange={(e) => updateDirector(index, e.target.value)}
+        className="w-full px-4 py-3 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400"
+        placeholder={`Director ${index + 1} name`}
+      />
+    </div>
+    {directors.length > 2 && (
+      <button
+        type="button"
+        onClick={() => removeDirectorField(index)}
+        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    )}
+  </div>
+))}
+{errors.directors && (
+  <p className="mt-2 text-sm text-red-600 flex items-center">
+    <AlertCircle className="h-4 w-4 mr-1" />
+    {errors.directors.message}
+  </p>
+)}
+                  
+                  <button
+                    type="button"
+                    onClick={addDirectorField}
+                    className="mt-2 text-blue-500 hover:text-blue-700 font-medium flex items-center hover:bg-blue-50 px-3 py-2 rounded-lg transition-all duration-200"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Another Director
+                  </button>
+                </div>
+
                 {/* Address Subsection */}
                 <div className="md:col-span-2 mt-6">
                   <h4 className="text-md font-semibold text-gray-800 mb-2">Address</h4>
@@ -382,7 +503,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                             setCountrySearch(e.target.value);
                             const filtered = countryCurrency.filter(c => c.name.toLowerCase().startsWith(e.target.value.toLowerCase()));
                             setFilteredCountries(filtered);
-                            reset({ ...watch(), country: e.target.value });
+                            setValue('country', e.target.value);
                             setShowCountryDropdown(true);
                           }}
                           onFocus={() => {
@@ -401,7 +522,8 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                                 className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
                                 onMouseDown={e => {
                                   e.stopPropagation();
-                                  reset({ ...watch(), country: c.name, currencyFormat: c.currency });
+                                  setValue('country', c.name);
+                                  setValue('currencyFormat', c.currency);
                                   setCountrySearch(c.name);
                                   setShowCountryDropdown(false);
                                 }}
@@ -582,7 +704,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 bg-blue-500  text-white rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
+                className="px-8 py-3 bg-blue-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
