@@ -43,12 +43,12 @@ const CompanySettings = () => {
   const stateInputRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  const BASE_URL = "https://api-ca-erp.xyvin.com/api"; 
+  const BASE_URL = "https://api-ca-erp.xyvin.com"; 
 
   // Function to upload logo
   const uploadLogo = async (formData) => {
     try {
-      const response = await api.put("/settings/company/logo", formData, {
+      const response = await api.put("/api/settings/company/logo", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

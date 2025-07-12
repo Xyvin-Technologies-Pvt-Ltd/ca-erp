@@ -1,7 +1,8 @@
 import api from './axios';
 
 export const getDepartments = async (params = {}) => {
-    const response = await api.get('/departments', { params });    
+        const { page = 1, limit = 10, ...rest } = params;
+    const response = await api.get('/departments', { params: { page, limit, ...rest } });    
     return response.data;
 };
 

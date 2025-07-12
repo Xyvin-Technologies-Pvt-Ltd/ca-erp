@@ -17,6 +17,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); 
   const isEditMode = !!project;
   const { user, role } = useAuth();
   const startDateRef = useRef(null);
@@ -118,20 +119,33 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         priority: data.priority ? data.priority.toLowerCase() : "medium",
         description: data.description || "No description provided",
         name: data.name,
-        startDate: data.startDate,
-        dueDate: data.dueDate,
       };
 
-      if (!["planning", "in-progress", "completed", "archived"].includes(projectData.status)) {
-        console.error(`Invalid status: ${projectData.status}`);
+      // Only add date fields if they have values
+      if (data.startDate && data.startDate.trim() !== "") {
+        projectData.startDate = data.startDate;
+      }
+      if (data.dueDate && data.dueDate.trim() !== "") {
+        projectData.dueDate = data.dueDate;
+      }
+
+      // Filter out undefined values
+      const filteredProjectData = Object.fromEntries(
+        Object.entries(projectData).filter(([key, value]) => value !== undefined)
+      );
+
+      console.log('Sending project data:', filteredProjectData);
+
+      if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
+        console.error(`Invalid status: ${filteredProjectData.status}`);
         return;
       }
 
       let result;
       if (isEditMode && project?.id) {
-        result = await projectsApi.updateProject(project.id, projectData);
+        result = await projectsApi.updateProject(project.id, filteredProjectData);
       } else {
-        result = await projectsApi.createProject(projectData);
+        result = await projectsApi.createProject(filteredProjectData);
       }
 
       setLoading(true);
@@ -151,12 +165,19 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
   const handleCancel = () => {
     if (isDirty) {
-      const confirmDiscard = window.confirm("Are you sure you want to discard changes?");
-      if (!confirmDiscard) {
-        return;
-      }
+      setShowConfirmModal(true); 
+    } else {
+      onCancel();
     }
+  };
+
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
     onCancel();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
   };
 
   const openDatePicker = (dateInputRef) => {
@@ -260,7 +281,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     {...register("status", { required: "Status is required", validate: value => value !== "" || "Please select a valid status" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
-                    <option value="" disabled>Select status</option>
+                    <option value="">Select status</option>
                     <option value="planning">Planning</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
@@ -283,7 +304,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     {...register("priority", { required: "Priority is required", validate: value => value !== "" || "Please select a valid priority" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                   >
-                    <option value="" disabled>Select priority</option>
+                    <option value="">Select priority</option>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -328,14 +349,14 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                 {/* Due Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Due Date <span className="text-red-500">*</span>
+                    Due Date
                   </label>
                   <div className="relative">
                     <input
                       ref={endDateRef}
                       type="date"
                       onClick={() => openDatePicker(endDateRef)}
-                      {...register("dueDate", { required: "Due date is required" })}
+                      {...register("dueDate")}
                       className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
                     />
                     {/* <button
@@ -358,10 +379,10 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description <span className="text-red-500">*</span>
+                  Description
                 </label>
                 <textarea
-                  {...register("description", { required: "Description is required" })}
+                  {...register("description")}
                   rows="4"
                   maxLength={500}
                   placeholder="Enter project description..."
@@ -415,6 +436,40 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
             </div>
           </form>
         </div>
+
+        {/* Confirmation Popup */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/20 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Discard Changes?</h3>
+                <button
+                  onClick={cancelDiscard}
+                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to discard changes? Any unsaved changes will be lost.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={cancelDiscard}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDiscard}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

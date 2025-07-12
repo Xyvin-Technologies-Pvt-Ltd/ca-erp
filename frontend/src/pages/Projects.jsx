@@ -59,9 +59,13 @@ const Projects = () => {
         throw new Error("Invalid API response format");
       }
 
-      const sortedProjects = data.data.sort((a, b) =>
-        new Date(a.dueDate) - new Date(b.dueDate)
-      );
+      const sortedProjects = data.data.sort((a, b) => {
+        // Handle cases where dueDate might be undefined
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1; // Projects without due date go to the end
+        if (!b.dueDate) return -1; // Projects without due date go to the end
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
 
       setProjects(sortedProjects);
       setPaginations({
@@ -105,7 +109,12 @@ const Projects = () => {
 
       const filteredProjects = allProjects
         .filter(project => taskProjectIds.has(project._id))
-        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        .sort((a, b) => {
+          if (!a.dueDate && !b.dueDate) return 0;
+          if (!a.dueDate) return 1; // Projects without due date go to the end
+          if (!b.dueDate) return -1; // Projects without due date go to the end
+          return new Date(a.dueDate) - new Date(b.dueDate);
+        });
 
       setProjects(filteredProjects);
 
@@ -333,16 +342,16 @@ const Projects = () => {
                           Timeline
                         </p>
                         <p className="text-sm font-medium text-gray-900 mt-1">
-                          {new Date(project.startDate).toLocaleDateString("en-GB", {
+                          {project.startDate ? new Date(project.startDate).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
-                          })} -{" "}
-                          {new Date(project.dueDate).toLocaleDateString("en-GB", {
+                          }) : "No start date"} -{" "}
+                          {project.dueDate ? new Date(project.dueDate).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
-                          })}
+                          }) : "No due date"}
                         </p>
                       </div>
 
@@ -420,7 +429,7 @@ const Projects = () => {
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
                           whileHover={{ scale: 1.05 }}
                         >
-                          <span className={`h-2 w-2 rounded-full mr-1 ${priorityColors[project.priority].split(' ')[0]}`}></span>
+                          <span className={`h-2 w-2 rounded-full mr-1 ${(priorityColors[project.priority] || "bg-gray-100").split(' ')[0]}`}></span>
                           {project.priority}
                         </motion.span>
                       </div>

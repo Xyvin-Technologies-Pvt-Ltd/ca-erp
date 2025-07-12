@@ -19,6 +19,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [loading, setLoading] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
 
   const statusIcons = {
     Present: <CheckIcon className="h-4 w-4 text-green-800" />,
@@ -342,17 +343,30 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     }
   };
 
+  const handleCancel = () => {
+    setShowConfirmModal(true); // Show popup
+  };
+
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
+    onClose();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
+  };
+
   if (!isOpen) return null;
 
   const availableEmployeesCount = activeEmployees.filter(emp => canSelectEmployee(emp._id)).length;
   const existingAttendanceCount = existingAttendance.length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
           <h2 className="text-2xl font-semibold text-gray-800">Record Bulk Attendance</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -557,7 +571,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
             >
               Cancel
@@ -571,6 +585,40 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             </button>
           </div>
         </form>
+
+        {/* Confirmation Popup */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+                <button
+                  onClick={cancelDiscard}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to discard changes? Any unsaved changes will be lost.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={cancelDiscard}
+                  className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDiscard}
+                  className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, BuildingOfficeIcon, CodeBracketIcon, MapPinIcon, CheckCircleIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDepartments, deleteDepartment } from '../../api/department.api';
 import DepartmentModal from '../../components/DepartmentModal';
@@ -16,25 +16,32 @@ const Departments = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
 
-    const fetchDepartments = async () => {
+    const fetchDepartments = async (pageNum = page) => {
         try {
             setLoading(true);
-            const data = await getDepartments();
-            console.log(data.data, "values");
-            setDepartments(Array.isArray(data.data) ? data.data : []);
+            const response = await getDepartments({ page: pageNum, limit });
+            setDepartments(Array.isArray(response.data) ? response.data : []);
+            setTotal(response.total || 0);
+            setTotalPages(Math.ceil(response.total / limit) || 1); // Calculate totalPages
         } catch (error) {
             console.error('Error fetching departments:', error);
             toast.error('Failed to fetch departments');
             setDepartments([]);
+            setTotal(0);
+            setTotalPages(1);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchDepartments();
-    }, []);
+        fetchDepartments(page);
+    }, [page]);
 
     const handleEdit = (department) => {
         setSelectedDepartment(department);
@@ -52,7 +59,11 @@ const Departments = () => {
         try {
             await deleteDepartment(selectedDepartment._id);
             toast.success('Department deleted successfully');
-            fetchDepartments();
+            if (departments.length === 1 && page > 1) {
+                setPage(page - 1); // Go to previous page if current page becomes empty
+            } else {
+                fetchDepartments(page);
+            }
         } catch (error) {
             console.error('Error deleting department:', error);
             toast.error(error.response?.data?.message || 'Failed to delete department');
@@ -98,14 +109,14 @@ const Departments = () => {
                 </motion.div>
                 <motion.button
                     onClick={() => setShowModal(true)}
-                    className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-550 hover:blue-550 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
+                    className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-550 hover:blue-550 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
                     <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                        <span>Add Department</span>
+                    <span>Add Department</span>
                 </motion.button>
             </div>
 
@@ -125,7 +136,6 @@ const Departments = () => {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Get started by adding your first department.
                         </p>
-                       
                     </motion.div>
                 ) : (
                     <motion.div
@@ -143,7 +153,6 @@ const Departments = () => {
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Code</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Department Name</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Location</th>
-                                        {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th> */}
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
@@ -167,7 +176,7 @@ const Departments = () => {
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     <div className="flex items-center space-x-2">
                                                         <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
-                                                    {department.name}
+                                                        {department.name}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -176,9 +185,6 @@ const Departments = () => {
                                                         {department.location}
                                                     </div>
                                                 </td>
-                                                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {department.manager ? `${department.manager.firstName} ${department.manager.lastName}` : 'Not Assigned'}
-                                                </td> */}
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                                                     <motion.span
                                                         className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${statusColors[department.isActive]}`}
@@ -218,6 +224,100 @@ const Departments = () => {
                                 </tbody>
                             </table>
                         </div>
+                        {totalPages > 0 && (
+                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1 flex justify-between sm:hidden">
+                                        <button
+                                            onClick={() => {
+                                                console.log('Previous page:', page - 1);
+                                                setPage(page - 1);
+                                            }}
+                                            disabled={page === 1}
+                                            className={`relative inline-flex  items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                                page === 1
+                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                                            }`}
+                                        >
+                                            Previous
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                console.log('Next page:', page + 1);
+                                                setPage(page + 1);
+                                            }}
+                                            disabled={page === totalPages}
+                                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                                                page === totalPages
+                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
+                                            }`}
+                                        >
+                                            Next
+                                            <ChevronRightIcon className="w-4 h-4 ml-1" />
+                                        </button>
+                                    </div>
+                                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-700">
+                                                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
+                                                <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
+                                                <span className="font-medium">{total}</span> results
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
+                                                <button
+                                                    onClick={() => {
+                                                        console.log('Previous page:', page - 1);
+                                                        setPage(page - 1);
+                                                    }}
+                                                    disabled={page === 1}
+                                                    className={`relative inline-flex rounded-l-md  items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                                        page === 1
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                                                            : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                                                    }`}
+                                                >
+                                                    <ChevronLeftIcon className="w-4 h-4" />
+                                                </button>
+                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() => {
+                                                            console.log('Page:', p);
+                                                            setPage(p);
+                                                        }}
+                                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                                                            p === page
+                                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
+                                                        }`}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        console.log('Next page:', page + 1);
+                                                        setPage(page + 1);
+                                                    }}
+                                                    disabled={page === totalPages}
+                                                    className={`relative inline-flex items-center rounded-r-md px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                                                        page === totalPages
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                                                            : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                                                    }`}
+                                                >
+                                                    <ChevronRightIcon className="w-4 h-4" />
+                                                </button>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -269,7 +369,7 @@ const Departments = () => {
                                 </motion.button>
                                 <motion.button
                                     onClick={confirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300 "
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >

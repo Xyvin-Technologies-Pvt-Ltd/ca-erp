@@ -12,6 +12,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
     endDate: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
 
   useEffect(() => {
     if (event) {
@@ -55,11 +56,24 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
     }
   };
 
+  const handleCancel = () => {
+    setShowConfirmModal(true); // Show popup
+  };
+
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
+    onClose();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300"
-    onClick={onClose}>
+    onClick={handleCancel}>
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-2xl overflow-hidden transform transition-all duration-300 scale-100" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
@@ -67,7 +81,6 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
             <div className="flex items-center space-x-3">
               <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
                <CalendarDays className="h-6 w-6" />
-
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -78,7 +91,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -160,7 +173,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCancel}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
               >
                 Cancel
@@ -180,7 +193,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                   </span>
                 ) : (
                   <span className="flex items-center">
-                    <svg className="h упаковка-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={event ? 'M5 13l4 4L19 7' : 'M12 6v6m0 0v6m0-6h6m-6 0H6'} />
                     </svg>
                     {event ? 'Update Event' : 'Create Event'}
@@ -191,6 +204,40 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
           </form>
         </div>
       </div>
+
+      {/* Confirmation Popup */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+              <button
+                onClick={cancelDiscard}
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to discard changes? Any unsaved changes will be lost.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelDiscard}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDiscard}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
