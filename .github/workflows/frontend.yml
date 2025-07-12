@@ -34,6 +34,9 @@ jobs:
           VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
         run: |
           cd frontend
+          echo "VITE_API_BASE_URL: $VITE_API_BASE_URL"
+          echo "VITE_BASE_URL: $VITE_BASE_URL"
+          echo "VITE_WS_URL: $VITE_WS_URL"
           npm ci
           npm run build
 
