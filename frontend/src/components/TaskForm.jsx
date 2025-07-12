@@ -21,8 +21,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
+// Import the ProjectForm component
+import ProjectForm from "./ProjectForm"; // Adjust the import path as needed
 
 const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTaskUpdate }) => {
+  const navigate = useNavigate();
   const tagOptions = [
     "GST",
     "Income Tax",
@@ -65,8 +69,10 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
   const [amount, setAmount] = useState(task?.amount);
   const dueDateRef = useRef(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
-    const [showConfirmModal, setShowConfirmModal] = useState(false); 
-
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [projectDueDateError, setProjectDueDateError] = useState(null);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -89,6 +95,11 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       Object.keys(tagDocuments).length > 0;
     setIsFormDirty(isDirty);
   }, [title, status, priority, assignedTo, dueDate, description, file, selectedTags, projectId, amount, tagDocuments, task]);
+
+  // Clear project due date error when project changes
+  useEffect(() => {
+    setProjectDueDateError(null);
+  }, [projectId]);
 
   // Fetch existing tag documents when editing a task
   useEffect(() => {
@@ -198,6 +209,34 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
     if (!projectId) {
       toast.error("Please select a project.");
       return;
+    }
+
+    // Check if project has due date
+    let selectedProject;
+    if (projectIds) {
+      // Single project context - fetch project details
+      try {
+        const response = await projectsApi.getProjectById(projectId);
+        selectedProject = response.data;
+      } catch (error) {
+        console.error("Error fetching project details:", error);
+        toast.error("Error fetching project details");
+        return;
+      }
+    } else {
+      // Multiple projects context - find from projects array
+      selectedProject = projects.find(p => p._id === projectId);
+    }
+
+    if (selectedProject && !selectedProject.dueDate) {
+      setProjectDueDateError({
+        projectId: selectedProject._id,
+        projectName: selectedProject.name
+      });
+      setSelectedProject(selectedProject); // Store the project to edit
+      return;
+    } else {
+      setProjectDueDateError(null);
     }
 
     try {
@@ -336,6 +375,25 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
 
   const cancelDiscard = () => {
     setShowConfirmModal(false);
+  };
+
+  const handleProjectSuccess = async (updatedProject) => {
+    setShowProjectForm(false);
+    setProjectDueDateError(null); 
+    if (!projectIds) {
+      setProjects((prev) =>
+        prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
+      );
+    }
+    toast.success("Project updated successfully");
+  };
+
+  const handleProjectCancel = () => {
+    setShowProjectForm(false);
+  };
+
+  const openProjectForm = () => {
+    setShowProjectForm(true);
   };
 
   return (
@@ -648,6 +706,33 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               )}
             </div>
 
+            {projectDueDateError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Cannot create task for project "{projectDueDateError.projectName}"
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>This project doesn't have a due date set. Please add a due date to the project before creating tasks.</p>
+                      <button
+                        type="button"
+                        onClick={openProjectForm}
+                        className="mt-2 text-blue-600 hover:text-blue-800 underline cursor-pointer font-medium"
+                      >
+                        Add Due Date to Project
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
@@ -701,6 +786,16 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               </div>
             </div>
           )}      
+
+        {/* Project Form Modal */}
+        {showProjectForm && selectedProject && (
+          <ProjectForm
+            project={selectedProject}
+            onClose={handleProjectCancel}
+            onSuccess={handleProjectSuccess}
+            onCancel={handleProjectCancel}
+          />
+        )}
       </div>
     </div>
   );
