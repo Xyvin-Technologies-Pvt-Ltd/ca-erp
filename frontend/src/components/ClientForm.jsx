@@ -19,6 +19,7 @@ import countryCurrency from "../api/countryCurrency.json";
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [directors, setDirectors] = useState(client?.directors || ['', '']);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const isEditMode = !!client;
   const industryOptions = [
     "IT Services",
