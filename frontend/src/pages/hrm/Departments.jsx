@@ -226,94 +226,54 @@ const Departments = () => {
                         </div>
                         {totalPages > 0 && (
                             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1 flex justify-between sm:hidden">
-                                        <button
-                                            onClick={() => {
-                                                console.log('Previous page:', page - 1);
-                                                setPage(page - 1);
-                                            }}
-                                            disabled={page === 1}
-                                            className={`relative inline-flex  items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                                                page === 1
-                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
-                                            }`}
-                                        >
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                console.log('Next page:', page + 1);
-                                                setPage(page + 1);
-                                            }}
-                                            disabled={page === totalPages}
-                                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                                                page === totalPages
-                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md'
-                                            }`}
-                                        >
-                                            Next
-                                            <ChevronRightIcon className="w-4 h-4 ml-1" />
-                                        </button>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-700">
+                                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                                            <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
+                                            <span className="font-medium">{total}</span> results
+                                        </p>
                                     </div>
-                                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-700">
-                                                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
-                                                <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
-                                                <span className="font-medium">{total}</span> results
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
+                                    <div>
+                                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <button
+                                                onClick={() => setPage(page - 1)}
+                                                disabled={page === 1}
+                                                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                                                    page === 1
+                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                                                }`}
+                                            >
+                                                <span className="sr-only">First</span>
+                                                <ChevronLeftIcon className="h-5 w-5" />
+                                            </button>
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                                                 <button
-                                                    onClick={() => {
-                                                        console.log('Previous page:', page - 1);
-                                                        setPage(page - 1);
-                                                    }}
-                                                    disabled={page === 1}
-                                                    className={`relative inline-flex rounded-l-md  items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
-                                                        page === 1
-                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
-                                                            : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
+                                                    key={p}
+                                                    onClick={() => setPage(p)}
+                                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                        p === page
+                                                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
                                                     }`}
                                                 >
-                                                    <ChevronLeftIcon className="w-4 h-4" />
+                                                    {p}
                                                 </button>
-                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                                                    <button
-                                                        key={p}
-                                                        onClick={() => {
-                                                            console.log('Page:', p);
-                                                            setPage(p);
-                                                        }}
-                                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
-                                                            p === page
-                                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
-                                                        }`}
-                                                    >
-                                                        {p}
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    onClick={() => {
-                                                        console.log('Next page:', page + 1);
-                                                        setPage(page + 1);
-                                                    }}
-                                                    disabled={page === totalPages}
-                                                    className={`relative inline-flex items-center rounded-r-md px-3 py-2 border text-sm font-medium transition-all duration-200 ${
-                                                        page === totalPages
-                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
-                                                            : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300'
-                                                    }`}
-                                                >
-                                                    <ChevronRightIcon className="w-4 h-4" />
-                                                </button>
-                                            </nav>
-                                        </div>
+                                            ))}
+                                            <button
+                                                onClick={() => setPage(page + 1)}
+                                                disabled={page === totalPages}
+                                                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                                                    page === totalPages
+                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                                                }`}
+                                            >
+                                                <span className="sr-only">Next</span>
+                                                <ChevronRightIcon className="h-5 w-5" />
+                                            </button>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>

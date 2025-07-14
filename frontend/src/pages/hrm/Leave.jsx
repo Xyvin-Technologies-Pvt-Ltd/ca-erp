@@ -20,6 +20,7 @@ import {
   deleteLeave,
   reviewLeave,
 } from "../../api/Leave";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 const statusColors = {
   Approved: "bg-green-100 text-green-800",
@@ -303,7 +304,61 @@ const Leave = () => {
       </AnimatePresence>
 
       {/* Pagination Controls */}
-      {totalPages > 0 && (
+       {totalPages > 0 && (
+                                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                          <div>
+                                              <p className="text-sm text-gray-700">
+                                                  Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                                                  <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
+                                                  <span className="font-medium">{total}</span> results
+                                              </p>
+                                          </div>
+                                          <div>
+                                              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                                  <button
+                                                      onClick={() => setPage(page - 1)}
+                                                      disabled={page === 1}
+                                                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                                                          page === 1
+                                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                              : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                                                      }`}
+                                                  >
+                                                      <span className="sr-only">First</span>
+                                                      <ChevronLeftIcon className="h-5 w-5" />
+                                                  </button>
+                                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                                      <button
+                                                          key={p}
+                                                          onClick={() => setPage(p)}
+                                                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                              p === page
+                                                                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                                                                  : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
+                                                          }`}
+                                                      >
+                                                          {p}
+                                                      </button>
+                                                  ))}
+                                                  <button
+                                                      onClick={() => setPage(page + 1)}
+                                                      disabled={page === totalPages}
+                                                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                                                          page === totalPages
+                                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                              : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                                                      }`}
+                                                  >
+                                                      <span className="sr-only">Next</span>
+                                                      <ChevronRightIcon className="h-5 w-5" />
+                                                  </button>
+                                              </nav>
+                                          </div>
+                                      </div>
+                                  </div>
+                              )}
+      {/* {totalPages > 0 && (
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex-1 flex justify-between sm:hidden">
@@ -378,7 +433,7 @@ const Leave = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <AnimatePresence>
         {showModal && (

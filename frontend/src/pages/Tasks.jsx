@@ -460,7 +460,7 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Pagination */}
-       {tasks.length > 0 && (
+       {/* {tasks.length > 0 && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -566,6 +566,77 @@ const Tasks = () => {
           </div>
         </div>
       </motion.div>
+       )} */}
+
+       {tasks.length > 0 && (
+        <div className="px-6 py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * paginations.limit + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(currentPage * paginations.limit, paginations.total)}
+                    </span>{" "}
+                    of <span className="font-medium">{paginations.total}</span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
+                  >
+                    <motion.button
+                      onClick={() => handlePageChanges(1)}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                        currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                      }`}
+                      whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
+                      whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
+                    >
+                      <span className="sr-only">First</span>
+                      <ChevronLeftIcon className="h-5 w-5" />
+                    </motion.button>
+                    {pages.map((page) => (
+                      <motion.button
+                        key={page}
+                        onClick={() => handlePageChanges(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                            : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {page}
+                      </motion.button>
+                    ))}
+                    <motion.button
+                      onClick={() => handlePageChanges(currentPage + 1)}
+                      disabled={currentPage === totalPage}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                        currentPage === totalPage
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                      }`}
+                      whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
+                      whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" />
+                    </motion.button>
+                  </nav>
+                </div>
+              </div>
+            </div>
        )}
       {/* Modal */}
       <AnimatePresence>

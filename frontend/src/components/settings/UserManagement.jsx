@@ -393,7 +393,7 @@ const UserManagement = () => {
             {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex-1 flex justify-between sm:hidden">
+                {/* <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
@@ -416,9 +416,9 @@ const UserManagement = () => {
                   >
                     Next
                   </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
+                </div> */}
+                <div className=" sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div className="mb-2">
                     <p className="text-sm text-gray-700">
                       Showing{" "}
                       <span className="font-medium">
