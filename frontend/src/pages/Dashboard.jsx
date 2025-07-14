@@ -527,7 +527,22 @@ const ActivityItem = ({ activity }) => {
             {formatTimeAgo(activity.timestamp)}
           </p>
         </div>
-        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{activity.description}</p>
+        <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+          {(() => {
+            // Format dueDate in description if present
+            const desc = activity.description;
+            const dueDateMatch = desc && desc.match(/dueDate:.*?([A-Za-z]{3} [A-Za-z]{3} \d{2} \d{4} [\d:]+ GMT[+-]\d{4} \(.*?\))/);
+            if (dueDateMatch) {
+              const dateStr = dueDateMatch[1];
+              const dateObj = new Date(dateStr);
+              if (!isNaN(dateObj.getTime())) {
+                // Replace the raw date string with formatted date
+                return desc.replace(dateStr, dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+              }
+            }
+            return desc;
+          })()}
+        </p>
       </div>
     </div>
   );
