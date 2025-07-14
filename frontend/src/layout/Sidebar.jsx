@@ -172,11 +172,18 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
 
   const filteredNavigation = getVisibleNavigation(role || "staff");
 
+  // Handle link clicks to close mobile sidebar
+  const handleLinkClick = () => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-white shadow-xl border-r border-slate-200/50">
       {/* Logo and mobile close button */}
       <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm ml-5">
-        <Link to={ROUTES.DASHBOARD} className="flex-shrink-0 group">
+        <Link to={ROUTES.DASHBOARD} className="flex-shrink-0 group" onClick={handleLinkClick}>
           {logoFilename ? (
             <img 
               src={logoFilename} 
@@ -245,6 +252,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                           <Link
                             key={child.name}
                             to={child.to}
+                            onClick={handleLinkClick}
                             className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 group ${
                               location.pathname === child.to
                                 ? "bg-blue-500 text-white shadow-md transform scale-[1.02]"
@@ -267,6 +275,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                 ) : (
                   <Link
                     to={item.to}
+                    onClick={handleLinkClick}
                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group ${
                       location.pathname === item.to
                         ? "bg-blue-500 text-white shadow-lg transform scale-[1.02]"
