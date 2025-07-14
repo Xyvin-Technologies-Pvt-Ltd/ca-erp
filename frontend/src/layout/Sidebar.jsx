@@ -299,6 +299,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                   src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
                   alt="Avatar"
                   className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
+                 onError={(e) => {
+                     e.target.outerHTML = `
+                       <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                         <span class="text-white font-medium text-sm">
+                           ${user.name?.charAt(0).toUpperCase() || ''}
+                         </span>
+                       </div>`
+                   }}
                 />
               ) : (
                 <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center shadow-md border-2 border-white">

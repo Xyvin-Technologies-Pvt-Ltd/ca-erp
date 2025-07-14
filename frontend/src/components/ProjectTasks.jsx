@@ -238,6 +238,14 @@ const goToPrevTaskPage = () => {
                             className="h-8 w-8 rounded-full"
                             src={`${import.meta.env.VITE_BASE_URL}${task.assignedTo.avatar}`}
                             alt=""
+                            onError={(e) => {
+                            e.target.outerHTML = `
+                              <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                <span class="text-white font-medium text-sm">
+                                  ${task.assignedTo?.name?.charAt(0).toUpperCase() || ''}
+                                </span>
+                              </div>`
+                          }}
                           />
                         ) : (
                           <span className="text-sm font-medium text-gray-500">

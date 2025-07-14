@@ -627,6 +627,14 @@ const ProjectDetail = () => {
                                   src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
                                   alt={member.name}
                                   className="h-10 w-10 rounded-full border border-gray-200"
+                                  onError={(e) => {
+                                  e.target.outerHTML = `
+                                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                      <span class="text-blue-700 font-medium text-sm">
+                                        ${member.name?.charAt(0).toUpperCase() || ''}
+                                      </span>
+                                    </div>`
+                                }}
                                 />
                               ) : (
                                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">

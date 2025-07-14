@@ -185,6 +185,14 @@ const ProjectTimeline = ({ projectId }) => {
                             src={`${import.meta.env.VITE_BASE_URL}${activity.user.avatar}`}
                             alt={activity.user.name}
                             className="h-6 w-6 rounded-full mr-2"
+                            onError={(e) => {
+                     e.target.outerHTML = `
+                       <div class="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110 mr-2">
+                         <span class="text-white text-xs">
+                           ${activity.user.name?.charAt(0).toUpperCase() || ''}
+                         </span>
+                       </div>`
+                   }}
                           />
                         ) : (
                           <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center mr-2">

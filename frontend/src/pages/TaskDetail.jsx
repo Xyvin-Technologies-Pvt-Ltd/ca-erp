@@ -783,6 +783,14 @@ const TaskDetail = () => {
                                 className="h-10 w-10 rounded-full"
                                 src={`${import.meta.env.VITE_BASE_URL}${comment.user.avatar}`}
                                 alt=""
+                                onError={(e) => {
+                                  e.target.outerHTML = `
+                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                      <span class="text-white font-medium text-sm">
+                                        ${comment.user.name?.charAt(0).toUpperCase() || ''}
+                                      </span>
+                                    </div>`
+                                }}
                               />
                             ) : (
                               <span className="text-sm font-medium text-white">
@@ -877,6 +885,14 @@ const TaskDetail = () => {
                             className="h-8 w-8 rounded-full"
                             src={task.assignedTo.avatar}
                             alt=""
+                            onError={(e) => {
+                              e.target.outerHTML = `
+                                <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                  <span class="text-white font-medium text-sm">
+                                    ${user.name?.charAt(0).toUpperCase() || ''}
+                                  </span>
+                                </div>`
+                            }}
                           />
                         ) : (
                           <span className="text-sm font-medium text-white">

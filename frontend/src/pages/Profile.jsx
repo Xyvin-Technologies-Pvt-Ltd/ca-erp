@@ -213,50 +213,25 @@ const Profile = () => {
         {/* Header Section with Profile Image */}
         <div className="relative px-8 pt-8 pb-6 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 border-b border-slate-200/50">
           {/* Profile Image - Now inside the card */}
-          <div className="flex justify-center mb-6">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="relative"
-            >
-              {isEditing ? (
-                <label className="relative cursor-pointer group">
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 relative">
-                    {tempImage?.preview || (profileImage && !imageError) ? (
-                      <motion.img
-                        src={tempImage?.preview || profileImage}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                        onError={() => setImageError(true)}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-full">
-                      <div className="flex flex-col items-center gap-1">
-                        <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                        <span className="text-xs text-white font-medium hidden sm:block">Change</span>
-                      </div>
-                    </div>
-                  </div>
-                </label>
-              ) : (
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
-                  {profileImage && !imageError ? (
+       <div className="flex justify-center mb-6">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative"
+          >
+            {isEditing ? (
+              <label className="relative cursor-pointer group">
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 relative">
+                  {(tempImage?.preview || (profileImage && !imageError)) ? (
                     <motion.img
-                      src={profileImage}
+                      src={tempImage?.preview || profileImage}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       initial={{ opacity: 0 }}
@@ -264,15 +239,53 @@ const Profile = () => {
                       transition={{ duration: 0.3 }}
                       onError={() => setImageError(true)}
                     />
+                  ) : profileData?.name ? (
+                    <div className="w-full h-full bg-blue-500 flex items-center justify-center">
+                      <span className="text-white font-semibold text-lg sm:text-xl">
+                        {profileData.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-full">
+                    <div className="flex flex-col items-center gap-1">
+                      <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                      <span className="text-xs text-white font-medium hidden sm:block">Change</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </motion.div>
-          </div>
+              </label>
+            ) : (
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+                {(profileImage && !imageError) ? (
+                  <motion.img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    onError={() => setImageError(true)}
+                  />
+                ) : profileData?.name ? (
+                  <div className="w-full h-full bg-blue-500 flex items-center justify-center">
+                    <span className="text-white font-semibold text-lg sm:text-xl">
+                      {profileData.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </div>
+
 
           {/* Basic Info */}
           <div className="text-center">

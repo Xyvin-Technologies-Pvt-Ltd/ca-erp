@@ -19,7 +19,14 @@ const AvatarWithFallback = ({ name, src, size }) => {
           name={name}
           src={src}
           size={size}
-          onError={() => setImageError(true)}
+          onError={(e) => {
+            e.target.outerHTML = `
+            <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+               <span class="text-white font-medium text-sm">
+               ${name?.charAt(0).toUpperCase() || ''}
+               </span>
+           </div>`
+         }}
         />
       ) : (
         <User className="w-5 h-5 text-white" />
@@ -263,7 +270,7 @@ const Header = ({ onOpenSidebar }) => {
                         ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
                         : undefined
                     }
-                    size="sm"
+                                        
                   />
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-slate-800 leading-tight">
