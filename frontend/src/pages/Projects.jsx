@@ -410,7 +410,7 @@ const Projects = () => {
                               initial={{ opacity: 0, y: 10 }}
                               whileHover={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute bottom-7 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
+                              className="absolute bottom-5 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
                             >
                               {project.team.map((member, index) => (
                                 <div key={member._id || member.id || index}>

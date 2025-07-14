@@ -286,7 +286,7 @@ const Tasks = () => {
             </motion.select>
           </div>
 
-          {/* <div>
+          <div>
             <label
               htmlFor="project"
               className="block text-sm font-semibold text-gray-700 mb-1"
@@ -312,7 +312,7 @@ const Tasks = () => {
                   </option>
                 ))}
             </motion.select>
-          </div> */}
+          </div>
 
           <div>
             <label

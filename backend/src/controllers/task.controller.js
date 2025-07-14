@@ -28,21 +28,24 @@ exports.getTasks = async (req, res, next) => {
         if (req.query.status) {
             filter.status = req.query.status;
         }
-        if (req.query.project) {
-            filter.project = req.query.project;
-        }
         if (req.query.priority) {
             filter.priority = req.query.priority;
         }
         filter.deleted = { $ne: true };
 
-        
-
         // Add project filter to only get tasks with non-deleted projects
         const validProjects = await Project.find({ deleted: { $ne: true } }, '_id');
         const validProjectIds = validProjects.map(p => p._id);
-        filter.project = { $in: validProjectIds };
 
+        if (req.query.project) {
+            if (validProjectIds.map(id => id.toString()).includes(req.query.project)) {
+                filter.project = req.query.project;
+            } else {
+                filter.project = null;
+            }
+        } else {
+            filter.project = { $in: validProjectIds };
+        }
 
 
         // If user is not admin, only show tasks they are assigned to

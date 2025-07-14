@@ -240,15 +240,15 @@ const goToPrevTaskPage = () => {
                             alt=""
                             onError={(e) => {
                             e.target.outerHTML = `
-                              <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
-                                <span class="text-white font-medium text-sm">
+                              <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ">
+                                <span class="text-white  text-sm">
                                   ${task.assignedTo?.name?.charAt(0).toUpperCase() || ''}
                                 </span>
                               </div>`
                           }}
                           />
                         ) : (
-                          <span className="text-sm font-medium text-gray-500">
+                          <span className="text-sm bg-blue-500 text-white rounded-full h-8 w-8 flex items-center justify-center">
                             {task.assignee || task.assignedTo?.name?.charAt(0)}
                           </span>
                         )}
