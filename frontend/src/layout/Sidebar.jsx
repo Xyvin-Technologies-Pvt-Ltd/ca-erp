@@ -192,7 +192,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
             />
           ) : (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg ml-5">
+              <div className="w-8 h-8 bg-[#1c6ead] rounded-lg flex items-center justify-center shadow-lg ml-5">
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <span className="text-slate-800 font-bold text-xl tracking-tight">
@@ -228,13 +228,13 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                       onClick={() => toggleExpand(item.name)}
                       className={`w-full flex items-center cursor-pointer px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group ${
                         isExpanded
-                          ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-100"
+                          ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-[#1c6ead] shadow-sm border border-blue-100"
                           : "text-slate-700 hover:bg-white hover:shadow-md hover:border hover:border-slate-200"
                       }`}
                     >
                       <div className={`p-2 rounded-lg transition-all duration-300 ${
                         isExpanded 
-                          ? "bg-blue-100 text-blue-600" 
+                          ? "bg-blue-100 text-[#1c6ead]" 
                           : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
                       }`}>
                         <item.icon className="h-4 w-4" />
@@ -255,7 +255,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                             onClick={handleLinkClick}
                             className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 group ${
                               location.pathname === child.to
-                                ? "bg-blue-500 text-white shadow-md transform scale-[1.02]"
+                                ? "bg-[#1c6ead] text-white shadow-md transform scale-[1.02]"
                                 : "text-slate-600 hover:bg-white hover:text-slate-800 hover:shadow-sm hover:transform hover:scale-[1.01]"
                             }`}
                           >
@@ -278,7 +278,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                     onClick={handleLinkClick}
                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group ${
                       location.pathname === item.to
-                        ? "bg-blue-500 text-white shadow-lg transform scale-[1.02]"
+                        ? "bg-[#1c6ead] text-white shadow-lg transform scale-[1.02]"
                         : "text-slate-700 hover:bg-white hover:shadow-md hover:border hover:border-slate-200 hover:transform hover:scale-[1.01]"
                     }`}
                   >
@@ -310,7 +310,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                   className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
                  onError={(e) => {
                      e.target.outerHTML = `
-                       <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                       <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                          <span class="text-white font-medium text-sm">
                            ${user.name?.charAt(0).toUpperCase() || ''}
                          </span>
@@ -318,7 +318,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                    }}
                 />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center shadow-md border-2 border-white">
+                <div className="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center shadow-md border-2 border-white">
                   <span className="text-white font-semibold text-sm">
                     {user.name ? user.name.charAt(0) : "U"}
                   </span>

@@ -195,7 +195,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -237,7 +237,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   <input
                     type="text"
                     {...register("name", { required: "Project name is required" })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     placeholder="Enter project name"
                   />
                   {errors.name && (
@@ -255,7 +255,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   </label>
                   <select
                     {...register("client.id", { required: "Client is required" })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
                     <option value="">Select a client</option>
                     {clients.map((client) => (
@@ -279,7 +279,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   </label>
                   <select
                     {...register("status", { required: "Status is required", validate: value => value !== "" || "Please select a valid status" })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
                     <option value="">Select status</option>
                     <option value="planning">Planning</option>
@@ -302,7 +302,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   </label>
                   <select
                     {...register("priority", { required: "Priority is required", validate: value => value !== "" || "Please select a valid priority" })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
                     <option value="">Select priority</option>
                     <option value="low">Low</option>
@@ -328,12 +328,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                       type="date"
                       onClick={() => openDatePicker(startDateRef)}
                       {...register("startDate", { required: "Start date is required" })}
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                     />
                     {/* <button
                       type="button"
                       onClick={() => openDatePicker(startDateRef)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#1c6ead] transition-colors duration-200"
                     >
                       <CalendarIcon className="h-5 w-5" />
                     </button> */}
@@ -357,12 +357,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                       type="date"
                       onClick={() => openDatePicker(endDateRef)}
                       {...register("dueDate")}
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                     />
                     {/* <button
                       type="button"
                       onClick={() => openDatePicker(endDateRef)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#1c6ead] transition-colors duration-200"
                     >
                       <CalendarIcon className="h-5 w-5" />
                     </button> */}
@@ -386,7 +386,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   rows="4"
                   maxLength={500}
                   placeholder="Enter project description..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                 ></textarea>
                 <div className="flex justify-end items-center mt-2">
                   <p className={`text-sm ${watch("description")?.length > 400 ? 'text-amber-600' : 'text-gray-500'}`}>
@@ -407,14 +407,14 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -456,7 +456,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={cancelDiscard}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
                 >
                   Cancel
                 </button>
