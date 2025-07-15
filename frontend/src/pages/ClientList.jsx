@@ -101,7 +101,7 @@ const ClientCard = ({ client }) => {
         className="block bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 overflow-hidden backdrop-blur-sm"
       >
         {/* Header with gradient accent */}
-        <div className="h-2 bg-blue-500"></div>
+        <div className="h-2 bg-[#1c6ead]"></div>
         
         <div className="p-6">
           <div className="flex items-center">
@@ -113,7 +113,7 @@ const ClientCard = ({ client }) => {
                   className="w-16 h-16 rounded-2xl object-cover shadow-md ring-2 ring-white"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-md ring-2 ring-white">
+                <div className="w-16 h-16 rounded-2xl bg-[#1c6ead] flex items-center justify-center text-white font-bold text-xl shadow-md ring-2 ring-white">
                   {getInitials(client.name)}
                 </div>
               )}
@@ -354,7 +354,7 @@ const ClientList = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsModalOpen(true)}
-          className="group px-6 py-3 bg-blue-500  text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+          className="group px-6 py-3 bg-[#1c6ead]  text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
         >
           <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -395,7 +395,7 @@ const ClientList = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, contact, email..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-text bg-white/80 backdrop-blur-sm"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 cursor-text bg-white/80 backdrop-blur-sm"
               />
             </div>
           </div>
@@ -411,7 +411,7 @@ const ClientList = () => {
               id="status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
             >
               <option value="all">All Statuses</option>
               {clientsData?.statuses.map((status) => (
@@ -433,7 +433,7 @@ const ClientList = () => {
               id="industry"
               value={industryFilter}
               onChange={(e) => setIndustryFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
             >
               <option value="all">All Industries</option>
               {clientsData?.industries.map((industry) => (
@@ -456,7 +456,7 @@ const ClientList = () => {
                 id="sort"
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="flex-grow px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+                className="flex-grow px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
               >
                 <option value="name">Name</option>
                 <option value="industry">Industry</option>
@@ -470,7 +470,7 @@ const ClientList = () => {
                 onClick={() =>
                   setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                 }
-                className="px-4 py-3 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+                className="px-4 py-3 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
               >
                 {sortOrder === "asc" ? "↑" : "↓"}
               </motion.button>
@@ -483,7 +483,7 @@ const ClientList = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={resetFilters}
-            className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+            className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
           >
             Reset All Filters
           </motion.button>
@@ -574,7 +574,7 @@ const ClientList = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 bg-blue-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl"
+                className="px-8 py-4 bg-[#1c6ead] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl"
               >
                 Add Your First Client
               </motion.button>

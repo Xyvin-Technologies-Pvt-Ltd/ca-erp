@@ -187,7 +187,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 {isEditMode ? (
                   <UserCog className="h-6 w-6 animate-wiggle" />
                 ) : (
@@ -225,7 +225,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   id="name"
                   type="text"
                   {...register("name", { required: "Full name is required" })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                 />
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -249,7 +249,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       message: "Invalid email address",
                     },
                   })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -272,7 +272,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       message: "Invalid phone number format",
                     },
                   })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   placeholder="+1 234 567 8901"
                 />
                 {errors.phone && (
@@ -291,7 +291,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   <select
                     id="role"
                     {...register("role", { required: "Role is required" })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
                     <option value="">Select a role</option>
                     <option value={ROLES.ADMIN}>Administrator</option>
@@ -316,7 +316,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     {...register("department", {
                       required: "Department is required",
                     })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
                     <option value="">Select a department</option>
                     {departments.length > 0 ? (
@@ -346,7 +346,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     {...register("position", {
                       required: "Position is required",
                     })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
                     <option value="">Select a position</option>
                     {positions.length > 0 ? (
@@ -373,7 +373,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       id="resetPassword"
                       checked={showPasswordReset}
                       onChange={(e) => setShowPasswordReset(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition-all duration-200"
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] transition-all duration-200"
                     />
                     <label htmlFor="resetPassword" className="ml-2 block text-sm font-medium text-gray-900">
                       Reset Password
@@ -399,7 +399,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                               message: "Password must be at least 6 characters",
                             },
                           })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                         />
                         {errors.password && (
                           <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -421,7 +421,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                             validate: (value) =>
                               value === watch("password") || "Passwords do not match",
                           })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                         />
                         {errors.confirmPassword && (
                           <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
@@ -451,7 +451,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                           message: "Password must be at least 6 characters",
                         },
                       })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                     />
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -473,7 +473,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                         validate: (value) =>
                           value === watch("password") || "Passwords do not match",
                       })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                     />
                     {errors.confirmPassword && (
                       <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
@@ -492,14 +492,14 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   onCancel();
                 }
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>

@@ -246,7 +246,7 @@ const Documents = () => {
     return (
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1c6ead] border-t-transparent mx-auto"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading documents...</p>
         </div>
       </div>
@@ -265,7 +265,7 @@ const Documents = () => {
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center px-6 py-3 bg-[#1c6ead] text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Plus className="w-5 h-5 mr-2" />
               Upload Document
@@ -314,13 +314,13 @@ const Documents = () => {
                   value={searchTerm}
                   onChange={handleSearchChange}
                   placeholder="Search documents..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
                 />
               </div>
               <select
                 value={filters.type}
                 onChange={(e) => handleFilterChange("type", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
               >
                 <option value="">All File Types</option>
                 <option value="application/pdf">PDF Documents</option>
@@ -331,7 +331,7 @@ const Documents = () => {
               <select
                 value={filters.project}
                 onChange={(e) => handleFilterChange("project", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
               >
                 <option value="">All Projects</option>
                 {projects.map((project) => (
@@ -343,7 +343,7 @@ const Documents = () => {
               <select
                 value={filters.uploadedBy}
                 onChange={(e) => handleFilterChange("uploadedBy", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
               >
                 <option value="">All Users</option>
                 {users.map((user) => (
@@ -563,7 +563,7 @@ const Documents = () => {
                           onClick={() => handlePageChanges(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             page === currentPage
-                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              ? "z-10 bg-blue-50 border-[#1c6ead] text-blue-600"
                               : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                           }`}
                         >
@@ -671,7 +671,7 @@ const Documents = () => {
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Enter document description..."
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent resize-none"
                       required
                     />
                   </div>
@@ -684,7 +684,7 @@ const Documents = () => {
                       id="project"
                       value={selectedProject}
                       onChange={(e) => setSelectedProject(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
                     >
                       <option value="">Select a project</option>
                       {projects.map((project) => (
@@ -705,7 +705,7 @@ const Documents = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-500 to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="px-6 py-2 bg-[#1c6ead] to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       Upload Document
                     </button>

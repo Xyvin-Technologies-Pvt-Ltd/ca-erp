@@ -256,7 +256,7 @@ const MonthlyRevenueChart = () => {
           className="p-4 bg-blue-50 rounded-xl border border-blue-200"
         >
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full" />
+            <div className="w-3 h-3 bg-[#1c6ead] rounded-full" />
             <span className="text-sm font-medium text-blue-700">Avg Revenue</span>
           </div>
           <p className="text-xl font-bold text-blue-900">
@@ -385,7 +385,7 @@ const StatCard = ({ title, value, change, iconType, color }) => {
             {titleIcons[title]}
             <p className="text-sm font-medium text-slate-600">{title}</p>
           </div>
-          <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-200">{value}</p>
+          <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-[#1c6ead] transition-colors duration-200">{value}</p>
           {change !== null && (
             <div className={`flex items-center ${changeClass}`}>
               <span className="flex items-center text-sm font-semibold">
@@ -463,7 +463,7 @@ const ActivityItem = ({ activity }) => {
       },
       document_uploaded: {
         bg: "bg-indigo-100",
-        text: "text-indigo-600",
+        text: "text-[#1c6ead]",
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -522,12 +522,27 @@ const ActivityItem = ({ activity }) => {
       {getActivityIcon(activity.type)}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start">
-          <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{activity.title}</p>
+          <p className="text-sm font-semibold text-slate-900 group-hover:text-[#1c6ead] transition-colors duration-200">{activity.title}</p>
           <p className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-full">
             {formatTimeAgo(activity.timestamp)}
           </p>
         </div>
-        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{activity.description}</p>
+        <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+          {(() => {
+            // Format dueDate in description if present
+            const desc = activity.description;
+            const dueDateMatch = desc && desc.match(/dueDate:.*?([A-Za-z]{3} [A-Za-z]{3} \d{2} \d{4} [\d:]+ GMT[+-]\d{4} \(.*?\))/);
+            if (dueDateMatch) {
+              const dateStr = dueDateMatch[1];
+              const dateObj = new Date(dateStr);
+              if (!isNaN(dateObj.getTime())) {
+                // Replace the raw date string with formatted date
+                return desc.replace(dateStr, dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+              }
+            }
+            return desc;
+          })()}
+        </p>
       </div>
     </div>
   );
@@ -578,7 +593,7 @@ const TaskSummary = ({ tasks }) => {
 
   const getStatusConfig = (status) => {
     const configs = {
-      "In Progress": { bg: "bg-blue-500", dot: "bg-blue-500" },
+      "In Progress": { bg: "bg-[#1c6ead]", dot: "bg-[#1c6ead]" },
       "Pending": { bg: "bg-amber-500", dot: "bg-amber-500" },
       "Completed": { bg: "bg-emerald-500", dot: "bg-emerald-500" },
       "Review": { bg: "bg-purple-500", dot: "bg-purple-500" }
@@ -596,7 +611,7 @@ const TaskSummary = ({ tasks }) => {
         <h2 className="text-lg font-semibold text-slate-900">Task Summary</h2>
         <Link
           to={ROUTES.TASKS}
-          className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
+          className="text-sm text-indigo-600 hover:text-[#1c6ead] font-semibold hover:underline transition-all duration-200"
         >
           View all →
         </Link>
@@ -610,7 +625,7 @@ const TaskSummary = ({ tasks }) => {
               <div className={`w-3 h-3 rounded-full mr-3 ${config.dot} group-hover:scale-125 transition-transform duration-200`} />
               <div>
                 <p className="text-xs text-slate-500 font-medium">{status}</p>
-                <p className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{count}</p>
+                <p className="text-xl font-bold text-slate-900 group-hover:text-[#1c6ead] transition-colors duration-200">{count}</p>
               </div>
             </div>
           );
@@ -719,7 +734,7 @@ const RecentActivity = () => {
                 className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
                   currentPage === 1 
                     ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
-                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                    : 'text-indigo-600 hover:[#1c6ead] hover:bg-indigo-50'
                 }`}
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -947,7 +962,7 @@ const eventStatusColors = {
     text: 'text-blue-700',
     icon: Clock,
     gradient: 'from-blue-400 to-blue-600',
-    dot: 'bg-blue-500',
+    dot: 'bg-[#1c6ead]',
     statusBg: 'bg-blue-100',
     statusText: 'text-blue-800'
   },
@@ -1105,7 +1120,7 @@ const EventCalendar = () => {
           {/* Title Section */}
           <div className="flex items-center space-x-4">
             <motion.div
-              className="p-3 bg-blue-500 rounded-xl shadow-lg border-[#1c6ead]"
+              className="p-3 bg-[#1c6ead] rounded-xl shadow-lg border-[#1c6ead]"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -1253,7 +1268,7 @@ const EventCalendar = () => {
                       }}
                       className={`relative rounded-2xl p-3 h-24 flex flex-col justify-between group cursor-pointer overflow-hidden ${
                         isToday 
-                          ? 'bg-blue-500 text-white shadow-lg ring-2 ring-indigo-200 border-[#1c6ead]' 
+                          ? 'bg-[#1c6ead] text-white shadow-lg ring-2 ring-indigo-200 border-[#1c6ead]' 
                           : firstEvent 
                             ? `${eventStatusColors[firstEvent.status]?.bg} border-2 ${eventStatusColors[firstEvent.status]?.border}` 
                             : "bg-gray-50 border-2 border-gray-100 hover:border-gray-200"
@@ -1542,7 +1557,7 @@ const Dashboard = () => {
   if (isLoading || dashboardLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }

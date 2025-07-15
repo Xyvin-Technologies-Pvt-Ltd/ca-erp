@@ -16,7 +16,7 @@ import {
 
 const statusColors = {
   completed: "bg-green-100 text-green-700 border-green-200",
-  "in-progress": "bg-blue-100 text-blue-700 border-blue-200",
+  "in-progress": "bg-blue-100 text-[#1c6ead] border-blue-200",
   planning: "bg-purple-100 text-purple-700 border-purple-200",
   "on-hold": "bg-yellow-100 text-yellow-700 border-yellow-200",
   cancelled: "bg-red-100 text-red-700 border-red-200",
@@ -202,7 +202,7 @@ const Projects = () => {
           <p className="text-red-700">{error}</p>
           <motion.button
             onClick={loadProjects}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+            className="mt-4 px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -263,7 +263,7 @@ const Projects = () => {
           {role !== "staff" && (
             <motion.button
               onClick={() => setIsModalOpen(true)}
-              className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+              className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -290,7 +290,7 @@ const Projects = () => {
           {role !== "staff" && (
             <motion.button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+              className="inline-flex items-center px-4 py-2 bg-[#1c6ead] text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -368,7 +368,7 @@ const Projects = () => {
                         </div>
                         <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                           <motion.div
-                            className="h-2 rounded-full bg-blue-500"
+                            className="h-2 rounded-full bg-[#1c6ead]"
                             initial={{ width: 0 }}
                             animate={{
                               width: `${
@@ -410,7 +410,7 @@ const Projects = () => {
                               initial={{ opacity: 0, y: 10 }}
                               whileHover={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute bottom-5 left-0 bg-blue-500 text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
+                              className="absolute bottom-5 left-0 bg-[#1c6ead] text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max"
                             >
                               {project.team.map((member, index) => (
                                 <div key={member._id || member.id || index}>

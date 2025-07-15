@@ -152,7 +152,7 @@ const Tasks = () => {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="h-16 w-16 border-t-2 border-b-2 border-indigo-500 rounded-full"
+          className="h-16 w-16 border-t-2 border-b-2 border-[#1c6ead] rounded-full"
         ></motion.div>
       </motion.div>
     );
@@ -170,7 +170,7 @@ const Tasks = () => {
           <p className="text-red-700">{error}</p>
           <motion.button
             onClick={loadTasksAndProjects}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+            className="mt-4 px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -196,13 +196,13 @@ const Tasks = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center space-x-3 mb-4 sm:mb-0"
         >
-          <ClipboardDocumentListIcon className="h-8 w-8 text-indigo-600" />
+          <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
         {role !== "staff" && (
           <motion.button
             onClick={() => setIsModalOpen(true)}
-            className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+            className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -223,12 +223,12 @@ const Tasks = () => {
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-2 md:mb-0 flex items-center">
-            <ClipboardDocumentListIcon className="h-6 w-6 text-indigo-600 mr-2" />
+            <ClipboardDocumentListIcon className="h-6 w-6 text-[#1c6ead] mr-2" />
             Filters
           </h2>
           <motion.button
             onClick={resetFilters}
-            className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200 cursor-pointer"
+            className="text-sm text-[#1c6ead] hover:text-indigo-800 transition-colors duration-200 cursor-pointer"
             whileHover={{ scale: 1.02 }}
           >
             Reset Filters
@@ -364,7 +364,7 @@ const Tasks = () => {
             {role !== "staff" && (
               <motion.button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                className="px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -460,7 +460,7 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Pagination */}
-       {tasks.length > 0 && (
+       {/* {tasks.length > 0 && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -566,6 +566,77 @@ const Tasks = () => {
           </div>
         </div>
       </motion.div>
+       )} */}
+
+       {tasks.length > 0 && (
+        <div className="px-6 py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * paginations.limit + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(currentPage * paginations.limit, paginations.total)}
+                    </span>{" "}
+                    of <span className="font-medium">{paginations.total}</span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
+                  >
+                    <motion.button
+                      onClick={() => handlePageChanges(1)}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                        currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
+                      }`}
+                      whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
+                      whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
+                    >
+                      <span className="sr-only">First</span>
+                      <ChevronLeftIcon className="h-5 w-5" />
+                    </motion.button>
+                    {pages.map((page) => (
+                      <motion.button
+                        key={page}
+                        onClick={() => handlePageChanges(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? "z-10 bg-indigo-50 border-[#1c6ead] text-[#1c6ead]"
+                            : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {page}
+                      </motion.button>
+                    ))}
+                    <motion.button
+                      onClick={() => handlePageChanges(currentPage + 1)}
+                      disabled={currentPage === totalPage}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                        currentPage === totalPage
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
+                      }`}
+                      whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
+                      whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" />
+                    </motion.button>
+                  </nav>
+                </div>
+              </div>
+            </div>
        )}
       {/* Modal */}
       <AnimatePresence>

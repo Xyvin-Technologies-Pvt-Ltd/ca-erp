@@ -185,7 +185,7 @@ const UserManagement = () => {
         </motion.div>
         <motion.button
           onClick={() => setShowAddModal(true)}
-          className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+          className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -305,7 +305,7 @@ const UserManagement = () => {
                                   src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
                                   onError={(e) => {
                                     e.target.outerHTML = `
-                                      <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                      <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                         <span class="text-white font-medium text-sm">
                                           ${user.name?.charAt(0).toUpperCase() || ''}
                                         </span>
@@ -314,7 +314,7 @@ const UserManagement = () => {
                                   alt={`${user.name}'s avatar`}
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                                <div className="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                   <span className="text-white font-medium text-sm">
                                     {user.name?.charAt(0) || ''}
                                   </span>
@@ -393,7 +393,7 @@ const UserManagement = () => {
             {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex-1 flex justify-between sm:hidden">
+                {/* <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
@@ -416,9 +416,9 @@ const UserManagement = () => {
                   >
                     Next
                   </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
+                </div> */}
+                <div className=" sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div className="mb-2">
                     <p className="text-sm text-gray-700">
                       Showing{" "}
                       <span className="font-medium">
@@ -457,7 +457,7 @@ const UserManagement = () => {
                           onClick={() => handlePageChange(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             page === pagination.page
-                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              ? "z-10 bg-blue-50 border-[#1c6ead] text-blue-600"
                               : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                           }`}
                         >

@@ -18,7 +18,7 @@ const statusColors = {
   Present: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
   Absent: { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200", icon: XCircleIcon },
   Late: { bg: "bg-amber-100", text: "text-amber-700", border: "border-amber-200", icon: ClockIcon },
-  "Half-Day": { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200", icon: SunIcon },
+  "Half-Day": { bg: "bg-blue-100", text: "text-[#1c6ead]", border: "border-[#1c6ead]", icon: SunIcon },
   "Early-Leave": { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200", icon: MoonIcon },
   "On-Leave": { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", icon: UserIcon },
   Holiday: { bg: "bg-pink-100", text: "text-pink-700", border: "border-pink-200", icon: CalendarDaysIcon },
@@ -112,7 +112,7 @@ const EmployeeAttendance = () => {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4"
       >
         <div className="flex items-center space-x-3">
-          <CalendarIcon className="h-8 w-8 text-indigo-600" />
+          <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
         </div>
         <div className="relative">
@@ -120,7 +120,7 @@ const EmployeeAttendance = () => {
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+            className="border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -154,7 +154,7 @@ const EmployeeAttendance = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">{s.label}</p>
-                  <p className={`text-2xl font-bold ${statusColors[s.key].text} group-hover:text-indigo-600 transition-colors duration-200`}>
+                  <p className={`text-2xl font-bold ${statusColors[s.key].text} group-hover:text-[#1c6ead] transition-colors duration-200`}>
                     {statusCounts[s.key] || 0}
                   </p>
                 </div>
@@ -172,7 +172,7 @@ const EmployeeAttendance = () => {
         className="mb-8 bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
       >
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <CalendarDaysIcon className="h-6 w-6 text-indigo-600 mr-2" />
+          <CalendarDaysIcon className="h-6 w-6 text-[#1c6ead] mr-2" />
           Monthly Calendar
         </h2>
         <div className="grid grid-cols-7 gap-2">
@@ -200,7 +200,7 @@ const EmployeeAttendance = () => {
                   transition={{ duration: 0.3, delay: index * 0.02 }}
                   className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${
                     isToday 
-                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-indigo-400 ring-opacity-50" 
+                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50" 
                       : att 
                         ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border}` 
                         : "bg-gray-50 border-gray-100"
@@ -325,7 +325,7 @@ const EmployeeAttendance = () => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="h-12 w-12 border-t-2 border-b-2 border-indigo-500 rounded-full"
+            className="h-12 w-12 border-t-2 border-b-2 border-[#1c6ead] rounded-full"
           ></motion.div>
         </motion.div>
       )}

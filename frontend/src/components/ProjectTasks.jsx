@@ -120,7 +120,7 @@ const goToPrevTaskPage = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -240,7 +240,7 @@ const goToPrevTaskPage = () => {
                             alt=""
                             onError={(e) => {
                             e.target.outerHTML = `
-                              <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ">
+                              <div class="h-8 w-8 rounded-full bg-[#1c6ead] flex items-center justify-center ">
                                 <span class="text-white  text-sm">
                                   ${task.assignedTo?.name?.charAt(0).toUpperCase() || ''}
                                 </span>
@@ -248,7 +248,7 @@ const goToPrevTaskPage = () => {
                           }}
                           />
                         ) : (
-                          <span className="text-sm bg-blue-500 text-white rounded-full h-8 w-8 flex items-center justify-center">
+                          <span className="text-sm bg-[#1c6ead] text-white rounded-full h-8 w-8 flex items-center justify-center">
                             {task.assignee || task.assignedTo?.name?.charAt(0)}
                           </span>
                         )}

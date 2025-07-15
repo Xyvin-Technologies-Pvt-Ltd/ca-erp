@@ -171,7 +171,7 @@ const ProjectDocuments = ({ projectId }) => {
   if (loading && documents.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -453,7 +453,7 @@ const ProjectDocuments = ({ projectId }) => {
                   </div>
                   <div className="mt-2">
                     <label className="text-sm text-gray-600">
-                      <span className="text-blue-600 hover:text-blue-500 cursor-pointer">
+                      <span className="text-blue-600 hover:text-[#1c6ead] cursor-pointer">
                         Click to upload
                       </span>
                       {" or drag and drop"}
@@ -481,7 +481,7 @@ const ProjectDocuments = ({ projectId }) => {
                   id="description"
                   placeholder="Enter document description"
                   rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1c6ead]"
                 ></textarea>
               </div>
 
@@ -494,7 +494,7 @@ const ProjectDocuments = ({ projectId }) => {
                 </label>
                 <select
                   id="task"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1c6ead]"
                 >
                   <option value="">No Task</option>
                   <option value="1">Initial Documentation Review</option>

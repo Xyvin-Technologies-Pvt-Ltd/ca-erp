@@ -187,7 +187,7 @@ const ProjectTimeline = ({ projectId }) => {
                             className="h-6 w-6 rounded-full mr-2"
                             onError={(e) => {
                      e.target.outerHTML = `
-                       <div class="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110 mr-2">
+                       <div class="h-6 w-6 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110 mr-2">
                          <span class="text-white text-xs">
                            ${activity.user.name?.charAt(0).toUpperCase() || ''}
                          </span>

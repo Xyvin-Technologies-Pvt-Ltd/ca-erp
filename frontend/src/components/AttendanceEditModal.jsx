@@ -186,7 +186,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 value={formData.date}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
             </div>
@@ -199,7 +199,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 name="checkIn"
                 value={formData.checkIn}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.checkIn && <p className="mt-1 text-sm text-red-600">{errors.checkIn}</p>}
             </div>
@@ -212,7 +212,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 name="checkOut"
                 value={formData.checkOut}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.checkOut && <p className="mt-1 text-sm text-red-600">{errors.checkOut}</p>}
             </div>
@@ -225,7 +225,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 value={formData.status}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
                 {["Present", "Absent", "Half-Day", "Late", "Early-Leave"].map((opt) => (
                   <option key={opt} value={opt}>
@@ -244,7 +244,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 value={formData.shift}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
                 {["Morning", "Evening", "Night"].map((opt) => (
                   <option key={opt} value={opt}>
@@ -264,7 +264,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Enter notes..."
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
             </div>

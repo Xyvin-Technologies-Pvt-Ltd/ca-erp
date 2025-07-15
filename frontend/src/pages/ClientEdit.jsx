@@ -47,7 +47,7 @@ const ClientEdit = () => {
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="relative">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent absolute top-0 left-0"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1c6ead] border-t-transparent absolute top-0 left-0"></div>
         </div>
       </div>
     );
@@ -98,7 +98,7 @@ const ClientEdit = () => {
               Back to Client Details
             </button>
             <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-gradient-to-r from-[#1c6ead] to-indigo-500 text-white p-3 rounded-lg shadow-sm">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -114,7 +114,7 @@ const ClientEdit = () => {
           <div className="hidden sm:block">
             <div className="bg-white bg-opacity-50 backdrop-blur-sm rounded-lg p-4 border border-white border-opacity-20">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[#1c6ead] rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium text-gray-700">Edit Mode</span>
               </div>
             </div>
@@ -126,7 +126,7 @@ const ClientEdit = () => {
       <div className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
           <div className="flex items-center space-x-2">
-            <svg className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 text-[#1c6ead]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h2 className="text-xl font-semibold text-gray-900">Client Information Form</h2>

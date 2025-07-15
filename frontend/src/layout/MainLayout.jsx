@@ -12,7 +12,7 @@ const MainLayout = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -27,7 +27,7 @@ const MainLayout = () => {
       <div className="md:hidden">
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-20 bg-black bg-opacity-50"
+            className="fixed inset-0 z-20 backdrop-blur-sm bg-black/30"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}

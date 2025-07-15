@@ -97,18 +97,10 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === "phone") {
-      const rawValue = value.replace(/[^\d]/g, "");
-      setProfileData((prev) => ({
-        ...prev,
-        [name]: rawValue,
-      }));
-    } else {
-      setProfileData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setProfileData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleEditToggle = () => {
@@ -148,12 +140,12 @@ const Profile = () => {
         await userApi.uploadAvatar(userId, formData);
       }
 
-      // Prepare data for update - only send the fields that can be updated
       const updateData = {
         name: profileData.name,
         email: profileData.email,
         phone: profileData.phone,
-        // Don't send department and position as they're likely managed separately
+        department: user?.department?._id || user?.department || profileData.department?._id || profileData.department,
+        position: user?.position?._id || user?.position || profileData.position?._id || profileData.position,
       };
 
       const updatedUser = await userApi.updateUser(userId, updateData);
@@ -208,7 +200,7 @@ const Profile = () => {
         className="bg-white/80 backdrop-blur-md w-full max-w-2xl rounded-3xl shadow-2xl border border-white/50 relative overflow-hidden"
       >
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-indigo-500/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1c6ead]/5 via-purple-500/5 to-indigo-500/5"></div>
         
         {/* Header Section with Profile Image */}
         <div className="relative px-8 pt-8 pb-6 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 border-b border-slate-200/50">
@@ -240,7 +232,7 @@ const Profile = () => {
                       onError={() => setImageError(true)}
                     />
                   ) : profileData?.name ? (
-                    <div className="w-full h-full bg-blue-500 flex items-center justify-center">
+                    <div className="w-full h-full bg-[#1c6ead] flex items-center justify-center">
                       <span className="text-white font-semibold text-lg sm:text-xl">
                         {profileData.name.charAt(0).toUpperCase()}
                       </span>
@@ -271,7 +263,7 @@ const Profile = () => {
                     onError={() => setImageError(true)}
                   />
                 ) : profileData?.name ? (
-                  <div className="w-full h-full bg-blue-500 flex items-center justify-center">
+                  <div className="w-full h-full bg-[#1c6ead] flex items-center justify-center">
                     <span className="text-white font-semibold text-lg sm:text-xl">
                       {profileData.name.charAt(0).toUpperCase()}
                     </span>
@@ -345,7 +337,7 @@ const Profile = () => {
                   name="name"
                   value={profileData.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-slate-300"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300 hover:border-slate-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
@@ -376,7 +368,7 @@ const Profile = () => {
                   name="email"
                   value={profileData.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-slate-300"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300 hover:border-slate-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
@@ -405,9 +397,9 @@ const Profile = () => {
                 <motion.input
                   type="tel"
                   name="phone"
-                  value={profileData.phone ? formatPhoneNumber(profileData.phone) : ""}
+                  value={profileData.phone || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-slate-300"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300 hover:border-slate-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
@@ -467,8 +459,8 @@ const Profile = () => {
                   <motion.button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                    className="px-6 py-3 bg-[#1c6ead] hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: isLoading ? 1 : 1.04 }}
                     whileTap={{ scale: isLoading ? 1 : 0.98 }}
                   >
                     {isLoading ? (
@@ -488,8 +480,8 @@ const Profile = () => {
                 <motion.button
                   key="view"
                   onClick={handleEditToggle}
-                  className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex items-center gap-2"
-                  whileHover={{ scale: 1.02 }}
+                  className="px-8 py-3 bg-[#1c6ead] hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2"
+                  whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}

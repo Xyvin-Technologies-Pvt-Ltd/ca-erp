@@ -256,7 +256,7 @@ const CompanySettings = () => {
       {loading && (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <div className="flex items-center justify-center gap-3">
-            <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#1c6ead] animate-spin" />
             <p className="text-gray-600 font-medium">Loading settings...</p>
           </div>
         </div>
@@ -288,7 +288,7 @@ const CompanySettings = () => {
                 <input
                   id="companyName"
                   {...register("company.name", { required: "Company name is required" })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   placeholder="Enter your company name"
                 />
                 {errors.company?.name && (
@@ -309,7 +309,7 @@ const CompanySettings = () => {
                   id="contactEmail"
                   type="email"
                   {...register("company.contactEmail", { required: "Email is required" })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   placeholder="company@example.com"
                 />
                 {errors.company?.contactEmail && (
@@ -337,7 +337,7 @@ const CompanySettings = () => {
                       e.preventDefault();
                     }
                   }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   placeholder="+1 (555) 123-4567"
                 />
                 {errors.company?.phone && (
@@ -372,7 +372,7 @@ const CompanySettings = () => {
                       }}
                       onFocus={() => setShowCountryDropdown(true)}
                       onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="Country"
                     />
                     {showCountryDropdown && filteredCountries.length > 0 && (
@@ -416,7 +416,7 @@ const CompanySettings = () => {
                       }}
                       onFocus={() => setShowStateDropdown(true)}
                       onBlur={() => setTimeout(() => setShowStateDropdown(false), 200)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="State"
                     />
                     {showStateDropdown && filteredStates.length > 0 && (
@@ -448,7 +448,7 @@ const CompanySettings = () => {
                     <input
                       type="text"
                       {...register("company.address.city", { required: "City is required" })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="City"
                     />
                     {errors.company?.address?.city && (
@@ -463,7 +463,7 @@ const CompanySettings = () => {
                     <input
                       type="text"
                       {...register("company.address.pin", { required: "Pin/Postal Code is required" })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="Pin/Postal Code"
                     />
                     {errors.company?.address?.pin && (
@@ -478,7 +478,7 @@ const CompanySettings = () => {
                     <input
                       type="text"
                       {...register("company.address.street", { required: "Street/Address Line is required" })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="Street/Address Line"
                     />
                     {errors.company?.address?.street && (
@@ -501,7 +501,7 @@ const CompanySettings = () => {
                   id="website"
                   type="url"
                   {...register("company.website", { required: "Website URL is required" })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   placeholder="https://www.company.com"
                 />
                 {errors.company?.website && (
@@ -539,7 +539,7 @@ const CompanySettings = () => {
                   <input
                     id="taxId"
                     {...register("company.taxId", { required: "Tax ID is required" })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                     placeholder="Enter Tax ID or GST Number"
                   />
                   {errors.company?.taxId && (
@@ -560,7 +560,7 @@ const CompanySettings = () => {
                     id="currency"
                     type="text"
                     {...register("company.currency", { required: "Currency is required" })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-700 focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                     placeholder="Currency"
                     disabled
                   />
@@ -581,7 +581,7 @@ const CompanySettings = () => {
                   <select
                     id="financialYearStart"
                     {...register("company.financialYearStart", { required: "Financial year start is required" })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   >
                     <option value="January">January</option>
                     <option value="February">February</option>
@@ -613,7 +613,7 @@ const CompanySettings = () => {
                   <select
                     id="dateFormat"
                     {...register("company.dateFormat", { required: "Date format is required" })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   >
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -721,7 +721,7 @@ const CompanySettings = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-blue-500  text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-[#1c6ead]  text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? (
                 <>

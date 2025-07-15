@@ -113,7 +113,7 @@ const SystemPreferences = () => {
         htmlFor={id}
         className={`block w-12 h-6 rounded-full cursor-pointer transition-all duration-300 ease-in-out ${
           checked
-            ? "bg-blue-500 shadow-lg"
+            ? "bg-[#1c6ead] shadow-lg"
             : "bg-gray-300 hover:bg-gray-400"
         } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       >
@@ -300,7 +300,7 @@ const SystemPreferences = () => {
                     parseInt(e.target.value, 10)
                   )
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                 placeholder="90"
               />
               <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -329,7 +329,7 @@ const SystemPreferences = () => {
                     parseInt(e.target.value, 10)
                   )
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                 placeholder="30"
               />
               <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -410,7 +410,7 @@ const SystemPreferences = () => {
                   parseInt(e.target.value, 10)
                 )
               }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
               placeholder="10"
             />
             <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -473,7 +473,7 @@ const SystemPreferences = () => {
                   parseInt(e.target.value, 10)
                 )
               }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
               placeholder="30"
             />
             <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -506,7 +506,7 @@ const SystemPreferences = () => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="inline-flex items-center gap-3 px-8 py-4 bg-blue-500  text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="inline-flex items-center gap-3 px-8 py-4 bg-[#1c6ead]  text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {loading ? (
             <>

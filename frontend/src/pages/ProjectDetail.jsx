@@ -255,7 +255,7 @@ const ProjectDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -283,7 +283,7 @@ const ProjectDetail = () => {
           <p className="text-amber-700 font-medium text-sm sm:text-base">Project not found.</p>
           <button
             onClick={() => navigate("/projects")}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
+            className="mt-4 px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base"
           >
             Back to Projects
           </button>
@@ -399,7 +399,7 @@ const ProjectDetail = () => {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <button
           onClick={() => navigate("/projects")}
-          className="flex items-center text-blue-500 hover:text-blue-700 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
+          className="flex items-center text-[#1c6ead] hover:text-blue-700 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
         >
           <svg
             className="w-5 h-5 sm:w-6 sm:h-6 mr-2 group-hover:-translate-x-1 transition-transform duration-300"
@@ -416,7 +416,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-[#1c6ead] text-white rounded-lg hover:from-[#1c6ead] hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
             >
               <CiEdit className="w-5 h-5 mr-2 text-white" />
               Edit Project
@@ -438,16 +438,16 @@ const ProjectDetail = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                <MdFolder className="w-7 h-7 mr-2 text-blue-500" />
+                <MdFolder className="w-7 h-7 mr-2 text-[#1c6ead]" />
                 {project.name}
               </h1>
               <div className="flex items-center space-x-3 mt-3">
                 <button
                   type="button"
-                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-blue-500 font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${showClientDetails ? 'ring-2 ring-blue-300' : ''}`}
+                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-[#1c6ead] font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${showClientDetails ? 'ring-2 ring-blue-300' : ''}`}
                   onClick={() => setShowClientDetails((v) => !v)}
                 >
-                  {/* <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  {/* <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg> */}
@@ -464,7 +464,7 @@ const ProjectDetail = () => {
               {showClientDetails && project.client && (
                 <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow animate-fade-in max-w-2xl">
                   <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                       <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                     </svg>
@@ -507,6 +507,14 @@ const ProjectDetail = () => {
                       <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Currency Format<span className="pl-1 pr-1">:</span></span>
                       <span className="text-gray-900 ">{project.client.currencyFormat || 'N/A'}</span>
                     </div>
+                    <div className="">
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Directors<span className="pl-1 pr-1">:</span></span>
+                      <span className="text-gray-900 ">
+                        {Array.isArray(project.client.directors) && project.client.directors.length > 0
+                          ? project.client.directors.join(', ')
+                          : 'N/A'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -519,10 +527,10 @@ const ProjectDetail = () => {
           <div className="mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center">
-                <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span className="text-sm font-semibold text-blue-500">
+                <span className="text-sm font-semibold text-[#1c6ead]">
                   {project.completionPercentage}% Complete
                 </span>
               </div>
@@ -536,7 +544,7 @@ const ProjectDetail = () => {
             <div className="overflow-hidden h-3 mt-3 text-xs flex rounded-full bg-gray-200">
               <div
                 style={{ width: `${project.completionPercentage}%` }}
-                className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 rounded-full animate-fill-bar"
+                className="shadow-sm flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#1c6ead] rounded-full animate-fill-bar"
               ></div>
             </div>
           </div>
@@ -559,8 +567,8 @@ const ProjectDetail = () => {
                 onClick={() => handleTabChange(tab.name)}
                 className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
-                    ? "border-blue-500 text-blue-600 bg-blue-50"
-                    : "border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                    ? "border-[#1c6ead] text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-600 hover:text-[#1c6ead] hover:bg-gray-50"
                 } rounded-t-lg`}
               >
                 {tab.icon}
@@ -573,14 +581,14 @@ const ProjectDetail = () => {
         <div className="p-6">
           {activeTab === "overview" && tabLoading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#1c6ead]"></div>
             </div>
           ) : activeTab === "overview" ? (
             <div className="space-y-8 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" />
                     </svg>
                     Project Details
@@ -611,7 +619,7 @@ const ProjectDetail = () => {
 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                     </svg>
                     Team Members
@@ -630,14 +638,14 @@ const ProjectDetail = () => {
                                   onError={(e) => {
                                   e.target.outerHTML = `
                                     <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center transition-transform duration-200 hover:scale-110">
-                                      <span class="text-blue-700 font-medium text-sm">
+                                      <span class="text-[#1c6ead] font-medium text-sm">
                                         ${member.name?.charAt(0).toUpperCase() || ''}
                                       </span>
                                     </div>`
                                 }}
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm border border-gray-200">
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-[#1c6ead] font-medium text-sm border border-gray-200">
                                   {member.name.charAt(0)}
                                 </div>
                               )}
@@ -664,7 +672,7 @@ const ProjectDetail = () => {
               {project.description && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm3 3a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" />
                     </svg>
                     Project Description
@@ -681,13 +689,13 @@ const ProjectDetail = () => {
             <div className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <MdFolder className="w-5 h-5 mr-2 text-blue-500" />
+                  <MdFolder className="w-5 h-5 mr-2 text-[#1c6ead]" />
                   Documents
                 </h3>
                 {project.documents?.length > 0 && role !== "staff" && (
                   <button
                     onClick={() => setIsAddDocumentModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                    className="px-4 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                   >
                     <MdUpload className="mr-2 w-5 h-5" />
                     Add Document
@@ -726,7 +734,7 @@ const ProjectDetail = () => {
                             <div className="flex space-x-3 mt-3 sm:mt-0">
                               <button
                                 onClick={() => handleDownloadDocument(doc._id, doc.name)}
-                                className="text-blue-500 hover:text-blue-700 transition-colors duration-200"
+                                className="text-[#1c6ead] hover:text-blue-700 transition-colors duration-200"
                                 title="Download"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -770,7 +778,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           docCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-500 hover:text-blur-600"
+                            : "text-[#1c6ead] hover:text-blur-600"
                         }`}
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -814,7 +822,7 @@ const ProjectDetail = () => {
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddDocumentModalOpen(true)}
-                      className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
+                      className="px-5 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
                       <MdUpload className="mr-2 w-5 h-5" />
                       Upload Document
@@ -827,13 +835,13 @@ const ProjectDetail = () => {
             <div className="animate-fade-in ">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <MdNote className="w-5 h-5 mr-2 text-blue-500" />
+                  <MdNote className="w-5 h-5 mr-2 text-[#1c6ead]" />
                   Notes
                 </h3>
                 {project.notes?.length > 0 && role !== "staff" && (
                   <button
                     onClick={() => setIsAddNotesModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                    className="px-4 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                   >
                     <MdNoteAdd className="mr-2 w-5 h-5" />
                     Add Note
@@ -889,7 +897,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-500 hover:text-blue-600"
+                            : "text-[#1c6ead] hover:text-blue-600"
                         }`}
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -906,7 +914,7 @@ const ProjectDetail = () => {
                         className={`flex items-center text-sm font-medium transition-all duration-300 ${
                           noteCurrentPage === totalNotePages
                             ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-500 hover:text-blue-600"
+                            : "text-[#1c6ead] hover:text-blue-600"
                         }`}
                       >
                         Next
@@ -933,7 +941,7 @@ const ProjectDetail = () => {
                   {role !== "staff" && (
                     <button
                       onClick={() => setIsAddNotesModalOpen(true)}
-                      className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
+                      className="px-5 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center mx-auto shadow-md text-sm sm:text-base"
                     >
                       <MdNoteAdd className="mr-2 w-5 h-5" />
                       Add Note
@@ -946,7 +954,7 @@ const ProjectDetail = () => {
             <div className="animate-fade-in">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <MdTimeline className="w-5 h-5 mr-2 text-blue-500" />
+                  <MdTimeline className="w-5 h-5 mr-2 text-[#1c6ead]" />
                   Project Activity Log
                 </h3>
                 <p className="text-sm text-gray-600 mt-2">
@@ -1023,7 +1031,7 @@ const ProjectDetail = () => {
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-all duration-300 bg-gray-50">
                   <div className="flex justify-center">
                     <svg
-                      className="h-12 w-12 text-blue-500"
+                      className="h-12 w-12 text-[#1c6ead]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1038,7 +1046,7 @@ const ProjectDetail = () => {
                   </div>
                   <div className="mt-3">
                     <label className="text-sm text-gray-600 cursor-pointer">
-                      <span className="text-blue-600 hover:text-blue-500 font-medium">Click to upload</span>
+                      <span className="text-blue-600 hover:text-[#1c6ead] font-medium">Click to upload</span>
                       {" or drag and drop"}
                       <input
                         type="file"
@@ -1073,7 +1081,7 @@ const ProjectDetail = () => {
                   onChange={(e) => setEditDocDescription(e.target.value)}
                   placeholder="Enter document description"
                   rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm bg-gray-50"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 text-sm bg-gray-50"
                   required
                 ></textarea>
               </div>
@@ -1088,7 +1096,7 @@ const ProjectDetail = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                  className="px-5 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
                 >
                   <MdUpload className="mr-2 w-5 h-5" />
                   Upload
@@ -1105,7 +1113,7 @@ const ProjectDetail = () => {
           <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                <MdNoteAdd className="w-5 h-5 mr-2 text-blue-500" />
+                <MdNoteAdd className="w-5 h-5 mr-2 text-[#1c6ead]" />
                 {editingNoteId ? "Edit Note" : "Add Note"}
               </h3>
               <button
@@ -1135,7 +1143,7 @@ const ProjectDetail = () => {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Enter your note here"
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm bg-gray-50"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 text-sm bg-gray-50"
                 required
               ></textarea>
             </div>
@@ -1151,7 +1159,7 @@ const ProjectDetail = () => {
               <button
                 type="button"
                 onClick={handleAddNote}
-                className="px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+                className="px-5 py-2 bg-[#1c6ead] text-white rounded-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
               >
                 <MdNoteAdd className="mr-2 w-5 h-5" />
                 {editingNoteId ? "Update Note" : "Add Note"}
