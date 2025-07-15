@@ -14,6 +14,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const isEditMode = !!user;
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const {
     register,
@@ -149,6 +150,18 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     }
   };
 
+  const handleCancel = () => {
+    setShowConfirmModal(true); 
+  };
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
+    onCancel();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 min-h-screen overflow-hidden"
@@ -204,7 +217,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
               </div>
             </div>
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               className="text-gray-500 hover:text-gray-700 transition-all duration-200 hover:scale-105"
             >
               <X className="h-6 w-6 animate-wiggle" />
@@ -487,11 +500,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm("Are you sure you want to cancel? Any unsaved changes will be lost.")) {
-                  onCancel();
-                }
-              }}
+              onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
             >
               Cancel
@@ -513,6 +522,39 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           </div>
         </form>
       </div>
+       {/* Confirmation Popup */}
+            {showConfirmModal && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+                    <button
+                      onClick={cancelDiscard}
+                      className="text-gray-400 hover:text-gray-600 hover:bg-white/80 rounded-full p-2 transition-all duration-200"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Are you sure you want to discard changes? Any unsaved changes will be lost.
+                  </p>
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      onClick={cancelDiscard}
+                      className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDiscard}
+                      className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 font-medium"
+                    >
+                      Discard
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 };
