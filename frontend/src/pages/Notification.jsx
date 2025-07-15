@@ -129,7 +129,7 @@ const Notification = () => {
   const getNotificationBorderColor = (type) => {
     switch (type) {
       case NOTIFICATION_TYPES.TASK_ASSIGNED:
-        return 'border-l-blue-500';
+        return 'border-l-[#1c6ead]';
       case NOTIFICATION_TYPES.TASK_UPDATED:
         return 'border-l-orange-500';
       case NOTIFICATION_TYPES.TASK_COMPLETED:
@@ -272,7 +272,7 @@ const Notification = () => {
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <select
-                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                       >
@@ -344,7 +344,7 @@ const Notification = () => {
                                 {notification.title}
                               </h3>
                               {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                <div className="w-2 h-2 bg-[#1c6ead] rounded-full flex-shrink-0"></div>
                               )}
                             </div>
                             

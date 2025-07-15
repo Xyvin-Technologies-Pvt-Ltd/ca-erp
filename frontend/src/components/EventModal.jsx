@@ -79,7 +79,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                <CalendarDays className="h-6 w-6" />
               </div>
               <div>
@@ -117,7 +117,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Annual Conference"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                   />
                 </div>
                 <div>
@@ -129,7 +129,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                       value={formData.startDate}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 appearance-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 appearance-none"
                     />
                   </div>
                 </div>
@@ -142,7 +142,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                       value={formData.endDate}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 appearance-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 appearance-none"
                     />
                   </div>
                 </div>
@@ -158,7 +158,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                   maxLength={500}
                   required
                   placeholder="Enter event description..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                 ></textarea>
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">Event details or overview</p>
@@ -174,14 +174,14 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -224,7 +224,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
             <div className="flex justify-end space-x-4">
               <button
                 onClick={cancelDiscard}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>

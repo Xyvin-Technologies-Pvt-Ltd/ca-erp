@@ -242,7 +242,7 @@ const Finance = () => {
               <p className="text-gray-600 mb-6">{error}</p>
               <button
                 onClick={loadProjects}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -279,7 +279,7 @@ const Finance = () => {
                   <span className="text-gray-600">Ready to Invoice</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-500" />
+                  <TrendingUp className="w-4 h-4 text-[#1c6ead]" />
                   <span className="text-gray-600">{projects.length} Projects</span>
                 </div>
               </div>
@@ -290,7 +290,7 @@ const Finance = () => {
                 className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
                   selectedProjects.length === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                    : "bg-blue-500  text-white transform hover:scale-105"
+                    : "bg-[#1c6ead]  text-white transform hover:scale-105"
                 }`}
               >
                 <Receipt className="w-4 h-4" />
@@ -335,7 +335,7 @@ const Finance = () => {
               </div>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 text-sm text-blue-500 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-[#1c6ead] hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reset Filters
@@ -355,7 +355,7 @@ const Finance = () => {
                   name="project"
                   value={filters.project}
                   onChange={handleFilterChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
                 >
                   <option value="">All Projects</option>
                   {projects.map((pro) => (
@@ -376,7 +376,7 @@ const Finance = () => {
                   name="client"
                   value={filters.client}
                   onChange={handleFilterChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
                 >
                   <option value="">All Clients</option>
                   {client.map((cl) => (
@@ -428,7 +428,7 @@ const Finance = () => {
               
               <button
                 onClick={openInvoiceModal}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Receipt className="w-4 h-4" />
                 Create Invoice
@@ -457,7 +457,7 @@ const Finance = () => {
                   type="checkbox"
                   checked={selectedProjects.length === projects.length && projects.length > 0}
                   onChange={handleSelectAll}
-                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  className="w-4 h-4 text-[#1c6ead] border-gray-300 rounded focus:ring-[#1c6ead] focus:ring-2"
                 />
                 <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
                   Select All
@@ -500,7 +500,7 @@ const Finance = () => {
                       key={pro.id}
                       className={`transition-all duration-200 ${
                         selectedProjects.includes(pro.id)
-                          ? "bg-blue-50 border-l-4 border-blue-500"
+                          ? "bg-blue-50 border-l-4 border-[#1c6ead]"
                           : pro.tasks?.length === 0
                           ? "bg-gray-50 text-gray-500"
                           : "hover:bg-gray-50"
@@ -511,7 +511,7 @@ const Finance = () => {
                           type="checkbox"
                           checked={selectedProjects.includes(pro.id)}
                           onChange={() => handleProjectSelection(pro.id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] focus:ring-2"
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -680,7 +680,7 @@ const Finance = () => {
                           onClick={() => handlePageChanges(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
                             page === currentPage
-                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              ? "z-10 bg-blue-50 border-[#1c6ead] text-blue-600"
                               : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300"
                           }`}
                         >
@@ -759,7 +759,7 @@ const Finance = () => {
                         invoiceNumber: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
                     required
                   />
                 </div>
@@ -778,7 +778,7 @@ const Finance = () => {
                         invoiceDate: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
                     required
                   />
                 </div>
@@ -830,7 +830,7 @@ const Finance = () => {
                   type="button"
                   onClick={handleCreateInvoice}
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

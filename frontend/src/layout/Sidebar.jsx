@@ -242,7 +242,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                       <span className="flex-1 text-left ml-3 font-medium">{item.name}</span>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform duration-300 ${
-                          isExpanded ? "transform rotate-180 text-blue-500" : "text-slate-400"
+                          isExpanded ? "transform rotate-180 text-[#1c6ead]" : "text-slate-400"
                         }`}
                       />
                     </button>

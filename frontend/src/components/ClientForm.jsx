@@ -252,7 +252,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             </button>
 
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-500 text-white p-3 rounded-xl shadow-lg">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-xl shadow-lg">
                 {isEditMode ? (
                   <Building2 className="h-6 w-6" />
                 ) : (
@@ -290,7 +290,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     <input
                       type="text"
                       {...register("name", { required: "Client name is required" })}
-                      className={`w-full px-4 py-3 border ${errors.name ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${errors.name ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. Acme Corporation"
                     />
                     {errors.name && (
@@ -315,7 +315,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <input
                     type="text"
                     {...register("contactName")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. John Smith"
                   />
                 </div>
@@ -335,7 +335,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Invalid email address",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.contactEmail ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${errors.contactEmail ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. john@acme.com"
                     />
                     {errors.contactEmail && (
@@ -360,7 +360,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <input
                     type="text"
                     {...register("contactPhone")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. +1 234 567 8900"
                   />
                 </div>
@@ -372,7 +372,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   </label>
                   <select
                     {...register("industry")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="">Select industry</option>
                     {industryOptions.map((industry) => (
@@ -390,7 +390,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   </label>
                   <select
                     {...register("status")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -411,7 +411,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid URL starting with http:// or https://",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.website ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${errors.website ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. https://www.acme.com"
                     />
                     {errors.website && (
@@ -457,7 +457,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         type="text"
         value={director}
         onChange={(e) => updateDirector(index, e.target.value)}
-        className="w-full px-4 py-3 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400"
+        className="w-full px-4 py-3 border border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead] rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400"
         placeholder={`Director ${index + 1} name`}
       />
     </div>
@@ -482,7 +482,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <button
                     type="button"
                     onClick={addDirectorField}
-                    className="mt-2 text-blue-500 hover:text-blue-700 font-medium flex items-center hover:bg-blue-50 px-3 py-2 rounded-lg transition-all duration-200"
+                    className="mt-2 text-[#1c6ead] hover:text-blue-700 font-medium flex items-center hover:bg-blue-50 px-3 py-2 rounded-lg transition-all duration-200"
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add Another Director
                   </button>
@@ -512,7 +512,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                             setFilteredCountries(countryCurrency.filter(c => c.name.toLowerCase().startsWith((countrySearch || countryValue || "").toLowerCase())));
                           }}
                           onBlur={() => setTimeout(() => setShowCountryDropdown(false), 150)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                           placeholder="e.g. India"
                         />
                         {showCountryDropdown && filteredCountries.length > 0 && (countrySearch || countryValue) && (
@@ -542,7 +542,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       <input
                         type="text"
                         {...register("state")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                         placeholder="e.g. Maharashtra"
                       />
                     </div>
@@ -552,7 +552,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       <input
                         type="text"
                         {...register("city")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                         placeholder="e.g. Mumbai"
                       />
                     </div>
@@ -562,7 +562,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       <input
                         type="text"
                         {...register("pin")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                         placeholder="e.g. 400021"
                       />
                     </div>
@@ -593,7 +593,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid GSTIN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.gstin ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${errors.gstin ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. 27AAACR5055K1Z5"
                     />
                     {errors.gstin && (
@@ -621,7 +621,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid PAN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.pan ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${errors.pan ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. AAAAA0000A"
                     />
                     {errors.pan && (
@@ -643,7 +643,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <input
                     type="text"
                     {...register("cin")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. L12345MH2000PLC123456"
                   />
                 </div>
@@ -653,7 +653,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <input
                     type="text"
                     {...register("currencyFormat")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. INR"
                     readOnly={!!countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase())}
                   />
@@ -680,7 +680,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     {...register("notes")}
                     rows="4"
                     maxLength={maxNotesLength}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none hover:border-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 resize-none hover:border-gray-400"
                     placeholder="Additional notes about the client"
                   ></textarea>
                   <div className="flex justify-between items-center mt-2">
@@ -698,14 +698,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-8 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium hover:border-gray-400"
+                className="px-8 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium hover:border-gray-400"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 bg-blue-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
+                className="px-8 py-3 bg-[#1c6ead] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none font-medium min-w-[140px]"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -747,7 +747,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
             <div className="flex justify-end space-x-4">
               <button
                 onClick={cancelDiscard}
-                className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
               >
                 Cancel
               </button>

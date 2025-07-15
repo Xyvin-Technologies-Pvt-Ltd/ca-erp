@@ -21,7 +21,7 @@ const AvatarWithFallback = ({ name, src, size }) => {
           size={size}
           onError={(e) => {
             e.target.outerHTML = `
-            <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-200 hover:scale-110">
+            <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                <span class="text-white font-medium text-sm">
                ${name?.charAt(0).toUpperCase() || ''}
                </span>
@@ -182,7 +182,7 @@ const Header = ({ onOpenSidebar }) => {
           <div className="flex items-center md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200"
               onClick={onOpenSidebar}
             >
               <span className="sr-only">Open sidebar</span>
@@ -197,15 +197,15 @@ const Header = ({ onOpenSidebar }) => {
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Search className={`h-5 w-5 transition-colors duration-200 ${
-                      isSearchFocused ? 'text-blue-500' : 'text-slate-400'
+                      isSearchFocused ? 'text-[#1c6ead]' : 'text-slate-400'
                     }`} />
                   </div>
                   <input
                     id="search"
                     name="search"
-                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl leading-5 bg-white/50 backdrop-blur-sm placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white sm:text-sm transition-all duration-300 ${
+                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl leading-5 bg-white/50 backdrop-blur-sm placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] focus:bg-white sm:text-sm transition-all duration-300 ${
                       isSearchFocused 
-                        ? 'border-blue-300 shadow-lg shadow-blue-500/10' 
+                        ? 'border-blue-300 shadow-lg shadow-[#1c6ead]/10' 
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                     placeholder="Search tasks, projects, clients..."
@@ -257,7 +257,7 @@ const Header = ({ onOpenSidebar }) => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200"
                   id="user-menu"
                   aria-expanded="false"
                   aria-haspopup="true"

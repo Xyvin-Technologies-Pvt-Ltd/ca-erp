@@ -107,7 +107,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <BuildingOffice2Icon className="h-6 w-6" />
               </div>
               <div>
@@ -147,7 +147,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="e.g. Human Resources"
                     />
                     <BuildingOffice2Icon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
@@ -163,7 +163,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       value={formData.code}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="e.g. DEP001"
                     />
                     <CodeBracketIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
@@ -178,7 +178,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="e.g. Building A, Floor 3"
                     />
                     <MapPinIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
@@ -205,7 +205,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                     onChange={handleChange}
                     rows="4"
                     maxLength={maxDescriptionLength}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                     placeholder="Enter department description"
                   ></textarea>
                   <DocumentTextIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
@@ -245,14 +245,14 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -295,7 +295,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
             <div className="flex justify-end space-x-4">
               <button
                 onClick={cancelDiscard}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>

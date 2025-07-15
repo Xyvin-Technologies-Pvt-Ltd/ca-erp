@@ -363,7 +363,7 @@ const LeaveApplication = () => {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       return (
         <div className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+          <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
           <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
@@ -468,15 +468,15 @@ const LeaveApplication = () => {
         className="flex flex-col md:flex-row md:items-center justify-between mb-8"
       >
         <div className="flex items-center space-x-3">
-          <CalendarIcon className="h-8 w-8 text-indigo-600" />
+          <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-3xl font-bold text-gray-900">Leave Application</h1>
         </div>
         <Button
           variant="outline"
           className="mt-4 md:mt-0 flex items-center gap-2 bg-white hover:bg-indigo-50 border-indigo-300 shadow-sm rounded-lg transition-all duration-300 hover:shadow-md"
         >
-          <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
-          <span className="font-medium text-indigo-700 cursor-pointer">Download Leave Policy</span>
+          <DocumentTextIcon className="h-5 w-5 text-[#1c6ead]" />
+          <span className="font-medium text-[#1c6ead] cursor-pointer">Download Leave Policy</span>
         </Button>
       </motion.div>
 
@@ -493,7 +493,7 @@ const LeaveApplication = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                    <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                     Leave Type
                   </label>
                   <Select value={leaveType} onValueChange={setLeaveType}>
@@ -514,7 +514,7 @@ const LeaveApplication = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <ClockIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                    <ClockIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                     Duration
                   </label>
                   <motion.div
@@ -528,7 +528,7 @@ const LeaveApplication = () => {
 
              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <SunIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                  <SunIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                   Date Range
                 </label>
                 <div className="rounded-lg border border-indigo-100 p-4 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
@@ -540,7 +540,7 @@ const LeaveApplication = () => {
                         onClick={handlePreviousMonth}
                         className="h-8 w-8 hover:bg-indigo-50 border-indigo-200 rounded-full transition-all duration-300"
                       >
-                        <ChevronLeftIcon className="h-4 w-4 text-indigo-600" />
+                        <ChevronLeftIcon className="h-4 w-4 text-[#1c6ead]" />
                       </Button>
                       <div className="text-sm font-semibold text-gray-700">
                         {format(currentMonth, "MMMM yyyy")}
@@ -551,7 +551,7 @@ const LeaveApplication = () => {
                         onClick={handleNextMonth}
                         className="h-8 w-8 hover:bg-indigo-50 border-indigo-200 rounded-full transition-all duration-300"
                       >
-                        <ChevronRightIcon className="h-4 w-4 text-indigo-600" />
+                        <ChevronRightIcon className="h-4 w-4 text-[#1c6ead]" />
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -564,7 +564,7 @@ const LeaveApplication = () => {
 
              <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                 Reason
               </label>
               <Textarea
@@ -572,7 +572,7 @@ const LeaveApplication = () => {
                 onChange={(e) => setReason(e.target.value)}
                 maxLength={500}
                 placeholder="Please provide a reason for your leave request"
-                className="min-h-[100px] bg-white border-indigo-200 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
+                className="min-h-[100px] bg-white border-indigo-200 focus:border-[#1c6ead] rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
               />
               <div className="text-right text-sm text-gray-500 mt-1">
                 {reason.length}/500
@@ -583,7 +583,7 @@ const LeaveApplication = () => {
               <motion.div  whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
-                  className="w-full group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+                  className="w-full group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
                 >
                   Submit Application
                 </Button>
@@ -593,7 +593,7 @@ const LeaveApplication = () => {
 
           <Card className="p-6 bg-white shadow-lg rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <ClockIcon className="h-6 w-6 text-indigo-600 mr-2" />
+              <ClockIcon className="h-6 w-6 text-[#1c6ead] mr-2" />
               Recent Applications
             </h2>
             <div className="space-y-4">
@@ -621,7 +621,7 @@ const LeaveApplication = () => {
                           className="p-2 bg-indigo-100 rounded-full"
                           whileHover={{ scale: 1.1 }}
                         >
-                          <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                          <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
                         </motion.div>
                         <div>
                           <p className="font-semibold text-gray-900">{application.type}</p>
@@ -654,7 +654,7 @@ const LeaveApplication = () => {
 
         <Card className="p-6 bg-white shadow-lg rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <SunIcon className="h-6 w-6 text-indigo-600 mr-2" />
+            <SunIcon className="h-6 w-6 text-[#1c6ead] mr-2" />
             Leave Balance
           </h2>
           <div className="space-y-6">
@@ -669,11 +669,11 @@ const LeaveApplication = () => {
                 >
                   <div className="flex justify-between items-center">
                     <span className="capitalize text-gray-700 font-semibold flex items-center">
-                      <UserIcon className="h-4 w-4 text-indigo-600 mr-2" />
+                      <UserIcon className="h-4 w-4 text-[#1c6ead] mr-2" />
                       {type} Leave
                     </span>
                     <motion.span
-                      className="font-semibold text-indigo-600"
+                      className="font-semibold text-[#1c6ead]"
                       whileHover={{ scale: 1.05 }}
                     >
                       {balance.total - balance.used} days
@@ -684,7 +684,7 @@ const LeaveApplication = () => {
                     title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
                   >
                     <motion.div
-                      className="h-3 rounded-full bg-blue-500"
+                      className="h-3 rounded-full bg-[#1c6ead]"
                       initial={{ width: 0 }}
                       animate={{
                         width: `${
@@ -705,7 +705,7 @@ const LeaveApplication = () => {
                     <span>Pending: {balance.pending} days</span>
                   </div>
                   <motion.div
-                    className="absolute hidden group-hover:block bg-indigo-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2"
+                    className="absolute hidden group-hover:block bg-[#1c6ead] text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}

@@ -91,7 +91,7 @@ const Events = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full"
+                    className="h-12 w-12 border-t-2 border-b-2 border-[#1c6ead] rounded-full"
                 ></motion.div>
             </motion.div>
         );
@@ -111,12 +111,12 @@ const Events = () => {
                     transition={{ duration: 0.5 }}
                     className="flex items-center space-x-3 mb-4 sm:mb-0"
                 >
-                    <CalendarIcon className="h-8 w-8 text-blue-500" />
+                    <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Events</h1>
                 </motion.div>
                 <motion.button
                     onClick={() => setShowModal(true)}
-                     className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
+                     className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:bg-[#1c6ead] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -145,7 +145,7 @@ const Events = () => {
                         </p>
                         {/* <motion.button
                             onClick={() => setShowModal(true)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                            className="px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
@@ -187,19 +187,19 @@ const Events = () => {
                                         >
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <div className="flex items-center space-x-2">
-                                                    <MegaphoneIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <MegaphoneIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {event.title}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-2">
-                                                    <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <InformationCircleIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {event.description}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex items-center space-x-2">
-                                                    <CalendarIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <CalendarIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {event.startDate ? new Date(event.startDate).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -209,7 +209,7 @@ const Events = () => {
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-2">
-                                                    <CalendarIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <CalendarIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {event.endDate ? new Date(event.endDate).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -305,7 +305,7 @@ const Events = () => {
                                         onClick={() => setPage(p)}
                                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
                                           p === page
-                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                            ? 'z-10 bg-blue-50 border-[#1c6ead] text-blue-600'
                                             : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
                                         }`}
                                       >
@@ -426,7 +426,7 @@ const Events = () => {
                             <div className="flex justify-end space-x-3">
                                 <motion.button
                                     onClick={() => setShowDeleteConfirm(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >

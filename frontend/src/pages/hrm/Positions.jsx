@@ -85,7 +85,7 @@ const Positions = () => {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="h-12 w-12 border-t-2 border-b-2 border-blue-500 rounded-full"
+                    className="h-12 w-12 border-t-2 border-b-2 border-[#1c6ead] rounded-full"
                 ></motion.div>
             </motion.div>
         );
@@ -110,7 +110,7 @@ const Positions = () => {
                 </motion.div>
                 <motion.button
                     onClick={() => setShowModal(true)}
-                     className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
+                     className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -139,7 +139,7 @@ const Positions = () => {
                         </p>
                         {/* <motion.button
                             onClick={() => setShowModal(true)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
+                            className="px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-blue-550 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
@@ -180,13 +180,13 @@ const Positions = () => {
                                         >
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm  text-gray-900">
                                                 <div className="flex items-center space-x-2">
-                                                    <UserCircleIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <UserCircleIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {position.title}
                                                 </div>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                                                 <div className="flex items-center space-x-3">
-                                                    <BuildingOfficeIcon className="h-5 w-5 text-blue-500 mr-1" />
+                                                    <BuildingOfficeIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
                                                     {position.department?.name || ''}
                                                 </div>
                                             </td>
@@ -340,7 +340,7 @@ const Positions = () => {
                                         onClick={() => setPage(p)}
                                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
                                           p === page
-                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                            ? 'z-10 bg-blue-50 border-[#1c6ead] text-blue-600'
                                             : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
                                         }`}
                                       >

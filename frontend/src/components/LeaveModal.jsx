@@ -108,7 +108,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-gradient-to-r from-[#1c6ead] to-indigo-500 text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -154,7 +154,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                   </label>
                   <select
                     name="leaveType"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     {...formik.getFieldProps("leaveType")}
                   >
                     <option value="">Select Leave Type</option>
@@ -181,7 +181,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                   </label>
                   <select
                     name="status"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     {...formik.getFieldProps("status")}
                   >
                     <option value="Pending">Pending</option>
@@ -212,7 +212,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                       onClick={() => openDatePicker(startDateRef)}
                       type="date"
                       name="startDate"
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                       {...formik.getFieldProps("startDate")}
                     />
                   
@@ -237,13 +237,13 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                       name="endDate"
                       onClick={() => openDatePicker(endDateRef)}
                       min={formik.values.startDate}
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                       {...formik.getFieldProps("endDate")}
                     />
                     {/* <button
                       type="button"
                       onClick={() => openDatePicker(endDateRef)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#1c6ead] transition-colors duration-200"
                     >
                       <CalendarIcon className="h-5 w-5" />
                     </button> */}
@@ -267,7 +267,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                   rows={4}
                   maxLength={500}
                   placeholder="Please provide a detailed reason for your leave request..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                   {...formik.getFieldProps("reason")}
                 />
                 <div className="flex justify-end items-center mt-2">
@@ -295,7 +295,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
                     rows={3}
                     maxLength={300}
                     placeholder={`Enter your ${formik.values.status.toLowerCase()} notes...`}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                     {...formik.getFieldProps("reviewNotes")}
                   />
                   <div className="flex justify-end items-center mt-2">
@@ -312,14 +312,14 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={formik.isSubmitting}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-gradient-to-r from-[#1c6ead] to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {formik.isSubmitting ? (
                   <span className="flex items-center">

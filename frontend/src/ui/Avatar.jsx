@@ -19,7 +19,7 @@ const generateInitials = (name) => {
 
 const generateColor = (name) => {
   const colors = [
-    "bg-blue-500",
+    "bg-[#1c6ead]",
     "bg-red-500",
     "bg-green-500",
     "bg-yellow-500",

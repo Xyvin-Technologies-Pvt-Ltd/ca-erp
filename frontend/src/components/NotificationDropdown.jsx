@@ -100,7 +100,7 @@ const NotificationDropdown = () => {
           {isLoading ? (
             <div className="px-6 py-8 text-center">
               <div className="inline-flex items-center gap-2 text-slate-500">
-                <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-slate-300 border-t-[#1c6ead] rounded-full animate-spin"></div>
                 <span className="text-sm">Loading notifications...</span>
               </div>
             </div>
@@ -204,7 +204,7 @@ const NotificationDropdown = () => {
 
                   {/* Unread indicator */}
                   {!notification.read && (
-                    <div className="absolute right-4 top-4 w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="absolute right-4 top-4 w-2 h-2 bg-[#1c6ead] rounded-full"></div>
                   )}
                 </div>
               ))}
@@ -266,7 +266,7 @@ const NotificationDropdown = () => {
           <Menu.Button
             ref={buttonRef}
             onClick={() => setIsOpen(!isOpen)}
-            className="relative p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 group"
+            className="relative p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 group"
           >
             <span className="sr-only">View notifications</span>
             <Bell className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />

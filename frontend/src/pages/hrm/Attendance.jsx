@@ -190,7 +190,7 @@ const Attendance = () => {
             <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
           <motion.button
-            className="group px-6 py-3 bg-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+            className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
             onClick={() => setModalOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -423,7 +423,7 @@ const Attendance = () => {
                       onClick={() => setPage(p)}
                       className={`relative inline-flex   items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
                         p === page
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          ? 'z-10 bg-blue-50 border-[#1c6ead] text-blue-600'
                           : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300'
                       }`}
                     >

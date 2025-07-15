@@ -414,7 +414,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 value={formData.date}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
             </div>
@@ -428,7 +428,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 value={formData.time}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
             </div>
@@ -441,7 +441,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 value={formData.type}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
                 <option value="checkIn">Check In</option>
                 <option value="checkOut">Check Out</option>
@@ -457,7 +457,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 value={formData.status}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
                 {Object.keys(statusIcons).map((status) => (
                   <option key={status} value={status}>
@@ -476,7 +476,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 value={formData.shift}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
                 <option value="Morning">Morning</option>
                 <option value="Evening">Evening</option>
@@ -492,7 +492,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Enter notes..."
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
             </div>
@@ -504,7 +504,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                 type="text"
                 placeholder="Search employees..."
                 onChange={handleEmployeeSearch}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
               <div className="mt-2 max-h-60 overflow-y-auto rounded-md border border-gray-300 p-2">
                 {!loadingExisting && availableEmployeesCount > 0 && (
@@ -514,7 +514,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                       id="select-all"
                       checked={formData.selectedEmployees.length === availableEmployeesCount && availableEmployeesCount > 0}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-[#1c6ead]"
                     />
                     <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
                       Select All Available ({availableEmployeesCount})
@@ -541,7 +541,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                           checked={formData.selectedEmployees.includes(employee._id)}
                           onChange={(e) => handleEmployeeSelection(employee._id, e.target.checked)}
                           disabled={!canSelect}
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-[#1c6ead] disabled:opacity-50"
                         />
                         <label
                           htmlFor={`employee-${employee._id}`}
@@ -579,7 +579,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             <button
               type="submit"
               disabled={loading || formData.selectedEmployees.length === 0}
-              className="px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-md bg-[#1c6ead] text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Saving..." : `Record ${formData.type === 'checkIn' ? 'Check-In' : 'Check-Out'} (${formData.selectedEmployees.length})`}
             </button>

@@ -129,7 +129,7 @@ const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = 
                                     )}
                                 </button>
                                 {/* Upload Button */}
-                                <label className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
+                                <label className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-[#1a4d80]">
                                     {existingDoc ? 'Replace' : 'Upload'}
                                     <input
                                         type="file"

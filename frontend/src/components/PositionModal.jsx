@@ -135,7 +135,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <BriefcaseIcon className="h-6 w-6" />
               </div>
               <div>
@@ -176,7 +176,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       onChange={handleChange}
                       required
                       placeholder="e.g. Software Engineer"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
                     <BriefcaseIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
@@ -204,7 +204,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       value={formData.department}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -222,7 +222,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       value={formData.employmentType}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     >
                       <option value="Full-time">Full-time</option>
                       <option value="Part-time">Part-time</option>
@@ -243,7 +243,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       onChange={handleChange}
                       required
                       placeholder="e.g. 1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
                     <AcademicCapIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
@@ -259,7 +259,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       onChange={handleChange}
                       required
                       placeholder="e.g. 1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
                     <UserGroupIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
@@ -287,7 +287,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                     maxLength={maxDescriptionLength}
                     required
                     placeholder="Enter position description..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                   ></textarea>
                   <DocumentTextIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                 </div>
@@ -311,7 +311,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       maxLength={maxResponsibilitiesLength}
                       required
                       placeholder="Enter responsibilities"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                     ></textarea>
                   </div>
                   <div className="flex justify-between items-center mt-2">
@@ -332,7 +332,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       maxLength={maxRequirementsLength}
                       required
                       placeholder="Enter requirements"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                     ></textarea>
                   </div>
                   <div className="flex justify-between items-center mt-2">
@@ -368,14 +368,14 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -418,7 +418,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
             <div className="flex justify-end space-x-4">
               <button
                 onClick={cancelDiscard}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>

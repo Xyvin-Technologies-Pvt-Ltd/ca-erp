@@ -1338,7 +1338,7 @@ const TaskDetail = () => {
                     </div>
                     <div className="mt-2">
                       <label className="text-sm text-gray-600">
-                        <span className="text-[#1c6ead] hover:text-blue-500 cursor-pointer font-medium">
+                        <span className="text-[#1c6ead] hover:text-[#1c6ead] cursor-pointer font-medium">
                           Click to upload
                         </span>
                         {" or drag and drop"}
