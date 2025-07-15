@@ -405,7 +405,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -448,7 +448,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     type="text"
                     value={title}
                     onChange={(e) => { setTitle(e.target.value); setIsFormDirty(true); }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     placeholder="Enter task title"
                     required
                   />
@@ -463,7 +463,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     <select
                       value={projectId}
                       onChange={(e) => { setProjectId(e.target.value); setIsFormDirty(true); }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                       required
                     >
                       <option value="">Select a project</option>
@@ -490,7 +490,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   <select
                     value={status}
                     onChange={(e) => { setStatus(e.target.value); setIsFormDirty(true); }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
@@ -508,7 +508,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   <select
                     value={priority}
                     onChange={(e) => { setPriority(e.target.value); setIsFormDirty(true); }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
@@ -581,7 +581,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                       onChange={(e) => { setDueDate(e.target.value); setIsFormDirty(true); }}
                       onClick={() => openDatePicker(dueDateRef)}
                       required
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer appearance-none"
+                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer appearance-none"
                     />
                   </div>
                 </div>
@@ -595,7 +595,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     type="number"
                     value={amount !== null ? amount : ""}
                     onChange={(e) => { setAmount(e.target.value === "" ? null : Number(e.target.value)); setIsFormDirty(true); }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-b[#1c6ead] transition-colors duration-200"
                     placeholder="Enter task amount"
                     min="0"
                     step="0.01"
@@ -615,7 +615,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   maxLength={500}
                   required
                   placeholder="Enter task details or requirements..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                 />
                 <div className="flex justify-end items-center mt-2">
                   <p className={`text-sm ${description?.length > 400 ? 'text-amber-600' : 'text-gray-500'}`}>
@@ -632,7 +632,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 <div className="flex items-center space-x-3">
                   <label
                     htmlFor="file"
-                    className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-medium"
+                    className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
                   >
                     Upload File
                   </label>
@@ -738,13 +738,13 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 <span className="flex items-center">
                   {task ? 'Update Task' : 'Create Task'}
@@ -772,7 +772,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 <div className="flex justify-end space-x-4">
                   <button
                     onClick={cancelDiscard}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 font-medium"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
                   >
                     Cancel
                   </button>
