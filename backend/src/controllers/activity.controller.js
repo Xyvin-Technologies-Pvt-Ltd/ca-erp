@@ -37,7 +37,8 @@ const getRecentActivities = async (req, res) => {
         user: {
           name: activity.user?.name || 'Unknown',
           avatar: activity.user?.avatar || null
-        }
+        },
+        project: activity.project // Include project field
       }))
     });
   } catch (error) {

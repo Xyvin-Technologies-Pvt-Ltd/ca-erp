@@ -24,7 +24,8 @@ class ActivityTracker {
         user: data.userId,
         entityType: data.entityType,
         entityId: data.entityId,
-        link: data.link
+        link: data.link,
+        ...(data.project && { project: data.project }) // Save project if provided
       });
 
       await activity.save();
@@ -46,7 +47,8 @@ class ActivityTracker {
       entityType: 'task',
       entityId: task._id,
       userId,
-      link: `/tasks/${task._id}`
+      link: `/tasks/${task._id}`,
+      project: task.project 
     });
   }
 
@@ -136,7 +138,8 @@ class ActivityTracker {
       entityType: 'document',
       entityId: document._id,
       userId,
-      link: `/documents/${document._id}`
+      link: `/documents/${document._id}`,
+      project: document.project 
     });
   }
 }

@@ -298,6 +298,12 @@ exports.createTask = async (req, res, next) => {
                 // Note: We don't fail the task creation if notification fails
             }
         }
+            try {
+                await ActivityTracker.trackTaskCreated(task, req.user._id);
+                logger.info(`Activity tracked for project creation ${task._id}`);
+              } catch (activityError) {
+                logger.error(`Failed to track activity for project creation ${task._id}: ${activityError.message}`);
+              }
 
         res.status(201).json({
             success: true,
@@ -480,6 +486,31 @@ exports.updateTask = async (req, res, next) => {
                 );
             }
         }
+
+          try {
+                if (changedFields.length > 0) {
+                  const changesSummary = changedFields.map(field => {
+                    const oldValue = task[field] ? task[field].toString() : 'none';
+                    const newValue = req.body[field] ? req.body[field].toString() : 'none';
+                    return `${field}: ${oldValue} → ${newValue}`;
+                  }).join(', ');
+                  await ActivityTracker.track({
+                    type: 'task_updated',
+                    title: 'Task Updated',
+                    description: `Task "${task.title}" was updated. Changes: ${changesSummary}`,
+                    entityType: 'task',
+                    entityId: task._id,
+                    userId: req.user._id,
+                    link: `/tasks/${task._id}`,
+                    project: task.project?._id // Add projectId for filtering
+                  });
+                  logger.info(`Activity tracked for project update ${task._id}`);
+                } else {
+                  logger.debug(`No activity tracked for project ${task._id}: No significant changes detected`);
+                }
+              } catch (activityError) {
+                logger.error(`Failed to track activity for project update ${task._id}: ${activityError.message}`);
+              }
 
         res.status(200).json({ success: true, data: task });
     } catch (error) {

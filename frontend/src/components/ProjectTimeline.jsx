@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getActivityHistory } from '../api/activity';
+import { fetchRecentActivity } from '../api/activity';
 
 const ProjectTimeline = ({ projectId }) => {
   const [activities, setActivities] = useState([]);
@@ -12,8 +12,16 @@ const ProjectTimeline = ({ projectId }) => {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        const response = await getActivityHistory('project', projectId);
-        setActivities(response.activities || []);
+        const response = await fetchRecentActivity();
+        const allActivities = response.data?.activities || [];
+        console.log(allActivities,'new')
+        const filtered = allActivities.filter(
+          (activity) =>
+            (activity.project && activity.project === projectId) ||
+            (activity.link && activity.link.includes(`/projects/${projectId}`))
+        );
+        console.log(filtered,'filtered home');
+        setActivities(filtered);
         setError(null);
       } catch (err) {
         console.error('Error fetching project activities:', err);
@@ -50,11 +58,19 @@ const ProjectTimeline = ({ projectId }) => {
       case 'task_created':
         return (
           <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
+             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
           </div>
         );
+        case 'task_updated':
+          return (
+            <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            </div>
+          );
       case 'task_completed':
         return (
           <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -63,10 +79,18 @@ const ProjectTimeline = ({ projectId }) => {
             </svg>
           </div>
         );
+        case 'project_created':
+          return (
+            <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+          );
       case 'project_updated':
         return (
           <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
           </div>
