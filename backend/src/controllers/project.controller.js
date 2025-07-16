@@ -445,21 +445,29 @@ exports.updateProject = async (req, res, next) => {
       // Track activity for project update
       try {
         if (changedFields.length > 0) {
-          const changesSummary = changedFields.map(field => {
-            const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
-            const newValue = req.body[field] ? req.body[field].toString() : 'none';
-            return `${field}: ${oldValue} → ${newValue}`;
-          }).join(', ');
-          await ActivityTracker.track({
-            type: 'project_updated',
-            title: 'Project Updated',
-            description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
-            entityType: 'project',
-            entityId: project._id,
-            userId: req.user._id,
-            link: `/projects/${project._id}`,
-          });
-          logger.info(`Activity tracked for project update ${project._id}`);
+          const changesSummary = changedFields
+            .filter(field => field !== 'budget') // Exclude budget from activity log
+            .map(field => {
+              const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
+              const newValue = req.body[field] ? req.body[field].toString() : 'none';
+              return `${field}: ${oldValue} → ${newValue}`;
+            })
+            .filter(Boolean)
+            .join(', ');
+          if (changesSummary) {
+            await ActivityTracker.track({
+              type: 'project_updated',
+              title: 'Project Updated',
+              description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
+              entityType: 'project',
+              entityId: project._id,
+              userId: req.user._id,
+              link: `/projects/${project._id}`,
+            });
+            logger.info(`Activity tracked for project update ${project._id}`);
+          } else {
+            logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
+          }
         } else {
           logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
         }

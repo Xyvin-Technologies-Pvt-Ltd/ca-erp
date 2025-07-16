@@ -14,7 +14,8 @@ const activitySchema = new mongoose.Schema({
       'deadline_updated',
       'document_uploaded',
       'task_updated',
-      'reminder_sent'
+      'reminder_sent',
+      'task_time_entry'
     ]
   },
   title: {

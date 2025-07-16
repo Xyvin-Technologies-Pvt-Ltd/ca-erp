@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchRecentActivity } from '../api/activity';
+import { getActivityHistory } from '../api/activity';
 
 const ProjectTimeline = ({ projectId }) => {
   const [activities, setActivities] = useState([]);
@@ -12,16 +12,8 @@ const ProjectTimeline = ({ projectId }) => {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        const response = await fetchRecentActivity();
-        const allActivities = response.data?.activities || [];
-        console.log(allActivities,'new')
-        const filtered = allActivities.filter(
-          (activity) =>
-            (activity.project && activity.project === projectId) ||
-            (activity.link && activity.link.includes(`/projects/${projectId}`))
-        );
-        console.log(filtered,'filtered home');
-        setActivities(filtered);
+        const response = await getActivityHistory('project', projectId);
+        setActivities(response.activities || []);
         setError(null);
       } catch (err) {
         console.error('Error fetching project activities:', err);
