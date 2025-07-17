@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchTasksByProject, updateTask } from "../api/tasks";
+import { fetchTasksByProject, updateTask, deleteTask } from "../api/tasks";
 import { Link } from "react-router-dom";
 import CreateTaskModal from "./CreateTaskModal";
 import { CiEdit } from "react-icons/ci";
@@ -27,7 +27,7 @@ const priorityColors = {
   low: "bg-green-100 text-green-800",
 };
 
-const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated }) => {
+const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated, onTaskDeleted }) => {
   const [tasks, setTasks] = useState(initialTasks || []);
   const [loading, setLoading] = useState(!initialTasks);
   const [error, setError] = useState(null);
@@ -76,9 +76,10 @@ const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated }) => {
   const handleDeleteConfirmed = async () => {
     if (!taskToDelete) return;
     try {
-      await updateTask(taskToDelete.id, { deleted: true });
+      await deleteTask(taskToDelete.id); // use DELETE, not update
       setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id));
-      toast.success("Project deleted successfully");
+      toast.success("Task deleted successfully");
+      if (onTaskDeleted) onTaskDeleted();
     } catch (err) {
       console.error("Failed to delete task:", err);
       setError("Failed to delete task. Please try again.");

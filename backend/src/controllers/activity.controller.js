@@ -57,7 +57,8 @@ const getEntityActivities = async (req, res) => {
       activities = await Activity.find({
         $or: [
           { entityType: 'project', entityId },
-          { entityType: 'task', project: entityId }
+          { entityType: 'task', project: entityId },
+          { entityType: 'document', project: entityId }
         ]
       })
         .populate('user', 'name avatar')

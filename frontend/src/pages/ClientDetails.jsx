@@ -138,7 +138,7 @@ const ClientDetails = () => {
     return (
       <Link
         to={`/projects/${project.id || project._id}`}
-        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 h-full"
       >
         <div className="p-5 h-full flex flex-col">
           {/* Header Section - Fixed Height */}
@@ -627,7 +627,7 @@ const ClientDetails = () => {
           ) : projectsError ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{projectsError}</div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {projects.length === 0 ? (
                 <div className="col-span-full text-center text-gray-500">No projects found for this client.</div>
               ) : (

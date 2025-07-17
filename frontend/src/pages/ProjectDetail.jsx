@@ -684,7 +684,7 @@ const ProjectDetail = () => {
               )}
             </div>
           ) : activeTab === "tasks" ? (
-            <ProjectTasks projectId={id} tasks={project.tasks} />
+            <ProjectTasks projectId={id} tasks={project.tasks} onTaskDeleted={() => setReloadProject(prev => !prev)} />
           ) : activeTab === "documents" ? (
             <div className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
