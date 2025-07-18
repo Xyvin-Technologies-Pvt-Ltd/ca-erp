@@ -63,6 +63,14 @@ const ProjectTimeline = ({ projectId }) => {
             </svg>
             </div>
           );
+        case 'document_reuploaded':
+          return (
+            <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            </div>
+          );
           case 'task_deleted':
             return (
               <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
