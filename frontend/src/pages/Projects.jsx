@@ -313,7 +313,7 @@ const Projects = () => {
                     to={`/projects/${project.id}`}
                     className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col w-full h-80"
                   >
-                    <div className="px-6 py-5 border-b border-gray-200 h-42 flex flex-col">
+                    <div className="px-6 py-5 border-b border-gray-200 h-35 flex flex-col">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex flex-col flex-1">
                           <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
@@ -333,7 +333,7 @@ const Projects = () => {
                       </div>
                     </div>
 
-                    <div className="px-6 py-4 space-y-4 h-56 flex flex-col">
+                    <div className="px-6 py-4 space-y-4 h-33 flex flex-col">
                       <div>
                         <p className="text-sm text-gray-500 flex items-center">
                           <CalendarIcon className="h-4 w-4 mr-2 text-indigo-600" />

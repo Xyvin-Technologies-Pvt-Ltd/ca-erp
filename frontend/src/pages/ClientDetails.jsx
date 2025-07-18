@@ -175,7 +175,27 @@ const ClientDetails = () => {
   };
 
   // ProjectCard logic (inline, not imported)
- const ProjectCard = ({ project }) => {
+  const ProjectCard = ({ project }) => {
+    // Calculate progress percentage
+    const progress = project.totalTasks && project.totalTasks > 0
+      ? Math.round((project.completedTasks || 0) / project.totalTasks * 100)
+      : 0;
+
+    // Status and priority color mappings (copied from Projects.jsx)
+    const statusColors = {
+      completed: "bg-green-100 text-green-700 border-green-200",
+      "in progress": "bg-blue-100 text-[#1c6ead] border-blue-200",
+      planning: "bg-purple-100 text-purple-700 border-purple-200",
+      "on hold": "bg-yellow-100 text-yellow-700 border-yellow-200",
+      cancelled: "bg-red-100 text-red-700 border-red-200",
+    };
+    const priorityColors = {
+      high: "bg-red-100 text-red-700 border-red-200",
+      medium: "bg-orange-100 text-orange-700 border-orange-200",
+      low: "bg-green-100 text-green-700 border-green-200",
+    };
+
+    // Days remaining logic (from original ProjectCard)
     const getDaysRemaining = () => {
       if (!project.dueDate) {
         return { text: "No due date", className: "text-gray-500" };
@@ -193,119 +213,121 @@ const ClientDetails = () => {
       }
     };
     const daysRemaining = getDaysRemaining();
+
     return (
       <Link
         to={`/projects/${project.id || project._id}`}
-        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 h-full"
+        className="block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col w-full h-80"
       >
-        <div className="p-5 h-full flex flex-col">
-          {/* Header Section - Fixed Height */}
-          <div className="h-16 flex justify-between items-start mb-3">
-            <h3 className="text-lg font-medium text-gray-900 flex-1 pr-3 line-clamp-2 overflow-hidden">{project.name}</h3>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-              project.status?.toLowerCase() === "completed"
-                ? "bg-green-100 text-green-800"
-                : project.status?.toLowerCase() === "in progress"
-                ? "bg-blue-100 text-blue-800"
-                : project.status?.toLowerCase() === "on hold"
-                ? "bg-yellow-100 text-yellow-800"
-                : project.status?.toLowerCase() === "cancelled"
-                ? "bg-red-100 text-red-800"
-                : project.status?.toLowerCase() === "planning"
-                ? "bg-purple-100 text-purple-800"
-                : "bg-gray-100 text-gray-800"
-            }`}>{project.status}</span>
+        <div className="px-6 py-5 border-b border-gray-200 h-33 flex flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col flex-1">
+              <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
+                {project.name}
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Client: {project.client?.name || "No client assigned"}
+              </p>
+            </div>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                statusColors[project.status?.toLowerCase()] || "bg-gray-100"
+              }`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full mr-1 ${
+                  (statusColors[project.status?.toLowerCase()] || "bg-gray-100").split(" ")[0]
+                }`}
+              ></span>
+              {project.status}
+            </span>
           </div>
-          
-          {/* Client Section - Fixed Height */}
-          <div className="h-8 ">
-            <p className="text-sm text-gray-600 truncate">
-              {project.client ? project.client.name : "No client assigned"}
-            </p>
+        </div>
+
+        <div className="px-6 py-4 space-y-4 h-45 flex flex-col">
+          <div className="flex items-center justify-between h-15">
+            <div>
+              <p className="text-sm text-gray-500 flex items-center">
+                <svg className="h-4 w-4 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Timeline
+              </p>
+              <p className="text-sm font-medium text-gray-900 mt-1">
+                {project.startDate ? new Date(project.startDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }) : "No start date"} - {project.dueDate ? new Date(project.dueDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }) : "No due date"}
+              </p>
+            </div>
+            <div className="ml-4 flex-shrink-0">
+              <span className={`text-xs ${daysRemaining.className}`}>{daysRemaining.text}</span>
+            </div>
           </div>
-          
-          {/* Progress Section - Fixed Height */}
-          <div className="h-16">
-            <div className="flex justify-between items-center ">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-medium text-gray-700">
-                {project.completionPercentage || 0}%
+
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-blue-600">
+                {progress}% Complete
+              </span>
+              <span className="text-xs font-medium text-gray-500">
+                {project.completedTasks || 0} / {project.totalTasks || 0} Tasks
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-[#1c6ead] h-2 rounded-full transition-all duration-300"
-                style={{ width: `${project.completionPercentage || 0}%` }}
-              ></div>
+                className="h-2 rounded-full bg-[#1c6ead]"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
-          
-          {/* Dates Section - Fixed Height */}
-          <div className="h-20 mb-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500 mb-1">Start Date</p>
-                <p className="font-medium h-5 truncate">
-                  {project.startDate ? new Date(project.startDate).toLocaleDateString() : "No start date"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Due Date</p>
-                <div className="h-5 flex items-center">
-                  <p className="font-medium truncate">
-                    {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "No due date"}
-                  </p>
-                </div>
-                <div className="mt-1 h-3">
-                  <span className={`text-xs ${daysRemaining.className}`}>{daysRemaining.text}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Footer Section - Fixed Height */}
-          <div className="mt-auto pt-4 border-t border-gray-100 h-16">
-            <div className="flex justify-between items-center h-full">
-              <div className="flex items-center">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  project.priority?.toLowerCase() === "high"
-                    ? "bg-red-100 text-red-800"
-                    : project.priority?.toLowerCase() === "medium"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : project.priority?.toLowerCase() === "low"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}>{project.priority}</span>
-                <span className="ml-2 text-sm text-gray-500">
-                  {project.totalTasks} tasks
-                </span>
-              </div>
-              <div className="flex -space-x-2">
-                {project.teamMembers &&
-                  project.teamMembers.slice(0, 3).map((member, index) => (
-                    <div
-                      key={index}
-                      className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600"
-                      title={member.name}
-                    >
-                      {member.avatar ? (
-                        <img
-                          src={member.avatar}
-                          alt={member.name}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        member.name.charAt(0)
-                      )}
-                    </div>
-                  ))}
-                {project.teamMembers && project.teamMembers.length > 3 && (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600">
-                    +{project.teamMembers.length - 3}
+
+          <div className="flex items-center justify-between">
+            {project.team && project.team.length > 0 ? (
+              <div className="relative flex -space-x-2 group">
+                {project.team.slice(0, 3).map((member, index) => (
+                  <div
+                    key={member._id || member.id || index}
+                    className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
+                  >
+                    <span className="text-xs font-medium text-gray-500">
+                      {member.name ? member.name.charAt(0).toUpperCase() :
+                        member.email ? member.email.charAt(0).toUpperCase() : '?'}
+                    </span>
+                  </div>
+                ))}
+                {project.team.length > 3 && (
+                  <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+                    <span className="text-xs font-medium text-gray-600">
+                      +{project.team.length - 3}
+                    </span>
                   </div>
                 )}
+                <div className="absolute bottom-8 left-0 bg-[#1c6ead] text-white text-xs rounded-lg p-2 z-10 shadow-lg min-w-max opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+                  {project.team.map((member, index) => (
+                    <div key={member._id || member.id || index}>
+                      {member.name || member.email || 'Unknown Member'}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-xs text-gray-500 flex items-center">
+                <svg className="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 000 7.75" /></svg>
+                No team members
+              </div>
+            )}
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                priorityColors[project.priority?.toLowerCase()] || "bg-gray-100"
+              }`}
+            >
+              <span className={`h-2 w-2 rounded-full mr-1 ${(priorityColors[project.priority?.toLowerCase()] || "bg-gray-100").split(' ')[0]}`}></span>
+              {project.priority}
+            </span>
           </div>
         </div>
       </Link>
