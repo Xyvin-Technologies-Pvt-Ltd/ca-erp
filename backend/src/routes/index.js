@@ -15,6 +15,8 @@ const eventRoutes = require('./event.routes');
 const leaveRoutes = require('./leave.routes');
 const attendanceRoutes = require('./attendance.routes');
 const activityRoutes = require('./activity.routes');
+const cronJobRoutes = require('./cronJob.routes');
+const sectionRoutes = require('./section.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -30,5 +32,7 @@ router.use('/events', eventRoutes);
 router.use('/leaves', leaveRoutes);
 router.use('/attendance', attendanceRoutes);
 router.use('/activities', activityRoutes);
+router.use('/cronjobs', cronJobRoutes);
+router.use('/sections', sectionRoutes);
 
 module.exports = router; 

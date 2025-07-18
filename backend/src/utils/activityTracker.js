@@ -142,6 +142,36 @@ class ActivityTracker {
       project: document.project 
     });
   }
+
+  /**
+   * Track cron job creation
+   */
+  static async trackCronJobCreated(cronJob, userId) {
+    return this.track({
+      type: 'cronjob_created',
+      title: 'New Cron Job Created',
+      description: `Cron job "${cronJob.name}" was created for ${cronJob.frequency} frequency`,
+      entityType: 'cronjob',
+      entityId: cronJob._id,
+      userId,
+      link: `/cronjobs/${cronJob._id}`
+    });
+  }
+
+  /**
+   * Track cron job execution
+   */
+  static async trackCronJobExecuted(cronJob, project, userId) {
+    return this.track({
+      type: 'cronjob_executed',
+      title: 'Cron Job Executed',
+      description: `Project "${project.name}" was created from cron job "${cronJob.name}"`,
+      entityType: 'cronjob',
+      entityId: cronJob._id,
+      userId,
+      link: `/projects/${project._id}`
+    });
+  }
 }
 
 module.exports = ActivityTracker;
