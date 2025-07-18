@@ -318,7 +318,6 @@ exports.createProject = async (req, res, next) => {
         if ('budget' in req.body) {
             delete req.body.budget;
         }
-        console.log(req.body)
         // Check if client exists
         if (req.body.client) {
             const client = await Client.findById(req.body.client);
@@ -387,7 +386,6 @@ exports.updateProject = async (req, res, next) => {
       // Check access - only admin and assigned users can update
       const isAdmin = req.user.role === 'admin';
       const isManager = req.user.role === 'manager';
-      // console.log(isTeamMember, "isTeamMember")
       const isTeamMember = project.team && Array.isArray(project.team) && 
   project.team.some(teamMember => 
       teamMember && teamMember.toString() === req.user.id.toString()
@@ -400,7 +398,6 @@ exports.updateProject = async (req, res, next) => {
       // Check if client exists
       if (req.body.client) {
         const client = await Client.findById(req.body.client);
-        console.log('Client found:', client);
         if (!client) {
           return next(new ErrorResponse(`Client not found with id of ${req.body.client}`, 404));
         }
@@ -425,7 +422,6 @@ exports.updateProject = async (req, res, next) => {
         return originalProject[key] !== req.body[key];
       });
       logger.debug(`Changed fields: ${JSON.stringify(changedFields)}, req.body: ${JSON.stringify(req.body)}`);
-      console.log('changedFields before tracking:', changedFields);
   
       // Update project
       project = await Project.findByIdAndUpdate(req.params.id, req.body, {
@@ -445,21 +441,29 @@ exports.updateProject = async (req, res, next) => {
       // Track activity for project update
       try {
         if (changedFields.length > 0) {
-          const changesSummary = changedFields.map(field => {
-            const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
-            const newValue = req.body[field] ? req.body[field].toString() : 'none';
-            return `${field}: ${oldValue} → ${newValue}`;
-          }).join(', ');
-          await ActivityTracker.track({
-            type: 'project_updated',
-            title: 'Project Updated',
-            description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
-            entityType: 'project',
-            entityId: project._id,
-            userId: req.user._id,
-            link: `/projects/${project._id}`,
-          });
-          logger.info(`Activity tracked for project update ${project._id}`);
+          const changesSummary = changedFields
+            .filter(field => field !== 'budget') // Exclude budget from activity log
+            .map(field => {
+              const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
+              const newValue = req.body[field] ? req.body[field].toString() : 'none';
+              return `${field}: ${oldValue} → ${newValue}`;
+            })
+            .filter(Boolean)
+            .join(', ');
+          if (changesSummary) {
+            await ActivityTracker.track({
+              type: 'project_updated',
+              title: 'Project Updated',
+              description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
+              entityType: 'project',
+              entityId: project._id,
+              userId: req.user._id,
+              link: `/projects/${project._id}`,
+            });
+            logger.info(`Activity tracked for project update ${project._id}`);
+          } else {
+            logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
+          }
         } else {
           logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
         }
@@ -518,7 +522,6 @@ exports.deleteProject = async (req, res, next) => {
  */
 exports.getProjectTasks = async (req, res, next) => {
     try {
-        console.log(req.params.id,"4444444444444444444444444")
         const project = await Project.findById(req.params.id);
 
         if (!project) {
@@ -536,7 +539,6 @@ exports.getProjectTasks = async (req, res, next) => {
 
         const isAdmin = req.user.role === 'admin';
         const isManager = req.user.role === 'manager';
-        // console.log(isTeamMember, "isTeamMember")
         const isTeamMember = project.team && 
             project.team.some(teamMember => 
                 teamMember.toString() === req.user.id.toString()
@@ -634,7 +636,6 @@ exports.updateProjectStatus = async (req, res, next) => {
 
         const isAdmin = req.user.role === 'admin';
         const isManager = req.user.role === 'manager';
-        // console.log(isTeamMember, "isTeamMember")
         const isTeamMember = project.team && Array.isArray(project.team) && 
     project.team.some(teamMember => 
         teamMember && teamMember.toString() === req.user.id.toString()

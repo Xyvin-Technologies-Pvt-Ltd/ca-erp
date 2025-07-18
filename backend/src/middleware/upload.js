@@ -69,7 +69,6 @@ const storage = {
             try {
                 const taskId = req.params.id;
                 const uploadPath = createUploadDir(`/tagDocuments/${taskId}`);
-                console.log('Created upload path:', uploadPath);
                 cb(null, uploadPath);
             } catch (error) {
                 console.error('Error in destination handler:', error);
@@ -141,7 +140,6 @@ const fileFilter = (req, file, cb) => {
             uploadType = 'tagDocuments';
         }
 
-        console.log('Upload type:', uploadType);
 
         // Check if the file type is allowed
         if (allowedMimeTypes[uploadType].includes(file.mimetype)) {

@@ -33,7 +33,6 @@ export const fetchTaskById = async (id) => {
     try {
         // In a real app, we would fetch from the backend
         const response = await api.get(`/tasks/${id}`);
-        console.log(response.data.data);
         
         return response.data.data;
  
@@ -55,7 +54,6 @@ export const fetchTasksByProject = async (projectId) => {
         // In a real app, we would fetch from the backend
         const response = await api.get(`/projects/${projectId}/tasks`);
           // return response.data;
-          console.log("Full response data:", response.data);
 
         return {
            data: response.data.data, 
@@ -85,7 +83,6 @@ export const createTask = async (taskData, token) => {
   try {
     const isFormData = taskData instanceof FormData;
 
-    console.log('Creating task with data:', taskData);
 
     const response = await api.post('/tasks', taskData, {
       headers: {
@@ -257,7 +254,6 @@ export const updateTaskTime = async (id, timeData, token) => {
  */
 export const uploadTagDocument = async (taskId, formData, token) => {
     try {
-        console.log('Uploading document with FormData');
 
         // Log all FormData entries
         for (let [key, value] of formData.entries()) {
@@ -271,7 +267,6 @@ export const uploadTagDocument = async (taskId, formData, token) => {
             }
         });
 
-        console.log('Upload response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error uploading document:', error.response?.data || error);

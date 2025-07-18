@@ -175,7 +175,7 @@ const ClientDetails = () => {
   };
 
   // ProjectCard logic (inline, not imported)
-  const ProjectCard = ({ project }) => {
+ const ProjectCard = ({ project }) => {
     const getDaysRemaining = () => {
       if (!project.dueDate) {
         return { text: "No due date", className: "text-gray-500" };
@@ -196,12 +196,13 @@ const ClientDetails = () => {
     return (
       <Link
         to={`/projects/${project.id || project._id}`}
-        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 h-full"
       >
-        <div className="p-5">
-          <div className="flex justify-between items-start">
-            <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+        <div className="p-5 h-full flex flex-col">
+          {/* Header Section - Fixed Height */}
+          <div className="h-16 flex justify-between items-start mb-3">
+            <h3 className="text-lg font-medium text-gray-900 flex-1 pr-3 line-clamp-2 overflow-hidden">{project.name}</h3>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
               project.status?.toLowerCase() === "completed"
                 ? "bg-green-100 text-green-800"
                 : project.status?.toLowerCase() === "in progress"
@@ -215,40 +216,56 @@ const ClientDetails = () => {
                 : "bg-gray-100 text-gray-800"
             }`}>{project.status}</span>
           </div>
-          <p className="mt-1 text-sm text-gray-600">
-            {project.client ? project.client.name : "No client assigned"}
-          </p>
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-1">
+          
+          {/* Client Section - Fixed Height */}
+          <div className="h-8 ">
+            <p className="text-sm text-gray-600 truncate">
+              {project.client ? project.client.name : "No client assigned"}
+            </p>
+          </div>
+          
+          {/* Progress Section - Fixed Height */}
+          <div className="h-16">
+            <div className="flex justify-between items-center ">
               <span className="text-sm font-medium text-gray-700">Progress</span>
               <span className="text-sm font-medium text-gray-700">
-                {project.completionPercentage}%
+                {project.completionPercentage || 0}%
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-[#1c6ead] h-2 rounded-full"
-                style={{ width: `${project.completionPercentage}%` }}
+                className="bg-[#1c6ead] h-2 rounded-full transition-all duration-300"
+                style={{ width: `${project.completionPercentage || 0}%` }}
               ></div>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-gray-500">Start Date</p>
-              <p className="font-medium">
-                {project.startDate ? new Date(project.startDate).toLocaleDateString() : "No start date"}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Due Date</p>
-              <p className="font-medium flex items-center">
-                {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "No due date"}
-                <span className={`ml-2 text-xs ${daysRemaining.className}`}>{daysRemaining.text}</span>
-              </p>
+          
+          {/* Dates Section - Fixed Height */}
+          <div className="h-20 mb-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-500 mb-1">Start Date</p>
+                <p className="font-medium h-5 truncate">
+                  {project.startDate ? new Date(project.startDate).toLocaleDateString() : "No start date"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 mb-1">Due Date</p>
+                <div className="h-5 flex items-center">
+                  <p className="font-medium truncate">
+                    {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "No due date"}
+                  </p>
+                </div>
+                <div className="mt-1 h-3">
+                  <span className={`text-xs ${daysRemaining.className}`}>{daysRemaining.text}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex justify-between items-center">
+          
+          {/* Footer Section - Fixed Height */}
+          <div className="mt-auto pt-4 border-t border-gray-100 h-16">
+            <div className="flex justify-between items-center h-full">
               <div className="flex items-center">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   project.priority?.toLowerCase() === "high"
@@ -275,7 +292,7 @@ const ClientDetails = () => {
                         <img
                           src={member.avatar}
                           alt={member.name}
-                          className="w-full h-full rounded-full"
+                          className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
                         member.name.charAt(0)
@@ -742,7 +759,7 @@ const ClientDetails = () => {
           ) : projectsError ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{projectsError}</div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {projects.length === 0 ? (
                 <div className="col-span-full text-center text-gray-500">No projects found for this client.</div>
               ) : (

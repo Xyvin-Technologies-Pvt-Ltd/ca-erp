@@ -37,7 +37,8 @@ const getRecentActivities = async (req, res) => {
         user: {
           name: activity.user?.name || 'Unknown',
           avatar: activity.user?.avatar || null
-        }
+        },
+        project: activity.project // Include project field
       }))
     });
   } catch (error) {
@@ -50,10 +51,24 @@ const getRecentActivities = async (req, res) => {
 const getEntityActivities = async (req, res) => {
   try {
     const { entityType, entityId } = req.params;
-    const activities = await Activity.find({ entityType, entityId })
-      .populate('user', 'name avatar')
-      .sort({ timestamp: -1 });
-
+    let activities;
+    if (entityType === 'project') {
+      // Fetch project activities and all task activities for this project
+      activities = await Activity.find({
+        $or: [
+          { entityType: 'project', entityId },
+          { entityType: 'task', project: entityId },
+          { entityType: 'document', project: entityId }
+        ]
+      })
+        .populate('user', 'name avatar')
+        .sort({ timestamp: -1 });
+    } else {
+      // Default: fetch activities for the given entity
+      activities = await Activity.find({ entityType, entityId })
+        .populate('user', 'name avatar')
+        .sort({ timestamp: -1 });
+    }
     res.json({ activities });
   } catch (error) {
     console.error('Error fetching entity activities:', error);

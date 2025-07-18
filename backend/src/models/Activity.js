@@ -7,6 +7,7 @@ const activitySchema = new mongoose.Schema({
     enum: [
       'task_created',
       'task_completed',
+      'task_deleted',
       'client_added',
       'project_created',
       'project_updated',
@@ -15,8 +16,12 @@ const activitySchema = new mongoose.Schema({
       'document_uploaded',
       'task_updated',
       'reminder_sent',
+
       'cronjob_created',
-      'cronjob_executed'
+      'cronjob_executed',
+
+      'task_time_entry'
+
     ]
   },
   title: {
@@ -47,6 +52,11 @@ const activitySchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
+  },
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+    required: false
   }
 });
 

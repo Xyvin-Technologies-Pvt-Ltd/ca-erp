@@ -101,7 +101,6 @@ const Projects = () => {
 
       const taskList = Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
 
-      console.log("Tasks:", taskList);
 
       const taskProjectIds = new Set(taskList.map(task => task.project?._id).filter(Boolean));
 
@@ -176,7 +175,6 @@ const Projects = () => {
     return () => clearTimeout(timer);
   };
 
-  console.log(projects, "for leave projects");
 
   if (loading) {
     return (
@@ -329,7 +327,7 @@ const Projects = () => {
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"}`}
                           whileHover={{ scale: 1.05 }}
                         >
-                          <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status].split(' ')[0]}`}></span>
+                          <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status]?.split(' ')[0]}`}></span>
                           {project.status}
                         </motion.span>
                       </div>
@@ -358,12 +356,12 @@ const Projects = () => {
                       <div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-blue-600">
-                            {project.tasks && project.tasks.length > 0
-                              ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
+                            {project.totalTasks && project.totalTasks > 0
+                              ? Math.round((project.completedTasks || 0) / project.totalTasks * 100)
                               : 0}% Complete
                           </span>
                           <span className="text-xs font-medium text-gray-500">
-                            {project.completedTasks || 0} / {project.tasks ? project.tasks.length : 0} Tasks
+                            {project.completedTasks || 0} / {project.totalTasks || 0} Tasks
                           </span>
                         </div>
                         <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -371,11 +369,9 @@ const Projects = () => {
                             className="h-2 rounded-full bg-[#1c6ead]"
                             initial={{ width: 0 }}
                             animate={{
-                              width: `${
-                                project.tasks && project.tasks.length > 0
-                                  ? Math.round((project.completedTasks || 0) / project.tasks.length * 100)
-                                  : 0
-                              }%`,
+                              width: `${project.totalTasks && project.totalTasks > 0
+                                ? Math.round((project.completedTasks || 0) / project.totalTasks * 100)
+                                : 0}%`,
                             }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
                           />

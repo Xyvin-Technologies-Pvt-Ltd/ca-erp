@@ -165,7 +165,6 @@ const TaskDetail = () => {
 
     loadTask();
   }, [id, refresh]);
-  // console.log(task,'ggf');
   
 
    
@@ -174,7 +173,6 @@ const TaskDetail = () => {
     try {
       setLoading(true);
       const updatedTask = await updateTask(id, { ...task, status: newStatus });
-      console.log("API returned updated task:", updatedTask);
 
       setTask(prevTask => ({
         ...prevTask,
@@ -267,7 +265,6 @@ const TaskDetail = () => {
         assignedTo: task.assignedTo ? task.assignedTo._id : '',
       };
 
-      console.log("Updated Task:", updatedTask);
 
       const updatedTaskResponse = await updateTask(id, updatedTask,token);
 
@@ -577,11 +574,11 @@ const TaskDetail = () => {
         {/* Header with back button and actions */}
         <div className="mb-8 flex items-center justify-between">
           <button
-            onClick={() => navigate("/tasks")}
+            onClick={() => navigate(-1)}
             className="flex items-center text-[#1c6ead] hover:text-blue-800 transition-all duration-200 hover:scale-105"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span className="font-medium">Back to Tasks</span>
+            <span className="font-medium">Back</span>
           </button>
           <div className="flex space-x-3">
             <button
@@ -1349,7 +1346,6 @@ const TaskDetail = () => {
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
-                            console.log("Selected file:", file);
                             setNewAttachment({
                               ...newAttachment,
                               name: file.name,

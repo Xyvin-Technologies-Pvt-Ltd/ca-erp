@@ -16,7 +16,6 @@ const webhookService = require('../services/webhookService');
  */
 exports.getTasks = async (req, res, next) => {
     try {
-        console.log(req.query.status, req.query.project,"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
@@ -188,12 +187,9 @@ exports.getTask = async (req, res, next) => {
  */
 exports.createTask = async (req, res, next) => {
     try {
-        console.log('req.body (createTask):', req.body);
         req.body.createdBy = req.user.id;
         let project;
 
-        // console.log("BODY:", req.body);
-        // console.log("FILE:", req.file);
         if (req.file) {
             const file = {
                 name: req.file.originalname,
@@ -221,7 +217,6 @@ exports.createTask = async (req, res, next) => {
             req.body.amount = 0; // Explicitly set default if not provided
             console.warn('No amount provided, defaulting to 0');
         }
-        console.log('Final amount to save (createTask):', req.body.amount);
 
         // Validate assigned user
         if (req.body.assignedTo) {
@@ -253,7 +248,6 @@ exports.createTask = async (req, res, next) => {
             }
             req.body.taskNumber = `TSK-${year}${month}-${sequence}`;
         }
-              console.log(req.body)
         // Create task
         const task = await Task.create(req.body);
         logger.info(`Task created: ${task.title} (${task._id}) by ${req.user.name} (${req.user._id})`);
@@ -298,6 +292,12 @@ exports.createTask = async (req, res, next) => {
                 // Note: We don't fail the task creation if notification fails
             }
         }
+            try {
+                await ActivityTracker.trackTaskCreated(task, req.user._id);
+                logger.info(`Activity tracked for project creation ${task._id}`);
+              } catch (activityError) {
+                logger.error(`Failed to track activity for project creation ${task._id}: ${activityError.message}`);
+              }
 
         res.status(201).json({
             success: true,
@@ -314,170 +314,254 @@ exports.createTask = async (req, res, next) => {
  * @route   PUT /api/tasks/:id
  * @access  Private
  */
+// Helper to format values for activity log
+function formatValueForLog(value) {
+    if (value === null || value === undefined) return 'none';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value.toString();
+    if (value instanceof Date) return value.toISOString().split('T')[0];
+    if (Array.isArray(value)) {
+        if (value.length === 0) return '[]';
+        if (typeof value[0] === 'object') {
+            // Try to show a summary of key fields
+            return '[' + value.map(v => v?.name || v?.title || v?.email || v?.id || v?._id || 'object').join(', ') + ']';
+        }
+        return JSON.stringify(value);
+    }
+    if (typeof value === 'object') {
+        // Try to show key fields for known object types
+        if (value.name) return value.name;
+        if (value.title) return value.title;
+        if (value.email) return value.email;
+        if (value._id) return value._id.toString();
+        // For Maps, show keys
+        if (value instanceof Map) return `[${Array.from(value.keys()).join(', ')}]`;
+        // For other objects, show JSON summary of keys
+        return JSON.stringify(value);
+    }
+    return value.toString();
+}
+
+// Helper to get user name from id or object
+async function getUserName(userIdOrObj) {
+    if (!userIdOrObj) return '';
+    if (typeof userIdOrObj === 'object' && userIdOrObj.name) return userIdOrObj.name;
+    try {
+        const user = await User.findById(userIdOrObj).select('name');
+        return user ? user.name : userIdOrObj.toString();
+    } catch {
+        return userIdOrObj.toString();
+    }
+}
+
+// List of fields to include in activity log (user-meaningful fields)
+const ACTIVITY_FIELDS = [
+    'title', 'description', 'status', 'dueDate', 'assignedTo', 'priority', 'comments', 'attachments', 'subtasks', 'amount', 'timeTracking', 'estimatedHours'
+];
+
 exports.updateTask = async (req, res, next) => {
     try {
+        if (req.suppressTaskUpdateActivity) {
+            // Skip generic update activity if suppressed by another action
+            return res.status(200).json({ success: true, data: null });
+        }
         const taskId = req.params.id;
-        console.log('req.body (updateTask):', req.body);
-        let task = await Task.findById(taskId);
+        let task = await Task.findById(taskId)
+            .populate('project', 'name')
+            .populate('assignedTo', 'name email')
+            .populate('createdBy', 'name email');
 
         if (!task) {
             return next(new ErrorResponse(`Task not found with id of ${taskId}`, 404));
         }
 
-        // Check access - only admin and assigned users can update
-        // if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id.toString()) {
-        //     return next(new ErrorResponse(`User not authorized to update this task`, 403));
-        // }
-
-        // Handle soft delete - remove task from project and clean up team
-        if (req.body.deleted === true) {
-            const project = await Project.findById(task.project);
-            if (project) {
-                // Remove task from project's tasks array
-                project.tasks = project.tasks.filter(taskId => taskId.toString() !== task._id.toString());
-                
-                // Check if assigned user has other active tasks in this project
-                if (task.assignedTo) {
-                    const remainingTasks = await Task.countDocuments({
-                        project: task.project,
-                        assignedTo: task.assignedTo,
-                        _id: { $ne: task._id },
-                        deleted: { $ne: true }
-                    });
-                    
-                    // Remove user from team if no other active tasks
-                    if (remainingTasks === 0) {
-                        project.team = project.team.filter(memberId => 
-                            memberId.toString() !== task.assignedTo.toString()
-                        );
-                    }
-                }
-                
-                await project.save();
-            }
-        }
-
-        // Process file if uploaded
+        // --- Begin: Handle file upload and attachments accumulation ---
         if (req.file) {
             const file = {
                 name: req.file.originalname,
                 size: req.file.size,
                 fileUrl: req.file.path.replace(/\\/g, '/'),
                 fileType: req.file.mimetype,
+                uploadedAt: new Date()
             };
-            req.body.attachments = [...(task.attachments || []), file];
+            // Always merge with existing attachments
+            let currentAttachments = Array.isArray(task.attachments) ? [...task.attachments] : [];
+            currentAttachments.push(file);
+            req.body.attachments = currentAttachments;
         }
-
-        // Validate project if changed
-        if (req.body.project && req.body.project !== task.project?.toString()) {
-            const project = await Project.findById(req.body.project);
-            if (!project) {
-                return next(new ErrorResponse(`Project not found with id of ${req.body.project}`, 404));
+        // If attachments is a string (e.g., "[]"), convert to array
+        if (typeof req.body.attachments === 'string') {
+            try {
+                const parsed = JSON.parse(req.body.attachments);
+                req.body.attachments = Array.isArray(parsed) ? parsed : [];
+            } catch {
+                req.body.attachments = [];
             }
         }
+        // --- End: Handle file upload and attachments accumulation ---
 
-        // Validate assigned user if changed
-        if (req.body.assignedTo && req.body.assignedTo !== task.assignedTo?.toString()) {
-            const user = await User.findById(req.body.assignedTo);
-            if (!user) {
-                return next(new ErrorResponse(`User not found with id of ${req.body.assignedTo}`, 404));
-            }
-        }
-      // Handle amount explicitly
-    if ('amount' in req.body) {
-      req.body.amount = parseFloat(req.body.amount);
-      if (isNaN(req.body.amount) || req.body.amount < 0) {
-        console.error('Invalid amount received (update):', req.body.amount);
-        return next(new ErrorResponse('Amount must be a non-negative number', 400));
-      }
-    } else {
-      req.body.amount = task.amount; // Retain existing amount
-      console.warn('No amount provided in update, retaining previous value:', task.amount);
-    }
-    console.log('Final amount to save (updateTask):', req.body.amount);
+        // Merge original and incoming for comparison
+        const originalTaskObj = task.toObject();
+        const mergedTaskObj = { ...originalTaskObj, ...req.body };
 
-        const isNewAssignment = req.body.assignedTo && (!task.assignedTo || task.assignedTo.toString() !== req.body.assignedTo.toString());
-
-        // Track changes
+        // Only compare fields that are in req.body and are user-meaningful
         const changedFields = Object.keys(req.body).filter(key => {
-            if (key === 'assignedTo') return false;
-            if (typeof task[key] === 'object' && task[key] && req.body[key]) {
-                return task[key].toString() !== req.body[key].toString();
-            }
-            return task[key] !== req.body[key];
+            if (!ACTIVITY_FIELDS.includes(key)) return false;
+            const oldVal = formatValueForLog(originalTaskObj[key]);
+            const newVal = formatValueForLog(mergedTaskObj[key]);
+            return oldVal !== newVal;
         });
 
         // Update task
         task = await Task.findByIdAndUpdate(taskId, req.body, {
             new: true,
             runValidators: true,
-        }).populate('project', 'name projectNumber').populate('assignedTo', 'name email');
+        })
+            .populate('project', 'name')
+            .populate('assignedTo', 'name email')
+            .populate('createdBy', 'name email');
 
-        logger.info(`Task updated: ${task.title} (${task._id}) by ${req.user.name} (${req.user._id})`);
-
-        const sendTaskNotification = async (userId, sender, task, notificationType, title, message) => {
-            try {
-                const notification = await Notification.create({
-                    user: userId,
-                    sender: sender.id,
-                    title,
-                    message,
-                    type: notificationType
-                });
-
-                websocketService.sendToUser(userId.toString(), {
-                    type: 'notification',
-                    data: {
-                        _id: notification._id,
-                        title: notification.title,
-                        message: notification.message,
-                        type: notification.type,
-                        read: notification.read,
-                        createdAt: notification.createdAt,
-                        sender: {
-                            _id: sender._id,
-                            name: sender.name,
-                            email: sender.email
-                        },
-                        taskId: task._id,
-                        taskNumber: task.taskNumber,
-                        priority: task.priority,
-                        status: task.status,
-                        projectId: task.project?._id
+        // Build concise, readable change summary
+        let changesSummaryArr = [];
+        let commentAdded = false;
+        let subtaskAdded = false;
+        let attachmentAdded = false;
+        for (const field of changedFields) {
+            let oldVal = originalTaskObj[field];
+            let newVal = mergedTaskObj[field];
+            if (field === 'assignedTo') {
+                oldVal = await getUserName(originalTaskObj[field]);
+                newVal = await getUserName(mergedTaskObj[field]);
+                if (oldVal === newVal) continue;
+            } else if (field === 'comments') {
+                const oldArr = Array.isArray(originalTaskObj[field]) ? originalTaskObj[field] : [];
+                const newArr = Array.isArray(mergedTaskObj[field]) ? mergedTaskObj[field] : [];
+                if (newArr.length > oldArr.length) {
+                    const added = newArr.slice(oldArr.length);
+                    for (const comment of added) {
+                        changesSummaryArr.push(`comment added: "${comment.text || comment.content || '[no text]'}"`);
+                        commentAdded = true;
                     }
-                });
-            } catch (error) {
-                logger.error(`Notification error: ${error.message}`);
+                } else if (newArr.length < oldArr.length) {
+                    changesSummaryArr.push(`comments: ${oldArr.length - newArr.length} comment(s) removed`);
+                    commentAdded = true;
+                }
+                continue;
+            } else if (field === 'subtasks') {
+                const oldArr = Array.isArray(originalTaskObj[field]) ? originalTaskObj[field] : [];
+                const newArr = Array.isArray(mergedTaskObj[field]) ? mergedTaskObj[field] : [];
+                if (newArr.length > oldArr.length) {
+                    const added = newArr.slice(oldArr.length);
+                    for (const subtask of added) {
+                        changesSummaryArr.push(`subtask added: "${subtask.title || subtask.name || subtask.id || '[no title]'}"`);
+                        subtaskAdded = true;
+                    }
+                } else if (newArr.length < oldArr.length) {
+                    changesSummaryArr.push(`subtasks: ${oldArr.length - newArr.length} subtask(s) removed`);
+                    subtaskAdded = true;
+                }
+                continue;
+            } else if (field === 'attachments') {
+                const oldArr = Array.isArray(originalTaskObj[field]) ? originalTaskObj[field] : [];
+                const newArr = Array.isArray(mergedTaskObj[field]) ? mergedTaskObj[field] : [];
+                if (newArr.length > oldArr.length) {
+                    const added = newArr.slice(oldArr.length);
+                    for (const attachment of added) {
+                        changesSummaryArr.push(`attachment added: "${attachment.name || attachment.fileName || '[no name]'}"`);
+                        attachmentAdded = true;
+                    }
+                } else if (newArr.length < oldArr.length) {
+                    changesSummaryArr.push(`attachments: ${oldArr.length - newArr.length} attachment(s) removed`);
+                    attachmentAdded = true;
+                }
+                continue;
+            } else if (field === 'dueDate') {
+                // Only log dueDate if it actually changed (ignore time if only date is relevant)
+                const oldDate = oldVal ? new Date(oldVal) : null;
+                const newDate = newVal ? new Date(newVal) : null;
+                if (
+                    oldDate && newDate &&
+                    oldDate.getFullYear() === newDate.getFullYear() &&
+                    oldDate.getMonth() === newDate.getMonth() &&
+                    oldDate.getDate() === newDate.getDate()
+                ) {
+                    continue; // skip if only time changed
+                }
+                oldVal = oldDate ? oldDate.toISOString().split('T')[0] : oldVal;
+                newVal = newDate ? newDate.toISOString().split('T')[0] : newVal;
+                if (oldVal === newVal) continue;
+            } else {
+                oldVal = formatValueForLog(originalTaskObj[field]);
+                newVal = formatValueForLog(mergedTaskObj[field]);
+                if (oldVal === newVal) continue;
             }
-        };
+            changesSummaryArr.push(`${field}: ${oldVal} → ${newVal}`);
+        }
+        // If a comment, subtask, or attachment was added, suppress all other changes in the summary
+        if (commentAdded) {
+            changesSummaryArr = changesSummaryArr.filter(s => s.startsWith('comment'));
+        } else if (subtaskAdded) {
+            changesSummaryArr = changesSummaryArr.filter(s => s.startsWith('subtask'));
+        } else if (attachmentAdded) {
+            changesSummaryArr = changesSummaryArr.filter(s => s.startsWith('attachment'));
+        }
+        // If only one field changed, only show that field
+        if (changesSummaryArr.length === 1) {
+            // already only one
+        }
+        // If dueDate is the only change and not meaningful, don't log
+        if (changesSummaryArr.length === 0) {
+            return res.status(200).json({ success: true, data: task });
+        }
+        const changesSummary = changesSummaryArr.join(', ');
 
-        if (task.assignedTo) {
-            const userId = task.assignedTo._id || task.assignedTo;
-
-            if (isNewAssignment) {
-                await sendTaskNotification(
-                    userId,
-                    req.user,
-                    task,
-                    'TASK_REASSIGNED',
-                    `Task Reassigned: ${task.title}`,
-                    `You have been assigned to the task "${task.title}"`
-                );
-            } else if (changedFields.length > 0) {
-                const changesSummary = changedFields.map(field => {
-                    const oldVal = task[field] ? task[field].toString() : 'none';
-                    const newVal = req.body[field] ? req.body[field].toString() : 'none';
-                    return `${field}: ${oldVal} → ${newVal}`;
-                }).join(', ');
-
-                await sendTaskNotification(
-                    userId,
-                    req.user,
-                    task,
-                    'TASK_UPDATED',
-                    `Task Updated: ${task.title}`,
-                    `The task "${task.title}" has been updated. Changes: ${changesSummary}`
-                );
+        // Only log if there are actual changes
+        if (changesSummaryArr.length > 0) {
+            await ActivityTracker.track({
+                type: 'task_updated',
+                title: 'Task Updated',
+                description: `Task "${task.title}" was updated. Changes: ${changesSummary}`,
+                entityType: 'task',
+                entityId: task._id,
+                userId: req.user._id,
+                link: `/tasks/${task._id}`,
+                project: task.project?._id
+            });
+            // Send notification to assigned user if exists
+            if (task.assignedTo) {
+                try {
+                    const notification = await Notification.create({
+                        user: task.assignedTo,
+                        sender: req.user.id,
+                        title: `Task Updated: ${task.title}`,
+                        message: `Task "${task.title}" has been updated.`,
+                        type: 'TASK_UPDATED'
+                    });
+                    logger.info(`Notification created for user ${task.assignedTo} for task update ${task._id}`);
+                    // Send WebSocket notification
+                    websocketService.sendToUser(task.assignedTo.toString(), {
+                        type: 'notification',
+                        data: {
+                            _id: notification._id,
+                            title: notification.title,
+                            message: notification.message,
+                            type: notification.type,
+                            read: notification.read,
+                            createdAt: notification.createdAt,
+                            sender: {
+                                _id: req.user._id,
+                                name: req.user.name,
+                                email: req.user.email
+                            },
+                            taskId: task._id,
+                            taskNumber: task.taskNumber,
+                            priority: task.priority,
+                            status: task.status,
+                            projectId: task.project?._id
+                        }
+                    });
+                } catch (notificationError) {
+                    logger.error(`Failed to create notification for task update ${task._id}: ${notificationError.message}`);
+                }
             }
         }
 
@@ -531,6 +615,22 @@ exports.deleteTask = async (req, res, next) => {
         logger.info(`Task deleted: ${task.title} (${task._id}) by ${req.user.name} (${req.user._id})`);
 
         await task.deleteOne();
+
+        // Log the task deletion activity
+        try {
+            await ActivityTracker.track({
+                type: 'task_deleted',
+                title: 'Task Deleted',
+                description: `Task "${task.title}" was deleted`,
+                entityType: 'task',
+                entityId: task._id,
+                userId: req.user._id,
+                link: `/tasks`,
+                project: task.project
+            });
+        } catch (activityError) {
+            logger.error(`Failed to track activity for task deletion ${task._id}: ${activityError.message}`);
+        }
 
         res.status(200).json({
             success: true,
@@ -695,6 +795,7 @@ exports.updateTaskTime = async (req, res, next) => {
         task.updatedBy = req.user.id;
 
         await task.save();
+        req.suppressTaskUpdateActivity = true; // Suppress generic update activity
 
         // Populate the user in the newly added time entry
         const populatedTask = await Task.findById(req.params.id)
@@ -708,6 +809,22 @@ exports.updateTaskTime = async (req, res, next) => {
 
         // Log the time entry addition
         logger.info(`Time entry added to task ${task.title} (${task._id}) by ${req.user.name} (${req.user._id}): ${hours} hours`);
+
+        // Activity log for time entry
+        try {
+            await ActivityTracker.track({
+                type: 'task_time_entry',
+                title: 'Time Entry Added',
+                description: `Time entry of ${hours} hour(s) added to task "${task.title}": ${description}`,
+                entityType: 'task',
+                entityId: task._id,
+                userId: req.user._id,
+                link: `/tasks/${task._id}`,
+                project: task.project
+            });
+        } catch (activityError) {
+            logger.error(`Failed to track activity for time entry: ${activityError.message}`);
+        }
 
         res.status(200).json({
             success: true,
@@ -882,13 +999,29 @@ exports.uploadTagDocument = async (req, res, next) => {
                 uploadedAt: new Date()
             };
 
-            console.log('Saving document info:', documentInfo);
 
             // Set the document in the Map
             task.tagDocuments.set(documentKey, documentInfo);
             task.markModified('tagDocuments');
 
             await task.save();
+            req.suppressTaskUpdateActivity = true; // Suppress generic update activity
+
+            // Activity log for tag document upload
+            try {
+                await ActivityTracker.track({
+                    type: 'document_uploaded',
+                    title: 'Tag Document Uploaded',
+                    description: `Tag document "${req.file.originalname}" uploaded for task "${task.title}"`,
+                    entityType: 'task',
+                    entityId: task._id,
+                    userId: req.user._id,
+                    link: `/tasks/${task._id}`,
+                    project: task.project
+                });
+            } catch (activityError) {
+                logger.error(`Failed to track activity for tag document upload: ${activityError.message}`);
+            }
 
             res.status(200).json({
                 success: true,

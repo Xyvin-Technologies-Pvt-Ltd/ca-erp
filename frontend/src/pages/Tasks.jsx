@@ -56,14 +56,11 @@ const Tasks = () => {
   const loadTasksAndProjects = async () => {
     try {
       setLoading(true);
-      console.log("Filters sent to fetchTasks:", { ...filters, page: currentPage, limit: 10 });
       const [tasksData, projectsData] = await Promise.all([
         fetchTasks({ ...filters, page: currentPage, limit: 10 }),
         fetchProjects(),
       ]);
 
-      console.log("Tasks received:", tasksData.tasks);
-      console.log("Projects received:", projectsData.data);
 
       setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
       setProjects(Array.isArray(projectsData.data) ? projectsData.data : []);

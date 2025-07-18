@@ -29,7 +29,11 @@ const AvatarWithFallback = ({ name, src, size }) => {
          }}
         />
       ) : (
-        <User className="w-5 h-5 text-white" />
+        <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
+               <span class="text-white font-medium text-sm">
+               {name?.charAt(0).toUpperCase() || ''}
+               </span>
+           </div>
       )}
     </div>
   );

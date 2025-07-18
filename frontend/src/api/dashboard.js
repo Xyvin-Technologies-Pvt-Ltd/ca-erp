@@ -29,7 +29,6 @@ export const fetchDashboardData = async (userId) => {
     ]);
 
 
-    console.log(projects,"project is this");
     const completedProjects = projects.data.filter((project) => project.status === "completed");
     // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
 
@@ -46,13 +45,10 @@ export const fetchDashboardData = async (userId) => {
       dueDate: new Date(pro.dueDate).toLocaleDateString('en-GB'),
     }));
 
-    // console.log(tasksRes.total);
 
-    console.log('Tasks from API:', tasksRes.tasks);
 
     const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
       const status = task.status.toLowerCase();
-      console.log('Processing task status:', status); // Debug log
       
       let statusKey;
       switch (status) {
@@ -77,7 +73,6 @@ export const fetchDashboardData = async (userId) => {
         acc[statusKey] = 0;
       }
       acc[statusKey]++;
-      console.log('Current counts:', acc); // Debug log
       return acc;
     }, {});
 

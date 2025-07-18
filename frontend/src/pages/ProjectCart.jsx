@@ -10,7 +10,6 @@ const ProjectCart = () => {
     try {
       setLoading(true);
       const data = await projectsApi.getAllProjects();
-      console.log(data, "all projects");
       if (!data?.data || !Array.isArray(data.data)) {
         throw new Error('Invalid API response format');
       }

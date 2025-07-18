@@ -256,7 +256,6 @@ exports.createLeave = catchAsync(async (req, res) => {
 
   try {
     const hrUsers = await Employee.find({ role: { $regex: 'admin', $options: 'i' } }).select('_id name');
-    console.log('HR Users:', hrUsers);
 
     for (const hr of hrUsers) {
       const notification = await Notification.create({
@@ -353,9 +352,7 @@ exports.deleteLeave = catchAsync(async (req, res) => {
 // Approve/Reject leave request
 exports.reviewLeave = catchAsync(async (req, res) => {
   try {
-    console.log('\n=== LEAVE REVIEW PROCESS STARTED ===');
     const { status, reviewNotes } = req.body;
-    console.log('Request body:', { status, reviewNotes, leaveId: req.params.id });
 
     // Validate required fields
     if (!status || !reviewNotes) {
@@ -364,7 +361,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
 
     // Normalize status to match the model's enum values
     const normalizedStatus = status.toLowerCase() === 'approved' ? 'Approved' : 'Rejected';
-    console.log('Normalized status:', normalizedStatus);
     
     if (!['Approved', 'Rejected'].includes(normalizedStatus)) {
       throw createError(400, 'Invalid status. Status must be either Approved or Rejected');
@@ -404,12 +400,10 @@ exports.reviewLeave = catchAsync(async (req, res) => {
       
       // If changing from Approved to Rejected, delete any existing attendance records
       if (leave.status === 'Approved' && normalizedStatus === 'Rejected') {
-        console.log('Deleting existing attendance records for the rejected leave...');
         await Attendance.deleteMany({
           leaveId: leave._id,
           isLeave: true
         });
-        console.log('Existing attendance records deleted');
       }
     }
 
@@ -429,13 +423,11 @@ exports.reviewLeave = catchAsync(async (req, res) => {
 
     // If approved, create attendance records
     if (normalizedStatus === 'Approved') {
-      console.log('\n=== STARTING ATTENDANCE CREATION ===');
       
       try {
         // Calculate date range
         const startDate = new Date(leave.startDate);
         const endDate = new Date(leave.endDate);
-        console.log('Original dates:', { startDate, endDate });
 
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           throw createError(400, 'Invalid leave dates');
@@ -451,7 +443,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
         });
 
         // Delete any existing attendance records for this leave
-        console.log('Removing any existing attendance records for this leave...');
         await Attendance.deleteMany({
           leaveId: leave._id,
           isLeave: true
@@ -469,7 +460,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
 
         if (existingAttendance.length > 0) {
           // Delete overlapping regular attendance records
-          console.log('Removing overlapping regular attendance records...');
           await Attendance.deleteMany({
             employee: leave.employee._id,
             isLeave: false,
@@ -488,7 +478,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        console.log(`Will create ${dates.length} attendance records`);
 
         // Create attendance records for each day
         const createdRecords = [];
@@ -498,7 +487,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
             const attendanceDate = new Date(currentDate);
             attendanceDate.setHours(0, 0, 0, 0);
 
-            console.log(`Creating attendance for date: ${attendanceDate.toISOString()}`);
             
             const attendanceData = {
               employee: leave.employee._id,
@@ -517,7 +505,6 @@ exports.reviewLeave = catchAsync(async (req, res) => {
               breaks: []
             };
 
-            console.log('Creating leave attendance record:', attendanceData);
             
             const attendance = await Attendance.create(attendanceData);
             console.log('Leave attendance created:', {
@@ -549,11 +536,9 @@ exports.reviewLeave = catchAsync(async (req, res) => {
           throw createError(500, 'Failed to create any attendance records');
         }
 
-        console.log(`Successfully created ${createdRecords.length} attendance records`);
 
         // Update leave duration
         leave.duration = createdRecords.length;
-        console.log('Updated leave duration:', leave.duration);
 
       } catch (error) {
         console.error('Attendance creation failed:', {
@@ -574,13 +559,10 @@ exports.reviewLeave = catchAsync(async (req, res) => {
       isRead: false
     });
 
-    console.log('Notification sent to employee about leave review');
 
     // Save the updated leave
     await leave.save();
-    console.log('Leave request updated successfully');
 
-    console.log('=== LEAVE REVIEW PROCESS COMPLETED ===\n');
 
 
     // Send Notification to the employee

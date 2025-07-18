@@ -13,7 +13,6 @@ const ActivityTracker = require('../utils/activityTracker');
  */
 exports.getDocuments = async (req, res, next) => {
     try {
-        console.log('Query:', req.query, req.user.role);
 
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
@@ -208,20 +207,13 @@ exports.createDocument = async (req, res, next) => {
         logger.info(`Document created: ${document.name} (${document._id}) by ${req.user.name} (${req.user._id})`);
 
          // Track activity
-    try {
-        await ActivityTracker.track({
-          type: 'document_uploaded',
-          title: 'Document Uploaded',
-          description: `Document "${document.name}" was uploaded${req.body.project ? ` to project "${req.body.project}"` : ''}`,
-          entityType: 'document',
-          entityId: document._id,
-          userId: req.user._id,
-          link: `/documents/${document._id}`,
-        });
-        logger.info(`Activity tracked for document creation ${document._id}`);
-      } catch (activityError) {
-        logger.error(`Failed to track activity for document creation ${document._id}: ${activityError.message}`);
-      }
+        try {
+            await ActivityTracker.trackDocumentUploaded(document, req.user._id);
+                logger.info(`Activity tracked for project creation ${document._id}`);
+              } catch (activityError) {
+                logger.error(`Failed to track activity for project creation ${document._id}: ${activityError.message}`);
+              }
+
         res.status(201).json({
             success: true,
             data: document,
@@ -267,7 +259,6 @@ exports.updateDocument = async (req, res, next) => {
                     fs.unlinkSync(oldFilePath);
                 }
             }
-            console.log(req.file,"44444444444444444444")
             req.body.CreatedBy  = req.user.id;
             req.body.fileUrl = `/uploads/documents/${req.file.filename}`;
             req.body.fileType = req.file.mimetype;
@@ -429,10 +420,6 @@ exports.downloadDocument = async (req, res, next) => {
         }
 
         const filePath = path.join(__dirname, '../../public', document.fileUrl);
-        console.log('📂 document.fileUrl:', document.fileUrl);
-        console.log('📁 Resolved file path:', filePath);
-        console.log('📂 File exists:', fs.existsSync(filePath));
-
         if (!fs.existsSync(filePath)) {
             return next(new ErrorResponse(`File not found`, 404));
         }
