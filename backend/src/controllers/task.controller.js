@@ -1000,6 +1000,17 @@ exports.uploadTagDocument = async (req, res, next) => {
             };
 
 
+            // Check if a document with this key already exists in the Map
+            let isReupload = false;
+            let oldFileName = null;
+            if (task.tagDocuments instanceof Map && task.tagDocuments.has(documentKey)) {
+                const oldDoc = task.tagDocuments.get(documentKey);
+                oldFileName = oldDoc?.fileName || null;
+                if (oldFileName && oldFileName !== req.file.originalname) {
+                    isReupload = true;
+                }
+            }
+
             // Set the document in the Map
             task.tagDocuments.set(documentKey, documentInfo);
             task.markModified('tagDocuments');
@@ -1007,18 +1018,31 @@ exports.uploadTagDocument = async (req, res, next) => {
             await task.save();
             req.suppressTaskUpdateActivity = true; // Suppress generic update activity
 
-            // Activity log for tag document upload
+            // Activity log for tag document upload or re-upload
             try {
-                await ActivityTracker.track({
-                    type: 'document_uploaded',
-                    title: 'Tag Document Uploaded',
-                    description: `Tag document "${req.file.originalname}" uploaded for task "${task.title}"`,
-                    entityType: 'task',
-                    entityId: task._id,
-                    userId: req.user._id,
-                    link: `/tasks/${task._id}`,
-                    project: task.project
-                });
+                if (isReupload && oldFileName) {
+                    await ActivityTracker.track({
+                        type: 'document_reuploaded',
+                        title: 'Task Updated',
+                        description: `Tag document re-uploaded: changed ${oldFileName} to ${req.file.originalname} for task "${task.title}"`,
+                        entityType: 'task',
+                        entityId: task._id,
+                        userId: req.user._id,
+                        link: `/tasks/${task._id}`,
+                        project: task.project
+                    });
+                } else {
+                    await ActivityTracker.track({
+                        type: 'document_uploaded',
+                        title: 'Task Updated',
+                        description: `Tag document "${req.file.originalname}" uploaded for task "${task.title}"`,
+                        entityType: 'task',
+                        entityId: task._id,
+                        userId: req.user._id,
+                        link: `/tasks/${task._id}`,
+                        project: task.project
+                    });
+                }
             } catch (activityError) {
                 logger.error(`Failed to track activity for tag document upload: ${activityError.message}`);
             }
