@@ -365,7 +365,6 @@ const ProjectDetail = () => {
   const goToPrevDocPage = () => {
     setDocCurrentPage((prev) => Math.max(prev - 1, 1));
   };
-// console.log(project,'project');
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-gray-50 to-blue-60 animate-fade-in">

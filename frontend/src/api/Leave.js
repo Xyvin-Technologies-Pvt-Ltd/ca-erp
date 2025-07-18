@@ -14,7 +14,6 @@ export const getLeaves = async (params = {}) => {
 export const getMyLeaves = async () => {
   try {
     const response = await api.get("/leaves/my");
-    console.log("Raw API response:", response);
     
     // Handle different response structures
     let leaves = [];
@@ -28,7 +27,6 @@ export const getMyLeaves = async () => {
       leaves = response.data.data;
     }
     
-    console.log("Processed leaves:", leaves);
     return leaves;
   } catch (error) {
     console.error("Error fetching my leaves:", error);

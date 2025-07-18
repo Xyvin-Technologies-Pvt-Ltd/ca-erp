@@ -13,7 +13,6 @@ const ActivityTracker = require('../utils/activityTracker');
  */
 exports.getDocuments = async (req, res, next) => {
     try {
-        console.log('Query:', req.query, req.user.role);
 
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
@@ -260,7 +259,6 @@ exports.updateDocument = async (req, res, next) => {
                     fs.unlinkSync(oldFilePath);
                 }
             }
-            console.log(req.file,"44444444444444444444")
             req.body.CreatedBy  = req.user.id;
             req.body.fileUrl = `/uploads/documents/${req.file.filename}`;
             req.body.fileType = req.file.mimetype;
@@ -422,10 +420,6 @@ exports.downloadDocument = async (req, res, next) => {
         }
 
         const filePath = path.join(__dirname, '../../public', document.fileUrl);
-        console.log('📂 document.fileUrl:', document.fileUrl);
-        console.log('📁 Resolved file path:', filePath);
-        console.log('📂 File exists:', fs.existsSync(filePath));
-
         if (!fs.existsSync(filePath)) {
             return next(new ErrorResponse(`File not found`, 404));
         }

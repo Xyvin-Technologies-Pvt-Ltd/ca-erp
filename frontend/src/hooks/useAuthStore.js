@@ -14,7 +14,6 @@ const useAuthStore = create((set, get) => ({
     login: async (credentials) => {
         try {
             set({ isLoading: true, error: null });
-            console.log('Attempting login with credentials:', credentials);
 
             // Call the real API endpoint
             const response = await authApi.login(credentials);
@@ -22,7 +21,6 @@ const useAuthStore = create((set, get) => ({
             // Store user data in localStorage
             localStorage.setItem('userData', JSON.stringify(response.data));
             
-            console.log('Login response:', response);
 
             if (!response || !response.token) {
                 throw new Error('Invalid response from server');

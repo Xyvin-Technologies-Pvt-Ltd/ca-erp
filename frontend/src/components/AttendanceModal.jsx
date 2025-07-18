@@ -84,7 +84,6 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
         const response = await getAttendance({
           startDate: formData.date,
         });
-        console.log(response, 'response');
         
         const allAttendance = response.data?.attendance || [];
         
@@ -92,7 +91,6 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
           return isSameDate(attendance.date, formData.date);
         });
         
-        console.log('Filtered attendance for date:', formData.date, filteredAttendance);
         setExistingAttendance(filteredAttendance);
       } catch (error) {
         console.error("Failed to fetch existing attendance:", error);

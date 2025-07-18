@@ -62,7 +62,6 @@ const LeaveApplication = () => {
         }
 
         const leaveResponse = await getMyLeaves();
-        console.log("Leave response:", leaveResponse);
 
         let leavesData = [];
         if (Array.isArray(leaveResponse)) {
@@ -75,7 +74,6 @@ const LeaveApplication = () => {
           leavesData = leaveResponse.data;
         }
 
-        console.log("Processed leaves data:", leavesData);
 
         const sortedApplications = leavesData
           .map((leave) => ({
@@ -133,7 +131,6 @@ const LeaveApplication = () => {
       if (!user) return;
 
       const leaveResponse = await getMyLeaves();
-      console.log("Refreshed leave response:", leaveResponse);
 
       let leavesData = [];
       if (Array.isArray(leaveResponse)) {
@@ -146,7 +143,6 @@ const LeaveApplication = () => {
         leavesData = leaveResponse.data;
       }
 
-      console.log("Processed refreshed leaves data:", leavesData);
 
       const sortedApplications = leavesData
         .map((leave) => ({
@@ -220,7 +216,6 @@ const LeaveApplication = () => {
     }
 
     try {
-      console.log("User data for submit:", user);
 
       if (!user) {
         toast.error("User information not found");

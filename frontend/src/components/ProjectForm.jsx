@@ -134,7 +134,6 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         Object.entries(projectData).filter(([key, value]) => value !== undefined)
       );
 
-      console.log('Sending project data:', filteredProjectData);
 
       if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
         console.error(`Invalid status: ${filteredProjectData.status}`);

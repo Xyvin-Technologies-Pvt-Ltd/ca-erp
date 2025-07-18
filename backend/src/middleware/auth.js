@@ -6,7 +6,6 @@ require('dotenv').config();
 // Protect routes middleware
 exports.protect = async (req, res, next) => {
     let token;
-    console.log('Authorization Header:', req.headers.authorization);
     if (
         req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')

@@ -8,13 +8,13 @@ const TagDocumentUpload = ({ tag, onUpload, onRemindClient, existingDocuments = 
     const handleFileChange = (documentType, e) => {
         const file = e.target.files[0];
         if (file) {
-            console.log('Selected file for upload:', {
-                tag,
-                documentType,
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type
-            });
+            // console.log('Selected file for upload:', {
+            //     tag,
+            //     documentType,
+            //     fileName: file.name,
+            //     fileSize: file.size,
+            //     fileType: file.type
+            // });
             onUpload(tag, documentType, file);
         }
     };

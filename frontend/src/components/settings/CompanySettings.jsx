@@ -53,7 +53,6 @@ const CompanySettings = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Logo upload response:", response.data);
       return response.data.data; // Return updated settings
     } catch (error) {
       console.error("Logo upload error:", error.response?.data || error.message);
@@ -82,7 +81,6 @@ const CompanySettings = () => {
     try {
       const response = await api.get("/settings");
       const data = response.data.data;
-      console.log("Fetched settings:", data);
 
       // Update settings state
       setSettings(data);
@@ -165,7 +163,6 @@ const CompanySettings = () => {
       }
 
       setSuccessMessage("Settings updated successfully!");
-      console.log("Settings updated:", updatedSettings);
 
       // Re-fetch settings to ensure UI is in sync
       await loadCompanySettings();

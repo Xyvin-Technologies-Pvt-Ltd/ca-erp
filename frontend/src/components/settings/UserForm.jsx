@@ -44,10 +44,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           getDepartments(),
           getPositions()
         ]);
-        
-        console.log("Departments fetched:", departmentsResponse.data);
-        console.log("Positions fetched:", positionsResponse.data);
-        
         setDepartments(departmentsResponse.data || []);
         setPositions(positionsResponse.data || []);
         setDataLoaded(true);
@@ -64,12 +60,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   // Reset form values with user data
   useEffect(() => {
     if (user && dataLoaded) {
-      console.log("Editing user:", user);
       const departmentId = user.department?._id ;
       const positionId = user.position?._id ;
       
-      console.log("Setting department:", departmentId);
-      console.log("Setting position:", positionId);
       
       reset({
         name: user.name || "",
@@ -86,7 +79,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const submitHandler = async (data) => {
     setLoading(true);
     try {
-      console.log("Form data submitted:", data);
       let response;
 
       // Validate required fields
@@ -106,10 +98,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         department: data.department,
         position: data.position
       };
-      console.log('Department ID:', data.department);
-      console.log('Position ID:', data.position);
-      console.log('Full request payload:', preparedData);
-      console.log("Prepared data:", preparedData);
 
       if (isEditMode) {
         const { confirmPassword, ...updateData } = preparedData;
@@ -118,7 +106,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         }
         
         response = await userApi.updateUser(user._id, updateData);
-        console.log("Update user response:", response);
         
         if (!response.data.department || !response.data.position) {
           throw new Error("Failed to update user's department or position");
@@ -132,7 +119,6 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         const { confirmPassword, ...createData } = preparedData;
         
         response = await userApi.createUser(createData);
-        console.log("Create user response:", response);
         
         if (!response.data.department || !response.data.position) {
           throw new Error("Failed to assign department or position to user");

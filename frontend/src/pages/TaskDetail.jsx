@@ -165,7 +165,6 @@ const TaskDetail = () => {
 
     loadTask();
   }, [id, refresh]);
-  // console.log(task,'ggf');
   
 
    
@@ -174,7 +173,6 @@ const TaskDetail = () => {
     try {
       setLoading(true);
       const updatedTask = await updateTask(id, { ...task, status: newStatus });
-      console.log("API returned updated task:", updatedTask);
 
       setTask(prevTask => ({
         ...prevTask,
@@ -267,7 +265,6 @@ const TaskDetail = () => {
         assignedTo: task.assignedTo ? task.assignedTo._id : '',
       };
 
-      console.log("Updated Task:", updatedTask);
 
       const updatedTaskResponse = await updateTask(id, updatedTask,token);
 
@@ -1349,7 +1346,6 @@ const TaskDetail = () => {
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
-                            console.log("Selected file:", file);
                             setNewAttachment({
                               ...newAttachment,
                               name: file.name,

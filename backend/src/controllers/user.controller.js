@@ -164,7 +164,6 @@ exports.getUser = async (req, res, next) => {
  */
 exports.createUser = async (req, res, next) => {
     try {
-        console.log("Create user request body:", req.body);
 
         // Check if user already exists
         // const existingUser = await User.findOne({ email: req.body.email });
@@ -216,7 +215,6 @@ exports.createUser = async (req, res, next) => {
         const user = await User.create(userData);
         const populatedUser = await user.populate(['department', 'position']);
 
-        console.log("Created user:", populatedUser);
 
         res.status(201).json({
             success: true,
@@ -235,7 +233,6 @@ exports.createUser = async (req, res, next) => {
  */
 exports.updateUser = async (req, res, next) => {
     try {
-        console.log("Update user request body:", req.body);
 
         const existingUser = await User.findById(req.params.id);
         if (!existingUser) {
@@ -296,7 +293,6 @@ exports.updateUser = async (req, res, next) => {
             return next(new ErrorResponse('Failed to update user', 500));
         }
 
-        console.log("Updated user:", user);
 
         res.status(200).json({
             success: true,

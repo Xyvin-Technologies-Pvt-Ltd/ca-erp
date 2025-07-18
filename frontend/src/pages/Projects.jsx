@@ -101,7 +101,6 @@ const Projects = () => {
 
       const taskList = Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
 
-      console.log("Tasks:", taskList);
 
       const taskProjectIds = new Set(taskList.map(task => task.project?._id).filter(Boolean));
 
@@ -176,7 +175,6 @@ const Projects = () => {
     return () => clearTimeout(timer);
   };
 
-  console.log(projects, "for leave projects");
 
   if (loading) {
     return (

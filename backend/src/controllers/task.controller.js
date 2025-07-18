@@ -16,7 +16,6 @@ const webhookService = require('../services/webhookService');
  */
 exports.getTasks = async (req, res, next) => {
     try {
-        console.log(req.query.status, req.query.project,"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
@@ -188,12 +187,9 @@ exports.getTask = async (req, res, next) => {
  */
 exports.createTask = async (req, res, next) => {
     try {
-        console.log('req.body (createTask):', req.body);
         req.body.createdBy = req.user.id;
         let project;
 
-        // console.log("BODY:", req.body);
-        // console.log("FILE:", req.file);
         if (req.file) {
             const file = {
                 name: req.file.originalname,
@@ -221,7 +217,6 @@ exports.createTask = async (req, res, next) => {
             req.body.amount = 0; // Explicitly set default if not provided
             console.warn('No amount provided, defaulting to 0');
         }
-        console.log('Final amount to save (createTask):', req.body.amount);
 
         // Validate assigned user
         if (req.body.assignedTo) {
@@ -253,7 +248,6 @@ exports.createTask = async (req, res, next) => {
             }
             req.body.taskNumber = `TSK-${year}${month}-${sequence}`;
         }
-              console.log(req.body)
         // Create task
         const task = await Task.create(req.body);
         logger.info(`Task created: ${task.title} (${task._id}) by ${req.user.name} (${req.user._id})`);
@@ -968,7 +962,6 @@ exports.uploadTagDocument = async (req, res, next) => {
                 uploadedAt: new Date()
             };
 
-            console.log('Saving document info:', documentInfo);
 
             // Set the document in the Map
             task.tagDocuments.set(documentKey, documentInfo);

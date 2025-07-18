@@ -1022,7 +1022,6 @@ const EventCalendar = () => {
       const [year, month] = selectedMonth.split("-");
       const range = getMonthRange(new Date(year, month - 1));
       const response = await getEvents({ ...range });
-      console.log('getEvents response:', response);
       return response;
     },
   });
@@ -1034,7 +1033,6 @@ const EventCalendar = () => {
     
     try {
       const eventResponse = await getEvent(dateStr);
-      console.log('getEvent response for', dateStr, ':', eventResponse);
       const fetchedEvents = eventResponse?.data?.events || [];
       setSelectedEvents(fetchedEvents);
       setIsModalOpen(true);
@@ -1057,7 +1055,6 @@ const EventCalendar = () => {
           return false;
         }
       }) || [];
-      console.log('Fallback events for', dateStr, ':', fallbackEvents);
       setSelectedEvents(fallbackEvents);
       setIsModalOpen(true);
     }
@@ -1093,7 +1090,6 @@ const EventCalendar = () => {
       console.warn('Invalid event date:', event, err);
     }
   });
-  console.log('Events by date:', eventsByDate);
 
   const [year, month] = selectedMonth.split("-");
   const days = getDaysInMonth(Number(year), Number(month) - 1);

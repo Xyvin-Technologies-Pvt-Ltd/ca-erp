@@ -160,7 +160,6 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
 
   const handleTagDocumentUpload = async (tag, documentType, file) => {
     try {
-      console.log('Uploading document:', { tag, documentType, file });
 
       if (!task?._id) {
         setTagDocuments(prev => ({
