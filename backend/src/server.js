@@ -14,6 +14,7 @@ const path = require('path');
 const { config } = require('dotenv');
 const WebSocket = require('ws');
 const websocketService = require('./utils/websocket');
+const cronService = require('./services/cronService');
 // Load env vars
 config();
 
@@ -33,6 +34,8 @@ const positionRoutes = require('./routes/position.routes')
 const eventsRoutes = require('./routes/event.routes')
 const leavesRoutes = require('./routes/leave.routes')
 const attendanceRoutes = require('./routes/attendance.routes')
+const cronJobRoutes = require('./routes/cronJob.routes')
+const sectionRoutes = require('./routes/section.routes')
 
 // Initialize express app
 const app = express();
@@ -95,6 +98,8 @@ app.use('/api/positions',positionRoutes)
 app.use('/api/events',eventsRoutes)
 app.use('/api/leaves',leavesRoutes)
 app.use('/api/attendance',attendanceRoutes)
+app.use('/api/cronjobs', cronJobRoutes)
+app.use('/api/sections', sectionRoutes)
 
 
 
@@ -116,11 +121,19 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5001;
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on port ${PORT}`);
+    
+    // Initialize cron service
+    try {
+        await cronService.init();
+        logger.info('Cron service initialized successfully');
+    } catch (error) {
+        logger.error('Failed to initialize cron service:', error);
+    }
 });
-// Initialize WebSocke
+// Initialize WebSocket
 websocketService.init(server);
 
 

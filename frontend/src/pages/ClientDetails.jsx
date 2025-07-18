@@ -3,8 +3,12 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { clientsApi } from "../api/clientsApi";
 import { projectsApi } from "../api/projectsApi";
 import { getActivityHistory } from "../api/activity";
+import { cronJobsApi } from "../api/cronJobs";
 import { toast } from "react-toastify";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
+import CronJobSection from "../components/CronJobSection";
+import CronJobList from "../components/CronJobList";
+import { sectionsApi } from '../api/sections';
 
 const ClientDetails = () => {
   const { id } = useParams();
@@ -27,6 +31,14 @@ const ClientDetails = () => {
   const [allProjectLogsError, setAllProjectLogsError] = useState(null);
   const [allProjectLogsPage, setAllProjectLogsPage] = useState(1);
   const allProjectLogsPerPage = 10;
+
+  // Cron job states
+  const [cronJobs, setCronJobs] = useState([]);
+  const [cronJobsLoading, setCronJobsLoading] = useState(false);
+  const [cronJobsError, setCronJobsError] = useState(null);
+  const [sections, setSections] = useState([]);
+  const [newSection, setNewSection] = useState('');
+  const [showNewSectionForm, setShowNewSectionForm] = useState(false);
 
   useEffect(() => {
     const loadClient = async () => {
@@ -66,6 +78,52 @@ const ClientDetails = () => {
       loadProjects();
     }
   }, [tab, id]);
+
+  useEffect(() => {
+    if (tab === "annual") {
+      loadCronJobs();
+      loadSections();
+    }
+  }, [tab, id]);
+
+  const loadCronJobs = async () => {
+    try {
+      setCronJobsLoading(true);
+      setCronJobsError(null);
+      const response = await cronJobsApi.getCronJobs({ client: id });
+      setCronJobs(response.data || []);
+    } catch (err) {
+      setCronJobsError("Failed to load cron jobs for this client.");
+    } finally {
+      setCronJobsLoading(false);
+    }
+  };
+
+  const loadSections = async () => {
+    try {
+      const response = await sectionsApi.getSectionsByClient(id);
+      setSections(response.data || []);
+    } catch (err) {
+      console.error("Failed to load sections:", err);
+    }
+  };
+
+  const handleAddSection = async () => {
+    if (!newSection.trim()) {
+      toast.error('Please enter a section name');
+      return;
+    }
+    try {
+      await sectionsApi.createSection({ name: newSection, client: id });
+      toast.success('Section created successfully');
+      setNewSection('');
+      setShowNewSectionForm(false);
+      loadSections();
+      loadCronJobs();
+    } catch (error) {
+      toast.error(error.message || 'Failed to create section');
+    }
+  };
 
   useEffect(() => {
     if (tab === "logs") {
@@ -597,9 +655,83 @@ const ClientDetails = () => {
           )}
         </TabsContent>
         <TabsContent value="annual">
-          <div className="bg-white rounded-xl p-8 shadow text-center">
-            <h2 className="text-2xl font-bold mb-2">Annual & Monthly</h2>
-            <p className="text-gray-500">This feature is coming soon.</p>
+          <div className="bg-white rounded-xl p-8 shadow">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Annual & Monthly Cron Jobs</h2>
+              <button
+                onClick={() => setShowNewSectionForm(!showNewSectionForm)}
+                className="inline-flex items-center px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              >
+                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add New Section
+              </button>
+            </div>
+
+            {showNewSectionForm && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="text"
+                    value={newSection}
+                    onChange={(e) => setNewSection(e.target.value)}
+                    placeholder="Enter section name"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleAddSection}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  >
+                    Create Section
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowNewSectionForm(false);
+                      setNewSection('');
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {cronJobsLoading ? (
+              <div className="flex justify-center items-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#1c6ead]"></div>
+              </div>
+            ) : cronJobsError ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{cronJobsError}</div>
+            ) : (
+              <div className="space-y-6">
+                {/* Sections */}
+                {sections.map((section) => (
+                  <CronJobSection
+                    key={section._id}
+                    section={section}
+                    clientId={id}
+                    onUpdate={() => {
+                      loadCronJobs();
+                      loadSections();
+                    }}
+                  />
+                ))}
+
+                {/* Existing Cron Jobs */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Existing Cron Jobs</h3>
+                  <CronJobList
+                    cronJobs={cronJobs.filter(job => job.isActive && job.section)}
+                    onUpdate={() => {
+                      loadCronJobs();
+                      loadSections();
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
         <TabsContent value="projects">

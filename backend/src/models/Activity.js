@@ -14,7 +14,9 @@ const activitySchema = new mongoose.Schema({
       'deadline_updated',
       'document_uploaded',
       'task_updated',
-      'reminder_sent'
+      'reminder_sent',
+      'cronjob_created',
+      'cronjob_executed'
     ]
   },
   title: {
@@ -33,7 +35,7 @@ const activitySchema = new mongoose.Schema({
   entityType: {
     type: String,
     required: true,
-    enum: ['task', 'client', 'project', 'document']
+    enum: ['task', 'client', 'project', 'document', 'cronjob']
   },
   entityId: {
     type: mongoose.Schema.Types.ObjectId,
