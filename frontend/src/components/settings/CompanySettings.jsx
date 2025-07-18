@@ -44,6 +44,7 @@ const CompanySettings = () => {
   const logoInputRef = useRef(null);
 
   const BASE_URL = "https://api-ca-erp.xyvin.com"; 
+  
 
   // Function to upload logo
   const uploadLogo = async (formData) => {
