@@ -48,7 +48,7 @@ const CompanySettings = () => {
   // Function to upload logo
   const uploadLogo = async (formData) => {
     try {
-      const response = await api.put("/api/settings/company/logo", formData, {
+      const response = await api.put("/settings/company/logo", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
