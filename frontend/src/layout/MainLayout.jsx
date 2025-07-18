@@ -49,7 +49,7 @@ const MainLayout = () => {
       <div className="flex flex-col flex-1 md:ml-64 overflow-hidden">
         <Header onOpenSidebar={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto bg-gray-100">
-          <div className="py-6">
+          <div className="py-6 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               <Outlet />
             </div>

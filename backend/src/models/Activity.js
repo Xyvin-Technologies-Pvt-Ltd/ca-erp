@@ -7,6 +7,7 @@ const activitySchema = new mongoose.Schema({
     enum: [
       'task_created',
       'task_completed',
+      'task_deleted',
       'client_added',
       'project_created',
       'project_updated',

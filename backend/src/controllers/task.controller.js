@@ -585,6 +585,22 @@ exports.deleteTask = async (req, res, next) => {
 
         await task.deleteOne();
 
+        // Log the task deletion activity
+        try {
+            await ActivityTracker.track({
+                type: 'task_deleted',
+                title: 'Task Deleted',
+                description: `Task "${task.title}" was deleted`,
+                entityType: 'task',
+                entityId: task._id,
+                userId: req.user._id,
+                link: `/tasks`,
+                project: task.project
+            });
+        } catch (activityError) {
+            logger.error(`Failed to track activity for task deletion ${task._id}: ${activityError.message}`);
+        }
+
         res.status(200).json({
             success: true,
             data: {},
