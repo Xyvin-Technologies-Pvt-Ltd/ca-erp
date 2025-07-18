@@ -574,11 +574,11 @@ const TaskDetail = () => {
         {/* Header with back button and actions */}
         <div className="mb-8 flex items-center justify-between">
           <button
-            onClick={() => navigate("/tasks")}
+            onClick={() => navigate(-1)}
             className="flex items-center text-[#1c6ead] hover:text-blue-800 transition-all duration-200 hover:scale-105"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span className="font-medium">Back to Tasks</span>
+            <span className="font-medium">Back</span>
           </button>
           <div className="flex space-x-3">
             <button

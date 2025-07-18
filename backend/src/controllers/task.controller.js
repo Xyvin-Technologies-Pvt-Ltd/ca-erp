@@ -526,6 +526,43 @@ exports.updateTask = async (req, res, next) => {
                 link: `/tasks/${task._id}`,
                 project: task.project?._id
             });
+            // Send notification to assigned user if exists
+            if (task.assignedTo) {
+                try {
+                    const notification = await Notification.create({
+                        user: task.assignedTo,
+                        sender: req.user.id,
+                        title: `Task Updated: ${task.title}`,
+                        message: `Task "${task.title}" has been updated.`,
+                        type: 'TASK_UPDATED'
+                    });
+                    logger.info(`Notification created for user ${task.assignedTo} for task update ${task._id}`);
+                    // Send WebSocket notification
+                    websocketService.sendToUser(task.assignedTo.toString(), {
+                        type: 'notification',
+                        data: {
+                            _id: notification._id,
+                            title: notification.title,
+                            message: notification.message,
+                            type: notification.type,
+                            read: notification.read,
+                            createdAt: notification.createdAt,
+                            sender: {
+                                _id: req.user._id,
+                                name: req.user.name,
+                                email: req.user.email
+                            },
+                            taskId: task._id,
+                            taskNumber: task.taskNumber,
+                            priority: task.priority,
+                            status: task.status,
+                            projectId: task.project?._id
+                        }
+                    });
+                } catch (notificationError) {
+                    logger.error(`Failed to create notification for task update ${task._id}: ${notificationError.message}`);
+                }
+            }
         }
 
         res.status(200).json({ success: true, data: task });
