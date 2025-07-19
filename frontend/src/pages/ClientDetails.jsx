@@ -694,14 +694,27 @@ const ClientDetails = () => {
           )}
         </TabsContent>
         <TabsContent value="annual">
-          <div className="bg-white rounded-xl p-8 shadow">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Annual & Monthly Cron Jobs</h2>
+          <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-2xl p-8 shadow-xl border border-gray-100">
+            {/* Enhanced Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-[#1c6ead] rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold bg-[#1c6ead] bg-clip-text text-transparent">
+                    Annual & Monthly Cron Jobs
+                  </h2>
+                  <p className="text-gray-600 mt-1">Automate your project creation with scheduled tasks</p>
+                </div>
+              </div>
               <button
                 onClick={() => setShowNewSectionForm(!showNewSectionForm)}
-                className="inline-flex items-center px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="inline-flex items-center px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
               >
-                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Add New Section
@@ -709,57 +722,96 @@ const ClientDetails = () => {
             </div>
 
             {showNewSectionForm && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-8 border border-blue-200 shadow-lg">
                 <div className="flex items-center space-x-4">
-                  <input
-                    type="text"
-                    value={newSection}
-                    onChange={(e) => setNewSection(e.target.value)}
-                    placeholder="Enter section name"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
-                  />
-                  <button
-                    onClick={handleAddSection}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-                  >
-                    Create Section
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowNewSectionForm(false);
-                      setNewSection('');
-                    }}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Section Name</label>
+                    <input
+                      type="text"
+                      value={newSection}
+                      onChange={(e) => setNewSection(e.target.value)}
+                      placeholder="Enter a descriptive section name..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
+                    />
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleAddSection}
+                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+                    >
+                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Create Section
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewSectionForm(false);
+                        setNewSection('');
+                      }}
+                      className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {cronJobsLoading ? (
-              <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#1c6ead]"></div>
+              <div className="flex flex-col justify-center items-center min-h-[300px]">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-spin" style={{ animationDelay: '0.5s' }}></div>
+                </div>
+                <p className="mt-4 text-gray-600 font-medium">Loading cron jobs...</p>
               </div>
             ) : cronJobsError ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{cronJobsError}</div>
+              <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-2xl p-6 text-red-700 shadow-lg">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-semibold">{cronJobsError}</span>
+                </div>
+              </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Sections */}
-                {sections.map((section) => (
-                  <CronJobSection
-                    key={section._id}
-                    section={section}
-                    clientId={id}
-                    onUpdate={() => {
-                      loadCronJobs();
-                      loadSections();
-                    }}
-                  />
-                ))}
+                {sections.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-2 h-8 bg-[#1c6ead] rounded-full"></div>
+                      <h3 className="text-xl font-bold text-gray-900">Section Templates</h3>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {sections.length} section{sections.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="space-y-4">
+                      {sections.map((section) => (
+                        <CronJobSection
+                          key={section._id}
+                          section={section}
+                          clientId={id}
+                          onUpdate={() => {
+                            loadCronJobs();
+                            loadSections();
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Cron Jobs by Section */}
                 <div className="mt-8">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-2 h-8 bg-gradient-to-b from-green-500 to-blue-600 rounded-full"></div>
+                    <h3 className="text-xl font-bold text-gray-900">Active Cron Jobs</h3>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                      {cronJobs.filter(job => job.isActive && job.section).length} job{cronJobs.filter(job => job.isActive && job.section).length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                   <CronJobList
                     cronJobs={cronJobs.filter(job => job.isActive && job.section)}
                     sections={sections}
