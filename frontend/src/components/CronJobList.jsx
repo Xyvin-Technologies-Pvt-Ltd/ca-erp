@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { cronJobsApi } from '../api/cronJobs';
 
-const CronJobList = ({ cronJobs, onUpdate }) => {
+const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
   const [executingJobs, setExecutingJobs] = useState(new Set());
 
   const handleExecuteJob = async (cronJobId) => {
@@ -57,6 +57,11 @@ const CronJobList = ({ cronJobs, onUpdate }) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
+  const getSectionName = (sectionId) => {
+    const section = sections.find(s => s._id === sectionId);
+    return section ? section.name : 'Unknown Section';
+  };
+
   if (cronJobs.length === 0) {
     return (
       <div className="text-center py-8">
@@ -92,7 +97,7 @@ const CronJobList = ({ cronJobs, onUpdate }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Section:</span>
-                  <span className="ml-2 font-medium">{cronJob.section}</span>
+                  <span className="ml-2 font-medium">{getSectionName(cronJob.section)}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Start Date:</span>
@@ -116,23 +121,33 @@ const CronJobList = ({ cronJobs, onUpdate }) => {
             </div>
 
             <div className="flex space-x-2 ml-4">
-              <button
-                onClick={() => handleExecuteJob(cronJob._id)}
-                disabled={executingJobs.has(cronJob._id)}
-                className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
-              >
-                {executingJobs.has(cronJob._id) ? (
-                  <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
+              {/* Only show execute button if job hasn't been executed recently (within last 24 hours) */}
+              {(!cronJob.lastRun || (new Date() - new Date(cronJob.lastRun)) > 24 * 60 * 60 * 1000) ? (
+                <button
+                  onClick={() => handleExecuteJob(cronJob._id)}
+                  disabled={executingJobs.has(cronJob._id)}
+                  className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
+                >
+                  {executingJobs.has(cronJob._id) ? (
+                    <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  Execute
+                </button>
+              ) : (
+                <span className="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-600 rounded-lg">
                   <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                )}
-                Execute
-              </button>
+                  Recently Executed
+                </span>
+              )}
               <button
                 onClick={() => handleDeleteJob(cronJob._id)}
                 className="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
