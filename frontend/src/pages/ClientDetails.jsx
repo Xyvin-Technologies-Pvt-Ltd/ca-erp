@@ -758,9 +758,8 @@ const ClientDetails = () => {
                   />
                 ))}
 
-                {/* Existing Cron Jobs */}
+                {/* Cron Jobs by Section */}
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Existing Cron Jobs</h3>
                   <CronJobList
                     cronJobs={cronJobs.filter(job => job.isActive && job.section)}
                     sections={sections}
