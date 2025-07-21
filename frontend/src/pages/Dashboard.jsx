@@ -54,13 +54,6 @@ const ChartTooltipContent = ({ active, payload, label, hideLabel }) => {
   return null;
 };
 
-// Static chart data
-const projectStatusData = [
-  { status: "Completed", count: 23, fill: "#1c6ead" },   // Fixed dark blue
-  { status: "In Progress", count: 15, fill: "#f59e0b" }, 
-  { status: "Planning", count: 12, fill: "#10b981" },    
-  { status: "Archived", count: 3, fill: "#ef4444" },     
-];
 
 const monthlyRevenueData = [
   { month: "Jan", revenue: 45000, projects: 8 },
@@ -72,7 +65,7 @@ const monthlyRevenueData = [
 ];
 
 // Project Status Pie Chart Component
-const ProjectStatusChart = () => {
+const TaskStatusChart = ({ statusData }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
@@ -92,8 +85,8 @@ const ProjectStatusChart = () => {
             <BarChart3 className="h-6 w-6 text-white" />
           </motion.div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Project Status Overview</h3>
-            <p className="text-sm text-gray-500">Distribution of current projects</p>
+            <h3 className="text-lg font-bold text-gray-900">Task Status Overview</h3>
+            <p className="text-sm text-gray-500">Distribution of current tasks</p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-green-600">
@@ -110,7 +103,7 @@ const ProjectStatusChart = () => {
               content={<ChartTooltipContent hideLabel />}
             />
             <Pie
-              data={projectStatusData}
+              data={statusData}
               dataKey="count"
               nameKey="status"
               stroke="0"
@@ -123,7 +116,7 @@ const ProjectStatusChart = () => {
       </ChartContainer>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        {projectStatusData.map((item, index) => (
+        {statusData.map((item, index) => (
           <motion.div
             key={item.status}
             initial={{ opacity: 0, x: -20 }}
@@ -147,7 +140,7 @@ const ProjectStatusChart = () => {
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span>Total Active Projects: {projectStatusData.reduce((sum, item) => sum + item.count, 0)}</span>
+          <span>Total Tasks: {statusData.reduce((sum, item) => sum + item.count, 0)}</span>
         </div>
       </div>
     </motion.div>
@@ -1596,6 +1589,23 @@ const Dashboard = () => {
     deadlines,
   } = data;
 
+const statusColorMap = {
+  Completed: "#1c6ead",
+  "In Progress": "#f59e0b",
+  Pending: "#10b981",
+  Cancelled: "#ef4444",
+  Review: "#a855f7"
+};
+
+  const taskCounts = data.taskCounts || {};
+  const taskStatusData = [
+    { status: "Completed", count: taskCounts.completed || 0, fill: statusColorMap.Completed },
+    { status: "In Progress", count: taskCounts.inProgress || 0, fill: statusColorMap["In Progress"] },
+    { status: "Pending", count: taskCounts.pending || 0, fill: statusColorMap.Pending },
+    { status: "Cancelled", count: taskCounts.cancelled || 0, fill: statusColorMap.Cancelled },
+    { status: "Review", count: taskCounts.review || 0, fill: statusColorMap.Review },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -1637,7 +1647,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <ProjectStatusChart />
+        <TaskStatusChart statusData={taskStatusData} />
         <MonthlyRevenueChart />
       </div>
 

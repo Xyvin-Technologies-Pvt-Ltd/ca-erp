@@ -1161,3 +1161,103 @@ exports.remindClientForDocument = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Get all tasks (no pagination, for dashboard)
+ * @route   GET /api/tasks/all
+ * @access  Private
+ */
+exports.getAllTasksNoPagination = async (req, res, next) => {
+    try {
+        // Filtering (same as getTasks)
+        const filter = {};
+        if (req.query.status) {
+            filter.status = req.query.status;
+        }
+        if (req.query.priority) {
+            filter.priority = req.query.priority;
+        }
+        filter.deleted = { $ne: true };
+
+        // Add project filter to only get tasks with non-deleted projects
+        const validProjects = await require('../models/Project').find({ deleted: { $ne: true } }, '_id');
+        const validProjectIds = validProjects.map(p => p._id);
+
+        if (req.query.project) {
+            if (validProjectIds.map(id => id.toString()).includes(req.query.project)) {
+                filter.project = req.query.project;
+            } else {
+                filter.project = null;
+            }
+        } else {
+            filter.project = { $in: validProjectIds };
+        }
+
+        // If user is not admin, only show tasks they are assigned to
+        if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+            filter.assignedTo = req.user.id;
+        } else if (req.query.assignedTo) {
+            filter.assignedTo = req.query.assignedTo;
+        }
+
+        // Due date filter
+        if (req.query.dueBefore) {
+            filter.dueDate = { ...filter.dueDate, $lte: new Date(req.query.dueBefore) };
+        }
+        if (req.query.dueAfter) {
+            filter.dueDate = { ...filter.dueDate, $gte: new Date(req.query.dueAfter) };
+        }
+
+        // Search
+        if (req.query.search) {
+            filter.$or = [
+                { title: { $regex: req.query.search, $options: 'i' } },
+                { description: { $regex: req.query.search, $options: 'i' } }
+            ];
+        }
+
+        // Sort (optional, default by dueDate asc, priority desc)
+        const sort = {};
+        if (req.query.sort) {
+            const fields = req.query.sort.split(',');
+            fields.forEach(field => {
+                if (field.startsWith('-')) {
+                    sort[field.substring(1)] = -1;
+                } else {
+                    sort[field] = 1;
+                }
+            });
+        } else {
+            sort.dueDate = 1;
+            sort.priority = -1;
+        }
+
+        // Query with filters and sort, but NO pagination/limit
+        const tasks = await Task.find(filter)
+            .sort(sort)
+            .populate({
+                path: 'project',
+                select: 'name projectNumber budget',
+                match: { deleted: { $ne: true } }
+            })
+            .populate({
+                path: 'assignedTo',
+                select: 'name email'
+            })
+            .populate({
+                path: 'createdBy',
+                select: 'name email'
+            });
+
+        // Filter out tasks where project population failed
+        const validTasks = tasks.filter(task => task.project != null);
+
+        res.status(200).json({
+            success: true,
+            count: validTasks.length,
+            data: validTasks,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

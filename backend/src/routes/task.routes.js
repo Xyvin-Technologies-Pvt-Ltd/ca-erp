@@ -195,6 +195,35 @@ router.route('/')
      */
     .post(protect, uploadTaskFile.single('file'), ensureFileArray, validate(taskValidation.create), createTask);
    
+/**
+ * @swagger
+ * /api/tasks/all:
+ *   get:
+ *     summary: Get all tasks (no pagination)
+ *     description: Retrieve a list of all tasks without pagination or limit. For dashboard use only.
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Task'
+ *       401:
+ *         description: Unauthorized
+ */
+router.route('/all').get(protect, require('../controllers/task.controller').getAllTasksNoPagination);
 
 /**
  * @swagger

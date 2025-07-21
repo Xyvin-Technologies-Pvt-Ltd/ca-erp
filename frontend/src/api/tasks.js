@@ -23,6 +23,22 @@ export const fetchTasks = async (filters = {}) => {
     }
 };
 
+/**
+ * @returns {Promise} Promise object containing all tasks data
+ */
+export const fetchAllTasks = async () => {
+    try {
+        const response = await api.get('/tasks/all');
+        return {
+            tasks: response.data.data,
+            count: response.data.count
+        };
+    } catch (error) {
+        console.error("Error fetching all tasks (no pagination):", error);
+        throw error;
+    }
+};
+
 
 /**
  * Fetch a single task by ID

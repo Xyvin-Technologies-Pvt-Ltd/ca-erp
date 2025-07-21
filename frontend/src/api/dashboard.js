@@ -1,4 +1,4 @@
-import { fetchCompletedTasksForInvoicing, fetchTasks } from "./tasks";
+import { fetchCompletedTasksForInvoicing, fetchTasks, fetchAllTasks } from "./tasks";
 import { userApi } from "./userApi";
 import { projectsApi } from "./projectsApi";
 
@@ -21,10 +21,9 @@ export const fetchDashboardData = async (userId) => {
     };
 
     //projects
-    const [projects, tasksRes,usersRes] = await Promise.all([
-      // Add limit parameter to get all projects
-      projectsApi.getAllProjects({ limit: 100 }), // Increase limit or use -1 if your API supports it
-      fetchTasks(),
+    const [projects, tasksRes, usersRes] = await Promise.all([
+      projectsApi.getAllProjects({ limit: 100 }),
+      fetchAllTasks(),
       userApi.Allusers(),
     ]);
 
@@ -82,6 +81,22 @@ export const fetchDashboardData = async (userId) => {
       count
     }));
 
+    // Calculate task counts by status
+    const taskCounts = {
+      completed: 0,
+      pending: 0,
+      inProgress: 0,
+      review: 0,
+      cancelled: 0,
+    };
+    tasksRes.tasks.forEach((task) => {
+      const status = task.status.toLowerCase();
+      if (status === 'completed') taskCounts.completed++;
+      else if (status === 'pending') taskCounts.pending++;
+      else if (status === 'in-progress' || status === 'inprogress') taskCounts.inProgress++;
+      else if (status === 'review') taskCounts.review++;
+      else if (status === 'cancelled') taskCounts.cancelled++;
+    });
 
 
     // team members
@@ -112,7 +127,7 @@ export const fetchDashboardData = async (userId) => {
           color: "bg-blue-100",
         },
         activeTasks: {
-          value: tasksRes.total,
+          value: tasksRes.count,
           change: 4,
           iconType: "task",
           color: "bg-green-100",
@@ -143,6 +158,7 @@ export const fetchDashboardData = async (userId) => {
         //     color: "bg-yellow-100",
         // }
       },
+      taskCounts,
       recentTasks: [
         {
           id: 1,
