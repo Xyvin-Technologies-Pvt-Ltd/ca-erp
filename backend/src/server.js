@@ -43,6 +43,9 @@ const app = express();
 // Connect to database
 connectDB();
 
+// Initialize cron jobs after DB connection
+cronService.init();
+
 // Set up rate limiting
 // const limiter = rateLimit({
 //     windowMs: 15 * 60 * 1000, // 15 minutes
