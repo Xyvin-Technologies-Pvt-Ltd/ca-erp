@@ -1534,7 +1534,7 @@ const AttendanceYearChart = () => {
             const attendance = res.data?.attendance || [];
             let present = 0, absent = 0, halfDay = 0, late = 0, earlyLeave = 0, onLeave = 0;
             attendance.forEach((a) => {
-              if (a.status === "Present") present++;
+              if (a.status === "Present" || a.status === "Late" || a.status === "Early-Leave") present++;
               if (a.status === "Absent") absent++;
               if (a.status === "On-Leave") { absent++; onLeave++; }
               if (a.status === "Half-Day") halfDay++;
@@ -1717,24 +1717,24 @@ const AttendanceYearChart = () => {
                         <span className="text-xs text-gray-500">Total Days</span>
                         <span className="text-xs text-gray-700 font-semibold">{d.total}</span>
                       </div>
-                      {/* <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">Present %</span>
                         <span className="text-xs text-gray-700 font-semibold">{d.presentPercent}%</span>
                       </div>
-                      <div className="flex items-center justify-between mt-1">
+                      {/* <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">Half-Day %</span>
                         <span className="text-xs text-gray-700 font-semibold">{d.halfDayPercent}%</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-gray-500">Absent/Leave %</span>
+                        <span className="text-xs text-gray-500">Absent %</span>
                         <span className="text-xs text-gray-700 font-semibold">{d.absentPercent}%</span>
-                      </div>
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                        <span className="text-xs text-gray-500">Late</span>
-                        <span className="text-xs text-yellow-700 font-semibold">{d.late}</span>
-                        <span className="text-xs text-gray-500">Early-Leave</span>
-                        <span className="text-xs text-blue-700 font-semibold">{d.earlyLeave}</span>
                       </div> */}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-yellow-700">Late</span>
+                        <span className="text-xs text-yellow-700 font-semibold">{d.late}</span>
+                        <span className="text-xs text-yellow-700">Early-Leave</span>
+                        <span className="text-xs text-yellow-700 font-semibold">{d.earlyLeave}</span>
+                      </div>
                     </div>
                   );
                 }
@@ -1768,8 +1768,7 @@ const AttendanceYearChart = () => {
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
-      {/* Dots for Late/Early-Leave below bars */}
-      <div className="mt-2 flex justify-between px-6">
+      {/* <div className="mt-2 flex justify-between px-6">
         {data.map((d, idx) => (
           <div key={d.month} className="flex flex-col items-center w-6">
             <div className="flex items-center space-x-1">
@@ -1782,7 +1781,7 @@ const AttendanceYearChart = () => {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
       <div className="mt-6 pt-6 border-t border-gray-200/60">
         <div className="flex items-center justify-center space-x-8 text-sm">
           <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full border border-green-200">
@@ -1795,11 +1794,7 @@ const AttendanceYearChart = () => {
           </div>
           <div className="flex items-center space-x-2 bg-red-50 px-4 py-2 rounded-full border border-red-200">
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <span className="text-red-700 font-medium">Absent/Leave</span>
-          </div>
-          <div className="flex items-center space-x-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-            <span className="text-yellow-700 font-medium">Late</span>
+            <span className="text-red-700 font-medium">Absent</span>
           </div>
           <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
