@@ -16,8 +16,11 @@ export const fetchDashboardData = async (userId) => {
     // return response.data;
 
     const calculateChange = (current, previous) => {
-      if (previous === 0) return current === 0 ? 0 : 100;
-      return ((current - previous) / previous) * 100;
+      if (previous === 0) {
+        if (current === 0) return 0;
+        return 100;
+      }
+      return Math.round(((current - previous) / previous) * 100);
     };
 
     //projects
@@ -101,13 +104,10 @@ export const fetchDashboardData = async (userId) => {
 
     // team members
     const currentMember = usersRes.data.data.count;
-    const changeMember = calculateChange(currentMember, currentMember);
 
     
 
     
-    // Calculate total revenue as the sum of task.amount
-    // For admin/manager: all tasks; for others: only assigned tasks
     let totalRevenue = 0;
     let userRole = undefined;
     try {
@@ -143,10 +143,33 @@ export const fetchDashboardData = async (userId) => {
     }
     const monthlyMap = {};
     months.forEach(m => {
-      monthlyMap[m.key] = { month: m.label, revenue: 0, tasks: 0 };
+      monthlyMap[m.key] = { month: m.label, revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
     });
+    // Count projects per month (by createdAt or dueDate)
+    projects.data.forEach(project => {
+      const date = project.createdAt ? new Date(project.createdAt) : (project.dueDate ? new Date(project.dueDate) : null);
+      if (!date || isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (monthlyMap[key]) {
+        monthlyMap[key].projects += 1;
+      }
+    });
+
+    // console.log(usersRes.data,"^^^^^^^^^^^^^^^^^^^^$$$$$$$$$^^^^^^^^^^^");
+    
+    if (usersRes.data && Array.isArray(usersRes.data.data.users)) {
+      usersRes.data.data.users.forEach(user => {
+        const date = user.createdAt ? new Date(user.createdAt) : null;
+        if (!date || isNaN(date.getTime())) return;
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (monthlyMap[key]) {
+          monthlyMap[key].teamMembers += 1;
+        }
+        console.log(teamMembers,'teamMembers')
+      });
+    }
+
     tasksRes.tasks.forEach(task => {
-      // Use dueDate or createdAt for grouping
       const date = task.dueDate ? new Date(task.dueDate) : (task.createdAt ? new Date(task.createdAt) : null);
       if (!date || isNaN(date.getTime())) return;
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -164,24 +187,40 @@ export const fetchDashboardData = async (userId) => {
     });
     const monthlyRevenueData = months.map(m => monthlyMap[m.key]);
 
+    // Calculate dynamic changes for the latest month vs previous month
+    const getChangePercent = (current, previous) => {
+      if (previous === 0) {
+        if (current === 0) return 0;
+        return 100;
+      }
+      return Math.round(((current - previous) / previous) * 100);
+    };
+    const len = monthlyRevenueData.length;
+    const latest = monthlyRevenueData[len - 1];
+    const prev = monthlyRevenueData[len - 2] || { revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
+    const revenueChange = getChangePercent(latest.revenue, prev.revenue);
+    const tasksChange = getChangePercent(latest.tasks, prev.tasks);
+    const projectsChange = getChangePercent(latest.projects, prev.projects);
+    const teamMembersChange = getChangePercent(latest.teamMembers, prev.teamMembers);
+
     return {
       stats: {
         totalProjects: {
           value: currentProjects,
-          change: changeProjects,
+          change: projectsChange,
           iconType: "folder",
           color: "bg-blue-100",
         },
         activeTasks: {
           value: tasksRes.count,
-          change: 4,
+          change: tasksChange,
           iconType: "task",
           color: "bg-green-100",
         },
        
         teamMembers: {
           value: currentMember,
-          change: 1,
+          change: teamMembersChange,
           iconType: "team",
           color: "bg-purple-100",
         },
@@ -193,7 +232,7 @@ export const fetchDashboardData = async (userId) => {
         // },
         revenue: {
           value: `₹${totalRevenue}`,
-          change: 6,
+          change: revenueChange,
           iconType: "money",
           color: "bg-yellow-100",
         },
