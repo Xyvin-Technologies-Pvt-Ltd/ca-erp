@@ -76,63 +76,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     }
   }, [user, reset, dataLoaded]);
 
-  const submitHandler = async (data) => {
-    setLoading(true);
-    try {
-      let response;
-
-      // Validate required fields
-      if (!data.department) {
-        throw new Error("Department is required");
-      }
-      if (!data.position) {
-        throw new Error("Position is required");
-      }
-      if (!data.role) {
-        data.role = ROLES.STAFF;
-      }
-
-      // Prepare the data
-      const preparedData = {
-        ...data,
-        department: data.department,
-        position: data.position
-      };
-
-      if (isEditMode) {
-        const { confirmPassword, ...updateData } = preparedData;
-        if (!showPasswordReset) {
-          delete updateData.password;
-        }
-        
-        response = await userApi.updateUser(user._id, updateData);
-        
-        if (!response.data.department || !response.data.position) {
-          throw new Error("Failed to update user's department or position");
-        }
-        
-        onSubmit(response.data);
-      } else {
-        if (!data.password) {
-          throw new Error("Password is required for new users");
-        }
-        const { confirmPassword, ...createData } = preparedData;
-        
-        response = await userApi.createUser(createData);
-        
-        if (!response.data.department || !response.data.position) {
-          throw new Error("Failed to assign department or position to user");
-        }
-        
-        onSubmit(response.data);
-      }
-      toast.success(isEditMode ? "User updated successfully!" : "User created successfully!");
-    } catch (error) {
-      console.error("Error saving user:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to save user. Please try again.";
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+  const submitHandler = (data) => {
+    if (isEditMode && user && user._id) {
+      onSubmit({ ...data, _id: user._id });
+    } else {
+      onSubmit(data);
     }
   };
 

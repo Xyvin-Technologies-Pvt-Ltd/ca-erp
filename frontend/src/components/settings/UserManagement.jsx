@@ -54,16 +54,16 @@ const UserManagement = () => {
 
   const handleAddUser = async (userData) => {
     try {
-      await userApi.createUser(userData);
-      toast.success("User added successfully!");
-      await loadUsers();
-      setShowAddModal(false);
+      const response = await userApi.createUser(userData);
+      if (response && response.data && response.data.department && response.data.position) {
+        toast.success("User created successfully!");
+        await loadUsers();
+        setShowAddModal(false);
+      } else {
+        throw new Error("Failed to assign department or position to user");
+      }
     } catch (error) {
-      console.error("Create user failed:", error.response?.data);
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to add user";
+      const errorMessage = error.response?.data?.error || error.message || "Failed to add user";
       toast.error(errorMessage);
     }
   };
