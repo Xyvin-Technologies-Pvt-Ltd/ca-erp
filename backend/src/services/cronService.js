@@ -25,6 +25,20 @@ class CronService {
                 deleted: { $ne: true }
             }).populate('client');
 
+            // Process missed initial runs
+            const now = new Date();
+            for (const cronJob of activeCronJobs) {
+                if (
+                    cronJob.isActive &&
+                    cronJob.startDate &&
+                    new Date(cronJob.startDate) <= now &&
+                    (!cronJob.lastRun || new Date(cronJob.lastRun) < new Date(cronJob.startDate))
+                ) {
+                    logger.info(`Processing missed initial run for cron job: ${cronJob.name} (${cronJob._id})`);
+                    await this.executeCronJob(cronJob);
+                }
+            }
+
             // Schedule each active cron job
             for (const cronJob of activeCronJobs) {
                 this.scheduleJob(cronJob);

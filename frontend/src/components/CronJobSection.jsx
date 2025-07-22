@@ -49,7 +49,7 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
@@ -91,6 +91,7 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
               <input
                 type="date"
                 value={newProject.startDate}
+                min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setNewProject({ ...newProject, startDate: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
               />

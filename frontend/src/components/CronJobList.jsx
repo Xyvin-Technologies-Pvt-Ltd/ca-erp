@@ -197,8 +197,11 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
 
                       {/* Action Buttons */}
                       <div className="flex flex-col space-y-2 ml-4">
-                        {/* Only show execute button if job hasn't been executed recently (within last 24 hours) */}
-                        {(!cronJob.lastRun || (new Date() - new Date(cronJob.lastRun)) > 24 * 60 * 60 * 1000) ? (
+                        {/* Only show execute button for initial run: if lastRun is null or before startDate */}
+                        {(
+                          (!cronJob.lastRun || new Date(cronJob.lastRun) < new Date(cronJob.startDate)) &&
+                          new Date() >= new Date(cronJob.startDate)
+                        ) ? (
                           <button
                             onClick={() => handleExecuteJob(cronJob._id)}
                             disabled={executingJobs.has(cronJob._id)}
@@ -216,14 +219,7 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
                             )}
                             Execute
                           </button>
-                        ) : (
-                          <span className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm">
-                            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Recently Executed
-                          </span>
-                        )}
+                        ) : null}
                         <button
                           onClick={() => handleDeleteJob(cronJob._id)}
                           className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105"
