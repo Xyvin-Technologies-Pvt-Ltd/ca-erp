@@ -23,6 +23,7 @@ import {
 import Modal from "react-modal";
 import { Calendar, CheckCircle, ChevronLeft, ChevronRight, Clock, IndianRupee, MapPin, Play, User, TrendingUp, BarChart3 } from "lucide-react";
 import { Pie, PieChart, Bar, BarChart, Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getMyAttendance } from "../api/attendance";
 
 Modal.setAppElement('#root');
 
@@ -1506,6 +1507,310 @@ const EventCalendar = () => {
   );
 };
 
+const AttendanceYearChart = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchYearAttendance = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const months = Array.from({ length: 12 }, (_, i) => i); // 0-11
+        const monthLabels = [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+        const results = await Promise.all(
+          months.map(async (monthIdx) => {
+            const start = new Date(year, monthIdx, 1);
+            const end = new Date(year, monthIdx + 1, 0);
+            const res = await getMyAttendance({
+              startDate: start.toISOString().split("T")[0],
+              endDate: end.toISOString().split("T")[0],
+            });
+            const attendance = res.data?.attendance || [];
+            let present = 0, absent = 0, halfDay = 0, late = 0, earlyLeave = 0, onLeave = 0;
+            attendance.forEach((a) => {
+              if (a.status === "Present") present++;
+              if (a.status === "Absent") absent++;
+              if (a.status === "On-Leave") { absent++; onLeave++; }
+              if (a.status === "Half-Day") halfDay++;
+              if (a.status === "Late") late++;
+              if (a.status === "Early-Leave") earlyLeave++;
+            });
+            const total = present + absent + halfDay;
+            const presentPercent = total > 0 ? Math.round((present / total) * 100) : 0;
+            const absentPercent = total > 0 ? Math.round((absent / total) * 100) : 0;
+            const halfDayPercent = total > 0 ? Math.round((halfDay / total) * 100) : 0;
+            return {
+              month: monthLabels[monthIdx],
+              present,
+              absent,
+              halfDay,
+              late,
+              earlyLeave,
+              onLeave,
+              total,
+              presentPercent,
+              absentPercent,
+              halfDayPercent,
+            };
+          })
+        );
+        setData(results);
+      } catch (e) {
+        setError("Failed to fetch attendance data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchYearAttendance();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] flex justify-center items-center min-h-[240px]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1c6ead]/20"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-[#1c6ead] absolute top-0"></div>
+          </div>
+          <p className="text-[#1c6ead] font-medium animate-pulse">Loading attendance data...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="bg-gradient-to-br from-red-50 to-rose-100 rounded-3xl shadow-2xl p-8 border-2 border-red-200 text-center">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="p-3 bg-red-500 rounded-full">
+            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-red-700 font-semibold">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] transition-all duration-700"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-4">
+          <motion.div
+            className="p-4 bg-gradient-to-br from-[#1c6ead] to-[#2980b9] rounded-2xl shadow-xl"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <CalendarDaysIcon className="h-7 w-7 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">My Attendance Overview</h3>
+            <p className="text-sm text-gray-600 flex items-center">
+              <span className="w-2 h-2 bg-[#1c6ead] rounded-full mr-2"></span>
+              Monthly attendance breakdown for {new Date().getFullYear()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-600 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Present</span>
+          </div>
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Half-Day</span>
+          </div>
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Absent/Leave</span>
+          </div>
+        </div>
+      </div>
+      <ChartContainer className="h-[340px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart 
+            data={data} 
+            margin={{ top: 20, right: 40, left: 20, bottom: 40 }}
+            barCategoryGap="15%"
+          >
+            <defs>
+              <linearGradient id="presentGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.7}/>
+              </linearGradient>
+              <linearGradient id="halfdayGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#f59e42" stopOpacity={0.7}/>
+              </linearGradient>
+              <linearGradient id="absentGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#dc2626" stopOpacity={0.7}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid 
+              strokeDasharray="2 4" 
+              stroke="#e2e8f0" 
+              strokeOpacity={0.6}
+              horizontal={true}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="month" 
+              stroke="#64748b" 
+              fontSize={13} 
+              fontWeight={600}
+              tick={{ fill: '#475569' }}
+              axisLine={{ stroke: '#cbd5e1', strokeWidth: 2 }}
+              tickLine={false}
+            />
+            <YAxis 
+              stroke="#64748b" 
+              fontSize={12} 
+              fontWeight={500}
+              allowDecimals={false}
+              domain={[0, 100]}
+              tickFormatter={(value) => `${value}%`}
+              tick={{ fill: '#475569' }}
+              axisLine={{ stroke: '#cbd5e1', strokeWidth: 2 }}
+              tickLine={false}
+              label={{ 
+                value: 'Attendance (%)', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#475569', fontSize: '12px', fontWeight: '600' }
+              }}
+            />
+            <ChartTooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  const d = payload[0].payload;
+                  return (
+                    <div style={{ background: '#fff', borderRadius: 12, padding: 18, minWidth: 180, outline: 'none', boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)' }} className="focus:outline-none">
+                      <div className="font-bold text-gray-900 mb-2 text-center">{label} {new Date().getFullYear()}</div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Present</span>
+                        <span className="text-gray-700">{d.present} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Half-Day</span>
+                        <span className="text-gray-700">{d.halfDay} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Absent</span>
+                        <span className="text-gray-700">{d.absent} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">Total Days</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.total}</span>
+                      </div>
+                      {/* <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Present %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.presentPercent}%</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Half-Day %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.halfDayPercent}%</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Absent/Leave %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.absentPercent}%</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">Late</span>
+                        <span className="text-xs text-yellow-700 font-semibold">{d.late}</span>
+                        <span className="text-xs text-gray-500">Early-Leave</span>
+                        <span className="text-xs text-blue-700 font-semibold">{d.earlyLeave}</span>
+                      </div> */}
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Bar 
+              dataKey="presentPercent" 
+              name="Present" 
+              fill="url(#presentGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#059669"
+              strokeWidth={1}
+            />
+            <Bar 
+              dataKey="halfDayPercent" 
+              name="Half-Day" 
+              fill="url(#halfdayGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#f59e42"
+              strokeWidth={1}
+            />
+            <Bar 
+              dataKey="absentPercent" 
+              name="Absent/Leave" 
+              fill="url(#absentGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#dc2626"
+              strokeWidth={1}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+      {/* Dots for Late/Early-Leave below bars */}
+      <div className="mt-2 flex justify-between px-6">
+        {data.map((d, idx) => (
+          <div key={d.month} className="flex flex-col items-center w-6">
+            <div className="flex items-center space-x-1">
+              {d.late > 0 && <span title="Late" className="w-2 h-2 bg-yellow-400 rounded-full"></span>}
+              {d.earlyLeave > 0 && <span title="Early-Leave" className="w-2 h-2 bg-blue-400 rounded-full"></span>}
+            </div>
+            <div className="flex flex-col items-center mt-1">
+              {d.late > 0 && <span className="text-[10px] text-yellow-700">{d.late}L</span>}
+              {d.earlyLeave > 0 && <span className="text-[10px] text-blue-700">{d.earlyLeave}E</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 pt-6 border-t border-gray-200/60">
+        <div className="flex items-center justify-center space-x-8 text-sm">
+          <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full border border-green-200">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-green-700 font-medium">Present Days</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <span className="text-yellow-700 font-medium">Half-Days</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-red-50 px-4 py-2 rounded-full border border-red-200">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span className="text-red-700 font-medium">Absent/Leave</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <span className="text-yellow-700 font-medium">Late</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <span className="text-blue-700 font-medium">Early-Leave</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const Dashboard = () => {
   const { user, role } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -1657,6 +1962,10 @@ const statusColorMap = {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <TaskStatusChart statusData={taskStatusData} />
         <MonthlyRevenueChart monthlyRevenueData={data.monthlyRevenueData || []} />
+      </div>
+      <div className="pb-10">
+                <AttendanceYearChart />
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
