@@ -51,16 +51,6 @@ export const cronJobsApi = {
     }
   },
 
-  // Execute cron job
-  executeCronJob: async (id) => {
-    try {
-      const response = await axios.post(`/cronjobs/${id}/execute`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
   // Get sections for a client
   getSections: async (clientId) => {
     try {

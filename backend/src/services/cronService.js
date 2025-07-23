@@ -25,17 +25,33 @@ class CronService {
                 deleted: { $ne: true }
             }).populate('client');
 
-            // Process missed initial runs
+            // Process all missed runs for each cron job
             const now = new Date();
             for (const cronJob of activeCronJobs) {
-                if (
+                let missed = false;
+                while (
                     cronJob.isActive &&
-                    cronJob.startDate &&
-                    new Date(cronJob.startDate) <= now &&
-                    (!cronJob.lastRun || new Date(cronJob.lastRun) < new Date(cronJob.startDate))
+                    cronJob.nextRun &&
+                    new Date(cronJob.nextRun) <= now
                 ) {
-                    logger.info(`Processing missed initial run for cron job: ${cronJob.name} (${cronJob._id})`);
+                    logger.info(`Processing missed run for cron job: ${cronJob.name} (${cronJob._id}) at ${cronJob.nextRun}`);
                     await this.executeCronJob(cronJob);
+                    // Refetch the cronJob to get updated nextRun
+                    await cronJob.populate('client');
+                    await cronJob.reload && await cronJob.reload(); // for mongoose 7+, otherwise refetch
+                    // If reload is not available, refetch from DB
+                    if (!cronJob.reload) {
+                        const updated = await CronJob.findById(cronJob._id).populate('client');
+                        if (updated) {
+                            cronJob.nextRun = updated.nextRun;
+                        } else {
+                            break;
+                        }
+                    }
+                    missed = true;
+                }
+                if (missed) {
+                    logger.info(`All missed runs processed for cron job: ${cronJob.name} (${cronJob._id})`);
                 }
             }
 

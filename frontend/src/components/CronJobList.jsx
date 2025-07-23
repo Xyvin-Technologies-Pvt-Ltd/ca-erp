@@ -1,40 +1,32 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { cronJobsApi } from '../api/cronJobs';
+import DeleteConfirmationModal from './common/DeleteConfirmationModal';
 
 const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
   const [executingJobs, setExecutingJobs] = useState(new Set());
   const [collapsedSections, setCollapsedSections] = useState(new Set());
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, cronJobId: null, cronJobName: '' });
 
-  const handleExecuteJob = async (cronJobId) => {
-    if (executingJobs.has(cronJobId)) return;
+  const handleDeleteJob = async (cronJobId) => {
+    // Open confirmation modal instead of alert
+    const cronJob = cronJobs.find(job => job._id === cronJobId);
+    setDeleteModal({ isOpen: true, cronJobId, cronJobName: cronJob?.name || '' });
+  };
 
+  const confirmDeleteJob = async () => {
     try {
-      setExecutingJobs(prev => new Set(prev).add(cronJobId));
-      await cronJobsApi.executeCronJob(cronJobId);
-      toast.success('Project created successfully from cron job');
+      await cronJobsApi.deleteCronJob(deleteModal.cronJobId);
+      toast.success('Cron job deleted successfully');
+      setDeleteModal({ isOpen: false, cronJobId: null, cronJobName: '' });
       onUpdate();
     } catch (error) {
-      toast.error(error.message || 'Failed to execute cron job');
-    } finally {
-      setExecutingJobs(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(cronJobId);
-        return newSet;
-      });
+      toast.error(error.message || 'Failed to delete cron job');
     }
   };
 
-  const handleDeleteJob = async (cronJobId) => {
-    if (window.confirm('Are you sure you want to delete this cron job?')) {
-      try {
-        await cronJobsApi.deleteCronJob(cronJobId);
-        toast.success('Cron job deleted successfully');
-        onUpdate();
-      } catch (error) {
-        toast.error(error.message || 'Failed to delete cron job');
-      }
-    }
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, cronJobId: null, cronJobName: '' });
   };
 
   const formatDate = (dateString) => {
@@ -114,6 +106,15 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
 
   return (
     <div className="space-y-8">
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteJob}
+        title="Delete Cron Job"
+        message={`Are you sure you want to delete the cron job "${deleteModal.cronJobName}"? This action cannot be undone.`}
+        itemName={deleteModal.cronJobName}
+      />
       {Object.entries(groupedJobs).map(([sectionName, jobs]) => (
         <div key={sectionName} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
           {/* Section Header */}
@@ -197,29 +198,6 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
 
                       {/* Action Buttons */}
                       <div className="flex flex-col space-y-2 ml-4">
-                        {/* Only show execute button for initial run: if lastRun is null or before startDate */}
-                        {(
-                          (!cronJob.lastRun || new Date(cronJob.lastRun) < new Date(cronJob.startDate)) &&
-                          new Date() >= new Date(cronJob.startDate)
-                        ) ? (
-                          <button
-                            onClick={() => handleExecuteJob(cronJob._id)}
-                            disabled={executingJobs.has(cronJob._id)}
-                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105 disabled:transform-none"
-                          >
-                            {executingJobs.has(cronJob._id) ? (
-                              <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                            ) : (
-                              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            )}
-                            Execute
-                          </button>
-                        ) : null}
                         <button
                           onClick={() => handleDeleteJob(cronJob._id)}
                           className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105"
