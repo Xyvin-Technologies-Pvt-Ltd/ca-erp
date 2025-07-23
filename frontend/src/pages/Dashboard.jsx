@@ -1701,21 +1701,21 @@ const AttendanceYearChart = () => {
                       <div className="flex items-center justify-between mb-2">
                         <span className="w-2 h-2 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                         <span className="text-sm text-gray-700">Present</span>
-                        <span className="text-gray-700">{d.present} days</span>
+                        <span className="text-gray-700 text-sm">{d.present} days</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="w-2 h-2 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></span>
                         <span className="text-sm text-gray-700">Half-Day</span>
-                        <span className="text-gray-700">{d.halfDay} days</span>
+                        <span className="text-gray-700 text-sm">{d.halfDay} days</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="w-2 h-2 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></span>
                         <span className="text-sm text-gray-700">Absent</span>
-                        <span className="text-gray-700">{d.absent} days</span>
+                        <span className="text-gray-700 text-sm">{d.absent} days</span>
                       </div>
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-500">Total Days</span>
-                        <span className="text-xs text-gray-700 font-semibold">{d.total}</span>
+                        <span className="text-xs text-gray-700 font-semibold ">{d.total}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">Present %</span>
