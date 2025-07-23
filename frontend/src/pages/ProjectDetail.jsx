@@ -507,7 +507,7 @@ const ProjectDetail = () => {
                       <span className="text-gray-900 ">{project.client.currencyFormat || 'N/A'}</span>
                     </div>
                     <div className="">
-                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Directors<span className="pl-1 pr-1">:</span></span>
+                      <span className="w-40 min-w-[8rem] font-medium text-gray-700 ">Directors<span className="pl-10 pr-1">:</span></span>
                       <span className="text-gray-900 ">
                         {Array.isArray(project.client.directors) && project.client.directors.length > 0
                           ? project.client.directors.join(', ')

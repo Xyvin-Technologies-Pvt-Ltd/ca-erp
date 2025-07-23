@@ -1699,23 +1699,23 @@ const AttendanceYearChart = () => {
                     <div style={{ background: '#fff', borderRadius: 12, padding: 18, minWidth: 180, outline: 'none', boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)' }} className="focus:outline-none">
                       <div className="font-bold text-gray-900 mb-2 text-center">{label} {new Date().getFullYear()}</div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                        <span className="w-2 h-2 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
                         <span className="text-sm text-gray-700">Present</span>
-                        <span className="text-gray-700">{d.present} days</span>
+                        <span className="text-gray-700 text-sm">{d.present} days</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                        <span className="w-2 h-2 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></span>
                         <span className="text-sm text-gray-700">Half-Day</span>
-                        <span className="text-gray-700">{d.halfDay} days</span>
+                        <span className="text-gray-700 text-sm">{d.halfDay} days</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span className="w-2 h-2 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></span>
                         <span className="text-sm text-gray-700">Absent</span>
-                        <span className="text-gray-700">{d.absent} days</span>
+                        <span className="text-gray-700 text-sm">{d.absent} days</span>
                       </div>
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-500">Total Days</span>
-                        <span className="text-xs text-gray-700 font-semibold">{d.total}</span>
+                        <span className="text-xs text-gray-700 font-semibold ">{d.total}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-gray-500">Present %</span>
@@ -1782,7 +1782,7 @@ const AttendanceYearChart = () => {
           </div>
         ))}
       </div> */}
-      <div className="mt-6 pt-6 border-t border-gray-200/60">
+      {/* <div className="mt-6 pt-6 border-t border-gray-200/60">
         <div className="flex items-center justify-center space-x-8 text-sm">
           <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full border border-green-200">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -1796,12 +1796,9 @@ const AttendanceYearChart = () => {
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
             <span className="text-red-700 font-medium">Absent</span>
           </div>
-          {/* <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
-            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-            <span className="text-blue-700 font-medium">Early-Leave</span>
-          </div> */}
+          
         </div>
-      </div>
+      </div> */}
     </motion.div>
   );
 };
