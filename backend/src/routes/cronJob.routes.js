@@ -5,7 +5,6 @@ const {
     createCronJob,
     updateCronJob,
     deleteCronJob,
-    executeCronJob,
     getSections
 } = require('../controllers/cronJob.controller');
 
@@ -24,9 +23,6 @@ router.route('/:id')
     .get(getCronJob)
     .put(updateCronJob)
     .delete(deleteCronJob);
-
-router.route('/:id/execute')
-    .post(executeCronJob);
 
 router.route('/sections/:clientId')
     .get(getSections);

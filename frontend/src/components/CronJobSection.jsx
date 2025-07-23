@@ -91,7 +91,7 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
               <input
                 type="date"
                 value={newProject.startDate}
-                min={new Date().toISOString().split('T')[0]}
+                // min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setNewProject({ ...newProject, startDate: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
               />
