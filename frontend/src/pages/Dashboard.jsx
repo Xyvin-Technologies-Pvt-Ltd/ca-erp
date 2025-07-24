@@ -238,14 +238,14 @@ const MonthlyRevenueChart = ({ monthlyRevenueData }) => {
               dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2, fill: "#ffffff" }}
             />
-            <Bar
+            {/* <Bar
               dataKey="projects"
               fill="#8b5cf6"
               radius={[4, 4, 0, 0]}
               opacity={0.7}
               onMouseEnter={(_, index) => setActiveBar(index)}
               onMouseLeave={() => setActiveBar(null)}
-            />
+            /> */}
           </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
