@@ -59,11 +59,11 @@ const Login = () => {
   };
 
   return (
-    <div className="mt-8">
-      <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div className="mt-8 animate-fade-in-up">
+      <div className="bg-white/90 py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-slate-200/50">
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4 mb-4">
+            <div className="rounded-md bg-red-50 p-4 mb-4 border border-red-200 animate-fade-in">
               <div className="flex">
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Error</h3>
@@ -81,6 +81,7 @@ const Login = () => {
             type="email"
             autoComplete="email"
             required
+            className="focus:ring-[#1c6ead] focus:border-[#1c6ead]"
             {...register("email")}
             error={errors.email?.message}
           />
@@ -92,13 +93,14 @@ const Login = () => {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
+              className="focus:ring-[#1c6ead] focus:border-[#1c6ead]"
               {...register("password")}
               error={errors.password?.message}
             />
             <button
               type="button"
               onClick={togglePasswordVisibility}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#1c6ead] transition-colors duration-200"
               style={{ top: "60%", transform: "translateY(-25%)" }}
             >
               {showPassword ? (
@@ -109,66 +111,18 @@ const Login = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            {/* <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-[#1c6ead] border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900"
-              >
-                Remember me
-              </label>
-            </div> */}
-
-            {/* <div className="text-sm">
-              <a
-                href="#"
-                className="font-medium text-blue-600 hover:text-[#1c6ead]"
-              >
-                Forgot your password?
-              </a>
-            </div> */}
-          </div>
-
           <div>
             <Button
               type="submit"
               fullWidth
               isLoading={isLoading}
               disabled={isLoading}
+              className="bg-[#1c6ead] hover:bg-[#175a99] text-white font-semibold shadow-md transition-all duration-200 rounded-xl py-2"
             >
               Sign in
             </Button>
           </div>
         </form>
-
-        {/* <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-medium text-blue-600 hover:text-[#1c6ead]"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div> */}
       </div>
     </div>
   );
