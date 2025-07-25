@@ -238,14 +238,14 @@ const MonthlyRevenueChart = ({ monthlyRevenueData }) => {
               dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2, fill: "#ffffff" }}
             />
-            <Bar
+            {/* <Bar
               dataKey="projects"
               fill="#8b5cf6"
               radius={[4, 4, 0, 0]}
               opacity={0.7}
               onMouseEnter={(_, index) => setActiveBar(index)}
               onMouseLeave={() => setActiveBar(null)}
-            />
+            /> */}
           </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
@@ -282,7 +282,7 @@ const MonthlyRevenueChart = ({ monthlyRevenueData }) => {
         </motion.div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-4 lg:mt-12 pt-4 border-t border-gray-100">
         <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span>Growth rate increasing month over month</span>
