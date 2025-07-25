@@ -705,7 +705,7 @@ const ClientDetails = () => {
                 </div>
                 <div>
                   <h2 className="text-3xl font-bold bg-[#1c6ead] bg-clip-text text-transparent">
-                    Annual & Monthly Cron Jobs
+                    Annual & Monthly Auto Projects
                   </h2>
                   <p className="text-gray-600 mt-1">Automate your project creation with scheduled tasks</p>
                 </div>
@@ -807,7 +807,7 @@ const ClientDetails = () => {
                 <div className="mt-8">
                   <div className="flex items-center space-x-3 mb-6">
                     <div className="w-2 h-8 bg-gradient-to-b from-green-500 to-blue-600 rounded-full"></div>
-                    <h3 className="text-xl font-bold text-gray-900">Active Cron Jobs</h3>
+                    <h3 className="text-xl font-bold text-gray-900">Active Auto Projects</h3>
                     <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                       {cronJobs.filter(job => job.isActive && job.section).length} job{cronJobs.filter(job => job.isActive && job.section).length !== 1 ? 's' : ''}
                     </span>
