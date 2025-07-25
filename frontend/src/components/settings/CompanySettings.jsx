@@ -38,7 +38,6 @@ const CompanySettings = () => {
   const [filteredStates, setFilteredStates] = useState([]);
   const [stateSearch, setStateSearch] = useState("");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [showStateDropdown, setShowStateDropdown] = useState(false);
   const countryInputRef = useRef(null);
   const stateInputRef = useRef(null);
   const logoInputRef = useRef(null);
@@ -397,43 +396,13 @@ const CompanySettings = () => {
                       </div>
                     )}
                   </div>
-                  {/* State Autocomplete */}
                   <div className="relative">
                     <input
                       type="text"
-                      ref={stateInputRef}
-                      autoComplete="off"
                       {...register("company.address.state", { required: "State is required" })}
-                      value={stateSearch || watch("company.address.state") || ""}
-                      onChange={e => {
-                        setStateSearch(e.target.value);
-                        setShowStateDropdown(true);
-                        const filtered = states.filter(s => s.toLowerCase().includes(e.target.value.toLowerCase()));
-                        setFilteredStates(filtered);
-                        setValue("company.address.state", e.target.value);
-                      }}
-                      onFocus={() => setShowStateDropdown(true)}
-                      onBlur={() => setTimeout(() => setShowStateDropdown(false), 200)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                       placeholder="State"
                     />
-                    {showStateDropdown && filteredStates.length > 0 && (
-                      <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
-                        {filteredStates.map((s, idx) => (
-                          <li
-                            key={s}
-                            className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                            onClick={() => {
-                              setValue("company.address.state", s);
-                              setStateSearch(s);
-                              setShowStateDropdown(false);
-                            }}
-                          >
-                            {s}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                     {errors.company?.address?.state && (
                       <div className="flex items-center gap-2 mt-2">
                         <AlertCircle className="w-4 h-4 text-red-500" />
@@ -493,12 +462,12 @@ const CompanySettings = () => {
               <div>
                 <label htmlFor="website" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                   <Globe className="w-4 h-4 text-gray-500" />
-                  Website <span className="text-red-500">*</span>
+                  Website
                 </label>
                 <input
                   id="website"
                   type="url"
-                  {...register("company.website", { required: "Website URL is required" })}
+                  {...register("company.website")}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   placeholder="https://www.company.com"
                 />

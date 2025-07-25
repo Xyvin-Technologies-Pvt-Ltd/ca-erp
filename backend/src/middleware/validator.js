@@ -326,7 +326,7 @@ const settingsValidation = {
                     pin: Joi.string(),
                     street: Joi.string(),
                 }),
-                website: Joi.string(),
+                website: Joi.string().allow("").optional(),
                 taxId: Joi.string(),
                 financialYearStart: Joi.string(),
                 currency: Joi.string(),
