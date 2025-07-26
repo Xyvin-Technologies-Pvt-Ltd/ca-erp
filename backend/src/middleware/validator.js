@@ -167,6 +167,7 @@ const projectValidation = {
             manager: Joi.string(),
             team: Joi.array().items(Joi.string()),
             status: Joi.string().valid('planning', 'in-progress', 'on-hold', 'completed', 'archived'),
+            priority: Joi.string().valid('low', 'medium', 'high'),
             startDate: Joi.date().allow(null),
             dueDate: Joi.date().allow(null),
             budget: Joi.number().min(0),
