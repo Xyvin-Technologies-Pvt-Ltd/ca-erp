@@ -321,7 +321,7 @@ const Header = ({ onOpenSidebar }) => {
                         <span className="font-medium">Your Profile</span>
                       </Link>
                       
-                      {['admin', 'manager'].includes(user?.role) && (
+                      {/* {['admin', 'manager'].includes(user?.role) && (
                         <Link
                           to={ROUTES.SETTINGS}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
@@ -333,7 +333,7 @@ const Header = ({ onOpenSidebar }) => {
                           </div>
                           <span className="font-medium">Settings</span>
                         </Link>
-                      )}
+                      )} */}
                       
                       <div className="border-t border-slate-100 mt-2 pt-2">
                         <button

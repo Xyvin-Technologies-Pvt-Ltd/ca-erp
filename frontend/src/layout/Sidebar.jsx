@@ -96,12 +96,12 @@ const navigation = [
     icon: DollarSign,
     roles: ["finance", "admin"],
   },
-  { name: "Settings", to: ROUTES.SETTINGS, icon: Settings, roles: ["admin", "manager"] },
+  { name: "Settings", to: ROUTES.SETTINGS, icon: Settings, superadminOnly: true },
 ];
 
 const Sidebar = ({ onCloseMobile, projects = [] }) => {
   const location = useLocation();
-  const { user, role } = useAuth();
+  const { user, role, isSuperadmin } = useAuth();
   const [logoFilename, setLogoFilename] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [expandedItems, setExpandedItems] = useState({});
@@ -109,7 +109,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await api.get("/settings");
+        const response = await api.get("/settings/company-info");
         const logo = response.data?.data?.company?.logo;
         const company = response.data?.data?.company;
 
@@ -148,8 +148,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
     }
   }, [location.pathname]);
 
-  const getVisibleNavigation = (role) => {
+  const getVisibleNavigation = (role, isSuperadminUser) => {
     return navigation.filter((item) => {
+      // Superadmin can only see Settings
+      if (isSuperadminUser) {
+        return item.name === "Settings";
+      }
+
+      // For non-superadmin users, check role-based access
       switch (item.name) {
         case "Dashboard":
           return true;
@@ -163,14 +169,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
         case "HRM":
           return ["admin", "manager"].includes(role);
         case "Settings":
-        return item.roles ? item.roles.includes(role) : true;
+          return item.superadminOnly ? isSuperadminUser : (item.roles ? item.roles.includes(role) : true);
         default:
           return false;
       }
     });
   };
 
-  const filteredNavigation = getVisibleNavigation(role || "staff");
+  const filteredNavigation = getVisibleNavigation(user?.role || "staff", isSuperadmin());
 
   // Handle link clicks to close mobile sidebar
   const handleLinkClick = () => {

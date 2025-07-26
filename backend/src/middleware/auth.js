@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { ErrorResponse } = require('./errorHandler');
 const User = require('../models/User');
+const SuperAdmin = require('../models/SuperAdmin');
 require('dotenv').config();
 
 // Protect routes middleware
@@ -35,20 +36,19 @@ exports.protect = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
 
-        // Get user from the token
-        req.user = await User.findById(decoded.id);
-
-
-       
-        // Get user from the token
-        req.user = await User.findById(decoded.id);
-      
-
-
-        if (!req.user) {
+        // Try to find user in User collection
+        let user = await User.findById(decoded.id);
+        if (!user) {
+            // Try to find in SuperAdmin collection
+            user = await SuperAdmin.findById(decoded.id);
+            if (user) {
+                req.user = user;
+                req.user.superadmin = true;
+                return next();
+            }
             return next(new ErrorResponse('User not found', 404));
         }
-
+        req.user = user;
         next();
     } catch (err) {
         return next(new ErrorResponse('Not authorized to access this route', 401));
@@ -59,15 +59,34 @@ exports.protect = async (req, res, next) => {
 exports.authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
-
             return next(new ErrorResponse('User not found', 404));
         }
 
+        // Superadmin should not automatically get access to all routes
+        // They should only access settings routes via authorizeSuperadmin
         if (!roles.includes(req.user.role)) {
-
             return next(
                 new ErrorResponse(
                     `User role ${req.user.role} is not authorized to access this route`,
+                    403
+                )
+            );
+        }
+        next();
+    };
+};
+
+// Grant access to superadmin only
+exports.authorizeSuperadmin = () => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return next(new ErrorResponse('User not found', 404));
+        }
+
+        if (!req.user.superadmin) {
+            return next(
+                new ErrorResponse(
+                    'Only superadmin can access this route',
                     403
                 )
             );

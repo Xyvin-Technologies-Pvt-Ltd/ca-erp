@@ -215,3 +215,41 @@ exports.updateMailSettings = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Get company information (logo and name)
+ * @route   GET /api/settings/company-info
+ * @access  Private (all authenticated users)
+ */
+exports.getCompanyInfo = async (req, res, next) => {
+    try {
+        // Get settings to extract company info
+        let settings = await Settings.findOne();
+
+        // If no settings exist, return default company info
+        if (!settings) {
+            return res.status(200).json({
+                success: true,
+                data: {
+                    company: {
+                        name: 'Default Company',
+                        logo: ''
+                    }
+                }
+            });
+        }
+
+        // Return only company information
+        res.status(200).json({
+            success: true,
+            data: {
+                company: {
+                    name: settings.company?.name || 'Default Company',
+                    logo: settings.company?.logo || ''
+                }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

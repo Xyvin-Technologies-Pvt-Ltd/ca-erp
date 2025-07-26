@@ -23,6 +23,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [checkAuth]);
 
+  // Helper function to check if user is superadmin
+  const isSuperadmin = () => {
+    return user?.superadmin === true;
+  };
+
   const value = {
     setUser,
     user,
@@ -33,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     clearError,
     role: user?.role,
+    isSuperadmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
