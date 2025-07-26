@@ -74,7 +74,7 @@ const Settings = () => {
               <p className="text-gray-600 mb-6">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Loader2 className="w-4 h-4" />
                 Try Again
@@ -141,7 +141,7 @@ const Settings = () => {
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-[#1c6ead] rounded-xl flex items-center justify-center shadow-lg">
               <SettingsIcon className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -214,7 +214,7 @@ const Settings = () => {
                     
                     {/* Active indicator */}
                     {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-blue-700"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1c6ead]"></div>
                     )}
                   </button>
                 );
