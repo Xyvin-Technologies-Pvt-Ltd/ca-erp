@@ -304,7 +304,7 @@ const Leave = () => {
       </AnimatePresence>
 
       {/* Pagination Controls */}
-       {totalPages > 0 && (
+       {totalPages > 0 && leaves.length > 0 && (
                                   <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                           <div>
