@@ -31,6 +31,7 @@ import EMP from "./pages/employee/EMP";
 import LeaveApplication from "./pages/employee/LeaveApplication";
 import Attendance from './pages/hrm/Attendance';
 import EmployeeAttendance from './pages/employee/EmployeeAttendance';
+import { useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,17 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Component to handle default routing based on user type
+const DefaultRoute = () => {
+  const { isSuperadmin } = useAuth();
+  
+  if (isSuperadmin()) {
+    return <Navigate to={ROUTES.SETTINGS} />;
+  }
+  
+  return <Navigate to={ROUTES.DASHBOARD} />;
+};
 
 function App() {
   return (
@@ -96,7 +108,7 @@ function App() {
                 <Route path={ROUTES.HRM_ATTENDANCE} element={<Attendance />} />
 
                 {/* Default and 404 */}
-                <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />
+                <Route path="/" element={<DefaultRoute />} />
                 <Route path="*" element={<ErrorPage />} />
               </Route>
             </Routes>

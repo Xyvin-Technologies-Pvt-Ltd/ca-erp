@@ -5,20 +5,55 @@ const {
     updateSettings,
     uploadLogo,
     getMailSettings,
-    updateMailSettings
+    updateMailSettings,
+    getCompanyInfo
 } = require('../controllers/settings.controller');
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorizeSuperadmin } = require('../middleware/auth');
 const { uploadLogo: uploadLogoMiddleware } = require('../middleware/upload');
 const { validate } = require('../middleware/validator');
 const { settingsValidation } = require('../middleware/validator');
 
 /**
  * @swagger
+ * /api/settings/company-info:
+ *   get:
+ *     summary: Get company information
+ *     description: Get company name and logo (all authenticated users)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     company:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                         logo:
+ *                           type: string
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/company-info', protect, getCompanyInfo);
+
+/**
+ * @swagger
  * /api/settings:
  *   get:
  *     summary: Get application settings
- *     description: Get the application settings (Admin only)
+ *     description: Get the application settings (Superadmin only)
  *     tags: [Settings]
  *     security:
  *       - bearerAuth: []
@@ -37,16 +72,16 @@ const { settingsValidation } = require('../middleware/validator');
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - Superadmin access required
  */
 router.route('/')
-    .get(protect,  getSettings)
+    .get(protect, authorizeSuperadmin(), getSettings)
     /**
      * @swagger
      * /api/settings:
      *   put:
      *     summary: Update application settings
-     *     description: Update the application settings (Admin only)
+     *     description: Update the application settings (Superadmin only)
      *     tags: [Settings]
      *     security:
      *       - bearerAuth: []
@@ -73,16 +108,16 @@ router.route('/')
      *       401:
      *         description: Unauthorized
      *       403:
-     *         description: Forbidden
+     *         description: Forbidden - Superadmin access required
      */
-    .put(protect, authorize('admin','manager'), validate(settingsValidation.update), updateSettings);
+    .put(protect, authorizeSuperadmin(), validate(settingsValidation.update), updateSettings);
 
 /**
  * @swagger
  * /api/settings/logo:
  *   put:
  *     summary: Upload company logo
- *     description: Upload a logo for the company (Admin only)
+ *     description: Upload a logo for the company (Superadmin only)
  *     tags: [Settings]
  *     security:
  *       - bearerAuth: []
@@ -116,11 +151,12 @@ router.route('/')
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - Superadmin access required
  */
 router.route('/company/logo')
     .put(
         protect,
+        authorizeSuperadmin(),
         uploadLogoMiddleware.single('logo'),
         uploadLogo
     );
@@ -130,7 +166,7 @@ router.route('/company/logo')
  * /api/settings/mail:
  *   get:
  *     summary: Get mail settings
- *     description: Get the mail server settings (Admin only)
+ *     description: Get the mail server settings (Superadmin only)
  *     tags: [Settings]
  *     security:
  *       - bearerAuth: []
@@ -165,16 +201,16 @@ router.route('/company/logo')
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - Superadmin access required
  */
 router.route('/mail')
-    .get(protect, authorize('admin'), getMailSettings)
+    .get(protect, authorizeSuperadmin(), getMailSettings)
     /**
      * @swagger
      * /api/settings/mail:
      *   put:
      *     summary: Update mail settings
-     *     description: Update the mail server settings (Admin only)
+     *     description: Update the mail server settings (Superadmin only)
      *     tags: [Settings]
      *     security:
      *       - bearerAuth: []
@@ -191,48 +227,48 @@ router.route('/mail')
      *                 type: number
      *               secure:
      *                 type: boolean
-     *               auth:
-     *                 type: object
-     *                 properties:
-     *                   user:
-     *                     type: string
-     *                   pass:
-     *                     type: string
-     *     responses:
-     *       200:
-     *         description: Mail settings updated successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   type: object
-     *                   properties:
-     *                     host:
-     *                       type: string
-     *                     port:
-     *                       type: number
-     *                     secure:
-     *                       type: boolean
-     *                     auth:
-     *                       type: object
-     *                       properties:
-     *                         user:
-     *                           type: string
-     *                         pass:
-     *                           type: string
-     *       400:
-     *         description: Bad request
-     *       404:
-     *         description: Settings not found
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Forbidden
+      *               auth:
+ *                 type: object
+ *                 properties:
+ *                   user:
+ *                     type: string
+ *                   pass:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Mail settings updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     host:
+ *                       type: string
+ *                     port:
+ *                       type: number
+ *                     secure:
+ *                       type: boolean
+ *                     auth:
+ *                       type: object
+ *                       properties:
+ *                         user:
+ *                           type: string
+ *                         pass:
+ *                           type: string
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Settings not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Superadmin access required
      */
-    .put(protect, authorize('admin'), updateMailSettings);
+    .put(protect, authorizeSuperadmin(), updateMailSettings);
 
 module.exports = router; 
