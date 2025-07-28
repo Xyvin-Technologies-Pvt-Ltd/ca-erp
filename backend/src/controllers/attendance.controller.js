@@ -9,9 +9,13 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   let query = { isDeleted: false };
   
   if (startDate && endDate) {
+    // Create dates with explicit time components to avoid timezone issues
+    const startDateTime = new Date(startDate + 'T00:00:00.000Z');
+    const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+    
     query.date = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $gte: startDateTime,
+      $lte: endDateTime
     };
   }
   
@@ -378,10 +382,10 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
   const { startDate, endDate, departmentId } = req.query;
 
   try {
-    const validStartDate = startDate ? new Date(startDate) : new Date();
+    const validStartDate = startDate ? new Date(startDate + 'T00:00:00.000Z') : new Date();
     validStartDate.setHours(0, 0, 0, 0);
     
-    const validEndDate = endDate ? new Date(endDate) : new Date();
+    const validEndDate = endDate ? new Date(endDate + 'T23:59:59.999Z') : new Date();
     validEndDate.setHours(23, 59, 59, 999);
 
     if (isNaN(validStartDate.getTime()) || isNaN(validEndDate.getTime())) {
@@ -718,9 +722,13 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
     
     // Add date range filter if provided
     if (startDate && endDate) {
+      // Create dates with explicit time components to avoid timezone issues
+      const startDateTime = new Date(startDate + 'T00:00:00.000Z');
+      const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+      
       query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $gte: startDateTime,
+        $lte: endDateTime
       };
     }
 
@@ -824,9 +832,13 @@ exports.getAttendanceByEmployeeId = catchAsync(async (req, res) => {
   
   // Add date range filter if provided
   if (startDate && endDate) {
+    // Create dates with explicit time components to avoid timezone issues
+    const startDateTime = new Date(startDate + 'T00:00:00.000Z');
+    const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+    
     query.date = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $gte: startDateTime,
+      $lte: endDateTime
     };
   }
 
