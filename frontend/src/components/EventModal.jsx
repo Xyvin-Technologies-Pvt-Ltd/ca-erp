@@ -12,7 +12,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
     endDate: '',
   });
   const [loading, setLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
+  const [showConfirmModal, setShowConfirmModal] = useState(false); 
 
   useEffect(() => {
     if (event) {
@@ -57,7 +57,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
   };
 
   const handleCancel = () => {
-    setShowConfirmModal(true); // Show popup
+    setShowConfirmModal(true); 
   };
 
   const confirmDiscard = () => {
@@ -205,7 +205,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
         </div>
       </div>
 
-      {/* Confirmation Popup */}
+   
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
