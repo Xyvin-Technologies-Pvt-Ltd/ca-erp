@@ -96,10 +96,18 @@ const EmployeeAttendance = () => {
     if (dateStr) attendanceByDate[dateStr] = a;
   });
 
-  const [year, month] = selectedMonth.split("-");
-  const days = getDaysInMonth(Number(year), Number(month) - 1);
-  const firstDayOfWeek = days[0].getDay();
-
+  const now = new Date();
+  let year, month;
+  if (selectedMonth && selectedMonth.includes("-")) {
+    [year, month] = selectedMonth.split("-");
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  year = Number(year);
+  month = Number(month);
+  const days = getDaysInMonth(year, month - 1);
+  const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
   const attendanceDays = days.filter((day) => attendanceByDate[day.toISOString().split("T")[0]]);
 
   return (
