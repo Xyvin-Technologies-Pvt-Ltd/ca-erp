@@ -75,7 +75,7 @@ const Profile = () => {
         
         setProfileData(processedData);
         if (user.data.avatar) {
-          const fullUrl = `${import.meta.env.VITE_BASE_URL}${user.data.avatar}`;
+          const fullUrl = `${user.data.avatar}`;
           setProfileImage(fullUrl);
         }
       } catch (error) {
