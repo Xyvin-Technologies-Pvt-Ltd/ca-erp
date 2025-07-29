@@ -87,8 +87,8 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
+  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
   return {
     startDate: start.toISOString().split("T")[0],
     endDate: end.toISOString().split("T")[0],

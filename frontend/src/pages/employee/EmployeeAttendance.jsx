@@ -26,8 +26,8 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
+  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
   return {
     startDate: start.toISOString().split("T")[0],
     endDate: end.toISOString().split("T")[0],
@@ -36,10 +36,10 @@ function getMonthRange(date) {
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
+  const date = new Date(Date.UTC(year, month, 1));
+  while (date.getUTCMonth() === month) {
     days.push(new Date(date));
-    date.setDate(date.getDate() + 1);
+    date.setUTCDate(date.getUTCDate() + 1);
   }
   return days;
 }
