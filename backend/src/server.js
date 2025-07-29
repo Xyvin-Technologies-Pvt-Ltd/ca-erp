@@ -37,6 +37,8 @@ const leavesRoutes = require('./routes/leave.routes')
 const attendanceRoutes = require('./routes/attendance.routes')
 const cronJobRoutes = require('./routes/cronJob.routes')
 const sectionRoutes = require('./routes/section.routes')
+const uploadRoutes = require('./routes/upload.routes')
+
 
 // Initialize express app
 const app = express();
@@ -120,6 +122,7 @@ app.use('/api/leaves',leavesRoutes)
 app.use('/api/attendance',attendanceRoutes)
 app.use('/api/cronjobs', cronJobRoutes)
 app.use('/api/sections', sectionRoutes)
+app.use('/api/upload', uploadRoutes);
 
 
 

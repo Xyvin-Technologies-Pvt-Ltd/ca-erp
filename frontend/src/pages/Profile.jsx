@@ -134,10 +134,9 @@ const Profile = () => {
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      let avatarUrl = profileData.avatar;
       if (imageFile) {
-        const formData = new FormData();
-        formData.append("avatar", imageFile);
-        await userApi.uploadAvatar(userId, formData);
+        avatarUrl = await userApi.uploadAvatarToS3(imageFile);
       }
 
       const updateData = {
@@ -146,14 +145,14 @@ const Profile = () => {
         phone: profileData.phone,
         department: user?.department?._id || user?.department || profileData.department?._id || profileData.department,
         position: user?.position?._id || user?.position || profileData.position?._id || profileData.position,
+        ...(avatarUrl && { avatar: avatarUrl }),
       };
 
       const updatedUser = await userApi.updateUser(userId, updateData);
       localStorage.setItem("userData", JSON.stringify(updatedUser.data));
 
       if (updatedUser.data.avatar) {
-        const fullUrl = `${import.meta.env.VITE_BASE_URL}${updatedUser.data.avatar}`;
-        setProfileImage(fullUrl);
+        setProfileImage(updatedUser.data.avatar);
       }
 
       setUser(updatedUser.data);
