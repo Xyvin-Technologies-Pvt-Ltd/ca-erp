@@ -6,6 +6,10 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { XMarkIcon, CalendarIcon, ClockIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useState } from "react";
+import moment from 'moment-timezone';
+
+// Set default timezone to UTC for consistent handling
+moment.tz.setDefault('UTC');
 
 const validationSchema = Yup.object({
   leaveType: Yup.string().required("Leave type is required"),
@@ -24,8 +28,8 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
   const formik = useFormik({
     initialValues: {
       leaveType: leave?.leaveType || "",
-      startDate: leave?.startDate ? new Date(leave.startDate).toISOString().split("T")[0] : "",
-      endDate: leave?.endDate ? new Date(leave.endDate).toISOString().split("T")[0] : "",
+      startDate: leave?.startDate ? moment.tz(leave.startDate, 'UTC').format('YYYY-MM-DD') : "",
+      endDate: leave?.endDate ? moment.tz(leave.endDate, 'UTC').format('YYYY-MM-DD') : "",
       reason: leave?.reason || "",
       status: leave?.status || "Pending",
       reviewNotes: leave?.reviewNotes || "",
@@ -35,8 +39,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
       try {
         const payload = {
           ...values,
-          duration:
-            Math.ceil((new Date(values.endDate) - new Date(values.startDate)) / (1000 * 60 * 60 * 24)) + 1,
+          duration: Math.ceil(moment.tz(values.endDate, 'UTC').diff(moment.tz(values.startDate, 'UTC'), 'days')) + 1,
           employee: user?._id,
         };
         if (leave) {
@@ -66,9 +69,9 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (formik.values.startDate && formik.values.endDate) {
-      const start = new Date(formik.values.startDate);
-      const end = new Date(formik.values.endDate);
-      const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const start = moment.tz(formik.values.startDate, 'UTC');
+      const end = moment.tz(formik.values.endDate, 'UTC');
+      const durationInDays = Math.ceil(end.diff(start, 'days')) + 1;
       formik.setFieldValue("duration", durationInDays);
     }
     // eslint-disable-next-line
@@ -107,9 +110,9 @@ const handleCancel = () => {
 
   const calculateDuration = () => {
     if (formik.values.startDate && formik.values.endDate) {
-      const start = new Date(formik.values.startDate);
-      const end = new Date(formik.values.endDate);
-      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const start = moment.tz(formik.values.startDate, 'UTC');
+      const end = moment.tz(formik.values.endDate, 'UTC');
+      const duration = Math.ceil(end.diff(start, 'days')) + 1;
       return duration > 0 ? duration : 0;
     }
     return 0;

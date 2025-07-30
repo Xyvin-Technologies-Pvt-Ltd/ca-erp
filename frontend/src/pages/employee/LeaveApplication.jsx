@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Calendar } from "../../components/ui/calendar";
-import { format, differenceInDays, addMonths, subMonths, addDays, isSameDay, isAfter, isBefore, startOfDay } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -26,15 +24,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { createLeave, getMyLeaves } from "../../api/Leave.js";
+import moment from 'moment-timezone';
+
+// Set default timezone to UTC for consistent handling
+moment.tz.setDefault('UTC');
 
 const LeaveApplication = () => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
-    from: addDays(new Date(), 7),
-    to: addDays(new Date(), 7),
+    from: moment().add(7, 'days').startOf('day').toDate(),
+    to: moment().add(7, 'days').startOf('day').toDate(),
   });
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(moment().startOf('month').toDate());
   const [leaveType, setLeaveType] = useState("");
   const [reason, setReason] = useState("");
   const [recentApplications, setRecentApplications] = useState([]);
@@ -74,15 +76,14 @@ const LeaveApplication = () => {
           leavesData = leaveResponse.data;
         }
 
-
         const sortedApplications = leavesData
           .map((leave) => ({
             type:
               leave.leaveType.charAt(0).toUpperCase() +
               leave.leaveType.slice(1) +
               " Leave",
-            from: format(new Date(leave.startDate), "yyyy-MM-dd"),
-            to: format(new Date(leave.endDate), "yyyy-MM-dd"),
+            from: moment.tz(leave.startDate, 'UTC').format('YYYY-MM-DD'),
+            to: moment.tz(leave.endDate, 'UTC').format('YYYY-MM-DD'),
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
             approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
@@ -106,10 +107,10 @@ const LeaveApplication = () => {
           if (balanceCalculation[type]) {
             if (app.status === "Approved") {
               balanceCalculation[type].used +=
-                differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+                moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
             } else if (app.status === "Pending") {
               balanceCalculation[type].pending +=
-                differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+                moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
             }
           }
         });
@@ -143,15 +144,14 @@ const LeaveApplication = () => {
         leavesData = leaveResponse.data;
       }
 
-
       const sortedApplications = leavesData
         .map((leave) => ({
           type:
             leave.leaveType.charAt(0).toUpperCase() +
             leave.leaveType.slice(1) +
             " Leave",
-          from: format(new Date(leave.startDate), "yyyy-MM-dd"),
-          to: format(new Date(leave.endDate), "yyyy-MM-dd"),
+          from: moment.tz(leave.startDate, 'UTC').format('YYYY-MM-DD'),
+          to: moment.tz(leave.endDate, 'UTC').format('YYYY-MM-DD'),
           status:
             leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
           approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
@@ -175,10 +175,10 @@ const LeaveApplication = () => {
         if (balanceCalculation[type]) {
           if (app.status === "Approved") {
             balanceCalculation[type].used +=
-              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+              moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
           } else if (app.status === "Pending") {
             balanceCalculation[type].pending +=
-              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+              moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
           }
         }
       });
@@ -190,11 +190,11 @@ const LeaveApplication = () => {
   };
 
   const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => subMonths(prev, 1));
+    setCurrentMonth((prev) => moment(prev).subtract(1, 'month').startOf('month').toDate());
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth((prev) => addMonths(prev, 1));
+    setCurrentMonth((prev) => moment(prev).add(1, 'month').startOf('month').toDate());
   };
 
   const handleSubmit = async (e) => {
@@ -216,15 +216,14 @@ const LeaveApplication = () => {
     }
 
     try {
-
       if (!user) {
         toast.error("User information not found");
         return;
       }
 
       const leaveRequest = {
-        startDate: dateRange.from.toISOString(),
-        endDate: dateRange.to.toISOString(),
+        startDate: moment.tz(dateRange.from, 'UTC').format('YYYY-MM-DD'),
+        endDate: moment.tz(dateRange.to, 'UTC').format('YYYY-MM-DD'),
         reason: reason.trim(),
         employee: user._id || user.id || user.employeeId,
         leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
@@ -240,20 +239,20 @@ const LeaveApplication = () => {
 
       setLeaveType("");
       setReason("");
-      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
+      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
 
       if (response && response.data) {
-      toast.success("Leave request submitted successfully", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      toast.error("Failed to submit leave request");
-    }
+        toast.success("Leave request submitted successfully", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        toast.error("Failed to submit leave request");
+      }
 
       await refreshLeaveData();
     } catch (error) {
@@ -292,51 +291,56 @@ const LeaveApplication = () => {
   };
 
   const handleDateClick = (date) => {
-    if (!date || isBefore(date, addDays(startOfDay(new Date()), 6))) {
+    if (!date || moment(date).isBefore(moment().add(6, 'days').startOf('day'))) {
       return; // Don't allow selection of disabled dates
     }
 
+    const utcDate = moment.tz(date, 'UTC').startOf('day').toDate();
+
     if (!dateRange.from || (dateRange.from && dateRange.to)) {
       // Start new selection
-      setDateRange({ from: date, to: null });
+      setDateRange({ from: utcDate, to: null });
     } else if (dateRange.from && !dateRange.to) {
       // Complete the range
-      if (isBefore(date, dateRange.from)) {
-        setDateRange({ from: date, to: dateRange.from });
+      if (moment(utcDate).isBefore(moment(dateRange.from))) {
+        setDateRange({ from: utcDate, to: dateRange.from });
       } else {
-        setDateRange({ from: dateRange.from, to: date });
+        setDateRange({ from: dateRange.from, to: utcDate });
       }
     }
   };
 
   const isDateInRange = (date) => {
     if (!dateRange.from || !dateRange.to || !date) return false;
-    return (isAfter(date, dateRange.from) || isSameDay(date, dateRange.from)) &&
-           (isBefore(date, dateRange.to) || isSameDay(date, dateRange.to));
+    const utcDate = moment.tz(date, 'UTC').startOf('day');
+    return (moment(utcDate).isSameOrAfter(moment(dateRange.from)) &&
+            moment(utcDate).isSameOrBefore(moment(dateRange.to)));
   };
 
   const isDateSelected = (date) => {
     if (!date) return false;
-    return (dateRange.from && isSameDay(date, dateRange.from)) ||
-           (dateRange.to && isSameDay(date, dateRange.to));
+    const utcDate = moment.tz(date, 'UTC').startOf('day');
+    return (dateRange.from && moment(utcDate).isSame(moment(dateRange.from), 'day')) ||
+           (dateRange.to && moment(utcDate).isSame(moment(dateRange.to), 'day'));
   };
 
   const isDateDisabled = (date) => {
     if (!date) return true;
-    return isBefore(date, addDays(startOfDay(new Date()), 6));
+    return moment(date).isBefore(moment().add(6, 'days').startOf('day'));
   };
 
   const isToday = (date) => {
     if (!date) return false;
-    return isSameDay(date, new Date());
+    return moment(date).isSame(moment(), 'day');
   };
-   const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+
+  const getDaysInMonth = (date) => {
+    const year = moment(date).year();
+    const month = moment(date).month();
+    const firstDay = moment([year, month, 1]);
+    const lastDay = moment([year, month]).endOf('month');
+    const daysInMonth = lastDay.date();
+    const startingDayOfWeek = firstDay.day();
 
     const days = [];
     
@@ -347,7 +351,7 @@ const LeaveApplication = () => {
     
     // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      days.push(moment([year, month, day]).toDate());
     }
     
     return days;
@@ -355,14 +359,14 @@ const LeaveApplication = () => {
 
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
-      const days = differenceInDays(dateRange.to, dateRange.from) + 1;
+      const days = moment.tz(dateRange.to, 'UTC').diff(moment.tz(dateRange.from, 'UTC'), 'days') + 1;
       return (
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
           <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
-            {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d, yyyy")}
+            {moment.tz(dateRange.from, 'UTC').format('MMM D')} - {moment.tz(dateRange.to, 'UTC').format('MMM D, YYYY')}
           </span>
         </div>
       );
@@ -380,15 +384,19 @@ const LeaveApplication = () => {
       if (!range.to) {
         range.to = range.from;
       }
-      setDateRange(range);
+      setDateRange({
+        from: moment.tz(range.from, 'UTC').startOf('day').toDate(),
+        to: moment.tz(range.to, 'UTC').startOf('day').toDate(),
+      });
     } else {
-      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
+      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
     }
   };
 
   const disabledDays = {
-    before: addDays(new Date(), 6),
+    before: moment().add(6, 'days').startOf('day').toDate(),
   };
+
   const renderCalendar = (month) => {
     const days = getDaysInMonth(month);
     const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -438,7 +446,7 @@ const LeaveApplication = () => {
                 whileHover={!disabled ? { scale: 1.05 } : {}}
                 whileTap={!disabled ? { scale: 0.95 } : {}}
               >
-                {date.getDate()}
+                {moment(date).date()}
               </motion.div>
             );
           })}
@@ -446,6 +454,7 @@ const LeaveApplication = () => {
       </div>
     );
   };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center text-gray-600">
@@ -521,7 +530,7 @@ const LeaveApplication = () => {
                 </div>
               </div>
 
-             <div>
+              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <SunIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                   Date Range
@@ -538,7 +547,7 @@ const LeaveApplication = () => {
                         <ChevronLeftIcon className="h-4 w-4 text-[#1c6ead]" />
                       </Button>
                       <div className="text-sm font-semibold text-gray-700">
-                        {format(currentMonth, "MMMM yyyy")}
+                        {moment(currentMonth).format("MMMM YYYY")}
                       </div>
                       <Button
                         variant="outline"
@@ -551,31 +560,30 @@ const LeaveApplication = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                       {renderCalendar(currentMonth)}
-                      {renderCalendar(addMonths(currentMonth, 1))}
+                      {renderCalendar(moment(currentMonth).add(1, 'month').toDate())}
                     </div>
                   </div>
                 </div>
               </div>
 
-             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                Reason
-              </label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                maxLength={500}
-                placeholder="Please provide a reason for your leave request"
-                className="min-h-[100px] bg-white border-indigo-200 focus:border-[#1c6ead] rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
-              />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {reason.length}/500
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
+                  Reason
+                </label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  maxLength={500}
+                  placeholder="Please provide a reason for your leave request"
+                  className="min-h-[100px] bg-white border-indigo-200 focus:border-[#1c6ead] rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
+                />
+                <div className="text-right text-sm text-gray-500 mt-1">
+                  {reason.length}/500
+                </div>
               </div>
-            </div>
 
-
-              <motion.div  whileTap={{ scale: 0.98 }}>
+              <motion.div whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
                   className="w-full group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
