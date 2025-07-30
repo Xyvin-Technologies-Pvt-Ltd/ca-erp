@@ -311,7 +311,21 @@ const EmployeeAttendance = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-4 text-base text-gray-900">{att?.date ? new Date(att.date).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : (att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "-")}</td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.date ? (() => {
+                            const date = new Date(att.date);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${day}/${month}/${year}`;
+                          })() : (att?.checkIn?.time ? (() => {
+                            const date = new Date(att.checkIn.time);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${day}/${month}/${year}`;
+                          })() : "-")}
+                        </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
                         </td>

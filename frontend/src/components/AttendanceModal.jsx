@@ -332,20 +332,20 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     setLoading(true);
     try {
       const attendanceData = formData.selectedEmployees.map((employeeId) => {
-        // Create date in local timezone to avoid timezone conversion issues
+        // Send the date as a simple YYYY-MM-DD string to avoid timezone issues
+        const dateString = formData.date; // This is already in YYYY-MM-DD format
+        
+        // Create the time by combining the date and time
         const [year, month, day] = formData.date.split('-').map(Number);
         const [hours, minutes] = formData.time.split(':').map(Number);
         
-        // Create date object in local timezone
-        const attendanceDate = new Date(year, month - 1, day, hours, minutes, 0);
+        // Create a local date-time string that the backend can parse correctly
+        const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
         
-        // For the date field, create a date-only object (start of day in local timezone)
-        const dateOnly = new Date(year, month - 1, day, 0, 0, 0);
- 
         return {
           employee: employeeId,
-          date: dateOnly,
-          [formData.type]: { time: attendanceDate },
+          date: dateString, // Send as YYYY-MM-DD string
+          [formData.type]: { time: localDateTime.toISOString() }, // Send as ISO string
           status: formData.status,
           shift: formData.shift,
           notes: formData.notes || getDefaultNotes(formData.status),
