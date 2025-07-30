@@ -26,8 +26,8 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
+  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
   return {
     startDate: start.toISOString().split("T")[0],
     endDate: end.toISOString().split("T")[0],
@@ -36,10 +36,10 @@ function getMonthRange(date) {
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
+  const date = new Date(Date.UTC(year, month, 1));
+  while (date.getUTCMonth() === month) {
     days.push(new Date(date));
-    date.setDate(date.getDate() + 1);
+    date.setUTCDate(date.getUTCDate() + 1);
   }
   return days;
 }
@@ -96,10 +96,18 @@ const EmployeeAttendance = () => {
     if (dateStr) attendanceByDate[dateStr] = a;
   });
 
-  const [year, month] = selectedMonth.split("-");
-  const days = getDaysInMonth(Number(year), Number(month) - 1);
-  const firstDayOfWeek = days[0].getDay();
-
+  const now = new Date();
+  let year, month;
+  if (selectedMonth && selectedMonth.includes("-")) {
+    [year, month] = selectedMonth.split("-");
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  year = Number(year);
+  month = Number(month);
+  const days = getDaysInMonth(year, month - 1);
+  const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
   const attendanceDays = days.filter((day) => attendanceByDate[day.toISOString().split("T")[0]]);
 
   return (

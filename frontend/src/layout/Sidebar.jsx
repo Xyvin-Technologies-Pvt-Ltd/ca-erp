@@ -106,28 +106,28 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
   const [companyName, setCompanyName] = useState("");
   const [expandedItems, setExpandedItems] = useState({});
 
-  useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const response = await api.get("/settings/company-info");
-        const logo = response.data?.data?.company?.logo;
-        const company = response.data?.data?.company;
+  // useEffect(() => {
+  //   const fetchLogo = async () => {
+  //     try {
+  //       const response = await api.get("/settings/company-info");
+  //       const logo = response.data?.data?.company?.logo;
+  //       const company = response.data?.data?.company;
 
-        if (company?.logo) {
-          const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
-          setLogoFilename(fullLogoUrl);
-        }
+  //       if (company?.logo) {
+  //         const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
+  //         setLogoFilename(fullLogoUrl);
+  //       }
 
-        if (company?.name) {
-          setCompanyName(company.name);
-        }
-      } catch (error) {
-        console.error("Failed to load logo", error);
-      }
-    };
+  //       if (company?.name) {
+  //         setCompanyName(company.name);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to load logo", error);
+  //     }
+  //   };
 
-    fetchLogo();
-  }, []);
+  //   fetchLogo();
+  // }, []);
 
   const toggleExpand = (itemName) => {
     setExpandedItems((prev) => {
@@ -190,7 +190,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
       {/* Logo and mobile close button */}
       <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm ml-5">
         <Link to={ROUTES.DASHBOARD} className="flex-shrink-0 group" onClick={handleLinkClick}>
-          {logoFilename ? (
+          {/* {logoFilename ? (
             <img 
               src={logoFilename} 
               alt="Company Logo" 
@@ -205,7 +205,9 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                 {companyName || "Company"}
               </span>
             </div>
-          )}
+          )} */}
+        <img src="/logo/company-logo.png" alt="Logo" className="h-12 object-contain" />
+
         </Link>
         {onCloseMobile && (
           <button
@@ -311,7 +313,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
             <div className="flex-shrink-0">
               {user.avatar ? (
                 <img
-                  src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
+                  src={`${user.avatar}`}
                   alt="Avatar"
                   className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
                  onError={(e) => {
