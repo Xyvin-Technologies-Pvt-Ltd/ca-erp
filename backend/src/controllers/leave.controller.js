@@ -6,6 +6,10 @@ const websocketService = require('../utils/websocket');
 const Notification = require('../models/Notification');
 const { createError } = require('../utils/errors');
 const User = require('../models/User');
+const moment = require('moment-timezone');
+
+// Set default timezone to UTC for consistent handling
+moment.tz.setDefault('UTC');
 
 // Get all leave requests
 exports.getAllLeaves = catchAsync(async (req, res) => {
@@ -36,12 +40,15 @@ exports.getAllLeaves = catchAsync(async (req, res) => {
   
   // Date range filter
   if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+    
     query.$or = [
       {
-        startDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        startDate: { $gte: startDateTime, $lte: endDateTime }
       },
       {
-        endDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        endDate: { $gte: startDateTime, $lte: endDateTime }
       }
     ];
   }
@@ -148,12 +155,15 @@ exports.getAllMyLeaves = catchAsync(async (req, res) => {
 
   // Date range filter
   if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+    
     query.$or = [
       {
-        startDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        startDate: { $gte: startDateTime, $lte: endDateTime }
       },
       {
-        endDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        endDate: { $gte: startDateTime, $lte: endDateTime }
       }
     ];
   }
@@ -213,8 +223,8 @@ exports.createLeave = catchAsync(async (req, res) => {
     status: { $ne: 'rejected' },
     $or: [
       {
-        startDate: { $lte: new Date(endDate) },
-        endDate: { $gte: new Date(startDate) }
+        startDate: { $lte: moment.tz(endDate, 'UTC').toDate() },
+        endDate: { $gte: moment.tz(startDate, 'UTC').toDate() }
       }
     ]
   })
@@ -230,8 +240,8 @@ exports.createLeave = catchAsync(async (req, res) => {
   const leave = await Leave.create({
     employee,
     type,
-    startDate,
-    endDate,
+    startDate: moment.tz(startDate, 'UTC').startOf('day').toDate(),
+    endDate: moment.tz(endDate, 'UTC').startOf('day').toDate(),
     reason,
     attachment,
     duration,
@@ -299,9 +309,19 @@ exports.createLeave = catchAsync(async (req, res) => {
 exports.updateLeave = catchAsync(async (req, res) => {
   const { type, startDate, endDate, reason, status, reviewNotes } = req.body;
 
+  const updateData = { type, reason, status, reviewNotes };
+  
+  // Handle dates with moment-timezone
+  if (startDate) {
+    updateData.startDate = moment.tz(startDate, 'UTC').startOf('day').toDate();
+  }
+  if (endDate) {
+    updateData.endDate = moment.tz(endDate, 'UTC').startOf('day').toDate();
+  }
+
   const leave = await Leave.findByIdAndUpdate(
     req.params.id,
-    { type, startDate, endDate, reason, status, reviewNotes },
+    updateData,
     {
       new: true,
       runValidators: true
@@ -425,17 +445,13 @@ exports.reviewLeave = catchAsync(async (req, res) => {
     if (normalizedStatus === 'Approved') {
       
       try {
-        // Calculate date range
-        const startDate = new Date(leave.startDate);
-        const endDate = new Date(leave.endDate);
+        // Calculate date range using moment-timezone
+        const startDate = moment.tz(leave.startDate, 'UTC').startOf('day').toDate();
+        const endDate = moment.tz(leave.endDate, 'UTC').endOf('day').toDate();
 
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           throw createError(400, 'Invalid leave dates');
         }
-
-        // Set time to start and end of days
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
         
         console.log('Processed dates:', {
           startDate: startDate.toISOString(),
@@ -470,12 +486,14 @@ exports.reviewLeave = catchAsync(async (req, res) => {
           });
         }
 
-        // Create array of dates
+        // Create array of dates using moment
         const dates = [];
-        const currentDate = new Date(startDate);
-        while (currentDate <= endDate) {
-          dates.push(new Date(currentDate));
-          currentDate.setDate(currentDate.getDate() + 1);
+        const currentDate = moment.tz(leave.startDate, 'UTC').startOf('day');
+        const endMoment = moment.tz(leave.endDate, 'UTC').startOf('day');
+        
+        while (currentDate.isSameOrBefore(endMoment)) {
+          dates.push(currentDate.toDate());
+          currentDate.add(1, 'day');
         }
 
 
@@ -483,10 +501,8 @@ exports.reviewLeave = catchAsync(async (req, res) => {
         const createdRecords = [];
         for (const currentDate of dates) {
           try {
-            // Remove unnecessary time settings since it's a leave day
-            const attendanceDate = new Date(currentDate);
-            attendanceDate.setHours(0, 0, 0, 0);
-
+            // Use moment-timezone for consistent UTC date handling
+            const attendanceDate = moment.tz(currentDate, 'UTC').startOf('day').toDate();
             
             const attendanceData = {
               employee: leave.employee._id,
@@ -554,7 +570,7 @@ exports.reviewLeave = catchAsync(async (req, res) => {
       user: leave.employee._id,
       sender: req.user._id,
       title: `Leave ${normalizedStatus}`,
-      message: `Your leave request from ${leave.startDate.toDateString()} to ${leave.endDate.toDateString()} has been ${normalizedStatus.toLowerCase()} by Admin.`,
+      message: `Your leave request from ${moment.tz(leave.startDate, 'UTC').format('MMM DD, YYYY')} to ${moment.tz(leave.endDate, 'UTC').format('MMM DD, YYYY')} has been ${normalizedStatus.toLowerCase()} by Admin.`,
       type: 'LEAVE_REVIEW', 
       isRead: false
     });
@@ -595,12 +611,15 @@ exports.getLeaveStats = catchAsync(async (req, res) => {
 
   let matchStage = {};
   if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+    
     matchStage.$or = [
       {
-        startDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        startDate: { $gte: startDateTime, $lte: endDateTime }
       },
       {
-        endDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        endDate: { $gte: startDateTime, $lte: endDateTime }
       }
     ];
   }

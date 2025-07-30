@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendance } from "../../api/attendance";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import moment from 'moment';
 import {
   CalendarIcon,
   ClockIcon,
@@ -13,6 +14,8 @@ import {
   MoonIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
+
+// moment.tz.setDefault('UTC');
 
 const statusColors = {
   Present: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
@@ -26,21 +29,13 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  // Create dates in local timezone to avoid timezone conversion issues
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  
-  // Format dates as YYYY-MM-DD in local timezone
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Use moment to create dates in local timezone
+  const start = moment(date).startOf('month');
+  const end = moment(date).endOf('month');
   
   return {
-    startDate: formatDate(start),
-    endDate: formatDate(end),
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 
@@ -72,7 +67,7 @@ const EmployeeAttendance = () => {
     setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
-      const range = getMonthRange(new Date(year, month - 1));
+      const range = getMonthRange(new Date(year, month));
       const res = await getMyAttendance({ ...range });
       setAttendance(res.data?.attendance || []);
       setStats(res.data?.overallStats || {});
@@ -311,12 +306,14 @@ const EmployeeAttendance = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-4 text-base text-gray-900">{att?.date ? new Date(att.date).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : (att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "-")}</td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.date ? moment(att.date).format('DD/MM/YYYY') : (att?.checkIn?.time ? moment(att.checkIn.time).format('DD/MM/YYYY') : "-")}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkOut?.time ? new Date(att.checkOut.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.checkIn?.time ? moment(att.checkIn.time).format('h:mm A') : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.checkOut?.time ? moment(att.checkOut.time).format('h:mm A') : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.workHours != null ? att.workHours : "-"}

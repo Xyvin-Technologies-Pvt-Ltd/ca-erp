@@ -4,6 +4,7 @@ import AttendanceModal from "../../components/AttendanceModal";
 import AttendanceEditModal from "../../components/AttendanceEditModal";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import moment from 'moment-timezone';
 import {
   CalendarIcon,
   ClockIcon,
@@ -18,6 +19,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
+// Set default timezone to UTC for consistent handling
+// moment.tz.setDefault('UTC');
 
 const statusColors = {
   Present: {
@@ -87,21 +91,12 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  // Create dates in local timezone to avoid timezone conversion issues
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  
-  // Format dates as YYYY-MM-DD in local timezone
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  const start = moment(date).startOf('month');
+  const end = moment(date).endOf('month');
   
   return {
-    startDate: formatDate(start),
-    endDate: formatDate(end),
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 
@@ -128,7 +123,7 @@ const Attendance = () => {
     setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
-      const range = getMonthRange(new Date(year, month - 1));
+      const range = getMonthRange(new Date(year, month));
       const attRes = await getAttendance({ ...range, page: pageNum, limit });
       setAttendance(attRes.data?.attendance || []);
       setTotalPages(attRes.totalPages || 1);
@@ -256,7 +251,6 @@ const Attendance = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Attendance Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -329,22 +323,16 @@ const Attendance = () => {
                           {a.employee?.department?.name || a.employee?.department || "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.date ? new Date(a.date).toLocaleDateString("en-GB") : "-"}
+                          {a.date ? moment(a.date).format('DD/MM/YYYY') : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkIn?.time
-                            ? new Date(a.checkIn.time).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                            ? moment(a.checkIn.time).format('h:mm A')
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkOut?.time
-                            ? new Date(a.checkOut.time).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                            ? moment(a.checkOut.time).format('h:mm A')
                             : "-"}
                         </td>
                         <td className="px-6 py-4">
