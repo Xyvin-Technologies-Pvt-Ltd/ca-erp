@@ -24,10 +24,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { createLeave, getMyLeaves } from "../../api/Leave.js";
-import moment from 'moment-timezone';
+import moment from 'moment';
 
-// Set default timezone to UTC for consistent handling
-moment.tz.setDefault('UTC');
 
 const LeaveApplication = () => {
   const { user } = useAuth();
@@ -82,8 +80,8 @@ const LeaveApplication = () => {
               leave.leaveType.charAt(0).toUpperCase() +
               leave.leaveType.slice(1) +
               " Leave",
-            from: moment.tz(leave.startDate, 'UTC').format('YYYY-MM-DD'),
-            to: moment.tz(leave.endDate, 'UTC').format('YYYY-MM-DD'),
+            from: moment(leave.startDate).format('YYYY-MM-DD'),
+            to: moment(leave.endDate).format('YYYY-MM-DD'),
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
             approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
@@ -107,10 +105,10 @@ const LeaveApplication = () => {
           if (balanceCalculation[type]) {
             if (app.status === "Approved") {
               balanceCalculation[type].used +=
-                moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
+                moment(app.to).diff(moment(app.from), 'days') + 1;
             } else if (app.status === "Pending") {
               balanceCalculation[type].pending +=
-                moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
+                moment(app.to).diff(moment(app.from), 'days') + 1;
             }
           }
         });
@@ -150,8 +148,8 @@ const LeaveApplication = () => {
             leave.leaveType.charAt(0).toUpperCase() +
             leave.leaveType.slice(1) +
             " Leave",
-          from: moment.tz(leave.startDate, 'UTC').format('YYYY-MM-DD'),
-          to: moment.tz(leave.endDate, 'UTC').format('YYYY-MM-DD'),
+          from: moment(leave.startDate).format('YYYY-MM-DD'),
+          to: moment(leave.endDate).format('YYYY-MM-DD'),
           status:
             leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
           approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
@@ -175,10 +173,10 @@ const LeaveApplication = () => {
         if (balanceCalculation[type]) {
           if (app.status === "Approved") {
             balanceCalculation[type].used +=
-              moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
+              moment(app.to).diff(moment(app.from), 'days') + 1;
           } else if (app.status === "Pending") {
             balanceCalculation[type].pending +=
-              moment.tz(app.to, 'UTC').diff(moment.tz(app.from, 'UTC'), 'days') + 1;
+              moment(app.to).diff(moment(app.from), 'days') + 1;
           }
         }
       });
@@ -222,8 +220,8 @@ const LeaveApplication = () => {
       }
 
       const leaveRequest = {
-        startDate: moment.tz(dateRange.from, 'UTC').format('YYYY-MM-DD'),
-        endDate: moment.tz(dateRange.to, 'UTC').format('YYYY-MM-DD'),
+        startDate: moment(dateRange.from).format('YYYY-MM-DD'),
+        endDate: moment(dateRange.to).format('YYYY-MM-DD'),
         reason: reason.trim(),
         employee: user._id || user.id || user.employeeId,
         leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
@@ -295,33 +293,33 @@ const LeaveApplication = () => {
       return; // Don't allow selection of disabled dates
     }
 
-    const utcDate = moment.tz(date, 'UTC').startOf('day').toDate();
+    const localDate = moment(date).startOf('day').toDate();
 
     if (!dateRange.from || (dateRange.from && dateRange.to)) {
       // Start new selection
-      setDateRange({ from: utcDate, to: null });
+      setDateRange({ from: localDate, to: null });
     } else if (dateRange.from && !dateRange.to) {
       // Complete the range
-      if (moment(utcDate).isBefore(moment(dateRange.from))) {
-        setDateRange({ from: utcDate, to: dateRange.from });
+      if (moment(localDate).isBefore(moment(dateRange.from))) {
+        setDateRange({ from: localDate, to: dateRange.from });
       } else {
-        setDateRange({ from: dateRange.from, to: utcDate });
+        setDateRange({ from: dateRange.from, to: localDate });
       }
     }
   };
 
   const isDateInRange = (date) => {
     if (!dateRange.from || !dateRange.to || !date) return false;
-    const utcDate = moment.tz(date, 'UTC').startOf('day');
-    return (moment(utcDate).isSameOrAfter(moment(dateRange.from)) &&
-            moment(utcDate).isSameOrBefore(moment(dateRange.to)));
+    const localDate = moment(date).startOf('day');
+    return (moment(localDate).isSameOrAfter(moment(dateRange.from)) &&
+            moment(localDate).isSameOrBefore(moment(dateRange.to)));
   };
 
   const isDateSelected = (date) => {
     if (!date) return false;
-    const utcDate = moment.tz(date, 'UTC').startOf('day');
-    return (dateRange.from && moment(utcDate).isSame(moment(dateRange.from), 'day')) ||
-           (dateRange.to && moment(utcDate).isSame(moment(dateRange.to), 'day'));
+    const localDate = moment(date).startOf('day');
+    return (dateRange.from && moment(localDate).isSame(moment(dateRange.from), 'day')) ||
+           (dateRange.to && moment(localDate).isSame(moment(dateRange.to), 'day'));
   };
 
   const isDateDisabled = (date) => {
@@ -359,14 +357,14 @@ const LeaveApplication = () => {
 
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
-      const days = moment.tz(dateRange.to, 'UTC').diff(moment.tz(dateRange.from, 'UTC'), 'days') + 1;
+      const days = moment(dateRange.to).diff(moment(dateRange.from), 'days') + 1;
       return (
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
           <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
-            {moment.tz(dateRange.from, 'UTC').format('MMM D')} - {moment.tz(dateRange.to, 'UTC').format('MMM D, YYYY')}
+            {moment(dateRange.from).format('MMM D')} - {moment(dateRange.to).format('MMM D, YYYY')}
           </span>
         </div>
       );
@@ -385,8 +383,8 @@ const LeaveApplication = () => {
         range.to = range.from;
       }
       setDateRange({
-        from: moment.tz(range.from, 'UTC').startOf('day').toDate(),
-        to: moment.tz(range.to, 'UTC').startOf('day').toDate(),
+        from: moment(range.from).startOf('day').toDate(),
+        to: moment(range.to).startOf('day').toDate(),
       });
     } else {
       setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
