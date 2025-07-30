@@ -26,20 +26,31 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
-  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
+  // Create dates in local timezone to avoid timezone conversion issues
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  
+  // Format dates as YYYY-MM-DD in local timezone
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
+    startDate: formatDate(start),
+    endDate: formatDate(end),
   };
 }
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(Date.UTC(year, month, 1));
-  while (date.getUTCMonth() === month) {
-    days.push(new Date(date));
-    date.setUTCDate(date.getUTCDate() + 1);
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0); // This gets the last day of the month
+  
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    days.push(new Date(year, month, day));
   }
   return days;
 }
@@ -92,8 +103,11 @@ const EmployeeAttendance = () => {
 
   const attendanceByDate = {};
   attendance.forEach((a) => {
-    const dateStr = a.date ? new Date(a.date).toISOString().split("T")[0] : null;
-    if (dateStr) attendanceByDate[dateStr] = a;
+    if (a.date) {
+      const date = new Date(a.date);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      attendanceByDate[dateStr] = a;
+    }
   });
 
   const now = new Date();
@@ -108,7 +122,10 @@ const EmployeeAttendance = () => {
   month = Number(month);
   const days = getDaysInMonth(year, month - 1);
   const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
-  const attendanceDays = days.filter((day) => attendanceByDate[day.toISOString().split("T")[0]]);
+  const attendanceDays = days.filter((day) => {
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    return attendanceByDate[dateStr];
+  });
 
   return (
     <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -194,9 +211,11 @@ const EmployeeAttendance = () => {
           ))}
           <AnimatePresence>
             {days.map((day, index) => {
-              const dateStr = day.toISOString().split("T")[0];
-              const today = new Date().toISOString().split("T")[0];
-              const isToday = dateStr === today;
+              // Create a proper date string in YYYY-MM-DD format
+              const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+              const today = new Date();
+              const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+              const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
               return (
@@ -280,7 +299,7 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = day.toISOString().split("T")[0];
+                    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                     const att = attendanceByDate[dateStr];
                     const Icon = statusColors[att?.status]?.icon;
                     return (
