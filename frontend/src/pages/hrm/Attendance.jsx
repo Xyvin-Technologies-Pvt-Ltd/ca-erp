@@ -87,11 +87,21 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
-  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
+  // Create dates in local timezone to avoid timezone conversion issues
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  
+  // Format dates as YYYY-MM-DD in local timezone
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
+    startDate: formatDate(start),
+    endDate: formatDate(end),
   };
 }
 

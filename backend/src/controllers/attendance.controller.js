@@ -9,9 +9,11 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   let query = { isDeleted: false };
   
   if (startDate && endDate) {
-    // Create dates with explicit time components to avoid timezone issues
-    const startDateTime = new Date(startDate + 'T00:00:00.000Z');
-    const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+    const startDateTime = new Date(startDate + 'T00:00:00');
+    const endDateTime = new Date(endDate + 'T23:59:59');
+    
+    startDateTime.setHours(0, 0, 0, 0);
+    endDateTime.setHours(23, 59, 59, 999);
     
     query.date = {
       $gte: startDateTime,
@@ -164,7 +166,22 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
 
   for (const record of attendanceRecords) {
     try {
-      const attendanceDate = new Date(record.date);
+      let attendanceDate;
+      if (record.date instanceof Date) {
+        const year = record.date.getFullYear();
+        const month = record.date.getMonth();
+        const day = record.date.getDate();
+        attendanceDate = new Date(year, month, day, 0, 0, 0, 0);
+      } else if (typeof record.date === 'string') {
+        const utcDate = new Date(record.date);
+        const year = utcDate.getFullYear();
+        const month = utcDate.getMonth();
+        const day = utcDate.getDate();
+        attendanceDate = new Date(year, month, day, 0, 0, 0, 0);
+      } else {
+        attendanceDate = new Date(record.date);
+      }
+      
       attendanceDate.setHours(0, 0, 0, 0);
 
       const existingAttendance = await Attendance.findOne({
@@ -175,7 +192,18 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       if (existingAttendance) {
         if (record.checkOut && !['Holiday', 'On-Leave'].includes(record.status)) {
           const checkInTime = existingAttendance.checkIn?.time;
-          const checkOutTime = new Date(record.checkOut.time || new Date());
+          let checkOutTime;
+          
+          if (record.checkOut.time instanceof Date) {
+            const hours = record.checkOut.time.getHours();
+            const minutes = record.checkOut.time.getMinutes();
+            const seconds = record.checkOut.time.getSeconds();
+            
+            checkOutTime = new Date(attendanceDate);
+            checkOutTime.setHours(hours, minutes, seconds, 0);
+          } else {
+            checkOutTime = new Date(record.checkOut.time || new Date());
+          }
           
           // Calculate work hours
           const workHours = calculateWorkHours(checkInTime, checkOutTime);
@@ -221,7 +249,33 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       };
 
       if (!['Holiday', 'On-Leave'].includes(record.status)) {
-        const checkInTime = record.checkIn?.time ? new Date(record.checkIn.time) : new Date();
+        let checkInTime;
+        
+        if (record.checkIn?.time) {
+          if (record.checkIn.time instanceof Date) {
+            // Extract time components from the Date object to avoid timezone conversion
+            const hours = record.checkIn.time.getHours();
+            const minutes = record.checkIn.time.getMinutes();
+            const seconds = record.checkIn.time.getSeconds();
+            
+            // Use the same date as attendanceDate for consistency
+            checkInTime = new Date(attendanceDate);
+            checkInTime.setHours(hours, minutes, seconds, 0);
+          } else { // This path is taken for ISO string from frontend
+            // Parse the ISO string as UTC, then apply its time components to the correct local date.
+            const utcTime = new Date(record.checkIn.time);
+            const hours = utcTime.getHours();
+            const minutes = utcTime.getMinutes();
+            const seconds = utcTime.getSeconds();
+            
+            // Use the same date as attendanceDate for consistency
+            checkInTime = new Date(attendanceDate);
+            checkInTime.setHours(hours, minutes, seconds, 0);
+          }
+        } else {
+          checkInTime = new Date();
+        }
+        
         if (isNaN(checkInTime.getTime())) {
           throw createError(400, 'Invalid check-in time format');
         }
@@ -382,10 +436,10 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
   const { startDate, endDate, departmentId } = req.query;
 
   try {
-    const validStartDate = startDate ? new Date(startDate + 'T00:00:00.000Z') : new Date();
+    const validStartDate = startDate ? new Date(startDate + 'T00:00:00') : new Date();
     validStartDate.setHours(0, 0, 0, 0);
     
-    const validEndDate = endDate ? new Date(endDate + 'T23:59:59.999Z') : new Date();
+    const validEndDate = endDate ? new Date(endDate + 'T23:59:59') : new Date();
     validEndDate.setHours(23, 59, 59, 999);
 
     if (isNaN(validStartDate.getTime()) || isNaN(validEndDate.getTime())) {
@@ -722,9 +776,13 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
     
     // Add date range filter if provided
     if (startDate && endDate) {
-      // Create dates with explicit time components to avoid timezone issues
-      const startDateTime = new Date(startDate + 'T00:00:00.000Z');
-      const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+      // Create dates in local timezone to avoid timezone conversion issues
+      const startDateTime = new Date(startDate + 'T00:00:00');
+      const endDateTime = new Date(endDate + 'T23:59:59');
+      
+      // Set hours to ensure the full day is covered in the local timezone
+      startDateTime.setHours(0, 0, 0, 0);
+      endDateTime.setHours(23, 59, 59, 999);
       
       query.date = {
         $gte: startDateTime,
@@ -832,9 +890,13 @@ exports.getAttendanceByEmployeeId = catchAsync(async (req, res) => {
   
   // Add date range filter if provided
   if (startDate && endDate) {
-    // Create dates with explicit time components to avoid timezone issues
-    const startDateTime = new Date(startDate + 'T00:00:00.000Z');
-    const endDateTime = new Date(endDate + 'T23:59:59.999Z');
+    // Create dates in local timezone to avoid timezone conversion issues
+    const startDateTime = new Date(startDate + 'T00:00:00');
+    const endDateTime = new Date(endDate + 'T23:59:59');
+    
+    // Set hours to ensure the full day is covered in the local timezone
+    startDateTime.setHours(0, 0, 0, 0);
+    endDateTime.setHours(23, 59, 59, 999);
     
     query.date = {
       $gte: startDateTime,

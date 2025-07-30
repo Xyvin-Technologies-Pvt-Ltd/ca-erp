@@ -5,7 +5,13 @@ import { userApi } from "../api/userApi";
 
 const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: (() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
     time: new Date().toTimeString().split(" ")[0].slice(0, 5),
     type: "checkIn",
     status: "Present",
@@ -319,13 +325,20 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     setLoading(true);
     try {
       const attendanceData = formData.selectedEmployees.map((employeeId) => {
-        const dateTimeString = `${formData.date}T${formData.time}:00`;
-        const attendanceDateTime = new Date(dateTimeString);
-
+        // Create date in local timezone to avoid timezone conversion issues
+        const [year, month, day] = formData.date.split('-').map(Number);
+        const [hours, minutes] = formData.time.split(':').map(Number);
+        
+        // Create date object in local timezone
+        const attendanceDate = new Date(year, month - 1, day, hours, minutes, 0);
+        
+        // For the date field, create a date-only object (start of day in local timezone)
+        const dateOnly = new Date(year, month - 1, day, 0, 0, 0);
+ 
         return {
           employee: employeeId,
-          date: attendanceDateTime,
-          [formData.type]: { time: attendanceDateTime },
+          date: dateOnly,
+          [formData.type]: { time: attendanceDate },
           status: formData.status,
           shift: formData.shift,
           notes: formData.notes || getDefaultNotes(formData.status),
