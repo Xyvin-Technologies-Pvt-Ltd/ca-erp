@@ -67,20 +67,31 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
+  // Create dates in local timezone to avoid timezone conversion issues
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
   const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  
+  // Format dates as YYYY-MM-DD in local timezone
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
+    startDate: formatDate(start),
+    endDate: formatDate(end),
   };
 }
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    days.push(new Date(date));
-    date.setDate(date.getDate() + 1);
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0); // This gets the last day of the month
+  
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    days.push(new Date(year, month, day));
   }
   return days;
 }
@@ -140,25 +151,30 @@ const EmployeeAttendance = () => {
 
   const attendanceByDate = {};
   attendance.forEach((a) => {
-    const dateStr = a.date
-      ? new Date(a.date).toISOString().split("T")[0]
-      : null;
-    if (dateStr) attendanceByDate[dateStr] = a;
+    if (a.date) {
+      const date = new Date(a.date);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      attendanceByDate[dateStr] = a;
+    }
   });
 
-  const [year, month] = selectedMonth.split("-");
-  const days = getDaysInMonth(Number(year), Number(month) - 1);
-  const firstDayOfWeek = days[0].getDay();
+  const now = new Date();
+  let year, month;
+  if (selectedMonth && selectedMonth.includes("-")) {
+    [year, month] = selectedMonth.split("-");
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  year = Number(year);
+  month = Number(month);
+  const days = getDaysInMonth(year, month - 1);
+  const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
+  const attendanceDays = days.filter((day) => {
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    return attendanceByDate[dateStr];
+  });
 
-  const attendanceDays = days.filter(
-    (day) => attendanceByDate[day.toISOString().split("T")[0]]
-  );
-  const { profileIsActive, profileDropdown } = useHeaderStore();
-  const checkHeader = () => {
-    if (profileDropdown === true) {
-      profileIsActive(false);
-    }
-  };
   return (
     <div
       onClick={checkHeader}
@@ -259,9 +275,11 @@ const EmployeeAttendance = () => {
           ))}
           <AnimatePresence>
             {days.map((day, index) => {
-              const dateStr = day.toISOString().split("T")[0];
-              const today = new Date().toISOString().split("T")[0];
-              const isToday = dateStr === today;
+              // Create a proper date string in YYYY-MM-DD format
+              const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+              const today = new Date();
+              const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+              const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
               return (
@@ -370,7 +388,7 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = day.toISOString().split("T")[0];
+                    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                     const att = attendanceByDate[dateStr];
                     const Icon = statusColors[att?.status]?.icon;
                     return (
@@ -383,22 +401,19 @@ const EmployeeAttendance = () => {
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.date
-                            ? new Date(att.date).toLocaleDateString([], {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                              })
-                            : att?.checkIn?.time
-                            ? new Date(att.checkIn.time).toLocaleDateString(
-                                [],
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )
-                            : "-"}
+                          {att?.date ? (() => {
+                            const date = new Date(att.date);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${day}/${month}/${year}`;
+                          })() : (att?.checkIn?.time ? (() => {
+                            const date = new Date(att.checkIn.time);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            return `${day}/${month}/${year}`;
+                          })() : "-")}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.time

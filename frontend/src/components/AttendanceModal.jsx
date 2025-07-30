@@ -5,7 +5,13 @@ import { userApi } from "../api/userApi";
 
 const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: (() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
     time: new Date().toTimeString().split(" ")[0].slice(0, 5),
     type: "checkIn",
     status: "Present",
@@ -20,6 +26,13 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [errors, setErrors] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    console.log("Current Date: form modal", currentDate);
 
   const statusIcons = {
     Present: <CheckIcon className="h-4 w-4 text-green-800" />,
@@ -319,13 +332,20 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     setLoading(true);
     try {
       const attendanceData = formData.selectedEmployees.map((employeeId) => {
-        const dateTimeString = `${formData.date}T${formData.time}:00`;
-        const attendanceDateTime = new Date(dateTimeString);
-
+        // Send the date as a simple YYYY-MM-DD string to avoid timezone issues
+        const dateString = formData.date; // This is already in YYYY-MM-DD format
+        
+        // Create the time by combining the date and time
+        const [year, month, day] = formData.date.split('-').map(Number);
+        const [hours, minutes] = formData.time.split(':').map(Number);
+        
+        // Create a local date-time string that the backend can parse correctly
+        const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+        
         return {
           employee: employeeId,
-          date: attendanceDateTime,
-          [formData.type]: { time: attendanceDateTime },
+          date: dateString, // Send as YYYY-MM-DD string
+          [formData.type]: { time: localDateTime.toISOString() }, // Send as ISO string
           status: formData.status,
           shift: formData.shift,
           notes: formData.notes || getDefaultNotes(formData.status),
