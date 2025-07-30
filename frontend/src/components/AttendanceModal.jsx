@@ -27,6 +27,13 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [errors, setErrors] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
 
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    console.log("Current Date: form modal", currentDate);
+
   const statusIcons = {
     Present: <CheckIcon className="h-4 w-4 text-green-800" />,
     Late: <ClockIcon className="h-4 w-4 text-amber-800" />,

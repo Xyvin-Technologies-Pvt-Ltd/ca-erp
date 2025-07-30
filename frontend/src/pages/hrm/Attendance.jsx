@@ -173,6 +173,14 @@ const Attendance = () => {
 
   const sortedAttendance = [...attendance].sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+     console.log("Current Date: attendnace", currentDate);
+
+     
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
