@@ -13,21 +13,62 @@ import {
   MoonIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
+import useHeaderStore from "../../stores/useHeaderStore";
 
 const statusColors = {
-  Present: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
-  Absent: { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200", icon: XCircleIcon },
-  Late: { bg: "bg-amber-100", text: "text-amber-700", border: "border-amber-200", icon: ClockIcon },
-  "Half-Day": { bg: "bg-blue-100", text: "text-[#1c6ead]", border: "border-[#1c6ead]", icon: SunIcon },
-  "Early-Leave": { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200", icon: MoonIcon },
-  "On-Leave": { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", icon: UserIcon },
-  Holiday: { bg: "bg-pink-100", text: "text-pink-700", border: "border-pink-200", icon: CalendarDaysIcon },
-  "Day-Off": { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200", icon: InformationCircleIcon },
+  Present: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
+    border: "border-emerald-200",
+    icon: CheckCircleIcon,
+  },
+  Absent: {
+    bg: "bg-rose-100",
+    text: "text-rose-700",
+    border: "border-rose-200",
+    icon: XCircleIcon,
+  },
+  Late: {
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    icon: ClockIcon,
+  },
+  "Half-Day": {
+    bg: "bg-blue-100",
+    text: "text-[#1c6ead]",
+    border: "border-[#1c6ead]",
+    icon: SunIcon,
+  },
+  "Early-Leave": {
+    bg: "bg-orange-100",
+    text: "text-orange-700",
+    border: "border-orange-200",
+    icon: MoonIcon,
+  },
+  "On-Leave": {
+    bg: "bg-purple-100",
+    text: "text-purple-700",
+    border: "border-purple-200",
+    icon: UserIcon,
+  },
+  Holiday: {
+    bg: "bg-pink-100",
+    text: "text-pink-700",
+    border: "border-pink-200",
+    icon: CalendarDaysIcon,
+  },
+  "Day-Off": {
+    bg: "bg-gray-100",
+    text: "text-gray-700",
+    border: "border-gray-200",
+    icon: InformationCircleIcon,
+  },
 };
 
 function getMonthRange(date) {
-  const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
-  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0));
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
   return {
     startDate: start.toISOString().split("T")[0],
     endDate: end.toISOString().split("T")[0],
@@ -36,10 +77,10 @@ function getMonthRange(date) {
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(Date.UTC(year, month, 1));
-  while (date.getUTCMonth() === month) {
+  const date = new Date(year, month, 1);
+  while (date.getMonth() === month) {
     days.push(new Date(date));
-    date.setUTCDate(date.getUTCDate() + 1);
+    date.setDate(date.getDate() + 1);
   }
   return days;
 }
@@ -50,7 +91,10 @@ const EmployeeAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
   });
 
   useEffect(() => {
@@ -67,7 +111,11 @@ const EmployeeAttendance = () => {
       setStats(res.data?.overallStats || {});
     } catch (e) {
       toast.error("Failed to fetch attendance", {
-        style: { background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" },
+        style: {
+          background: "#fef2f2",
+          color: "#b91c1c",
+          border: "1px solid #fecaca",
+        },
       });
     } finally {
       setLoading(false);
@@ -92,26 +140,30 @@ const EmployeeAttendance = () => {
 
   const attendanceByDate = {};
   attendance.forEach((a) => {
-    const dateStr = a.date ? new Date(a.date).toISOString().split("T")[0] : null;
+    const dateStr = a.date
+      ? new Date(a.date).toISOString().split("T")[0]
+      : null;
     if (dateStr) attendanceByDate[dateStr] = a;
   });
 
-  const now = new Date();
-  let year, month;
-  if (selectedMonth && selectedMonth.includes("-")) {
-    [year, month] = selectedMonth.split("-");
-  } else {
-    year = now.getFullYear();
-    month = now.getMonth() + 1;
-  }
-  year = Number(year);
-  month = Number(month);
-  const days = getDaysInMonth(year, month - 1);
-  const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
-  const attendanceDays = days.filter((day) => attendanceByDate[day.toISOString().split("T")[0]]);
+  const [year, month] = selectedMonth.split("-");
+  const days = getDaysInMonth(Number(year), Number(month) - 1);
+  const firstDayOfWeek = days[0].getDay();
 
+  const attendanceDays = days.filter(
+    (day) => attendanceByDate[day.toISOString().split("T")[0]]
+  );
+  const { profileIsActive, profileDropdown } = useHeaderStore();
+  const checkHeader = () => {
+    if (profileDropdown === true) {
+      profileIsActive(false);
+    }
+  };
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div
+      onClick={checkHeader}
+      className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100"
+    >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -123,7 +175,7 @@ const EmployeeAttendance = () => {
           <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
         </div>
-        <div className="relative">
+        <div className={profileDropdown === true ? `opacity-10 relative` : `relative`}>
           <motion.input
             type="month"
             value={selectedMonth}
@@ -154,15 +206,25 @@ const EmployeeAttendance = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${statusColors[s.key].border} hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
+                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${
+                  statusColors[s.key].border
+                } hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
                 whileHover={{ scale: 1.02 }}
               >
-                <div className={`p-2 rounded-full ${statusColors[s.key].bg} group-hover:scale-110 transition-transform duration-200`}>
+                <div
+                  className={`p-2 rounded-full ${
+                    statusColors[s.key].bg
+                  } group-hover:scale-110 transition-transform duration-200`}
+                >
                   <Icon className={`h-6 w-6 ${statusColors[s.key].text}`} />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">{s.label}</p>
-                  <p className={`text-2xl font-bold ${statusColors[s.key].text} group-hover:text-[#1c6ead] transition-colors duration-200`}>
+                  <p
+                    className={`text-2xl font-bold ${
+                      statusColors[s.key].text
+                    } group-hover:text-[#1c6ead] transition-colors duration-200`}
+                  >
                     {statusCounts[s.key] || 0}
                   </p>
                 </div>
@@ -185,7 +247,10 @@ const EmployeeAttendance = () => {
         </h2>
         <div className="grid grid-cols-7 gap-2">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="text-center font-semibold text-gray-600 text-sm py-2">
+            <div
+              key={d}
+              className="text-center font-semibold text-gray-600 text-sm py-2"
+            >
               {d}
             </div>
           ))}
@@ -207,26 +272,38 @@ const EmployeeAttendance = () => {
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
                   className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${
-                    isToday 
-                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50" 
-                      : att 
-                        ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border}` 
-                        : "bg-gray-50 border-gray-100"
-                  } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isToday ? 'shadow-lg' : ''}`}
+                    isToday
+                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50"
+                      : att
+                      ? `${statusColors[att.status]?.bg} ${
+                          statusColors[att.status]?.border
+                        }`
+                      : "bg-gray-50 border-gray-100"
+                  } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                    isToday ? "shadow-lg" : ""
+                  }`}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <span className={`font-bold text-sm ${isToday ? 'text-indigo-900' : 'text-gray-900'}`}>
+                  <span
+                    className={`font-bold text-sm ${
+                      isToday ? "text-indigo-900" : "text-gray-900"
+                    }`}
+                  >
                     {day.getDate()}
                   </span>
                   <div className="flex items-center space-x-1">
-                    {Icon && <Icon className={`h-4 w-4 ${statusColors[att?.status]?.text}`} />}
+                    {Icon && (
+                      <Icon
+                        className={`h-4 w-4 ${statusColors[att?.status]?.text}`}
+                      />
+                    )}
                     <motion.span
                       className={`text-xs ${
-                        isToday 
-                          ? "text-indigo-700 font-semibold" 
-                          : att 
-                            ? statusColors[att.status]?.text 
-                            : "text-gray-400"
+                        isToday
+                          ? "text-indigo-700 font-semibold"
+                          : att
+                          ? statusColors[att.status]?.text
+                          : "text-gray-400"
                       }`}
                       whileHover={{ scale: 1.05 }}
                     >
@@ -255,17 +332,30 @@ const EmployeeAttendance = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Check In</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Work Hours</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Check In
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Check Out
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Work Hours
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {attendanceDays.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-600 text-base">
+                  <td
+                    colSpan={5}
+                    className="text-center py-8 text-gray-600 text-base"
+                  >
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -292,19 +382,53 @@ const EmployeeAttendance = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-4 text-base text-gray-900">{att?.date ? new Date(att.date).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : (att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "-")}</td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.date
+                            ? new Date(att.date).toLocaleDateString([], {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })
+                            : att?.checkIn?.time
+                            ? new Date(att.checkIn.time).toLocaleDateString(
+                                [],
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
+                            : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkOut?.time ? new Date(att.checkOut.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.checkIn?.time
+                            ? new Date(att.checkIn.time).toLocaleTimeString(
+                                [],
+                                { hour: "2-digit", minute: "2-digit" }
+                              )
+                            : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.checkOut?.time
+                            ? new Date(att.checkOut.time).toLocaleTimeString(
+                                [],
+                                { hour: "2-digit", minute: "2-digit" }
+                              )
+                            : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.workHours != null ? att.workHours : "-"}
                         </td>
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[att?.status]?.bg || "bg-gray-50"} ${statusColors[att?.status]?.text || "text-gray-600"} max-w-max border ${statusColors[att?.status]?.border || "border-gray-100"}`}
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${
+                              statusColors[att?.status]?.bg || "bg-gray-50"
+                            } ${
+                              statusColors[att?.status]?.text || "text-gray-600"
+                            } max-w-max border ${
+                              statusColors[att?.status]?.border ||
+                              "border-gray-100"
+                            }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}
