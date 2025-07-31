@@ -14,6 +14,8 @@ import {
   MoonIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
+import useHeaderStore from "../../stores/useHeaderStore";
+
 
 // moment.tz.setDefault('UTC');
 
@@ -122,9 +124,18 @@ const EmployeeAttendance = () => {
     return attendanceByDate[dateStr];
   });
 
+  const { profileIsActive, profileDropdown } = useHeaderStore();
+  const checkHeader = () => {
+    if (profileDropdown === true) {
+      profileIsActive(false);
+    }
+  };
+
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Header */}
+    <div
+      onClick={checkHeader}
+      className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100"
+    >      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +146,11 @@ const EmployeeAttendance = () => {
           <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
         </div>
-        <div className="relative">
+        <div
+          className={
+            profileDropdown === true ? `opacity-10 relative` : `relative`
+          }
+        >
           <motion.input
             type="month"
             value={selectedMonth}
@@ -356,5 +371,4 @@ const EmployeeAttendance = () => {
     </div>
   );
 };
-
 export default EmployeeAttendance;

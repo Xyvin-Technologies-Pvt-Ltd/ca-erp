@@ -218,9 +218,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
     try {
       // Parse date using moment in UTC timezone
       let attendanceDate;
-      
-      // Parse the date properly - if it's a string like "2025-07-30", 
-      // we need to create a local date and then convert to UTC
       if (record.date instanceof Date) {
         attendanceDate = moment.tz(record.date, 'UTC').startOf('day').toDate();
       } else if (typeof record.date === 'string') {
