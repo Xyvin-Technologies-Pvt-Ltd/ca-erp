@@ -95,7 +95,6 @@ export const fetchCompletedProjectsForInvoicing = async ({
   limit = 10,
 }) => {
   try {
-
     const response = await api.get("/projects", {
       params: {
         status: "completed",
