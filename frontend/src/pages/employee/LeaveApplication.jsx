@@ -19,6 +19,7 @@ import {
   ChevronRightIcon,
   UserIcon,
   SunIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -39,6 +40,8 @@ const LeaveApplication = () => {
   const [reason, setReason] = useState("");
   const [recentApplications, setRecentApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState({
     annual: { total: 14, used: 0, pending: 0 },
     sick: { total: 7, used: 0, pending: 0 },
@@ -76,6 +79,7 @@ const LeaveApplication = () => {
 
         const sortedApplications = leavesData
           .map((leave) => ({
+            _id: leave._id,
             type:
               leave.leaveType.charAt(0).toUpperCase() +
               leave.leaveType.slice(1) +
@@ -85,6 +89,10 @@ const LeaveApplication = () => {
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
             approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
+            reviewNotes: leave.reviewNotes || "",
+            reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+            reviewedBy: leave.reviewedBy || "",
+            originalLeave: leave, 
           }))
           .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -144,6 +152,7 @@ const LeaveApplication = () => {
 
       const sortedApplications = leavesData
         .map((leave) => ({
+          _id: leave._id,
           type:
             leave.leaveType.charAt(0).toUpperCase() +
             leave.leaveType.slice(1) +
@@ -153,6 +162,10 @@ const LeaveApplication = () => {
           status:
             leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
           approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
+          reviewNotes: leave.reviewNotes || "",
+          reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+          reviewedBy: leave.reviewedBy || "",
+          originalLeave: leave,
         }))
         .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -262,6 +275,18 @@ const LeaveApplication = () => {
           : "Failed to submit leave request");
       toast.error(message);
     }
+  };
+
+  const handleLeaveClick = (application) => {
+    if (application.approvedBy === "Reviewed" && application.reviewNotes) {
+      setSelectedLeave(application);
+      setShowReviewModal(true);
+    }
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setSelectedLeave(null);
   };
 
   const getStatusColor = (status) => {
@@ -615,7 +640,10 @@ const LeaveApplication = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md"
+                      className={`flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md ${
+                        application.approvedBy === "Reviewed" && application.reviewNotes ? "cursor-pointer" : ""
+                      }`}
+                      onClick={() => handleLeaveClick(application)}
                     >
                       <div className="flex items-center gap-4">
                         <motion.div
@@ -719,6 +747,100 @@ const LeaveApplication = () => {
           </div>
         </Card>
       </div>
+
+      {/* Review Notes Modal */}
+      <AnimatePresence>
+        {showReviewModal && selectedLeave && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={closeReviewModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-blue-50 px-6 py-5 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
+                      <DocumentTextIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Review Details
+                      </h2>
+                      {/* <p className="text-sm text-gray-600 mt-1">
+                        Leave request review information
+                      </p> */}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={closeReviewModal} 
+                    className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {selectedLeave.type}
+                    </h3>
+                    {/* <p className="text-sm text-gray-600">
+                      {selectedLeave.from} to {selectedLeave.to}
+                    </p> */}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedLeave.status)}`}>
+                      {getStatusIcon(selectedLeave.status)}
+                      <span className="ml-1">{selectedLeave.status}</span>
+                    </div>
+                  </div>
+
+                  {selectedLeave.reviewedAt && (
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Reviewed on:</span> {selectedLeave.reviewedAt}
+                    </div>
+                  )}
+
+                  {selectedLeave.reviewNotes && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Review Notes:</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p className="text-gray-700 whitespace-pre-wrap">{selectedLeave.reviewNotes}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex justify-end">
+                  <Button
+                    onClick={closeReviewModal}
+                    className="px-6 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
