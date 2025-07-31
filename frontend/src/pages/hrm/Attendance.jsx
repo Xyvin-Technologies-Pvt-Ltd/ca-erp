@@ -114,17 +114,53 @@ const Attendance = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchName, setSearchName] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    setPage(1); // Reset to first page when filters change
+    fetchData(1);
+  }, [selectedMonth, modalOpen, editModal.open]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSearching(true);
+      setPage(1);
+      fetchData(1).finally(() => setIsSearching(false));
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchName, selectedDate]);
 
   useEffect(() => {
     fetchData(page);
-  }, [selectedMonth, modalOpen, editModal.open, page]);
+  }, [page]);
 
   const fetchData = async (pageNum = page) => {
     setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
       const range = getMonthRange(new Date(year, month));
-      const attRes = await getAttendance({ ...range, page: pageNum, limit });
+      
+      const queryParams = { 
+        ...range, 
+        page: pageNum, 
+        limit 
+      };
+      
+      // Add name search if provided
+      if (searchName.trim()) {
+        queryParams.employeeName = searchName.trim();
+      }
+      
+      // Add date filter if provided
+      if (selectedDate) {
+        queryParams.specificDate = selectedDate;
+      }
+      
+      const attRes = await getAttendance(queryParams);
       setAttendance(attRes.data?.attendance || []);
       setTotalPages(attRes.totalPages || 1);
       setTotal(attRes.total || 0);
@@ -216,6 +252,8 @@ const Attendance = () => {
         </div>
       </motion.div>
 
+    
+
       {/* Summary Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -250,7 +288,83 @@ const Attendance = () => {
           })}
         </AnimatePresence>
       </motion.div>
+  <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6"
+      >
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-4 items-end">
+          {/* Name Search */}
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search by Employee Name
+              {/* {searchName && (
+                <span className="ml-2 text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+                  Active
+                </span>
+              )} */}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter employee name..."
+                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 ${isSearching ? 'animate-pulse' : ''}`}
+              />
+              <UserIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isSearching ? 'text-indigo-500' : 'text-gray-400'}`} />
+            </div>
+          </div>
 
+          {/* Date Filter */}
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Specific Date
+              {/* {selectedDate && (
+                <span className="ml-2 text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+                  Active
+                </span>
+              )} */}
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 cursor-pointer"
+              />
+              <CalendarDaysIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <motion.button
+              type="button"
+              onClick={() => {
+                setSearchName("");
+                setSelectedDate("");
+                setPage(1);
+              }}
+              className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Reset Filters
+            </motion.button>
+          </div>
+        </form>
+      </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
