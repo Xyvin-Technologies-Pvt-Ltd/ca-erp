@@ -7,13 +7,25 @@ const moment = require('moment-timezone');
 moment.tz.setDefault('UTC');
 
 exports.getAllAttendance = catchAsync(async (req, res) => {
-  const { startDate, endDate, employeeId, departmentId, page = 1, limit = 10 } = req.query;
+  const { startDate, endDate, employeeId, departmentId, page = 1, limit = 10, employeeName, specificDate } = req.query;
   
-  console.log("getAllAttendance called with params:", { startDate, endDate, employeeId, departmentId, page, limit });
+  console.log("getAllAttendance called with params:", { startDate, endDate, employeeId, departmentId, page, limit, employeeName, specificDate });
   
   let query = { isDeleted: false };
   
-  if (startDate && endDate) {
+  // Handle date filtering: specificDate takes precedence
+  if (specificDate) {
+    // If specific date is provided, use it instead of date range
+    const specificDateTime = moment.tz(specificDate + 'T00:00:00', 'UTC').toDate();
+    const specificEndDateTime = moment.tz(specificDate + 'T23:59:59', 'UTC').toDate();
+    
+    console.log("Specific date query:", { specificDateTime, specificEndDateTime });
+    
+    query.date = {
+      $gte: specificDateTime,
+      $lte: specificEndDateTime
+    };
+  } else if (startDate && endDate) {
     const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
     const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
     
@@ -24,26 +36,82 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
       $lte: endDateTime
     };
   } else {
-    console.log("No date range provided - fetching all records");
+    // Default to current month if no date filters provided
+    const now = moment.tz('UTC');
+    const startOfMonth = now.clone().startOf('month').toDate();
+    const endOfMonth = now.clone().endOf('month').toDate();
+    
+    query.date = {
+      $gte: startOfMonth,
+      $lte: endOfMonth
+    };
+  }
+  
+  // Employee filtering logic
+  let employeeQueryIds = [];
+  let employeeFilterApplied = false;
+
+  if (employeeId) {
+    // If specific employee ID is provided, use it directly
+    query.employee = employeeId;
+  } else {
+    // Handle department and employee name filtering
+    if (departmentId) {
+      const departmentEmployees = await Employee.find({ department: departmentId }).select('_id');
+      employeeQueryIds = departmentEmployees.map(emp => emp._id);
+      employeeFilterApplied = true;
+    }
+
+    if (employeeName && employeeName.trim()) {
+      const nameSearchRegex = new RegExp(employeeName.trim(), 'i');
+      const nameFilter = {
+        $or: [
+          { name: nameSearchRegex },
+          { firstName: nameSearchRegex },
+          { lastName: nameSearchRegex }
+        ]
+      };
+
+      let nameFilteredEmployees = await Employee.find(nameFilter).select('_id');
+      let nameFilteredIds = nameFilteredEmployees.map(emp => emp._id);
+
+      if (employeeFilterApplied) {
+        // If both department and name filters are applied, intersect the results
+        employeeQueryIds = employeeQueryIds.filter(id => nameFilteredIds.includes(id));
+      } else {
+        // Only name filter is applied
+        employeeQueryIds = nameFilteredIds;
+        employeeFilterApplied = true;
+      }
+    }
+
+    // Apply the employee filter if any filtering was applied
+    if (employeeFilterApplied) {
+      if (employeeQueryIds.length > 0) {
+        query.employee = { $in: employeeQueryIds };
+      } else {
+        // No employees match the combined filters, return empty result
+        return res.status(200).json({
+          status: 'success',
+          results: 0,
+          data: { attendance: [] },
+          total: 0,
+          page: parseInt(page, 10),
+          totalPages: 0
+        });
+      }
+    }
   }
   
   console.log("Final query:", JSON.stringify(query, null, 2));
   
-  if (employeeId) {
-    query.employee = employeeId;
-  }
-  
-  if (departmentId) {
-    const employees = await Employee.find({ department: departmentId }).select('_id');
-    query.employee = { $in: employees.map(emp => emp._id) };
-  }
-
   const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+  
   const [attendance, total] = await Promise.all([
     Attendance.find(query)
       .populate({
         path: 'employee',
-        select: 'name department position',
+        select: 'name firstName lastName department position',
         populate: [
           { path: 'department', select: 'name' },
           { path: 'position', select: 'title' }
@@ -56,44 +124,6 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
   ]);
 
   console.log("Found attendance records:", attendance.length);
-
-  // Test query to check if any attendance records exist for the date range
-  if (startDate && endDate) {
-    const testQuery = { isDeleted: false };
-    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
-    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
-    testQuery.date = { $gte: startDateTime, $lte: endDateTime };
-    
-    const testAttendance = await Attendance.find(testQuery).limit(5);
-    console.log("Test query found records:", testAttendance.length);
-    if (testAttendance.length > 0) {
-      console.log("Sample record:", {
-        _id: testAttendance[0]._id,
-        date: testAttendance[0].date,
-        employee: testAttendance[0].employee
-      });
-    }
-    
-    // Test without population
-    const testAttendanceNoPopulate = await Attendance.find(testQuery)
-      .populate({
-        path: 'employee',
-        select: 'name department position',
-        populate: [
-          { path: 'department', select: 'name' },
-          { path: 'position', select: 'title' }
-        ]
-      })
-      .limit(5);
-    console.log("Test query with population found records:", testAttendanceNoPopulate.length);
-    if (testAttendanceNoPopulate.length > 0) {
-      console.log("Sample record with population:", {
-        _id: testAttendanceNoPopulate[0]._id,
-        date: testAttendanceNoPopulate[0].date,
-        employee: testAttendanceNoPopulate[0].employee
-      });
-    }
-  }
 
   res.status(200).json({
     status: 'success',
