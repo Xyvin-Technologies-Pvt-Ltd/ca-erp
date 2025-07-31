@@ -375,8 +375,8 @@ exports.reviewLeave = catchAsync(async (req, res) => {
     const { status, reviewNotes } = req.body;
 
     // Validate required fields
-    if (!status || !reviewNotes) {
-      throw createError(400, 'Status and review notes are required');
+    if (!status) {
+      throw createError(400, 'Status is required');
     }
 
     // Normalize status to match the model's enum values
