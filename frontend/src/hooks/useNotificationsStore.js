@@ -6,7 +6,15 @@ const useNotificationStore = create((set, get) => ({
   unreadCount: 0,
   isLoading: false,
   error: null,
-
+  clearNotification: async () => {
+    try {
+      await notificationsApi.deleteAllNotification();
+      set((state) => ({
+        notifications: [],
+        unreadCount: 0,
+      }));
+    } catch (error) {}
+  },
   fetchNotifications: async (params = {}) => {
     try {
       set({ isLoading: true, error: null });
