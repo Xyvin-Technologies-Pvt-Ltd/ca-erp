@@ -16,8 +16,7 @@ export const notificationsApi = {
   //delete all notifications
   deleteAllNotification: async () => {
     try {
-      console.log("OK");
-      const response = await api.delete("/notifications/delete-all");
+      const response = await api.delete("/notifications/delete");
       return response.data;
     } catch (error) {
       throw new Error(

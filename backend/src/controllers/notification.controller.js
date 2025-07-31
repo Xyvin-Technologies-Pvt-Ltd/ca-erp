@@ -212,6 +212,22 @@ exports.markAllAsRead = async (req, res, next) => {
     next(error);
   }
 };
+/**
+ * @desc    Delete all notifications 
+ * @route   Delete /api/notifications/delete
+ * @access  Private
+ */
+exports.deleteAllNotifications = async (req, res, next) => {
+  try {
+    const result = await Notification.deleteMany({});
+    res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} notifications deleted.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @desc    Delete notification
@@ -244,17 +260,6 @@ exports.deleteNotification = async (req, res, next) => {
       success: true,
       data: {},
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.deleteAllNotifications = async (req, res, next) => {
-  try {
-     res.status(200).json({
-      success: true,
-      data: {},
-     })
   } catch (error) {
     next(error);
   }

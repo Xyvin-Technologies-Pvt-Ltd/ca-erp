@@ -168,7 +168,8 @@ exports.getProjects = async (req, res, next) => {
 
         const totalTasks = activeTasks.length;
 
-        let completedTasks = 0;
+        let completedTasks = 0
+        
         if (totalTasks > 0) {
           completedTasks = activeTasks.filter(
             (task) => task.status === "completed"
