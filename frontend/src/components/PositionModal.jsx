@@ -20,7 +20,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
   });
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const maxDescriptionLength = 500;
   const maxResponsibilitiesLength = 500;
   const maxRequirementsLength = 500;
@@ -108,7 +108,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
   };
 
   const handleCancel = () => {
-    setShowConfirmModal(true); // Show popup
+    setShowConfirmModal(true);
   };
 
   const confirmDiscard = () => {
@@ -236,12 +236,12 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Position Level *</label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="level"
-                      min="1"
                       value={formData.level}
                       onChange={handleChange}
                       required
+                      pattern="[0-9]*"
                       placeholder="e.g. 1"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
@@ -252,12 +252,12 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Max Positions *</label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="maxPositions"
-                      min="1"
                       value={formData.maxPositions}
                       onChange={handleChange}
                       required
+                      pattern="[0-9]*"
                       placeholder="e.g. 1"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
