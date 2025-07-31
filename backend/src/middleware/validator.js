@@ -108,7 +108,7 @@ const clientValidation = {
             website: Joi.string().allow("").optional(),
             industry: Joi.string().max(50).allow("").optional(),
             notes: Joi.string().allow("").optional(),
-            directors: Joi.array().items(Joi.string().max(50)).min(2).required(),
+            directors: Joi.array().items(Joi.string().max(50)).optional(),
             status: Joi.string().valid("active", "inactive").allow("").optional(),
         }),
     }),

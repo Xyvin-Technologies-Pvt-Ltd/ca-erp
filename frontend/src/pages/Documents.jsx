@@ -29,7 +29,7 @@ import { userApi } from "../api/userApi";
 import ConfirmModal from "../components/settings/DeleteModal";
 import { projectsApi } from "../api";
 import useHeaderStore from "../stores/useHeaderStore";
-
+import { motion, AnimatePresence } from "framer-motion";
 // Enhanced File type icons using lucide-react
 const getFileIcon = (type) => {
   if (type.includes("pdf")) {
@@ -91,7 +91,7 @@ const Documents = () => {
   });
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewDocument, setPreviewDocument] = useState(null);
-  const { profileDropdown,profileIsActive } = useHeaderStore();
+  const { profileDropdown, profileIsActive } = useHeaderStore();
   const fetchInitialData = async () => {
     try {
       setLoading(true);
@@ -129,7 +129,7 @@ const Documents = () => {
 
   useEffect(() => {
     fetchInitialData();
-  }, [filters, searchTerm, currentPage]);
+  }, [filters,  currentPage]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -260,7 +260,15 @@ const Documents = () => {
       </div>
     );
   }
-
+  const resetFilters = () => {
+    setSearchTerm("");
+    setFilters((prevUser) => ({
+      ...prevUser,
+      type: "",
+      project: "",
+      uploadedBy: "",
+    }));
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -378,6 +386,16 @@ const Documents = () => {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={resetFilters}
+                className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+              >
+                Reset All Filters
+              </motion.button>
             </div>
           </div>
         </div>

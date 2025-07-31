@@ -84,6 +84,7 @@ const Finance = () => {
         page: currentPage,
         limit: paginations.limit
       });
+      console.log(data);
       
       const transformed = data.projects.map(project => ({
         ...project,
@@ -284,7 +285,7 @@ const Finance = () => {
                 </div>
               </div>
               
-              <button
+              {/* <button
                 onClick={openInvoiceModal}
                 disabled={selectedProjects.length === 0}
                 className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
@@ -295,7 +296,7 @@ const Finance = () => {
               >
                 <Receipt className="w-4 h-4" />
                 Create Invoice ({selectedProjects.length})
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

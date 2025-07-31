@@ -115,6 +115,8 @@ exports.getClient = async (req, res, next) => {
 // Updated createClient function
 exports.createClient = async (req, res, next) => {
   try {
+    console.log("Call");
+    
     console.log('CreateClient req.body:', req.body);
 
     const allowedFields = [
@@ -130,18 +132,18 @@ exports.createClient = async (req, res, next) => {
     });
 
     // Validate directors
-    if (!clientData.directors || !Array.isArray(clientData.directors) || clientData.directors.length < 2) {
-      return next(new ErrorResponse('At least 2 valid directors are required', 400));
-    }
+    // if (!clientData.directors || !Array.isArray(clientData.directors) || clientData.directors.length < 2) {
+    //   return next(new ErrorResponse('At least 2 valid directors are required', 400));
+    // }
 
     // Ensure directors are trimmed and non-empty
     clientData.directors = clientData.directors
       .map(d => d ? d.trim() : '')
       .filter(d => d !== '');
 
-    if (clientData.directors.length < 2) {
-      return next(new ErrorResponse('At least 2 valid directors are required', 400));
-    }
+    // if (clientData.directors.length < 2) {
+    //   return next(new ErrorResponse('At least 2 valid directors are required', 400));
+    // }
 
     clientData.createdBy = req.user.id;
 

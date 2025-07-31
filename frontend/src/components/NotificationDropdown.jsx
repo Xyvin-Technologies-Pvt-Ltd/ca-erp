@@ -16,6 +16,7 @@ const NotificationDropdown = () => {
     isLoading,
     error,
     fetchNotifications,
+    clearNotification
   } = useNotificationStore();
 
   const navigate = useNavigate();
@@ -48,7 +49,9 @@ const NotificationDropdown = () => {
       return 'Unknown date';
     }
   };
-
+ const clearAllNotification = () => {
+    clearNotification();
+  };
   const DropdownContent = () => (
     <Transition
       show={isOpen}
@@ -92,6 +95,7 @@ const NotificationDropdown = () => {
                 >
                   Mark all read
                 </button>
+                
               )}
             </div>
           </div>
@@ -221,6 +225,14 @@ const NotificationDropdown = () => {
                   <span>View all notifications</span>
                   <ExternalLink className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
+                <div className="text-center ">
+                <button
+                  onClick={clearAllNotification}
+                  className="hover:bg-slate-200 w-full px-12 py-2 mt-1 rounded-2xl text-blue-700 font-semibold cursor-pointer"
+                >
+                  Clear all
+                </button>
+              </div>
             </div>
           )}
         </div>

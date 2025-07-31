@@ -12,13 +12,13 @@ import {
   Loader2,
   Save,
   Plus,
-  UserPlus
+  UserPlus,
 } from "lucide-react";
 import countryCurrency from "../api/countryCurrency.json";
 
 const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
-  const [directors, setDirectors] = useState(client?.directors || ['', '']);
+  const [directors, setDirectors] = useState(client?.directors || ["", ""]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const isEditMode = !!client;
   const industryOptions = [
@@ -47,7 +47,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     reset,
     watch,
     setValue,
-    getValues
+    getValues,
   } = useForm({
     defaultValues: client || {
       name: "",
@@ -65,13 +65,13 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       cin: "",
       currencyFormat: "",
       notes: "",
-      directors: ['', '']
+      directors: ["", ""],
     },
   });
 
   // Update form directors when directors state changes
   useEffect(() => {
-    setValue('directors', directors);
+    setValue("directors", directors);
   }, [directors, setValue]);
 
   const countryValue = watch("country");
@@ -89,30 +89,32 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   useEffect(() => {
     if (client) {
       reset(client);
-      setDirectors(client.directors || ['', '']);
+      setDirectors(client.directors || ["", ""]);
     }
   }, [client, reset]);
 
   useEffect(() => {
     if (countryValue) {
-      const found = countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase());
+      const found = countryCurrency.find(
+        (c) => c.name.toLowerCase() === countryValue.toLowerCase()
+      );
       if (found && found.currency) {
-        setValue('currencyFormat', found.currency);
+        setValue("currencyFormat", found.currency);
       }
     }
   }, [countryValue, setValue]);
 
   const addDirectorField = () => {
-    const newDirectors = [...directors, ''];
+    const newDirectors = [...directors, ""];
     setDirectors(newDirectors);
-    setValue('directors', newDirectors);
+    setValue("directors", newDirectors);
   };
 
   const removeDirectorField = (index) => {
     if (directors.length > 2) {
       const newDirectors = directors.filter((_, i) => i !== index);
       setDirectors(newDirectors);
-      setValue('directors', newDirectors);
+      setValue("directors", newDirectors);
     }
   };
 
@@ -120,21 +122,128 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
     const newDirectors = [...directors];
     newDirectors[index] = value;
     setDirectors(newDirectors);
-    setValue('directors', newDirectors);
+    setValue("directors", newDirectors);
   };
 
   const onSubmit = async (formData) => {
-  setLoading(true);
-  try {
-    const validDirectors = directors
-      .map(d => d ? d.trim() : '')
-      .filter(d => d !== '');
+    setLoading(true);
+    try {
+      const validDirectors = directors
+        .map((d) => (d ? d.trim() : ""))
+        .filter((d) => d !== "");
 
-    console.log('Original directors from state:', directors);
-    console.log('Valid directors after filtering:', validDirectors);
+      console.log("Original directors from state:", directors);
+      console.log("Valid directors after filtering:", validDirectors);
 
-    if (validDirectors.length < 2) {
-      toast.error("At least two directors with non-empty names are required", {
+      // if (validDirectors.length < 2) {
+      //   toast.error("At least two directors with non-empty names are required", {
+      //     position: "top-right",
+      //     autoClose: 5000,
+      //     hideProgressBar: false,
+      //     closeOnClick: true,
+      //     pauseOnHover: true,
+      //     draggable: true,
+      //   });
+      //   setLoading(false);
+      //   return;
+      // }
+      if (formData.gstin === "") {
+        toast.error("Tax information is required", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      } else if (formData.pan === "") {
+        toast.error("Tax information is required", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
+      const uniqueDirectors = [
+        ...new Set(validDirectors.map((d) => d.toLowerCase())),
+      ];
+      if (uniqueDirectors.length !== validDirectors.length) {
+        toast.error("Duplicate director names are not allowed", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const finalFormData = {
+        ...formData,
+        directors: validDirectors,
+      };
+
+      console.log("Form data being sent:", finalFormData);
+
+      let result;
+      if (isEditMode) {
+        result = await clientsApi.updateClient(client._id, finalFormData);
+        toast.success(`Client "${finalFormData.name}" updated successfully!`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        result = await clientsApi.createClient(finalFormData);
+        toast.success(`Client "${finalFormData.name}" created successfully!`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+
+      if (result.success) {
+        onSuccess(result.data);
+      } else {
+        throw new Error(
+          result.error || `Failed to ${isEditMode ? "update" : "create"} client`
+        );
+      }
+    } catch (error) {
+      console.error("Error saving client:", error);
+      toast.error(
+        error.message ||
+          `Failed to ${
+            isEditMode ? "update" : "create"
+          } client. Please try again.`,
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  const onError = () => {
+    if (errors.gstin) {
+      toast.error(errors.gstin.message, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -142,74 +251,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         pauseOnHover: true,
         draggable: true,
       });
-      setLoading(false);
-      return;
+    } else if (errors.pan) {
+      toast.error(errors.pan.message);
     }
-
-    const uniqueDirectors = [...new Set(validDirectors.map(d => d.toLowerCase()))];
-    if (uniqueDirectors.length !== validDirectors.length) {
-      toast.error("Duplicate director names are not allowed", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      setLoading(false);
-      return;
-    }
-
-    const finalFormData = {
-      ...formData,
-      directors: validDirectors
-    };
-
-    console.log('Form data being sent:', finalFormData);
-
-    let result;
-    if (isEditMode) {
-      result = await clientsApi.updateClient(client._id, finalFormData);
-      toast.success(`Client "${finalFormData.name}" updated successfully!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      result = await clientsApi.createClient(finalFormData);
-      toast.success(`Client "${finalFormData.name}" created successfully!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    }
-
-    if (result.success) {
-      onSuccess(result.data);
-    } else {
-      throw new Error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} client`);
-    }
-  } catch (error) {
-    console.error("Error saving client:", error);
-    toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} client. Please try again.`, {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
   // Prevent clicks inside the modal from closing it
   const handleModalContentClick = (e) => {
     e.stopPropagation();
@@ -231,7 +276,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
   return (
     <>
       {/* Blur Background Overlay */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onCancel}></div>
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+        onClick={onCancel}
+      ></div>
 
       {/* Modal Container */}
       <div
@@ -264,20 +312,27 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   {isEditMode ? "Edit Client" : "Add New Client"}
                 </h2>
                 <p className="text-gray-600 mt-1">
-                  {isEditMode ? "Update client information below" : "Fill in the details to create a new client"}
+                  {isEditMode
+                    ? "Update client information below"
+                    : "Fill in the details to create a new client"}
                 </p>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8">
+          <form
+            onSubmit={handleSubmit(onSubmit, onError)}
+            className="p-8 space-y-8"
+          >
             {/* Basic Information Section */}
             <div className="space-y-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="bg-blue-100 p-2 rounded-xl">
                   <User className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Basic Information
+                </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -289,8 +344,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   <div className="relative">
                     <input
                       type="text"
-                      {...register("name", { required: "Client name is required" })}
-                      className={`w-full px-4 py-3 border ${errors.name ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      {...register("name", {
+                        required: "Client name is required",
+                      })}
+                      className={`w-full px-4 py-3 border ${
+                        errors.name
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. Acme Corporation"
                     />
                     {errors.name && (
@@ -335,7 +396,11 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Invalid email address",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.contactEmail ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${
+                        errors.contactEmail
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. john@acme.com"
                     />
                     {errors.contactEmail && (
@@ -408,10 +473,15 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       {...register("website", {
                         pattern: {
                           value: /^https?:\/\/.+/,
-                          message: "Please enter a valid URL starting with http:// or https://",
+                          message:
+                            "Please enter a valid URL starting with http:// or https://",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.website ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${
+                        errors.website
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. https://www.acme.com"
                     />
                     {errors.website && (
@@ -434,12 +504,14 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     <div className="bg-purple-100 p-2 rounded-xl">
                       <UserPlus className="h-5 w-5 text-purple-600" />
                     </div>
-                    <h4 className="text-md font-semibold text-gray-800">Directors <span className="text-red-500">*</span></h4>
+                    <h4 className="text-md font-semibold text-gray-800">
+                      Director{" "}
+                    </h4>
                   </div>
-                  <p className="text-sm text-gray-500 mb-3">Minimum of 2 directors required</p>
-                  
+                  {/* <p className="text-sm text-gray-500 mb-3">Minimum of 2 directors required</p> */}
+
                   {/* Hidden input to register directors with react-hook-form */}
-                  <input
+                  {/* <input
                     type="hidden"
                     {...register("directors", { 
                       required: "At least 2 directors are required",
@@ -448,37 +520,42 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                         return valid || "At least 2 directors are required";
                       }
                     })}
-                  />
-                  
+                  /> */}
+
                   {directors.map((director, index) => (
-  <div key={index} className="flex items-center space-x-4 mb-2">
-    <div className="flex-1 relative">
-      <input
-        type="text"
-        value={director}
-        onChange={(e) => updateDirector(index, e.target.value)}
-        className="w-full px-4 py-3 border border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead] rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400"
-        placeholder={`Director ${index + 1} name`}
-      />
-    </div>
-    {directors.length > 2 && (
-      <button
-        type="button"
-        onClick={() => removeDirectorField(index)}
-        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
-      >
-        <X className="h-5 w-5" />
-      </button>
-    )}
-  </div>
-))}
-{errors.directors && (
-  <p className="mt-2 text-sm text-red-600 flex items-center">
-    <AlertCircle className="h-4 w-4 mr-1" />
-    {errors.directors.message}
-  </p>
-)}
-                  
+                    <div
+                      key={index}
+                      className="flex items-center space-x-4 mb-2"
+                    >
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={director}
+                          onChange={(e) =>
+                            updateDirector(index, e.target.value)
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead] rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400"
+                          placeholder={`Director ${index + 1} name`}
+                        />
+                      </div>
+                      {directors.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeDirectorField(index)}
+                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {errors.directors && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.directors.message}
+                    </p>
+                  )}
+
                   <button
                     type="button"
                     onClick={addDirectorField}
@@ -490,55 +567,81 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
 
                 {/* Address Subsection */}
                 <div className="md:col-span-2 mt-6">
-                  <h4 className="text-md font-semibold text-gray-800 mb-2">Address</h4>
+                  <h4 className="text-md font-semibold text-gray-800 mb-2">
+                    Address
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Country */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Country
+                      </label>
                       <div className="relative">
                         <input
                           type="text"
                           ref={countryInputRef}
                           value={countrySearch || countryValue || ""}
-                          onChange={e => {
+                          onChange={(e) => {
                             setCountrySearch(e.target.value);
-                            const filtered = countryCurrency.filter(c => c.name.toLowerCase().startsWith(e.target.value.toLowerCase()));
+                            const filtered = countryCurrency.filter((c) =>
+                              c.name
+                                .toLowerCase()
+                                .startsWith(e.target.value.toLowerCase())
+                            );
                             setFilteredCountries(filtered);
-                            setValue('country', e.target.value);
+                            setValue("country", e.target.value);
                             setShowCountryDropdown(true);
                           }}
                           onFocus={() => {
                             setShowCountryDropdown(true);
-                            setFilteredCountries(countryCurrency.filter(c => c.name.toLowerCase().startsWith((countrySearch || countryValue || "").toLowerCase())));
+                            setFilteredCountries(
+                              countryCurrency.filter((c) =>
+                                c.name
+                                  .toLowerCase()
+                                  .startsWith(
+                                    (
+                                      countrySearch ||
+                                      countryValue ||
+                                      ""
+                                    ).toLowerCase()
+                                  )
+                              )
+                            );
                           }}
-                          onBlur={() => setTimeout(() => setShowCountryDropdown(false), 150)}
+                          onBlur={() =>
+                            setTimeout(() => setShowCountryDropdown(false), 150)
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                           placeholder="e.g. India"
                         />
-                        {showCountryDropdown && filteredCountries.length > 0 && (countrySearch || countryValue) && (
-                          <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
-                            {filteredCountries.map((c, idx) => (
-                              <li
-                                key={c.name}
-                                className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                                onMouseDown={e => {
-                                  e.stopPropagation();
-                                  setValue('country', c.name);
-                                  setValue('currencyFormat', c.currency);
-                                  setCountrySearch(c.name);
-                                  setShowCountryDropdown(false);
-                                }}
-                              >
-                                {c.name}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                        {showCountryDropdown &&
+                          filteredCountries.length > 0 &&
+                          (countrySearch || countryValue) && (
+                            <ul className="absolute z-10 bg-white border border-gray-200 rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                              {filteredCountries.map((c, idx) => (
+                                <li
+                                  key={c.name}
+                                  className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                  onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    setValue("country", c.name);
+                                    setValue("currencyFormat", c.currency);
+                                    setCountrySearch(c.name);
+                                    setShowCountryDropdown(false);
+                                  }}
+                                >
+                                  {c.name}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                       </div>
                     </div>
                     {/* State */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        State
+                      </label>
                       <input
                         type="text"
                         {...register("state")}
@@ -548,7 +651,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </div>
                     {/* City */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        City
+                      </label>
                       <input
                         type="text"
                         {...register("city")}
@@ -558,7 +663,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     </div>
                     {/* Pin */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">PIN</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        PIN
+                      </label>
                       <input
                         type="text"
                         {...register("pin")}
@@ -577,23 +684,32 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 <div className="bg-green-100 p-2 rounded-xl">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Tax Information</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Tax Information
+                </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* GSTIN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">GSTIN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    GSTIN <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <input
                       type="text"
                       {...register("gstin", {
                         pattern: {
-                          value: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+                          value:
+                            /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
                           message: "Please enter a valid GSTIN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.gstin ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${
+                        errors.gstin
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. 27AAACR5055K1Z5"
                     />
                     {errors.gstin && (
@@ -611,7 +727,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 </div>
                 {/* PAN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">PAN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    PAN <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <input
                       type="text"
@@ -621,7 +739,11 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid PAN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${errors.pan ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]'} rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                      className={`w-full px-4 py-3 border ${
+                        errors.pan
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. AAAAA0000A"
                     />
                     {errors.pan && (
@@ -639,7 +761,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 </div>
                 {/* CIN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">CIN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    CIN
+                  </label>
                   <input
                     type="text"
                     {...register("cin")}
@@ -649,13 +773,20 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 </div>
                 {/* Currency Format */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Currency Format</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Currency Format
+                  </label>
                   <input
                     type="text"
                     {...register("currencyFormat")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                     placeholder="e.g. INR"
-                    readOnly={!!countryCurrency.find(c => c.name.toLowerCase() === countryValue.toLowerCase())}
+                    readOnly={
+                      !!countryCurrency.find(
+                        (c) =>
+                          c.name.toLowerCase() === countryValue.toLowerCase()
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -667,7 +798,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 <div className="bg-purple-100 p-2 rounded-xl">
                   <FileText className="h-5 w-5 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Additional Information</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Additional Information
+                </h3>
               </div>
 
               <div className="space-y-6">
@@ -684,8 +817,16 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                     placeholder="Additional notes about the client"
                   ></textarea>
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-sm text-gray-500">Any additional information or special requirements</p>
-                    <p className={`text-sm ${(notesValue?.length || 0) > maxNotesLength * 0.8 ? 'text-amber-600' : 'text-gray-500'}`}>
+                    <p className="text-sm text-gray-500">
+                      Any additional information or special requirements
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        (notesValue?.length || 0) > maxNotesLength * 0.8
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
                       {notesValue?.length || 0}/{maxNotesLength}
                     </p>
                   </div>
@@ -733,7 +874,9 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Discard Changes?
+              </h3>
               <button
                 onClick={cancelDiscard}
                 className="text-gray-400 hover:text-gray-600 hover:bg-white/80 rounded-full p-2 transition-all duration-200"
@@ -742,7 +885,8 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to discard changes? Any unsaved changes will be lost.
+              Are you sure you want to discard changes? Any unsaved changes will
+              be lost.
             </p>
             <div className="flex justify-end space-x-4">
               <button
