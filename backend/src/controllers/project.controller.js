@@ -102,19 +102,9 @@ exports.getProjects = async (req, res, next) => {
         projects.map(async (project) => {
           const projectObj = project.toObject();
 
-          const taskIds = project.tasks || [];
-          const activeTasks = await Task.find({
-            _id: { $in: taskIds },
-            deleted: { $ne: true },
-          }).select('_id title status amount description priority dueDate');
-
-          const totalCost = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
-
           // First check if the project already has an invoiceStatus
           if (project.invoiceStatus === "Created") {
             projectObj.invoiceStatus = "Created";
-            projectObj.totalCost = totalCost;
-            projectObj.tasks = activeTasks;
             return projectObj;
           }
 
@@ -128,8 +118,6 @@ exports.getProjects = async (req, res, next) => {
           });
 
           projectObj.invoiceStatus = invoice ? "Created" : "Not Created";
-          projectObj.totalCost = totalCost;
-          projectObj.tasks = activeTasks;
 
           // If invoice exists, update the project's invoice status
           if (invoice && project.invoiceStatus !== "Created") {
@@ -167,14 +155,16 @@ exports.getProjects = async (req, res, next) => {
       return res.status(200).json(data);
     }
 
+    // 🧠 Add completion stats for each project
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
         const taskIds = project.tasks || [];
 
+        // Filter out deleted tasks for accurate counting
         const activeTasks = await Task.find({
           _id: { $in: taskIds },
           deleted: { $ne: true },
-        }).select('_id title status amount description priority dueDate');
+        });
 
         const totalTasks = activeTasks.length;
 
@@ -189,14 +179,10 @@ exports.getProjects = async (req, res, next) => {
         const completionPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-        const totalCost = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
-
         const projectObj = project.toObject();
         projectObj.totalTasks = totalTasks;
         projectObj.completedTasks = completedTasks;
         projectObj.completionPercentage = completionPercentage;
-        projectObj.totalCost = totalCost; 
-        projectObj.tasks = activeTasks; 
 
         return projectObj;
       })
