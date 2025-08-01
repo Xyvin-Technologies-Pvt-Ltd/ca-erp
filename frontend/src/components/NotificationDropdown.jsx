@@ -304,6 +304,18 @@ const NotificationDropdown = () => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("scroll", handleScroll, true);
+      return () => document.removeEventListener("scroll", handleScroll, true);
+    }
+  }, [isOpen]);
+
   return (
     <>
       <Menu as="div" className="relative inline-block text-left">
