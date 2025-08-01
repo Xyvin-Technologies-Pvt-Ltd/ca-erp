@@ -88,7 +88,7 @@ const Finance = () => {
       
       const transformed = data.projects.map(project => ({
         ...project,
-        cost: project.totalCost || 0,
+        cost: project.budget || 0,
       }));
 
       setProjects(transformed);

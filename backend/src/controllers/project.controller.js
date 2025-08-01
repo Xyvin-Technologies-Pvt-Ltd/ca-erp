@@ -102,41 +102,41 @@ exports.getProjects = async (req, res, next) => {
         projects.map(async (project) => {
           const projectObj = project.toObject();
 
+          // First check if the project already has an invoiceStatus
+          if (project.invoiceStatus === "Created") {
+            projectObj.invoiceStatus = "Created";
+          } else {
+            // If not, check for invoice in the Invoice collection
+            const invoice = await Invoice.findOne({
+              items: {
+                $elemMatch: {
+                  projectId: project._id,
+                },
+              },
+            });
+
+            projectObj.invoiceStatus = invoice ? "Created" : "Not Created";
+
+            if (invoice && project.invoiceStatus !== "Created") {
+              await Project.findByIdAndUpdate(project._id, {
+                invoiceStatus: "Created",
+              });
+            }
+          }
+
+          // Calculate budget for this project
           const taskIds = project.tasks || [];
           const activeTasks = await Task.find({
             _id: { $in: taskIds },
             deleted: { $ne: true },
-          }).select('_id title status amount description priority dueDate');
-
-          const totalCost = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
-
-          // First check if the project already has an invoiceStatus
-          if (project.invoiceStatus === "Created") {
-            projectObj.invoiceStatus = "Created";
-            projectObj.totalCost = totalCost;
-            projectObj.tasks = activeTasks;
-            return projectObj;
-          }
-
-          // If not, check for invoice in the Invoice collection
-          const invoice = await Invoice.findOne({
-            items: {
-              $elemMatch: {
-                projectId: project._id,
-              },
-            },
           });
 
-          projectObj.invoiceStatus = invoice ? "Created" : "Not Created";
-          projectObj.totalCost = totalCost;
-          projectObj.tasks = activeTasks;
+          const totalAmount = activeTasks.reduce(
+            (sum, task) => sum + (task.amount || 0),
+            0
+          );
 
-          // If invoice exists, update the project's invoice status
-          if (invoice && project.invoiceStatus !== "Created") {
-            await Project.findByIdAndUpdate(project._id, {
-              invoiceStatus: "Created",
-            });
-          }
+          projectObj.budget = totalAmount;
 
           return projectObj;
         })
@@ -167,14 +167,16 @@ exports.getProjects = async (req, res, next) => {
       return res.status(200).json(data);
     }
 
+    // 🧠 Add completion stats for each project
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
         const taskIds = project.tasks || [];
 
+        // Filter out deleted tasks for accurate counting
         const activeTasks = await Task.find({
           _id: { $in: taskIds },
           deleted: { $ne: true },
-        }).select('_id title status amount description priority dueDate');
+        });
 
         const totalTasks = activeTasks.length;
 
@@ -189,14 +191,10 @@ exports.getProjects = async (req, res, next) => {
         const completionPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-        const totalCost = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
-
         const projectObj = project.toObject();
         projectObj.totalTasks = totalTasks;
         projectObj.completedTasks = completedTasks;
         projectObj.completionPercentage = completionPercentage;
-        projectObj.totalCost = totalCost; 
-        projectObj.tasks = activeTasks; 
 
         return projectObj;
       })
@@ -285,10 +283,8 @@ exports.getProject = async (req, res, next) => {
     // }
 
     const projectObject = project.toObject(); // Convert Mongoose doc to plain object
-    // 🧠 Calculate task completion stats
     const taskIds = project.tasks; // array of ObjectId
 
-    // Filter out deleted tasks for accurate counting
     const activeTasks = await Task.find({
       _id: { $in: taskIds },
       deleted: { $ne: true },
