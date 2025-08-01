@@ -156,7 +156,7 @@ exports.createCronJob = async (req, res, next) => {
 exports.updateCronJob = async (req, res, next) => {
     try {
         let cronJob = await CronJob.findById(req.params.id);
-        
+        console.log(req.body)
         if (!cronJob) {
             return next(new ErrorResponse(`Cron job not found with id of ${req.params.id}`, 404));
         }
