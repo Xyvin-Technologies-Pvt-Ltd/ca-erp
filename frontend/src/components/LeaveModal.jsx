@@ -124,7 +124,7 @@ const handleCancel = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-[#1c6ead] to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -335,7 +335,7 @@ const handleCancel = () => {
               <button
                 type="submit"
                 disabled={formik.isSubmitting}
-                className="px-6 py-3 bg-gradient-to-r from-[#1c6ead] to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {formik.isSubmitting ? (
                   <span className="flex items-center">

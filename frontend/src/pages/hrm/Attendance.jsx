@@ -123,23 +123,19 @@ const Attendance = () => {
     fetchData(1);
   }, [selectedMonth, modalOpen, editModal.open]);
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSearching(true);
-      setPage(1);
-      fetchData(1).finally(() => setIsSearching(false));
-    }, 500); // 500ms delay
+useEffect(() => {
+  setIsSearching(true);
+  setPage(1);
+  fetchData(1).finally(() => setIsSearching(false));
+}, [searchName, selectedDate]);
 
-    return () => clearTimeout(timer);
-  }, [searchName, selectedDate]);
 
   useEffect(() => {
     fetchData(page);
   }, [page]);
 
   const fetchData = async (pageNum = page) => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
       const range = getMonthRange(new Date(year, month));
@@ -150,12 +146,10 @@ const Attendance = () => {
         limit 
       };
       
-      // Add name search if provided
       if (searchName.trim()) {
         queryParams.employeeName = searchName.trim();
       }
       
-      // Add date filter if provided
       if (selectedDate) {
         queryParams.specificDate = selectedDate;
       }
