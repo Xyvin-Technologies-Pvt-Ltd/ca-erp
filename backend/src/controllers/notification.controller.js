@@ -213,13 +213,13 @@ exports.markAllAsRead = async (req, res, next) => {
   }
 };
 /**
- * @desc    Delete all notifications 
+ * @desc    Delete all notifications
  * @route   Delete /api/notifications/delete
  * @access  Private
  */
 exports.deleteAllNotifications = async (req, res, next) => {
   try {
-    const result = await Notification.deleteMany({});
+    const result = await Notification.deleteMany({ user: req.user.id });
     res.status(200).json({
       success: true,
       message: `${result.deletedCount} notifications deleted.`,

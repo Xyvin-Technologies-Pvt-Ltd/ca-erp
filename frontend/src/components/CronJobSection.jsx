@@ -1,20 +1,31 @@
-import { useState } from 'react';
-import { toast } from 'react-toastify';
-import { cronJobsApi } from '../api/cronJobs';
-import { sectionsApi } from '../api/sections';
-
-const CronJobSection = ({ section, clientId, onUpdate }) => {
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { cronJobsApi } from "../api/cronJobs";
+import { sectionsApi } from "../api/sections";
+import { projectsApi } from "../api/projectsApi";
+import { Trash2,Edit } from "lucide-react";
+const CronJobSection = ({
+  section,
+  clientId,
+  id,
+  name,
+  onUpdate,
+  handleSectionEdit,
+  handleSectionDelete,
+}) => {
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState({
-    name: '',
-    startDate: '',
-    frequency: 'monthly',
-    description: ''
+    name: "",
+    startDate: "",
+    frequency: "monthly",
+    description: "",
   });
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleAddProject = async () => {
     if (!newProject.name || !newProject.startDate) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -26,28 +37,41 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
         section: section._id,
         frequency: newProject.frequency,
         startDate: newProject.startDate,
-        isActive: true
+        isActive: true,
       };
 
       await cronJobsApi.createCronJob(cronJobData);
-      toast.success('Cron job created successfully');
-      
+      toast.success("Cron job created successfully");
+
       // Reset form
       setNewProject({
-        name: '',
-        startDate: '',
-        frequency: 'monthly',
-        description: ''
+        name: "",
+        startDate: "",
+        frequency: "monthly",
+        description: "",
       });
       setIsAddingProject(false);
-      
+
       // Refresh parent component
       onUpdate();
     } catch (error) {
-      toast.error(error.message || 'Failed to create cron job');
+      toast.error(error.message || "Failed to create cron job");
     }
   };
+  const projectSuggestions = [
+    "Project Alpha",
+    "Project Beta",
+    "Project Gamma",
+    "Project Delta",
+    "Project Epsilon",
+    "Project Zeta",
+    "Project Theta",
+    "Project Omega",
+  ];
 
+  const filteredSuggestions = projectSuggestions.filter((p) =>
+    p.toLowerCase().includes(newProject.name.toLowerCase())
+  );
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
       <div className="flex items-center justify-between mb-4">
@@ -58,15 +82,32 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
             Template
           </span>
         </div>
-        <button
-          onClick={() => setIsAddingProject(!isAddingProject)}
-          className="inline-flex items-center px-4 py-2 bg-[#1c6ead] rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
-        >
-          <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex gap-3">
+          <button
+            onClick={() => setIsAddingProject(!isAddingProject)}
+            className="inline-flex items-center px-4 py-2 bg-[#1c6ead] rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+          >
+            {/* <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add Project
-        </button>
+          </svg> */}
+            Add Project
+          </button>
+          <button
+            onClick={() => handleSectionEdit(true, name, id)}
+            className="p-2  hover:text-emerald-600 text-white bg-emerald-500 hover:bg-emerald-50 rounded-lg transition-all duration-150"
+            title="Delete"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+          
+          <button
+             onClick={() => handleSectionDelete(id)}
+            className="p-2  hover:text-red-600 text-white bg-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+            title="Delete"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {isAddingProject && (
@@ -76,13 +117,27 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Project Name *
               </label>
+              {/* <input
+                type="text"
+                value={newProject.name}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, name: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
+                placeholder="Enter project name"
+              /> */}
               <input
                 type="text"
                 value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                onChange={(e) => {
+                  setNewProject({ ...newProject, name: e.target.value });
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 100)} // delay to allow clicking dropdown item
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
                 placeholder="Enter project name"
-              />
+              />   
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -92,7 +147,9 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
                 type="date"
                 value={newProject.startDate}
                 // min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setNewProject({ ...newProject, startDate: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, startDate: e.target.value })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
               />
             </div>
@@ -101,15 +158,19 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
                 Frequency
               </label>
               <div className="flex space-x-2">
-                {['weekly', 'monthly', 'yearly'].map((freq) => (
+                {["weekly", "monthly", "yearly"].map((freq) => (
                   <button
                     key={freq}
                     type="button"
-                    onClick={() => setNewProject({ ...newProject, frequency: freq })}
+                    onClick={() =>
+                      setNewProject({ ...newProject, frequency: freq })
+                    }
                     className={`px-4 py-2 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm
-                      ${newProject.frequency === freq
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white border-transparent scale-105 shadow-lg'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'}`}
+                      ${
+                        newProject.frequency === freq
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white border-transparent scale-105 shadow-lg"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300"
+                      }`}
                     aria-pressed={newProject.frequency === freq}
                   >
                     {freq.charAt(0).toUpperCase() + freq.slice(1)}
@@ -123,7 +184,9 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
               </label>
               <textarea
                 value={newProject.description}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, description: e.target.value })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
                 rows="3"
                 placeholder="Enter project description"
@@ -141,10 +204,20 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
               onClick={handleAddProject}
               className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
             >
-              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
-              Create Cron Job
+              Create Auto Project
             </button>
           </div>
         </div>
@@ -153,4 +226,4 @@ const CronJobSection = ({ section, clientId, onUpdate }) => {
   );
 };
 
-export default CronJobSection; 
+export default CronJobSection;
