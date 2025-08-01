@@ -304,7 +304,7 @@ const Header = ({ onOpenSidebar }) => {
                     name={user?.name || "User"}
                     src={
                       user?.avatar
-                        ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
+                        ? `${user.avatar}`
                         : undefined
                     }
                   />
@@ -332,7 +332,7 @@ const Header = ({ onOpenSidebar }) => {
                           name={user?.name || "User"}
                           src={
                             user?.avatar
-                              ? `${import.meta.env.VITE_BASE_URL}${user.avatar}`
+                              ? `${user.avatar}`
                               : undefined
                           }
                           size="sm"
