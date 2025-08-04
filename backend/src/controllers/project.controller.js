@@ -6,6 +6,31 @@ const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 const ActivityTracker = require("../utils/activityTracker");
 
+
+const updateProjectTeamFromTasks = async (projectId) => {
+  try {
+    const tasks = await Task.find({
+      project: projectId,
+      deleted: { $ne: true }
+    }).populate('assignedTo', '_id name email');
+
+    const assigneeIds = [...new Set(
+      tasks
+        .filter(task => task.assignedTo && task.assignedTo._id)
+        .map(task => task.assignedTo._id.toString())
+    )];
+
+    await Project.findByIdAndUpdate(projectId, {
+      team: assigneeIds
+    });
+
+    logger.info(`Updated project team for project ${projectId} with ${assigneeIds.length} members`);
+  } catch (error) {
+    logger.error(`Error updating project team for project ${projectId}: ${error.message}`);
+    throw error;
+  }
+};
+
 /**
  * @desc    Get all projects
  * @route   GET /api/projects
@@ -167,12 +192,10 @@ exports.getProjects = async (req, res, next) => {
       return res.status(200).json(data);
     }
 
-    // 🧠 Add completion stats for each project
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
         const taskIds = project.tasks || [];
 
-        // Filter out deleted tasks for accurate counting
         const activeTasks = await Task.find({
           _id: { $in: taskIds },
           deleted: { $ne: true },
@@ -281,6 +304,8 @@ exports.getProject = async (req, res, next) => {
     // if (req.user.role !== 'admin' && project.assignedTo.toString() !== req.user.id.toString()) {
     //     return next(new ErrorResponse(`User not authorized to access this project`, 403));
     // }
+
+    await updateProjectTeamFromTasks(project._id);
 
     const projectObject = project.toObject(); // Convert Mongoose doc to plain object
     const taskIds = project.tasks; // array of ObjectId

@@ -63,4 +63,8 @@ export const userApi = {
             count: response.data.count
         };
     },
+    getVerificationStaffForAssignment: async () => {
+        const response = await axiosInstance.get('/users/verification-staff');
+        return response.data.data || [];
+    },
 }

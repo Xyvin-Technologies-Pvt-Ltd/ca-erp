@@ -9,6 +9,7 @@ const websocketService = require('../utils/websocket');
 const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
 const webhookService = require('../services/webhookService');
+const verificationService = require('../services/verificationService');
 /**
  * @desc    Get all tasks
  * @route   GET /api/tasks
@@ -565,6 +566,24 @@ exports.updateTask = async (req, res, next) => {
             }
         }
 
+        // Check if task status was changed to completed and handle verification task creation
+        if (req.body.status === 'completed' && originalTaskObj.status !== 'completed') {
+            try {
+                const verificationTask = await verificationService.handleTaskCompletion(
+                    task._id, 
+                    task.project, 
+                    req.user.id
+                );
+                
+                if (verificationTask) {
+                    logger.info(`Verification task created for project ${task.project} after task completion via update`);
+                }
+            } catch (verificationError) {
+                logger.error('Error handling verification task creation:', verificationError);
+                // Don't fail the main request if verification fails
+            }
+        }
+
         res.status(200).json({ success: true, data: task });
     } catch (error) {
         logger.error(`Task update error: ${error.message}`);
@@ -689,6 +708,24 @@ exports.updateTaskStatus = async (req, res, next) => {
 
         // Log the status update
         logger.info(`Task status updated for ${task.title} (${task._id}) to ${status} by ${req.user.name} (${req.user._id})`);
+
+        // Check if task was completed and handle verification task creation
+        if (status === 'completed') {
+            try {
+                const verificationTask = await verificationService.handleTaskCompletion(
+                    task._id, 
+                    task.project, 
+                    req.user.id
+                );
+                
+                if (verificationTask) {
+                    logger.info(`Verification task created for project ${task.project} after task completion`);
+                }
+            } catch (verificationError) {
+                logger.error('Error handling verification task creation:', verificationError);
+                // Don't fail the main request if verification fails
+            }
+        }
 
         res.status(200).json({
             success: true,

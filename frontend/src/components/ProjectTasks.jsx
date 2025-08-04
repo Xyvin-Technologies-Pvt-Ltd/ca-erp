@@ -19,6 +19,7 @@ const statusColors = {
   Review: "bg-purple-100 text-purple-800",
   Completed: "bg-green-100 text-green-800",
   Cancelled: "bg-gray-100 text-gray-800",
+  verification: "bg-indigo-100 text-indigo-800",
 };
 
 const priorityColors = {
@@ -202,6 +203,13 @@ const goToPrevTaskPage = () => {
                     <Link to={`/tasks/${task.id}`} className="text-blue-600 hover:text-blue-900">
                       {task.title}
                     </Link>
+                    {task.title === 'Project Verification Task' && (
+                      <div className="mt-1">
+                        {/* <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                          Verification Task
+                        </span> */}
+                      </div>
+                    )}
                     <div className="mt-1 flex flex-wrap gap-1">
                       {(task.tags || []).map((tag, index) => (
                         <span
