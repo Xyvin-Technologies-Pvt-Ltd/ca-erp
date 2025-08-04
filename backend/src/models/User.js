@@ -45,6 +45,15 @@ require('dotenv').config();
  *           enum: [active, inactive]
  *           default: active
  *           description: User account status
+ *         workType:
+ *           type: string
+ *           enum: [onsite, remote]
+ *           default: onsite
+ *           description: Work type of the employee
+ *         verificationStaff:
+ *           type: boolean
+ *           default: false
+ *           description: Whether the employee is a verification staff member
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -59,6 +68,8 @@ require('dotenv').config();
  *         phone: "+1 (123) 456-7890"
  *         department: Management
  *         status: active
+ *         workType: onsite
+ *         verificationStaff: false
  */
 
 const UserSchema = new mongoose.Schema({
@@ -112,6 +123,16 @@ const UserSchema = new mongoose.Schema({
         ref: 'Position',
         required: [true, 'Please assign a position'],
         index: true
+    },
+    workType: {
+        type: String,
+        enum: ['onsite', 'remote'],
+        default: 'onsite',
+        required: [true, 'Please specify work type']
+    },
+    verificationStaff: {
+        type: Boolean,
+        default: false
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,

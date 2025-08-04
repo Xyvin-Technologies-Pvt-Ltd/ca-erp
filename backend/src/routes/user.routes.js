@@ -7,7 +7,8 @@ const {
     updateUser,
     deleteUser,
     uploadAvatar,
-    Allusers
+    Allusers,
+    getVerificationStaff
 } = require('../controllers/user.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -290,5 +291,38 @@ router.route('/:id/avatar')
         uploadAvatarMiddleware.single('avatar'),
         uploadAvatar
     );
+
+/**
+ * @swagger
+ * /api/users/verification-staff:
+ *   get:
+ *     summary: Get verification staff members
+ *     description: Retrieve all users who are marked as verification staff
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.route('/verification-staff')
+    .get(protect, authorize('admin','manager'), getVerificationStaff);
 
 module.exports = router; 

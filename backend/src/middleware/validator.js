@@ -50,6 +50,8 @@ const userValidation = {
             department: Joi.string().max(50),
             position: Joi.string().max(50),
             phone: Joi.string().max(20),
+            workType: Joi.string().valid('onsite', 'remote').default('onsite'),
+            verificationStaff: Joi.boolean().default(false),
         }),
     }),
 
@@ -62,6 +64,8 @@ const userValidation = {
             department: Joi.string().max(50),
             position: Joi.string().max(50),
             phone: Joi.string().max(20),
+            workType: Joi.string().valid('onsite', 'remote').default('onsite'),
+            verificationStaff: Joi.boolean().default(false),
         }),
     }),
 
@@ -85,6 +89,8 @@ const userValidation = {
             position: Joi.string().max(50),
             phone: Joi.string().max(20),
             status: Joi.string().valid('active', 'inactive'),
+            workType: Joi.string().valid('onsite', 'remote'),
+            verificationStaff: Joi.boolean(),
         }),
     }),
 };

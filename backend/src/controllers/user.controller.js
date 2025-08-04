@@ -179,6 +179,11 @@ exports.createUser = async (req, res, next) => {
             return next(new ErrorResponse('Position is required', 400));
         }
 
+        // Validate workType if provided
+        if (req.body.workType && !['onsite', 'remote'].includes(req.body.workType)) {
+            return next(new ErrorResponse('Work type must be either "onsite" or "remote"', 400));
+        }
+
         // Validate ObjectIds format
         if (!mongoose.Types.ObjectId.isValid(req.body.department)) {
             return next(new ErrorResponse('Invalid department ID format', 400));
@@ -208,13 +213,18 @@ exports.createUser = async (req, res, next) => {
         const userData = {
             ...req.body,
             department: departmentId,
-            position: positionId
+            position: positionId,
+            workType: req.body.workType || 'onsite',
+            verificationStaff: req.body.verificationStaff || false
         };
 
         // Create user and populate references
         const user = await User.create(userData);
         const populatedUser = await user.populate(['department', 'position']);
 
+        if (user.verificationStaff) {
+            logger.info(`Verification staff created: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
+        }
 
         res.status(201).json({
             success: true,
@@ -252,6 +262,9 @@ exports.updateUser = async (req, res, next) => {
         }
         if (!req.body.position) {
             return next(new ErrorResponse('Position is required', 400));
+        }
+        if (req.body.workType && !['onsite', 'remote'].includes(req.body.workType)) {
+            return next(new ErrorResponse('Work type must be either "onsite" or "remote"', 400));
         }
 
         // Validate ObjectIds
@@ -293,6 +306,10 @@ exports.updateUser = async (req, res, next) => {
             return next(new ErrorResponse('Failed to update user', 500));
         }
 
+        if (req.body.verificationStaff !== undefined && req.body.verificationStaff !== existingUser.verificationStaff) {
+            const status = req.body.verificationStaff ? 'activated' : 'deactivated';
+            logger.info(`Verification staff status ${status} for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
+        }
 
         res.status(200).json({
             success: true,
@@ -384,6 +401,29 @@ exports.Allusers = async (req, res, next) => {
         });
     } catch (error) {
         console.error("Error in Allusers:", error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get verification staff members
+ * @route   GET /api/users/verification-staff
+ * @access  Private/Admin/Manager
+ */
+exports.getVerificationStaff = async (req, res, next) => {
+    try {
+        const verificationStaff = await User.find({ verificationStaff: true })
+            .populate('department')
+            .populate('position')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: verificationStaff.length,
+            data: verificationStaff,
+        });
+    } catch (error) {
+        console.error("Error in getVerificationStaff:", error);
         next(error);
     }
 };
