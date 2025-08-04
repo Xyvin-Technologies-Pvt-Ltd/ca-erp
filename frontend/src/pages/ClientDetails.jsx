@@ -14,6 +14,7 @@ import {
 import CronJobSection from "../components/CronJobSection";
 import CronJobList from "../components/CronJobList";
 import { sectionsApi } from "../api/sections";
+import useHeaderStore from "../stores/useHeaderStore";
 
 const ClientDetails = () => {
   const { id } = useParams();
@@ -49,6 +50,12 @@ const ClientDetails = () => {
     name: "",
     _id: "",
   });
+  const { profileIsActive, profileDropdown } = useHeaderStore();
+  const checkHeader = () => {
+    if (profileDropdown === true) {
+      profileIsActive(false);
+    }
+  };
   useEffect(() => {
     const loadClient = async () => {
       try {
@@ -571,7 +578,7 @@ const ClientDetails = () => {
               </div>
             </div>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex mr-9 space-x-3">
             <Link
               to={`/clients/${id}/edit`}
               className="inline-flex items-center px-5 py-2.5 bg-[#1c6ead] to- text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
@@ -593,7 +600,14 @@ const ClientDetails = () => {
             </Link>
             <button
               onClick={handleDelete}
-              className="inline-flex items-center px-5 py-2.5 bg-red-500  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              //       className={
+              //   profileDropdown === true ? `opacity-10 relative` : `relative`
+              // }
+              className={
+                profileDropdown === true
+                  ? `opacity-10 inline-flex items-center px-5 py-2.5 bg-red-100  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
+                  : `inline-flex items-center px-5 py-2.5 bg-red-500  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
+              }
             >
               <svg
                 className="h-4 w-4 mr-2"

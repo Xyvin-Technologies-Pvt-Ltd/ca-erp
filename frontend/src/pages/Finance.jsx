@@ -645,17 +645,7 @@ const Finance = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
-                        onClick={() => handlePageChanges(1)}
-                        disabled={currentPage === 1}
-                        className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
-                          currentPage === 1
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
-                        }`}
-                      >
-                        <ChevronsLeft className="w-4 h-4" />
-                      </button>
+                      
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -691,17 +681,7 @@ const Finance = () => {
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handlePageChanges(totalPage)}
-                        disabled={currentPage === totalPage}
-                        className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
-                          currentPage === totalPage
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
-                        }`}
-                      >
-                        <ChevronsRight className="w-4 h-4" />
-                      </button>
+                     
                     </nav>
                   </div>
                 </div>
