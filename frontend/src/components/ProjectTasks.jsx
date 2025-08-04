@@ -237,7 +237,7 @@ const goToPrevTaskPage = () => {
                         {task.assignedTo?.avatar ? (
                           <img
                             className="h-8 w-8 rounded-full"
-                            src={`${import.meta.env.VITE_BASE_URL}${task.assignedTo.avatar}`}
+                            src={`${task.assignedTo.avatar}`}
                             alt=""
                             onError={(e) => {
                             e.target.outerHTML = `

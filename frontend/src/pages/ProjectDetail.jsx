@@ -631,7 +631,7 @@ const ProjectDetail = () => {
                             <div className="flex-shrink-0">
                               {member.avatar ? (
                                 <img
-                                  src={`${import.meta.env.VITE_BASE_URL}${member.avatar}`}
+                                  src={`${member.avatar}`}
                                   alt={member.name}
                                   className="h-10 w-10 rounded-full border border-gray-200"
                                   onError={(e) => {
