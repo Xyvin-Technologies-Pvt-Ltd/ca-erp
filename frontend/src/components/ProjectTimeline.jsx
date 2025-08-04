@@ -215,7 +215,7 @@ const ProjectTimeline = ({ projectId }) => {
                       <div className="flex items-center mt-1">
                         {activity.user?.avatar ? (
                           <img
-                            src={`${import.meta.env.VITE_BASE_URL}${activity.user.avatar}`}
+                            src={`${activity.user.avatar}`}
                             alt={activity.user.name}
                             className="h-6 w-6 rounded-full mr-2"
                             onError={(e) => {

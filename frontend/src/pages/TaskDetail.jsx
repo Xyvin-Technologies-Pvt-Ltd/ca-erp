@@ -778,7 +778,7 @@ const TaskDetail = () => {
                             {comment.user.avatar ? (
                               <img
                                 className="h-10 w-10 rounded-full"
-                                src={`${import.meta.env.VITE_BASE_URL}${comment.user.avatar}`}
+                                src={`${comment.user.avatar}`}
                                 alt=""
                                 onError={(e) => {
                                   e.target.outerHTML = `

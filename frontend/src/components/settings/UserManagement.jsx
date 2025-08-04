@@ -302,7 +302,7 @@ const UserManagement = () => {
                               {user.avatar ? (
                                 <img
                                   className="h-10 w-10 rounded-full transition-transform duration-200 hover:scale-110"
-                                  src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
+                                  src={`${user.avatar}`}
                                   onError={(e) => {
                                     e.target.outerHTML = `
                                       <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
