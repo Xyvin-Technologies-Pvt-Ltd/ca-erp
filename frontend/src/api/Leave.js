@@ -3,7 +3,9 @@ import api from "./axios";
 export const getLeaves = async (params = {}) => {
   try {
     const { page = 1, limit = 10, ...rest } = params;
-    const response = await api.get("/leaves", { params: { page, limit, ...rest } });
+    const response = await api.get("/leaves", {
+      params: { page, limit, ...rest },
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching leaves:", error);
@@ -14,7 +16,7 @@ export const getLeaves = async (params = {}) => {
 export const getMyLeaves = async () => {
   try {
     const response = await api.get("/leaves/my");
-    
+
     // Handle different response structures
     let leaves = [];
     if (response.data?.data?.leaves) {
@@ -26,7 +28,7 @@ export const getMyLeaves = async () => {
     } else if (response.data?.data && Array.isArray(response.data.data)) {
       leaves = response.data.data;
     }
-    
+
     return leaves;
   } catch (error) {
     console.error("Error fetching my leaves:", error);
@@ -44,6 +46,11 @@ export const createLeave = async (data) => {
   return response.data;
 };
 
+export const casualLeaveAvailable = async () => {
+  const res = await api.get("/leaves/casualLeaveAvailable");
+  return res;
+};
+
 export const updateLeave = async (id, data) => {
   const response = await api.patch(`/leaves/${id}`, data);
   return response.data;
@@ -57,4 +64,4 @@ export const deleteLeave = async (id) => {
 export const reviewLeave = async (id, data) => {
   const response = await api.patch(`/leaves/${id}/review`, data);
   return response.data;
-}; 
+};
