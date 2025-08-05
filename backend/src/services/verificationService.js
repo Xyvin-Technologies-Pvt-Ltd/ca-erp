@@ -271,12 +271,13 @@ class VerificationService {
             for (const task of completedTasks) {
                 if (task.amount && task.amount > 0) {
                     const verificationIncentive = task.amount * INCENTIVE_ON_VERIFY; 
-                    
+                    // Update monthly incentive
+                    const now = new Date();
+                    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                     await User.findByIdAndUpdate(
                         completedBy,
-                        { $inc: { incentive: verificationIncentive } }
+                        { $inc: { [`incentive.${monthKey}`]: verificationIncentive } }
                     );
-                    
                     totalVerificationIncentive += verificationIncentive;
                     tasksProcessed++;
                     logger.info(`Verification incentive ${verificationIncentive} distributed to verification staff ${completedBy} for task ${task._id}`);

@@ -580,12 +580,12 @@ exports.updateTask = async (req, res, next) => {
                 } else {
                     if (task.amount && task.amount > 0 && task.assignedTo) {
                         const taskCompleterIncentive = task.amount * INCENTIVE_ON_COMPLETE; 
-
+                        const now = new Date();
+                        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                         await User.findByIdAndUpdate(
                             task.assignedTo,
-                            { $inc: { incentive: taskCompleterIncentive } }
+                            { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
-
                         logger.info(`Incentive distributed: ${taskCompleterIncentive} to task assignee ${task.assignedTo} for task ${task._id}`);
                     }
 

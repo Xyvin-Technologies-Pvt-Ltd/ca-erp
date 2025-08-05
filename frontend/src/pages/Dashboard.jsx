@@ -2557,9 +2557,24 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Incentive"
-          value={user?.incentive ?? 0}
-          change={null}
+          title="Monthly Incentive"
+          value={(() => {
+            if (!user?.incentive) return 0;
+            const now = new Date();
+            const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            return user.incentive[key] || 0;
+          })()}
+          change={(() => {
+            if (!user?.incentive) return 0;
+            const now = new Date();
+            const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+            const thisMonth = user.incentive[thisMonthKey] || 0;
+            const prevMonth = user.incentive[lastMonthKey] || 0;
+            if (prevMonth === 0) return thisMonth > 0 ? 100 : 0;
+            return Math.round(((thisMonth - prevMonth) / prevMonth) * 100);
+          })()}
           iconType="incentive"
           color="bg-pink-100"
         />

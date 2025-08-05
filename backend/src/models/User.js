@@ -55,9 +55,16 @@ require('dotenv').config();
  *           default: false
  *           description: Whether the employee is a verification staff member
  *         incentive:
+ *           type: object
+ *           additionalProperties:
+ *             type: number
+ *           description: Incentive earned by the user per month, keys are YYYY-MM
+ *         totalIncentive:
  *           type: number
- *           default: 0
- *           description: Total incentive earned by the user
+ *           description: Total incentive earned by the user (virtual)
+ *         currentMonthIncentive:
+ *           type: number
+ *           description: Incentive earned by the user in the current month (virtual)
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -103,9 +110,9 @@ const UserSchema = new mongoose.Schema({
     default:1,
   },
     incentive: {
-        type: Number,
-        default: 0,
-        description: 'Total incentive earned by the user'
+        type: Object,
+        default: {},
+        description: 'Monthly incentive earned by the user, keys are YYYY-MM',
     },
     role: {
         type: String,
@@ -182,5 +189,22 @@ UserSchema.set('timestamps', true);
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Virtual for total incentive
+UserSchema.virtual('totalIncentive').get(function() {
+  if (!this.incentive) return 0;
+  return Object.values(this.incentive).reduce((sum, v) => sum + v, 0);
+});
+
+// Virtual for current month incentive
+UserSchema.virtual('currentMonthIncentive').get(function() {
+  if (!this.incentive) return 0;
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  return this.incentive[key] || 0;
+});
+
+UserSchema.set('toJSON', { virtuals: true });
+UserSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('User', UserSchema);
