@@ -8,417 +8,487 @@ import { Card, StatusBadge, Avatar, StatIcon } from "../ui";
 import { projectsApi, clientsApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { fetchDashboardData } from "../api/dashboard";
+import { getEvents, getEvent } from "../api/events.api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  UserIcon,
+  SunIcon,
+  MoonIcon,
+  CalendarDaysIcon,
+} from "@heroicons/react/24/outline";
+import Modal from "react-modal";
+import { Calendar, CheckCircle, ChevronLeft, ChevronRight, Clock, IndianRupee, MapPin, Play, User, TrendingUp, BarChart3 } from "lucide-react";
+import { Pie, PieChart, Bar, BarChart, Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getMyAttendance } from "../api/attendance";
+
+Modal.setAppElement('#root');
+
+
+//******chart
+const ChartContainer = ({ children, className }) => (
+  <div className={`relative ${className}`}>
+    {children}
+  </div>
+);
+
+const ChartTooltip = ({ cursor, content, ...props }) => (
+  <Tooltip cursor={cursor} content={content} {...props} />
+);
+
+const ChartTooltipContent = ({ active, payload, label, hideLabel }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        {!hideLabel && <p className="font-medium text-gray-900">{label}</p>}
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+
+const monthlyRevenueData = [
+  { month: "Jan", revenue: 45000, projects: 8 },
+  { month: "Feb", revenue: 52000, projects: 12 },
+  { month: "Mar", revenue: 48000, projects: 10 },
+  { month: "Apr", revenue: 61000, projects: 15 },
+  { month: "May", revenue: 55000, projects: 13 },
+  { month: "Jun", revenue: 67000, projects: 18 },
+];
+
+// Project Status Pie Chart Component
+const TaskStatusChart = ({ statusData }) => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="bg-white rounded-2xl shadow-xl p-6 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="p-3 bg-[#1c6ead] rounded-xl shadow-lg"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <BarChart3 className="h-6 w-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Task Status Overview</h3>
+            <p className="text-sm text-gray-500">Distribution of current tasks</p>
+          </div>
+        </div>
+        {/* <div className="flex items-center gap-2 text-green-600">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-sm font-semibold">+12.5%</span>
+        </div> */}
+      </div>
+
+      <ChartContainer className="mx-auto aspect-square max-h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={statusData}
+              dataKey="count"
+              nameKey="status"
+              stroke="0"
+              strokeWidth={2}
+              onMouseEnter={(_, index) => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        {statusData.map((item, index) => (
+          <motion.div
+            key={item.status}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${
+              hoveredIndex === index ? 'bg-gray-50 scale-105' : ''
+            }`}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: item.fill }}
+            />
+            <span className="text-xs font-medium text-gray-700">{item.status}</span>
+            <span className="text-xs font-bold text-gray-900 ml-auto">{item.count}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span>Total Tasks: {statusData.reduce((sum, item) => sum + item.count, 0)}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Monthly Revenue Chart Component
+const MonthlyRevenueChart = ({ monthlyRevenueData }) => {
+  const [activeBar, setActiveBar] = useState(null);
+  // Calculate averages and totals for summary cards
+  const avgTasks = monthlyRevenueData.length > 0 ? Math.round(monthlyRevenueData.reduce((sum, item) => sum + item.tasks, 0) / monthlyRevenueData.length) : 0;
+  const totalTasks = monthlyRevenueData.reduce((sum, item) => sum + item.tasks, 0);
+  const totalRevenue = monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-xl p-6 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="p-3 bg-[#1c6ead] rounded-xl shadow-lg"
+            whileHover={{ scale: 1.05, rotate: -5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <IndianRupee className="h-6 w-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Monthly Revenue</h3>
+            <p className="text-sm text-gray-500">Revenue trends over 6 months</p>
+          </div>
+        </div>
+        {/* <div className="flex items-center gap-2 text-green-600">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-sm font-semibold">+18.2%</span>
+        </div> */}
+      </div>
+
+      <ChartContainer className="h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={monthlyRevenueData}>
+            <defs>
+              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1c6ead" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#1c6ead" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="month" 
+              stroke="#6b7280"
+              fontSize={12}
+              fontWeight={500}
+            />
+            <YAxis 
+              stroke="#6b7280"
+              fontSize={12}
+              fontWeight={500}
+              tickFormatter={(value) => `₹${value/1000}k`}
+            />
+            <ChartTooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  // Find by dataKey for clarity
+                  const revenue = payload.find(p => p.dataKey === 'revenue')?.value;
+                  // const tasks = payload.find(p => p.dataKey === 'tasks')?.value;
+                  const year = new Date().getFullYear();
+                  return (
+                    <div className="bg-white p-4 border border-gray-200 rounded-xl shadow-lg">
+                      <p className="font-semibold text-gray-900 mb-2">{label} {year}</p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-blue-600">
+                          Revenue: ₹{revenue?.toLocaleString()}
+                        </p>
+                        {/* <p className="text-sm text-purple-600">
+                          Tasks: {tasks}
+                        </p> */}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              fill="url(#revenueGradient)"
+              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2, fill: "#ffffff" }}
+            />
+            <Bar
+              dataKey="projects"
+              fill="#8b5cf6"
+              radius={[4, 4, 0, 0]}
+              opacity={0.7}
+              onMouseEnter={(_, index) => setActiveBar(index)}
+              onMouseLeave={() => setActiveBar(null)}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="p-4 bg-blue-50 rounded-xl border border-blue-200"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-[#1c6ead] rounded-full" />
+            <span className="text-sm font-medium text-blue-700">Avg Revenue</span>
+          </div>
+          <p className="text-xl font-bold text-blue-900">
+            ₹{Math.round(totalRevenue / monthlyRevenueData.length).toLocaleString()}
+          </p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="p-4 bg-purple-50 rounded-xl border border-purple-200"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full" />
+            <span className="text-sm font-medium text-purple-700">Total Tasks</span>
+          </div>
+          <p className="text-xl font-bold text-purple-900">
+            {totalTasks}
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span>Growth rate increasing month over month</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-rose-600 text-center p-6">
+          <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p>Something went wrong with the calendar. Please try again later.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Status colors for events (customized based on event status)
+const statusColors = {
+  upcoming: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
+  ongoing: { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200", icon: ClockIcon },
+  completed: { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200", icon: CalendarDaysIcon },
+  cancelled: { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200", icon: XCircleIcon },
+};
+
+// Utility functions for calendar
+function getMonthRange(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return {
+    startDate: start.toISOString().split("T")[0],
+    endDate: end.toISOString().split("T")[0],
+  };
+}
+
+function getDaysInMonth(year, month) {
+  const days = [];
+  const date = new Date(year, month, 1);
+  while (date.getMonth() === month) {
+    days.push(new Date(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return days;
+}
 
 const StatCard = ({ title, value, change, iconType, color }) => {
   const isPositive = change >= 0;
-  const changeClass = isPositive ? "text-green-600" : "text-red-600";
+  const changeClass = isPositive ? "text-emerald-600" : "text-rose-600";
   const changeIcon = isPositive ? (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
   ) : (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-      />
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
     </svg>
   );
 
+  const titleIcons = {
+    "Total Projects": (
+      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      </svg>
+    ),
+    "Active Tasks": (
+      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    ),
+    "Team Members": (
+      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+    "Revenue": (
+      <IndianRupee className="w-6 h-6 text-yellow-600" />
+    ),
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="group bg-white rounded-xl  border-2 border-[#1c6ead] shadow-lg  p-6 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 hover:transform hover:-translate-y-1">
       <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-1">
+            {titleIcons[title]}
+            <p className="text-sm font-medium text-slate-600">{title}</p>
+          </div>
+          <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-[#1c6ead] transition-colors duration-200">{value}</p>
           {change !== null && (
-            <div className={`flex items-center mt-1 ${changeClass}`}>
-              <span className="flex items-center text-xs font-medium">
-                {changeIcon}
-                <span className="ml-1">
+            <div className={`flex items-center ${changeClass}`}>
+              <span className="flex items-center text-sm font-semibold">
+                <span className="mr-1 transition-transform duration-200 group-hover:scale-110">
+                  {changeIcon}
+                </span>
+                <span>
                   {Math.abs(change)}% from last month
                 </span>
               </span>
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <StatIcon iconType={iconType} />
-        </div>
       </div>
     </div>
-  );
-};
-
-const TaskTable = ({ tasks }) => {
-  return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Task
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Client
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Due Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Assigned To
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {task.title}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.client}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.dueDate}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <StatusBadge status={task.status} />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <Avatar name={task.assignedTo} size="sm" className="mr-2" />
-                  <div className="text-sm font-medium text-gray-900">
-                    {task.assignedTo}
-                  </div>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const ComplianceTable = ({ tasks }) => {
-  return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Compliance Task
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Client
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Due Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Priority
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {task.task}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.client}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{task.dueDate}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    task.status === "Due Soon"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {task.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    task.priority === "High"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {task.priority}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const StatsCard = ({ title, value, icon, change, changeType, linkTo }) => {
-  return (
-    <Link
-      to={linkTo}
-      className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
-    >
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-gray-500 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold mt-2">{value}</p>
-          {change && (
-            <p
-              className={`text-sm mt-2 font-medium flex items-center ${
-                changeType === "increase"
-                  ? "text-green-600"
-                  : changeType === "decrease"
-                  ? "text-red-600"
-                  : "text-gray-600"
-              }`}
-            >
-              {changeType === "increase" ? (
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 15l7-7 7 7"
-                  ></path>
-                </svg>
-              ) : changeType === "decrease" ? (
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              ) : null}
-              {change}
-            </p>
-          )}
-        </div>
-        <div className="p-3 rounded-full bg-blue-50 text-blue-600">{icon}</div>
-      </div>
-    </Link>
   );
 };
 
 const ActivityItem = ({ activity }) => {
   const getActivityIcon = (type) => {
-    switch (type) {
-      case "task_created":
-        return (
-          <div className="p-2 rounded-full bg-green-100 text-green-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "task_completed":
-        return (
-          <div className="p-2 rounded-full bg-blue-100 text-blue-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "client_added":
-        return (
-          <div className="p-2 rounded-full bg-purple-100 text-purple-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "project_created":
-      case "project_milestone":
-        return (
-          <div className="p-2 rounded-full bg-yellow-100 text-yellow-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "deadline_updated":
-        return (
-          <div className="p-2 rounded-full bg-orange-100 text-orange-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-          </div>
-        );
-      case "document_uploaded":
-        return (
-          <div className="p-2 rounded-full bg-indigo-100 text-indigo-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              ></path>
-            </svg>
-          </div>
-        );
-      default:
-        return (
-          <div className="p-2 rounded-full bg-gray-100 text-gray-600">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-          </div>
-        );
-    }
+    const iconConfig = {
+      task_created: {
+        bg: "bg-emerald-100",
+        text: "text-emerald-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        )
+      },
+      task_completed: {
+        bg: "bg-blue-100",
+        text: "text-blue-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+        )
+      },
+      client_added: {
+        bg: "bg-purple-100",
+        text: "text-purple-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        )
+      },
+      project_created: {
+        bg: "bg-amber-100",
+        text: "text-amber-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        )
+      },
+      project_milestone: {
+        bg: "bg-amber-100",
+        text: "text-amber-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        )
+      },
+      deadline_updated: {
+        bg: "bg-orange-100",
+        text: "text-orange-600",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      },
+      document_uploaded: {
+        bg: "bg-indigo-100",
+        text: "text-[#1c6ead]",
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        )
+      }
+    };
+
+    const config = iconConfig[type] || {
+      bg: "bg-slate-100",
+      text: "text-slate-600",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    };
+
+    return (
+      <div className={`p-3 rounded-xl ${config.bg} ${config.text} hover:scale-110 transition-all duration-200 border-[#1c6ead]`}>
+        {config.icon}
+      </div>
+    );
   };
 
   const formatTimeAgo = (dateString) => {
@@ -450,193 +520,130 @@ const ActivityItem = ({ activity }) => {
   };
 
   return (
-    <div className="flex items-start space-x-3 py-3">
+    <div className="flex items-start space-x-4 py-4 px-2 rounded-lg hover:bg-slate-50 transition-all duration-200 group shadow-lg border-[#1c6ead]">
       {getActivityIcon(activity.type)}
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-          <p className="text-xs text-gray-500">
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start">
+          <p className="text-sm font-semibold text-slate-900 group-hover:text-[#1c6ead] transition-colors duration-200">{activity.title}</p>
+          <p className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-full">
             {formatTimeAgo(activity.timestamp)}
           </p>
         </div>
-        <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-        {/* {activity.link && (
-          <Link
-            to={activity.link}
-            className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
-          >
-            View details
-          </Link>
-        )} */}
+        <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+          {(() => {
+            // Format dueDate in description if present
+            const desc = activity.description;
+            const dueDateMatch = desc && desc.match(/dueDate:.*?([A-Za-z]{3} [A-Za-z]{3} \d{2} \d{4} [\d:]+ GMT[+-]\d{4} \(.*?\))/);
+            if (dueDateMatch) {
+              const dateStr = dueDateMatch[1];
+              const dateObj = new Date(dateStr);
+              if (!isNaN(dateObj.getTime())) {
+                // Replace the raw date string with formatted date
+                return desc.replace(dateStr, dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+              }
+            }
+            return desc;
+          })()}
+        </p>
       </div>
     </div>
   );
 };
 
 const ProjectProgress = ({ project }) => {
+  const getStatusConfig = (status) => {
+    const configs = {
+      "On Track": { bg: "bg-emerald-100", text: "text-emerald-800", progress: "bg-emerald-500" },
+      "At Risk": { bg: "bg-amber-100", text: "text-amber-800", progress: "bg-amber-500" }, 
+      "Delayed": { bg: "bg-rose-100", text: "text-rose-800", progress: "bg-rose-500" }
+    };
+    return configs[status] || configs["On Track"];
+  };
+
+  const statusConfig = getStatusConfig(project.status);
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="font-medium">{project.name}</h3>
-        <span
-          className={`text-xs px-2 py-1 rounded-full ${
-            project.status === "On Track"
-              ? "bg-green-100 text-green-800"
-              : project.status === "At Risk"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
+    <div className="bg-white p-5 rounded-xl shadow-lg border border-[#1c6ead] mb-4 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 group">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">{project.name}</h3>
+        <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
           {project.status}
         </span>
       </div>
-      <p className="text-xs text-gray-500 mb-2">Due {project.dueDate}</p>
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
+      <p className="text-sm text-slate-500 mb-3 font-medium">Due {project.dueDate}</p>
+      <div className="flex justify-between text-sm text-slate-600 mb-2 font-medium">
         <span>Progress</span>
-        <span>{project.completionPercentage}%</span>
+        <span className="font-semibold">{project.completionPercentage}%</span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full">
+      <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
         <div
-          className={`h-2 rounded-full ${
-            project.status === "On Track"
-              ? "bg-green-500"
-              : project.status === "At Risk"
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
+          className={`h-full rounded-full transition-all duration-700 ease-out ${statusConfig.progress}`}
           style={{ width: `${project.completionPercentage}%` }}
-        ></div>
+        />
       </div>
     </div>
   );
 };
 
-// const TaskSummary = ({ tasks }) => {
-//   const statusCounts = {
-//     "In Progress": tasks.filter((task) => task.status === "In Progress").length,
-//     Pending: tasks.filter((task) => task.status === "Pending").length,
-//     Completed: tasks.filter((task) => task.status === "Completed").length,
-//     Review: tasks.filter((task) => task.status === "Review").length,
-//   };
-//   return (
-//     <div className="bg-white rounded-lg shadow-sm p-6">
-//       <div className="flex justify-between items-center mb-4">
-//         <h2 className="text-lg font-medium">Task Summary</h2>
-//         <Link
-//           to={ROUTES.TASKS}
-//           className="text-sm text-blue-600 hover:text-blue-800"
-//         >
-//           View all
-//         </Link>
-//       </div>
-
-//       <div className="grid grid-cols-2 gap-4">
-//         {Object.entries(statusCounts).map(([status, count]) => (
-//           <div key={status} className="flex items-center p-3 border rounded-lg">
-//             <div
-//               className={`w-3 h-3 rounded-full mr-2 ${
-//                 status === "In Progress"
-//                   ? "bg-blue-500"
-//                   : status === "Pending"
-//                   ? "bg-yellow-500"
-//                   : status === "Completed"
-//                   ? "bg-green-500"
-//                   : "bg-purple-500"
-//               }`}
-//             ></div>
-//             <div>
-//               <p className="text-xs text-gray-500">{status}</p>
-//               <p className="text-lg font-bold">{count}</p>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="mt-4">
-//         <div className="flex justify-between text-xs text-gray-500 mb-1">
-//           <span>Tasks Completed</span>
-//           <span>
-//             {Math.round((statusCounts.Completed / tasks.length) * 100)}%
-//           </span>
-//         </div>
-//         <div className="w-full h-2 bg-gray-200 rounded-full">
-//           <div
-//             className="h-2 bg-green-500 rounded-full"
-//             style={{
-//               width: `${(statusCounts.Completed / tasks.length) * 100}%`,
-//             }}
-//           ></div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
 const TaskSummary = ({ tasks }) => {
-  // Define all possible statuses
   const allStatuses = ["In Progress", "Pending", "Completed", "Review"];
   
-  // Create a map of all statuses with their counts
   const statusMap = allStatuses.map(status => ({
     status,
     count: tasks.find(t => t.status === status)?.count || 0
   }));
 
+  const getStatusConfig = (status) => {
+    const configs = {
+      "In Progress": { bg: "bg-[#1c6ead]", dot: "bg-[#1c6ead]" },
+      "Pending": { bg: "bg-amber-500", dot: "bg-amber-500" },
+      "Completed": { bg: "bg-emerald-500", dot: "bg-emerald-500" },
+      "Review": { bg: "bg-purple-500", dot: "bg-purple-500" }
+    };
+    return configs[status] || configs["Pending"];
+  };
+
+  const completedTasks = tasks.find(t => t.status === "Completed")?.count || 0;
+  const totalTasks = tasks.reduce((sum, t) => sum + (t.count || 0), 0);
+  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Task Summary</h2>
+    <div className="bg-white rounded-xl shadow-lg border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Task Summary</h2>
         <Link
           to={ROUTES.TASKS}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-indigo-600 hover:text-[#1c6ead] font-semibold hover:underline transition-all duration-200"
         >
-          View all
+          View all →
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {statusMap.map(({ status, count }) => (
-          <div key={status} className="flex items-center p-3 border rounded-lg">
-            <div
-              className={`w-3 h-3 rounded-full mr-2 ${
-                status === "In Progress"
-                  ? "bg-blue-500"
-                  : status === "Pending"
-                  ? "bg-yellow-500"
-                  : status === "Completed"
-                  ? "bg-green-500"
-                  : "bg-purple-500"
-              }`}
-            ></div>
-            <div>
-              <p className="text-xs text-gray-500">{status}</p>
-              <p className="text-lg font-bold">{count}</p>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {statusMap.map(({ status, count }) => {
+          const config = getStatusConfig(status);
+          return (
+            <div key={status} className="flex items-center p-4 border-2 border-blue-200 rounded-xl hover:border-[#1c6ead] hover:shadow-md transition-all duration-300 group">
+              <div className={`w-3 h-3 rounded-full mr-3 ${config.dot} group-hover:scale-125 transition-transform duration-200`} />
+              <div>
+                <p className="text-xs text-slate-500 font-medium">{status}</p>
+                <p className="text-xl font-bold text-slate-900 group-hover:text-[#1c6ead] transition-colors duration-200">{count}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-4">
-        {/* Rest of the component remains the same */}
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Tasks Completed</span>
-          <span>
-            {Math.round(
-              ((tasks.find(t => t.status === "Completed")?.count || 0) / 
-              tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
-            ) || 0}%
-          </span>
+      <div className="mt-6 p-4 bg-slate-50 rounded-xl border-[#1c6ead]">
+        <div className="flex justify-between text-sm text-slate-600 mb-2 font-medium">
+          <span>Overall Completion</span>
+          <span className="font-bold text-slate-900">{completionPercentage}%</span>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full">
+        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-2 bg-green-500 rounded-full"
-            style={{
-              width: `${Math.round(
-                ((tasks.find(t => t.status === "Completed")?.count || 0) / 
-                tasks.reduce((sum, t) => sum + (t.count || 0), 0)) * 100
-              ) || 0}%`,
-            }}
-          ></div>
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${completionPercentage}%` }}
+          />
         </div>
       </div>
     </div>
@@ -644,7 +651,6 @@ const TaskSummary = ({ tasks }) => {
 };
 
 const RecentActivity = () => {
-  // Updated to object syntax for React Query v5
   const { data, isLoading, error } = useQuery({
     queryKey: ['recentActivity'],
     queryFn: async () => {
@@ -653,22 +659,21 @@ const RecentActivity = () => {
     }
   });
   
-  // Set up pagination with state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Show 4 items per page as requested
+  const itemsPerPage = 4;
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
+          <div className="h-5 bg-slate-200 rounded-lg w-1/3 mb-6"></div>
+          <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-3">
-                <div className="rounded-full bg-gray-200 h-10 w-10"></div>
+              <div key={i} className="flex items-start space-x-4">
+                <div className="rounded-xl bg-slate-200 h-12 w-12"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+                  <div className="h-4 bg-slate-200 rounded-lg w-3/4 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded-lg w-1/2"></div>
                 </div>
               </div>
             ))}
@@ -680,25 +685,26 @@ const RecentActivity = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="text-red-600">Error loading recent activity</div>
+      <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6">
+        <div className="text-rose-600 text-center">
+          <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          Error loading recent activity
+        </div>
       </div>
     );
   }
 
-  // Extract activities from the response structure
   const activities = data?.data?.activities || [];
-  
-  // Calculate total pages
   const totalPages = Math.ceil(activities.length / itemsPerPage);
-  
-  // Get current page items
   const currentActivities = activities.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   
-  // Handle page navigation
   const goToNextPage = () => {
     setCurrentPage(current => Math.min(current + 1, totalPages));
   };
@@ -708,112 +714,135 @@ const RecentActivity = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Recent Activity</h2>
-        {/* <Link to="/activity" className="text-sm text-blue-600 hover:text-blue-800">
-          View all
-        </Link> */}
+    <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
+        <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
       </div>
 
       {activities.length > 0 ? (
         <>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {currentActivities.map((activity) => (
               <ActivityItem key={activity.id} activity={activity} />
             ))}
           </div>
           
-          {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4 pt-2 border-t">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-200">
               <button 
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === 1 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:[#1c6ead] hover:bg-indigo-50'
+                }`}
               >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                 </svg>
                 Previous
               </button>
               
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+              <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                {currentPage} of {totalPages}
               </span>
               
               <button 
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === totalPages 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
                 Next
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
           )}
         </>
       ) : (
-        <div className="text-center py-6 text-gray-500">
-          No recent activity to display
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-slate-500 font-medium">No recent activity to display</p>
         </div>
       )}
     </div>
   );
 };
 
-
-
 const UpcomingDeadlines = ({ projects }) => {
-  // Add state for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
-  
-  // Extract deadline information from projects
+
+  const parseDate = (dateString) => {
+    try {
+      if (!dateString) {
+        throw new Error('Empty date string');
+      }
+      const [day, month, year] = dateString.split('/');
+      if (!day || !month || !year || day.length !== 2 || month.length !== 2 || year.length !== 4) {
+        throw new Error('Invalid date format');
+      }
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+      date.setHours(0, 0, 0, 0);
+      return date;
+    } catch (error) {
+      console.warn(`Failed to parse date: ${dateString}`, error.message);
+      return null;
+    }
+  };
+
   const extractDeadlines = () => {
     const today = new Date();
-    
-    // Map project data to deadline format
+    today.setHours(0, 0, 0, 0);
+
     return projects
       .map(project => {
-        // Parse the due date
-        const dueDate = new Date(project.dueDate);
-        
-        // Calculate days left
+        const dueDate = parseDate(project.dueDate);
+
+        if (!dueDate) {
+          console.warn(`Invalid dueDate for project ${project.name}: ${project.dueDate}`);
+          return null;
+        }
+
         const diffTime = dueDate - today;
         const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         return {
           id: project.id,
           title: `${project.name} Completion`,
           date: project.dueDate,
-          daysLeft: daysLeft > 0 ? daysLeft : 0,
+          daysLeft,
           project: project.name,
           projectId: project.id,
-          // Include completion status from project
-          completionPercentage: project.completionPercentage || project.progress
+          completionPercentage: project.completionPercentage || project.progress || 0,
         };
       })
-      // Sort by days left (most urgent first)
-      .sort((a, b) => a.daysLeft - b.daysLeft)
-      // Take only the upcoming deadlines (within next 30 days)
-      .filter(deadline => deadline.daysLeft <= 30);
+      .filter(deadline => deadline !== null)
+      .filter(deadline => deadline.daysLeft >= 0)
+      .sort((a, b) => a.daysLeft - b.daysLeft);
   };
 
   const allDeadlines = extractDeadlines();
-  
-  // Calculate total pages
   const totalPages = Math.ceil(allDeadlines.length / itemsPerPage);
-  
-  // Get current page items
   const currentDeadlines = allDeadlines.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   
-  // Handle page navigation
   const goToNextPage = () => {
     setCurrentPage(current => Math.min(current + 1, totalPages));
   };
@@ -822,101 +851,98 @@ const UpcomingDeadlines = ({ projects }) => {
     setCurrentPage(current => Math.max(current - 1, 1));
   };
 
+  const getUrgencyConfig = (daysLeft) => {
+    if (daysLeft <= 1) {
+      return { bg: "bg-rose-100", text: "text-rose-800", border: "border-rose-200" };
+    } else if (daysLeft <= 3) {
+      return { bg: "bg-amber-100", text: "text-amber-800", border: "border-amber-200" };
+    } else {
+      return { bg: "bg-blue-100", text: "text-blue-800", border: "border-blue-200" };
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Upcoming Deadlines</h2>
+    <div className="bg-white rounded-xl shadow-sm border border-[#1c6ead] p-6 hover:shadow-lg transition-all duration-300">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Upcoming Deadlines</h2>
         <Link
           to={ROUTES.PROJECTS}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
         >
-          View all
+          View all →
         </Link>
       </div>
 
       {allDeadlines.length > 0 ? (
         <>
-          <div className="space-y-3">
-            {currentDeadlines.map((deadline) => (
-              <div key={deadline.id} className="p-3 border rounded-lg">
-                {/* <div className="flex justify-between">
-                  <h3 className="font-medium">{deadline.title}</h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      deadline.daysLeft <= 1
-                        ? "bg-red-100 text-red-800"
-                        : deadline.daysLeft <= 3
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {deadline.daysLeft === 0
-                      ? "Today"
-                      : deadline.daysLeft === 1
-                      ? "Tomorrow"
-                      : `${deadline.daysLeft} days left`}
-                  </span>
-                </div> */}
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium flex-1 mr-3">{deadline.title}</h3>
-                  <span
-                    className={`text-xs px-3 py-2 rounded-full flex-shrink-0 ${
-                      deadline.daysLeft <= 1
-                        ? "bg-red-100 text-red-800"
-                        : deadline.daysLeft <= 3
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {deadline.daysLeft === 0
-                      ? "Today"
-                      : deadline.daysLeft === 1
-                      ? "Tomorrow"
-                      : `${deadline.daysLeft} days left`}
-                  </span>
+          <div className="space-y-4">
+            {currentDeadlines.map((deadline) => {
+              const urgencyConfig = getUrgencyConfig(deadline.daysLeft);
+              return (
+                <div key={deadline.id} className={`p-4 border-2 ${urgencyConfig.border} rounded-xl hover:shadow-md transition-all duration-300 group border-[#1c6ead]`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold text-slate-900 flex-1 mr-3 group-hover:text-indigo-600 transition-colors duration-200">
+                      {deadline.title}
+                    </h3>
+                    <span className={`text-xs px-3 py-2 rounded-full font-bold ${urgencyConfig.bg} ${urgencyConfig.text} flex-shrink-0`}>
+                      {deadline.daysLeft === 0
+                        ? "Today"
+                        : deadline.daysLeft === 1
+                        ? "Tomorrow"
+                        : `${deadline.daysLeft} days left`}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 mb-3 font-medium">Due on {deadline.date}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-xs text-slate-500 mr-2 font-medium">Project:</span>
+                      <Link
+                        to={`${ROUTES.PROJECTS}/${deadline.projectId}`}
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold hover:underline transition-all duration-200"
+                      >
+                        {deadline.project}
+                      </Link>
+                    </div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Due on {deadline.date}</p>
-                <div className="flex items-center mt-2">
-                  <span className="text-xs text-gray-500 mr-2">Project:</span>
-                  <Link
-                    to={`${ROUTES.PROJECTS}/${deadline.projectId}`}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    {deadline.project}
-                  </Link>
-                </div>
-                
-                
-              </div>
-            ))}
+              );
+            })}
           </div>
           
-          {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4 pt-2 border-t">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-200">
               <button 
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === 1 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                 </svg>
                 Previous
               </button>
               
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+              <span className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                {currentPage} of {totalPages}
               </span>
               
               <button 
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-                className={`flex items-center text-sm font-medium p-1 ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+                className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                  currentPage === totalPages 
+                    ? 'text-slate-400 cursor-not-allowed bg-slate-100' 
+                    : 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50'
+                }`}
               >
                 Next
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
@@ -931,8 +957,854 @@ const UpcomingDeadlines = ({ projects }) => {
   );
 };
 
+const eventStatusColors = {
+  upcoming: {
+    bg: 'bg-blue-50 hover:bg-blue-100',
+    border: 'border-blue-200',
+    text: 'text-blue-700',
+    icon: Clock,
+    gradient: 'from-blue-400 to-blue-600',
+    dot: 'bg-[#1c6ead]',
+    statusBg: 'bg-blue-100',
+    statusText: 'text-blue-800'
+  },
+  ongoing: {
+    bg: 'bg-emerald-50 hover:bg-emerald-100',
+    border: 'border-emerald-200',
+    text: 'text-emerald-700',
+    icon: Play,
+    gradient: 'from-emerald-400 to-emerald-600',
+    dot: 'bg-emerald-500',
+    statusBg: 'bg-emerald-100',
+    statusText: 'text-emerald-800'
+  },
+  completed: {
+    bg: 'bg-gray-50 hover:bg-gray-100',
+    border: 'border-gray-200',
+    text: 'text-gray-700',
+    icon: CheckCircle,
+    gradient: 'from-gray-400 to-gray-600',
+    dot: 'bg-gray-500',
+    statusBg: 'bg-gray-100',
+    statusText: 'text-gray-800'
+  }
+};
+
+const priorityColors = {
+  high: 'bg-red-500',
+  medium: 'bg-yellow-500',
+  low: 'bg-green-500'
+};
+
+const EventCalendar = () => {
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Helper function to get local date string (YYYY-MM-DD)
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to get today's date string
+  const getTodayString = () => {
+    return getLocalDateString(new Date());
+  };
+
+  const { data: eventsData, isLoading, error } = useQuery({
+    queryKey: ['events', selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split("-");
+      const range = getMonthRange(new Date(year, month - 1));
+      const response = await getEvents({ ...range });
+      return response;
+    },
+  });
+
+  const handleDateClick = async (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    const clickedDate = new Date(year, month - 1, day);
+    setSelectedDate(clickedDate);
+    
+    try {
+      const eventResponse = await getEvent(dateStr);
+      const fetchedEvents = eventResponse?.data?.events || [];
+      setSelectedEvents(fetchedEvents);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching events for date:', dateStr, err);
+      const fallbackEvents = eventsData?.data?.filter(event => {
+        try {
+          if (!event.startDate) return false;
+          
+          const startDate = new Date(event.startDate);
+          const endDate = event.endDate ? new Date(event.endDate) : startDate;
+          
+          const actualStartDate = startDate <= endDate ? startDate : endDate;
+          const actualEndDate = startDate <= endDate ? endDate : startDate;
+          
+          const clickedDate = new Date(dateStr);
+          return clickedDate >= actualStartDate && clickedDate <= actualEndDate;
+        } catch (error) {
+          console.warn('Invalid event date in fallback:', event, error);
+          return false;
+        }
+      }) || [];
+      setSelectedEvents(fallbackEvents);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvents([]);
+    setSelectedDate(null);
+  };
+
+  const eventsByDate = {};
+  eventsData?.data?.forEach((event) => {
+    try {
+      if (event.startDate) {
+        const startDate = new Date(event.startDate);
+        const endDate = event.endDate ? new Date(event.endDate) : startDate;
+        
+        const actualStartDate = startDate <= endDate ? startDate : endDate;
+        const actualEndDate = startDate <= endDate ? endDate : startDate;
+        
+        const currentDate = new Date(actualStartDate);
+        while (currentDate <= actualEndDate) {
+          const dateStr = getLocalDateString(currentDate);
+          if (!eventsByDate[dateStr]) {
+            eventsByDate[dateStr] = [];
+          }
+          eventsByDate[dateStr].push(event);
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    } catch (err) {
+      console.warn('Invalid event date:', event, err);
+    }
+  });
+
+  const [year, month] = selectedMonth.split("-");
+  const days = getDaysInMonth(Number(year), Number(month) - 1);
+  const firstDayOfWeek = days[0].getDay();
+  const eventDays = days.filter((day) => eventsByDate[getLocalDateString(day)]);
+
+  const todayStr = getTodayString();
+
+  return (
+    <ErrorBoundary>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] hover:shadow-2xl transition-all duration-500 backdrop-blur-sm"
+      >
+        {/* Header with enhanced controls */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-6"
+        >
+          {/* Title Section */}
+          <div className="flex items-center space-x-4">
+            <motion.div
+              className="p-3 bg-[#1c6ead] rounded-xl shadow-lg border-[#1c6ead]"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Calendar className="h-8 w-8 text-white" />
+            </motion.div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Events Calendar</h2>
+              <p className="text-sm text-gray-500 mt-1">Manage your upcoming events</p>
+            </div>
+          </div>
+
+          {/* Controls Section */}
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+            {/* Month Navigation */}
+            <div className="flex items-center space-x-2 bg-gray-50 rounded-xl p-2 border-[#1c6ead]">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => {
+                  const date = new Date(selectedMonth);
+                  date.setMonth(date.getMonth() - 1);
+                  setSelectedMonth(date.toISOString().slice(0, 7));
+                }}
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </motion.button>
+              
+              <motion.input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="border-0 bg-transparent text-center font-semibold text-gray-900 focus:outline-none focus:ring-0 min-w-[140px]"
+                whileFocus={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              />
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => {
+                  const date = new Date(selectedMonth);
+                  date.setMonth(date.getMonth() + 1);
+                  setSelectedMonth(date.toISOString().slice(0, 7));
+                }}
+              >
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </motion.button>
+            </div>
+
+            {/* Status Legend */}
+            <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3 border-[#1c6ead]">
+              {Object.entries(eventStatusColors).map(([status, colors]) => {
+                const Icon = colors.icon;
+                return (
+                  <div key={status} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${colors.dot}`}></div>
+                    <Icon className={`h-4 w-4 ${colors.text}`} />
+                    <span className="text-sm font-medium capitalize text-gray-700">{status}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Calendar Content */}
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="animate-pulse"
+          >
+            <div className="h-6 bg-gray-200 rounded-lg w-1/3 mb-6"></div>
+            <div className="grid grid-cols-7 gap-3">
+              {Array.from({ length: 42 }, (_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-xl border-[#1c6ead]"></div>
+              ))}
+            </div>
+          </motion.div>
+        ) : error ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12"
+          >
+            <div className="w-16 h-16 mx-auto mb-4 bg-rose-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-rose-600 font-medium">Error loading events</p>
+            <p className="text-gray-500 text-sm mt-2">Please try refreshing the page</p>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-3">
+              {/* Day Headers */}
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                <motion.div
+                  key={day}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="text-center font-bold text-gray-700 text-sm py-3 bg-gray-50 rounded-xl border-[#1c6ead]"
+                >
+                  {day}
+                </motion.div>
+              ))}
+              
+              {/* Empty cells for days before month start */}
+              {Array.from({ length: firstDayOfWeek }, (_, i) => (
+                <div key={`empty-${i}`} className="h-24"></div>
+              ))}
+              
+              {/* Calendar Days */}
+              <AnimatePresence mode="wait">
+                {days.map((day, index) => {
+                  const dateStr = getLocalDateString(day);
+                  const events = eventsByDate[dateStr] || [];
+                  const firstEvent = events[0];
+                  const isToday = dateStr === todayStr;
+                  const hasMultipleEvents = events.length > 1;
+                  
+                  // Group events by status for better display
+                  const eventsByStatus = events.reduce((acc, event) => {
+                    if (!acc[event.status]) acc[event.status] = [];
+                    acc[event.status].push(event);
+                    return acc;
+                  }, {});
+                  
+                  return (
+                    <motion.div
+                      key={dateStr}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.02,
+                        type: "spring",
+                        stiffness: 300 
+                      }}
+                      className={`relative rounded-2xl p-3 h-24 flex flex-col justify-between group cursor-pointer overflow-hidden ${
+                        isToday 
+                          ? 'bg-[#1c6ead] text-white shadow-lg ring-2 ring-indigo-200 border-[#1c6ead]' 
+                          : firstEvent 
+                            ? `${eventStatusColors[firstEvent.status]?.bg} border-2 ${eventStatusColors[firstEvent.status]?.border}` 
+                            : "bg-gray-50 border-2 border-gray-100 hover:border-gray-200"
+                      } transition-all duration-300`}
+                      whileHover={{ 
+                        scale: 1.05, 
+                        y: -2,
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)"
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleDateClick(dateStr)}
+                    >
+                      {/* Priority indicator */}
+                      {firstEvent?.priority && (
+                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${priorityColors[firstEvent.priority]}`} />
+                      )}
+                      
+                      {/* Day number */}
+                      <motion.span 
+                        className={`font-bold text-lg ${
+                          isToday 
+                            ? 'text-white' 
+                            : firstEvent 
+                              ? eventStatusColors[firstEvent.status]?.text 
+                              : 'text-gray-900'
+                        }`}
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        {day.getDate()}
+                      </motion.span>
+                      
+                      {/* Event indicators with status */}
+                      <div className="flex flex-col gap-1 mt-1">
+                        {Object.entries(eventsByStatus).slice(0, 2).map(([status, statusEvents]) => {
+                          const Icon = eventStatusColors[status]?.icon;
+                          return (
+                            <motion.div
+                              key={status}
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ delay: 0.1 }}
+                              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                                isToday 
+                                  ? 'bg-white/20 text-white' 
+                                  : `${eventStatusColors[status]?.statusBg} ${eventStatusColors[status]?.statusText}`
+                              }`}
+                            >
+                              <Icon className="h-3 w-3" />
+                              <span className="capitalize">{status}</span>
+                              {statusEvents.length > 1 && (
+                                <span className="ml-1 text-xs">({statusEvents.length})</span>
+                              )}
+                            </motion.div>
+                          );
+                        })}
+                        
+                        {/* Show additional events indicator */}
+                        {Object.keys(eventsByStatus).length > 2 && (
+                          <div className={`text-xs px-2 py-1 rounded-md ${
+                            isToday 
+                              ? 'bg-white/20 text-white' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            +{Object.keys(eventsByStatus).length - 2} more
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Hover overlay */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        initial={false}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
+        
+
+        {/* Enhanced Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={closeModal}
+          className="bg-white rounded-2xl shadow-2xl p-0 max-w-4xl mx-auto mt-20 max-h-[80vh] overflow-hidden border-[#1c6ead]"
+          overlayClassName="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="relative"
+          >
+            {/* Modal Header */}
+            <div className="bg-blue-600 text-white p-6 rounded-t-2xl border-[#1c6ead]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {selectedDate?.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </h2>
+                  <p className="text-indigo-100 mt-1">
+                    {selectedEvents.length} {selectedEvents.length === 1 ? 'event' : 'events'} scheduled
+                  </p>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={closeModal}
+                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {selectedEvents.length > 0 ? (
+                <div className="space-y-6">
+                  {selectedEvents.map((event, index) => {
+                    const StatusIcon = eventStatusColors[event.status]?.icon;
+                    return (
+                      <motion.div
+                        key={event._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className={`p-6 rounded-2xl border-2 ${eventStatusColors[event.status]?.bg} ${eventStatusColors[event.status]?.border} hover:shadow-lg transition-all duration-300 relative overflow-hidden border-[#1c6ead]`}>
+                        {/* Background gradient for visual appeal */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${eventStatusColors[event.status]?.gradient} opacity-5`}></div>
+                        
+                        {/* Event Header */}
+                        <div className="flex items-start justify-between mb-4 relative z-10">
+                          <div className="flex items-center gap-3">
+                            {StatusIcon && (
+                              <div className={`p-3 rounded-xl bg-gradient-to-br ${eventStatusColors[event.status]?.gradient} shadow-lg`}>
+                                <StatusIcon className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900">{event.title}</h3>
+                              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${eventStatusColors[event.status]?.statusBg} ${eventStatusColors[event.status]?.statusText} border-2 ${eventStatusColors[event.status]?.border} mt-2`}>
+                                <div className={`w-2 h-2 rounded-full ${eventStatusColors[event.status]?.dot}`}></div>
+                                {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+                          {event.priority && (
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full ${priorityColors[event.priority]}`} />
+                              <span className="text-sm font-medium text-gray-600 capitalize">{event.priority}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Event Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Description</p>
+                              <p className="text-gray-900">{event.description || 'No description available'}</p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Date Range</p>
+                              <p className="text-gray-900 flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(event.startDate).toLocaleDateString()}
+                                {event.endDate && event.endDate !== event.startDate && 
+                                  ` - ${new Date(event.endDate).toLocaleDateString()}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">Created By</p>
+                              <p className="text-gray-900 flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                {event.createdBy?.name || 'Unknown'}
+                              </p>
+                            </div>
+                            
+                            {event.location && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-600 mb-1">Location</p>
+                                <p className="text-gray-900 flex items-center gap-2">
+                                  <MapPin className="h-4 w-4" />
+                                  {event.location}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-lg">No events scheduled for this date</p>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 p-6 rounded-b-2xl flex justify-end gap-3 border-[#1c6ead]">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={closeModal}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+              >
+                Close
+              </motion.button>
+            </div>
+          </motion.div>
+        </Modal>
+      </motion.div>
+    </ErrorBoundary>
+  );
+};
+
+const AttendanceYearChart = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchYearAttendance = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const months = Array.from({ length: 12 }, (_, i) => i); // 0-11
+        const monthLabels = [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+        const results = await Promise.all(
+          months.map(async (monthIdx) => {
+            const start = new Date(year, monthIdx, 1);
+            const end = new Date(year, monthIdx + 1, 0);
+            const res = await getMyAttendance({
+              startDate: start.toISOString().split("T")[0],
+              endDate: end.toISOString().split("T")[0],
+            });
+            const attendance = res.data?.attendance || [];
+            let present = 0, absent = 0, halfDay = 0, late = 0, earlyLeave = 0, onLeave = 0;
+            attendance.forEach((a) => {
+              if (a.status === "Present" || a.status === "Late" || a.status === "Early-Leave") present++;
+              if (a.status === "Absent") absent++;
+              if (a.status === "On-Leave") { absent++; onLeave++; }
+              if (a.status === "Half-Day") halfDay++;
+              if (a.status === "Late") late++;
+              if (a.status === "Early-Leave") earlyLeave++;
+            });
+            const total = present + absent + halfDay;
+            const presentPercent = total > 0 ? Math.round((present / total) * 100) : 0;
+            const absentPercent = total > 0 ? Math.round((absent / total) * 100) : 0;
+            const halfDayPercent = total > 0 ? Math.round((halfDay / total) * 100) : 0;
+            return {
+              month: monthLabels[monthIdx],
+              present,
+              absent,
+              halfDay,
+              late,
+              earlyLeave,
+              onLeave,
+              total,
+              presentPercent,
+              absentPercent,
+              halfDayPercent,
+            };
+          })
+        );
+        setData(results);
+      } catch (e) {
+        setError("Failed to fetch attendance data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchYearAttendance();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] flex justify-center items-center min-h-[240px]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1c6ead]/20"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-[#1c6ead] absolute top-0"></div>
+          </div>
+          <p className="text-[#1c6ead] font-medium animate-pulse">Loading attendance data...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="bg-gradient-to-br from-red-50 to-rose-100 rounded-3xl shadow-2xl p-8 border-2 border-red-200 text-center">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="p-3 bg-red-500 rounded-full">
+            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-red-700 font-semibold">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-xl p-8 border border-[#1c6ead] transition-all duration-700"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-4">
+          <motion.div
+            className="p-4 bg-gradient-to-br from-[#1c6ead] to-[#2980b9] rounded-2xl shadow-xl"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <CalendarDaysIcon className="h-7 w-7 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">My Attendance Overview</h3>
+            <p className="text-sm text-gray-600 flex items-center">
+              <span className="w-2 h-2 bg-[#1c6ead] rounded-full mr-2"></span>
+              Monthly attendance breakdown for {new Date().getFullYear()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-600 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Present</span>
+          </div>
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Half-Day</span>
+          </div>
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+            <span className="text-gray-600 font-medium">Absent/Leave</span>
+          </div>
+        </div>
+      </div>
+      <ChartContainer className="h-[340px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart 
+            data={data} 
+            margin={{ top: 20, right: 40, left: 20, bottom: 40 }}
+            barCategoryGap="15%"
+          >
+            <defs>
+              <linearGradient id="presentGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.7}/>
+              </linearGradient>
+              <linearGradient id="halfdayGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#f59e42" stopOpacity={0.7}/>
+              </linearGradient>
+              <linearGradient id="absentGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#dc2626" stopOpacity={0.7}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid 
+              strokeDasharray="2 4" 
+              stroke="#e2e8f0" 
+              strokeOpacity={0.6}
+              horizontal={true}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="month" 
+              stroke="#64748b" 
+              fontSize={13} 
+              fontWeight={600}
+              tick={{ fill: '#475569' }}
+              axisLine={{ stroke: '#cbd5e1', strokeWidth: 2 }}
+              tickLine={false}
+            />
+            <YAxis 
+              stroke="#64748b" 
+              fontSize={12} 
+              fontWeight={500}
+              allowDecimals={false}
+              domain={[0, 100]}
+              tickFormatter={(value) => `${value}%`}
+              tick={{ fill: '#475569' }}
+              axisLine={{ stroke: '#cbd5e1', strokeWidth: 2 }}
+              tickLine={false}
+              label={{ 
+                value: 'Attendance (%)', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#475569', fontSize: '12px', fontWeight: '600' }
+              }}
+            />
+            <ChartTooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  const d = payload[0].payload;
+                  return (
+                    <div style={{ background: '#fff', borderRadius: 12, padding: 18, minWidth: 180, outline: 'none', boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)' }} className="focus:outline-none">
+                      <div className="font-bold text-gray-900 mb-2 text-center">{label} {new Date().getFullYear()}</div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-2 h-2 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Present</span>
+                        <span className="text-gray-700 text-sm">{d.present} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-2 h-2 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Half-Day</span>
+                        <span className="text-gray-700 text-sm">{d.halfDay} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-2 h-2 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></span>
+                        <span className="text-sm text-gray-700">Absent</span>
+                        <span className="text-gray-700 text-sm">{d.absent} days</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">Total Days</span>
+                        <span className="text-xs text-gray-700 font-semibold ">{d.total}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Present %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.presentPercent}%</span>
+                      </div>
+                      {/* <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Half-Day %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.halfDayPercent}%</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500">Absent %</span>
+                        <span className="text-xs text-gray-700 font-semibold">{d.absentPercent}%</span>
+                      </div> */}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-yellow-700">Late</span>
+                        <span className="text-xs text-yellow-700 font-semibold">{d.late}</span>
+                        <span className="text-xs text-yellow-700">Early-Leave</span>
+                        <span className="text-xs text-yellow-700 font-semibold">{d.earlyLeave}</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Bar 
+              dataKey="presentPercent" 
+              name="Present" 
+              fill="url(#presentGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#059669"
+              strokeWidth={1}
+            />
+            <Bar 
+              dataKey="halfDayPercent" 
+              name="Half-Day" 
+              fill="url(#halfdayGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#f59e42"
+              strokeWidth={1}
+            />
+            <Bar 
+              dataKey="absentPercent" 
+              name="Absent/Leave" 
+              fill="url(#absentGradient)"
+              radius={[8, 8, 0, 0]}
+              stroke="#dc2626"
+              strokeWidth={1}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+      {/* <div className="mt-2 flex justify-between px-6">
+        {data.map((d, idx) => (
+          <div key={d.month} className="flex flex-col items-center w-6">
+            <div className="flex items-center space-x-1">
+              {d.late > 0 && <span title="Late" className="w-2 h-2 bg-yellow-400 rounded-full"></span>}
+              {d.earlyLeave > 0 && <span title="Early-Leave" className="w-2 h-2 bg-blue-400 rounded-full"></span>}
+            </div>
+            <div className="flex flex-col items-center mt-1">
+              {d.late > 0 && <span className="text-[10px] text-yellow-700">{d.late}L</span>}
+              {d.earlyLeave > 0 && <span className="text-[10px] text-blue-700">{d.earlyLeave}E</span>}
+            </div>
+          </div>
+        ))}
+      </div> */}
+      {/* <div className="mt-6 pt-6 border-t border-gray-200/60">
+        <div className="flex items-center justify-center space-x-8 text-sm">
+          <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full border border-green-200">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-green-700 font-medium">Present Days</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <span className="text-yellow-700 font-medium">Half-Days</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-red-50 px-4 py-2 rounded-full border border-red-200">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span className="text-red-700 font-medium">Absent</span>
+          </div>
+          
+        </div>
+      </div> */}
+    </motion.div>
+  );
+};
+
 const Dashboard = () => {
-  const { user,role } = useAuth();
+  const { user, role } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     clients: { count: 0, change: 0 },
@@ -943,246 +1815,43 @@ const Dashboard = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [complianceTasks, setComplianceTasks] = useState([]);
 
+  let userId = undefined;
+  try {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    userId = userData?._id;
+  } catch (e) {
+    userId = undefined;
+  }
+
   const {
     data,
     isLoading: dashboardLoading,
     error,
   } = useQuery({
-    queryKey: ["dashboardData"],
-    queryFn: fetchDashboardData,
-    // Sample data for testing
-    initialData: {
-      stats: {
-        totalProjects: {
-          value: 12,
-          change: 8.5,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              />
-            </svg>
-          ),
-          color: "bg-blue-100",
-        },
-        activeTasks: {
-          value: 48,
-          change: 12.3,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-          ),
-          color: "bg-green-100",
-        },
-        teamMembers: {
-          value: 16,
-          change: 0,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-purple-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-          ),
-          color: "bg-purple-100",
-        },
-        revenue: {
-          value: "$24,500",
-          change: -2.7,
-          iconType: (
-            <svg
-              className="w-6 h-6 text-yellow-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          ),
-          color: "bg-yellow-100",
-        },
-      },
-      projects: [
-        {
-          id: "1",
-          name: "Website Redesign",
-          status: "On Track",
-          progress: 75,
-          dueDate: "Aug 20, 2023",
-        },
-        {
-          id: "2",
-          name: "Mobile App Development",
-          status: "At Risk",
-          progress: 45,
-          dueDate: "Sep 15, 2023",
-        },
-        {
-          id: "3",
-          name: "Database Migration",
-          status: "Delayed",
-          progress: 30,
-          dueDate: "Jul 30, 2023",
-        },
-      ],
-      tasks: [
-        {
-          id: "1",
-          title: "Design Homepage",
-          status: "In Progress",
-          assignee: "John Doe",
-        },
-        {
-          id: "2",
-          title: "API Integration",
-          status: "In Progress",
-          assignee: "Jane Smith",
-        },
-        {
-          id: "3",
-          title: "User Testing",
-          status: "Pending",
-          assignee: "Mike Johnson",
-        },
-        {
-          id: "4",
-          title: "Documentation",
-          status: "Completed",
-          assignee: "Sarah Williams",
-        },
-        {
-          id: "5",
-          title: "Bug Fixes",
-          status: "Review",
-          assignee: "Alex Brown",
-        },
-        {
-          id: "6",
-          title: "Performance Testing",
-          status: "Pending",
-          assignee: "Lisa Green",
-        },
-        {
-          id: "7",
-          title: "Security Audit",
-          status: "Completed",
-          assignee: "Tom Wilson",
-        },
-      ],
-      activities: [
-        {
-          id: "1",
-          type: "task",
-          user: "John Doe",
-          action: 'completed "Design Homepage" task',
-          time: "2 hours ago",
-        },
-        {
-          id: "2",
-          type: "comment",
-          user: "Jane Smith",
-          action: 'commented on "API Integration" task',
-          time: "4 hours ago",
-        },
-        {
-          id: "3",
-          type: "project",
-          user: "Mike Johnson",
-          action: 'created "Mobile App" project',
-          time: "1 day ago",
-        },
-        {
-          id: "4",
-          type: "task",
-          user: "Sarah Williams",
-          action: 'assigned "Bug Fixes" to Alex',
-          time: "2 days ago",
-        },
-      ],
-      deadlines: [
-        {
-          id: "1",
-          title: "Complete API Documentation",
-          date: "Jul 28, 2023",
-          daysLeft: 0,
-          project: "Website Redesign",
-          projectId: "1",
-        },
-        {
-          id: "2",
-          title: "User Testing Phase 1",
-          date: "Jul 30, 2023",
-          daysLeft: 2,
-          project: "Mobile App Development",
-          projectId: "2",
-        },
-        {
-          id: "3",
-          title: "Server Migration",
-          date: "Aug 05, 2023",
-          daysLeft: 8,
-          project: "Database Migration",
-          projectId: "3",
-        },
-      ],
-    },
+    queryKey: ["dashboardData", userId],
+    queryFn: () => fetchDashboardData(userId),
   });
 
-  if (dashboardLoading) {
-    return <div>Loading...</div>; 
-  }
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetchDashboardData();
-      setStats(response.stats);
-      setRecentTasks(response.tasks);
-      setComplianceTasks(response.complianceTasks);
-      setIsLoading(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const fetchData = async () => {
+      try {
+        const response = await fetchDashboardData(userId);
+        setStats(response.stats);
+        setRecentTasks(response.tasks);
+        setComplianceTasks(response.complianceTasks);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, [userId]);
 
-  if (isLoading) {
+  if (isLoading || dashboardLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -1225,6 +1894,23 @@ const Dashboard = () => {
     deadlines,
   } = data;
 
+const statusColorMap = {
+  Completed: "#1c6ead",
+  "In Progress": "#f59e0b",
+  Pending: "#10b981",
+  Cancelled: "#ef4444",
+  Review: "#a855f7"
+};
+
+  const taskCounts = data.taskCounts || {};
+  const taskStatusData = [
+    { status: "Completed", count: taskCounts.completed || 0, fill: statusColorMap.Completed },
+    { status: "In Progress", count: taskCounts.inProgress || 0, fill: statusColorMap["In Progress"] },
+    { status: "Pending", count: taskCounts.pending || 0, fill: statusColorMap.Pending },
+    { status: "Cancelled", count: taskCounts.cancelled || 0, fill: statusColorMap.Cancelled },
+    { status: "Review", count: taskCounts.review || 0, fill: statusColorMap.Review },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -1234,7 +1920,6 @@ const Dashboard = () => {
         </p>
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Projects"
@@ -1257,30 +1942,32 @@ const Dashboard = () => {
           iconType={dashboardStats.teamMembers.iconType}
           color={dashboardStats.teamMembers.color}
         />
-        {["admin", "manager", "finance"].includes(role) && (
-              <StatCard
-                title="Monthly Revenue"
-                value={dashboardStats.revenue.value}
-                change={dashboardStats.revenue.change}
-                iconType={dashboardStats.revenue.iconType}
-                color={dashboardStats.revenue.color}
-              />
-        )}
-        </div>
+        <StatCard
+          title="Revenue"
+          value={dashboardStats.revenue.value}
+          change={dashboardStats.revenue.change}
+          iconType={dashboardStats.revenue.iconType}
+          color={dashboardStats.revenue.color}
+        />
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <TaskStatusChart statusData={taskStatusData} />
+        <MonthlyRevenueChart monthlyRevenueData={data.monthlyRevenueData || []} />
+      </div>
+      <div className="pb-10">
+                <AttendanceYearChart />
 
-      {/* Project progress and Task summary */}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div>
           <h2 className="text-lg font-medium mb-4">Project Progress</h2>
-
           {projects.length > 0 ? (
             <>
-              {projects.slice(0,3).map((project) => (
+              {projects.slice(0, 3).map((project) => (
                 <ProjectProgress key={project.id} project={project} />
               ))}
-
-              {/* only show link when there actually are projects */}
               <div className="text-center mt-4">
                 <Link
                   to={ROUTES.PROJECTS}
@@ -1291,23 +1978,21 @@ const Dashboard = () => {
               </div>
             </>
           ) : (
-          <div className="bg-white p-6 rounded-lg shadow text-center">
-            <p className="text-gray-500 italic">
-              No projects available.
-            </p>
-          </div>
-        )}
+            <div className="bg-white p-6 rounded-lg shadow text-center border-[#1c6ead]">
+              <p className="text-gray-500 italic">No projects available.</p>
+            </div>
+          )}
         </div>
-
         <TaskSummary tasks={tasks} />
       </div>
 
-
-
-      {/* Recent Activity and Upcoming Deadlines */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <RecentActivity activities={activities} />
         <UpcomingDeadlines projects={projects} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <EventCalendar />
       </div>
     </div>
   );

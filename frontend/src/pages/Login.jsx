@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "../ui";
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../config/constants";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -15,6 +16,7 @@ const schema = z.object({
 const Login = () => {
   const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -23,8 +25,8 @@ const Login = () => {
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "admin@example.com",
-      password: "password",
+      email: "admin@ca-erp.com",
+      password: "Admin@123",
     },
   });
 
@@ -45,7 +47,6 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       await login(data);
-      console.log("Login successful", data);
       // Navigation will happen automatically due to the useEffect above
     } catch (error) {
       // Error is handled by the auth store
@@ -53,12 +54,16 @@ const Login = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   return (
-    <div className="mt-8">
-      <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div className="mt-8 animate-fade-in-up">
+      <div className="bg-white/90 py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-slate-200/50">
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4 mb-4">
+            <div className="rounded-md bg-red-50 p-4 mb-4 border border-red-200 animate-fade-in">
               <div className="flex">
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Error</h3>
@@ -76,44 +81,34 @@ const Login = () => {
             type="email"
             autoComplete="email"
             required
+            className="focus:ring-[#1c6ead] focus:border-[#1c6ead]"
             {...register("email")}
             error={errors.email?.message}
           />
 
-          <Input
-            label="Password"
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            {...register("password")}
-            error={errors.password?.message}
-          />
-
-          <div className="flex items-center justify-between">
-            {/* <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900"
-              >
-                Remember me
-              </label>
-            </div> */}
-
-            {/* <div className="text-sm">
-              <a
-                href="#"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Forgot your password?
-              </a>
-            </div> */}
+          <div className="relative">
+            <Input
+              label="Password"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              className="focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+              {...register("password")}
+              error={errors.password?.message}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#1c6ead] transition-colors duration-200"
+              style={{ top: "60%", transform: "translateY(-25%)" }}
+            >
+              {showPassword ? (
+                <EyeIcon className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
           </div>
 
           <div>
@@ -122,34 +117,12 @@ const Login = () => {
               fullWidth
               isLoading={isLoading}
               disabled={isLoading}
+              className="bg-[#1c6ead] hover:bg-[#175a99] text-white font-semibold shadow-md transition-all duration-200 rounded-xl py-2"
             >
               Sign in
             </Button>
           </div>
         </form>
-
-        {/* <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div> */}
       </div>
     </div>
   );

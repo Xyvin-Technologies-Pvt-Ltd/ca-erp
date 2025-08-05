@@ -7,13 +7,22 @@ const activitySchema = new mongoose.Schema({
     enum: [
       'task_created',
       'task_completed',
+      'task_deleted',
       'client_added',
       'project_created',
       'project_updated',
       'project_milestone',
       'deadline_updated',
       'document_uploaded',
-      'task_updated'
+      'document_reuploaded',
+      'task_updated',
+      'reminder_sent',
+
+      'cronjob_created',
+      'cronjob_executed',
+
+      'task_time_entry'
+
     ]
   },
   title: {
@@ -32,7 +41,7 @@ const activitySchema = new mongoose.Schema({
   entityType: {
     type: String,
     required: true,
-    enum: ['task', 'client', 'project', 'document']
+    enum: ['task', 'client', 'project', 'document', 'cronjob']
   },
   entityId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -44,6 +53,11 @@ const activitySchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
+  },
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+    required: false
   }
 });
 

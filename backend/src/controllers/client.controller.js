@@ -112,67 +112,123 @@ exports.getClient = async (req, res, next) => {
  * @route   POST /api/clients
  * @access  Private
  */
+// Updated createClient function
 exports.createClient = async (req, res, next) => {
-    try {
-        // Add user to req.body
-        req.body.createdBy = req.user.id;
+  try {
+    console.log('CreateClient req.body:', req.body);
 
-        // Check if client with same name already exists
-        const existingClient = await Client.findOne({ name: req.body.name });
-        if (existingClient) {
-            return next(new ErrorResponse(`Client with name ${req.body.name} already exists`, 400));
-        }
+    const allowedFields = [
+      'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
+      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors'
+    ];
 
-        const client = await Client.create(req.body);
+    const clientData = {};
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        clientData[field] = req.body[field];
+      }
+    });
 
-        // Log the client creation
-        logger.info(`Client created: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
-
-        res.status(201).json({
-            success: true,
-            data: client,
-        });
-    } catch (error) {
-        next(error);
+    // Validate directors
+    if (!clientData.directors || !Array.isArray(clientData.directors) || clientData.directors.length < 2) {
+      return next(new ErrorResponse('At least 2 valid directors are required', 400));
     }
-};
 
+    // Ensure directors are trimmed and non-empty
+    clientData.directors = clientData.directors
+      .map(d => d ? d.trim() : '')
+      .filter(d => d !== '');
+
+    if (clientData.directors.length < 2) {
+      return next(new ErrorResponse('At least 2 valid directors are required', 400));
+    }
+
+    clientData.createdBy = req.user.id;
+
+    const existingClient = await Client.findOne({ name: clientData.name });
+    if (existingClient) {
+      return next(new ErrorResponse(`Client with name ${clientData.name} already exists`, 400));
+    }
+
+    const client = await Client.create(clientData);
+    console.log('Created client with directors:', client.directors);
+
+    logger.info(`Client created: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
+
+    res.status(201).json({
+      success: true,
+      data: client,
+    });
+  } catch (error) {
+    console.error('Error creating client:', error);
+    next(error);
+  }
+};
 /**
  * @desc    Update client
  * @route   PUT /api/clients/:id
  * @access  Private
  */
+// Updated updateClient function
 exports.updateClient = async (req, res, next) => {
-    try {
-        let client = await Client.findById(req.params.id);
-
-        if (!client) {
-            return next(new ErrorResponse(`Client not found with id of ${req.params.id}`, 404));
-        }
-
-        // If name is being updated, check if it already exists
-        if (req.body.name && req.body.name !== client.name) {
-            const existingClient = await Client.findOne({ name: req.body.name });
-            if (existingClient) {
-                return next(new ErrorResponse(`Client with name ${req.body.name} already exists`, 400));
-            }
-        }
-
-        client = await Client.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
-
-        // Log the client update
-        logger.info(`Client updated: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
-
-        res.status(200).json({
-            success: true,
-            data: client,
-        });
-    } catch (error) {
-        next(error);
+    console.log('UpdateClient req.body:', req.body);
+  try {
+    let client = await Client.findById(req.params.id);
+    if (!client) {
+      return next(new ErrorResponse(`Client not found with id of ${req.params.id}`, 404));
     }
+
+    console.log('UpdateClient req.body:', req.body);
+
+    const allowedFields = [
+      'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
+      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors'
+    ];
+
+    const updateData = {};
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
+console.log('req.body.directors:', req.body.directors);
+    // Validate directors if provided
+    if (updateData.directors) {
+      if (!Array.isArray(updateData.directors) || updateData.directors.length < 2) {
+        return next(new ErrorResponse('At least 2 valid directors are required', 400));
+      }
+      updateData.directors = updateData.directors
+        .map(d => d ? d.trim() : '')
+        .filter(d => d !== '');
+      if (updateData.directors.length < 2) {
+        return next(new ErrorResponse('At least 2 valid directors are required', 400));
+      }
+    }
+
+    if (updateData.name && updateData.name !== client.name) {
+      const existingClient = await Client.findOne({ name: updateData.name });
+      if (existingClient) {
+        return next(new ErrorResponse(`Client with name ${updateData.name} already exists`, 400));
+      }
+    }
+
+    client = await Client.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    console.log('Updated client with directors:', client.directors);
+
+    logger.info(`Client updated: ${client.name} (${client._id}) by ${req.user.name} (${req.user._id})`);
+
+    res.status(200).json({
+      success: true,
+      data: client,
+    });
+  } catch (error) {
+    console.error('Error updating client:', error);
+    next(error);
+  }
 };
 
 /**

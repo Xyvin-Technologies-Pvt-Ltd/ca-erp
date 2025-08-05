@@ -8,14 +8,13 @@ const api = axios.create({
     },
     withCredentials: true,
     crossDomain: true,
-    timeout: 10000, // 10 seconds timeout
+    timeout: 100000, // 10 seconds timeout //TODO: changed this for a workaround for a bug
 });
 
 // Request interceptor for adding auth token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('auth_token');
-        console.log(token)
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

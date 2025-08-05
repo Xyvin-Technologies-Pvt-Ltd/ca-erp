@@ -25,9 +25,30 @@ const mongoose = require('mongoose');
  *         contactPhone:
  *           type: string
  *           description: Phone number of the primary contact
- *         address:
+ *         country:
  *           type: string
- *           description: Physical address of the client
+ *           description: Country of the client
+ *         state:
+ *           type: string
+ *           description: State of the client
+ *         city:
+ *           type: string
+ *           description: City of the client
+ *         pin:
+ *           type: string
+ *           description: PIN/Postal code of the client
+ *         gstin:
+ *           type: string
+ *           description: GSTIN of the client
+ *         pan:
+ *           type: string
+ *           description: PAN of the client
+ *         cin:
+ *           type: string
+ *           description: CIN of the client
+ *         currencyFormat:
+ *           type: string
+ *           description: Currency format of the client
  *         website:
  *           type: string
  *           description: Website of the client
@@ -51,7 +72,14 @@ const mongoose = require('mongoose');
  *         contactName: John Smith
  *         contactEmail: john@xyzcorp.com
  *         contactPhone: "+1 (987) 654-3210"
- *         address: 123 Business Street, Corporate City, BZ 54321
+ *         country: USA
+ *         state: California
+ *         city: Corporate City
+ *         pin: 54321
+ *         gstin: 1234567890
+ *         pan: ABCDE1234F
+ *         cin: 1234567890123
+ *         currencyFormat: USD
  *         website: https://xyzcorp.com
  *         industry: Technology
  *         status: active
@@ -82,9 +110,37 @@ const ClientSchema = new mongoose.Schema(
             type: String,
             maxlength: [20, 'Phone number cannot be longer than 20 characters'],
         },
-        address: {
+        country: {
             type: String,
-            maxlength: [200, 'Address cannot be more than 200 characters'],
+            maxlength: [50, 'Country cannot be more than 50 characters'],
+        },
+        state: {
+            type: String,
+            maxlength: [50, 'State cannot be more than 50 characters'],
+        },
+        city: {
+            type: String,
+            maxlength: [50, 'City cannot be more than 50 characters'],
+        },
+        pin: {
+            type: String,
+            maxlength: [20, 'PIN/Postal code cannot be more than 20 characters'],
+        },
+        gstin: {
+            type: String,
+            maxlength: [20, 'GSTIN cannot be more than 20 characters'],
+        },
+        pan: {
+            type: String,
+            maxlength: [10, 'PAN cannot be more than 10 characters'],
+        },
+        cin: {
+            type: String,
+            maxlength: [21, 'CIN cannot be more than 21 characters'],
+        },
+        currencyFormat: {
+            type: String,
+            maxlength: [10, 'Currency format cannot be more than 10 characters'],
         },
         website: {
             type: String,
@@ -93,6 +149,18 @@ const ClientSchema = new mongoose.Schema(
                 'Please use a valid URL with HTTP or HTTPS',
             ],
         },
+        directors: {
+        type: [String], // Array of strings
+        default: [],
+        validate: {
+            validator: function(directors) {
+                // Filter out empty strings and check minimum requirement
+                const validDirectors = directors.filter(d => d && d.trim());
+                return validDirectors.length >= 2;
+            },
+            message: 'At least 2 directors are required'
+        }
+    },
         industry: {
             type: String,
             maxlength: [50, 'Industry cannot be more than 50 characters'],

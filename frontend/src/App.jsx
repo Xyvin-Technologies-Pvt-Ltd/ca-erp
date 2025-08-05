@@ -18,12 +18,19 @@ import ErrorPage from "./pages/ErrorPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-
 import Profile from "./pages/Profile";
 import ProjectCart from "./pages/ProjectCart";
 import Notification from "./pages/Notification";
-
+import HRM from "./pages/hrm/HRM";
+import Employees from "./pages/hrm/Employees";
+import Departments from "./pages/hrm/Departments";
+import Positions from "./pages/hrm/Positions";
+import Events from "./pages/hrm/Events";
+import Leave from "./pages/hrm/Leave";
+import EMP from "./pages/employee/EMP";
+import LeaveApplication from "./pages/employee/LeaveApplication";
+import Attendance from './pages/hrm/Attendance';
+import EmployeeAttendance from './pages/employee/EmployeeAttendance';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +82,18 @@ function App() {
 
                 <Route path={ROUTES.PROFILE} element={<Profile />} />
 
+                <Route path={ROUTES.EMP} element={<EMP />} />
+                <Route path={ROUTES.EMP_LeaveApplication} element= {<LeaveApplication />} />
+                <Route path={ROUTES.EMPLOYEE_ATTENDANCE} element= {<EmployeeAttendance />} />
+
+                {/* HRM Routes */}
+                <Route path={ROUTES.HRM} element={<HRM />} />
+                <Route path={ROUTES.HRM_EMPLOYEES} element={<Employees />} />
+                <Route path={ROUTES.HRM_DEPARTMENTS} element={<Departments />} />
+                <Route path={ROUTES.HRM_POSITIONS} element={<Positions />} />
+                <Route path={ROUTES.HRM_EVENTS} element={<Events />} />
+                <Route path={ROUTES.HRM_LEAVES} element={<Leave />} />
+                <Route path={ROUTES.HRM_ATTENDANCE} element={<Attendance />} />
 
                 {/* Default and 404 */}
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} />} />

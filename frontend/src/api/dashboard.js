@@ -1,4 +1,4 @@
-import { fetchCompletedTasksForInvoicing, fetchTasks } from "./tasks";
+import { fetchCompletedTasksForInvoicing, fetchTasks, fetchAllTasks } from "./tasks";
 import { userApi } from "./userApi";
 import { projectsApi } from "./projectsApi";
 
@@ -9,29 +9,30 @@ import { projectsApi } from "./projectsApi";
 
 
 
-export const fetchDashboardData = async () => {
+export const fetchDashboardData = async (userId) => {
   try {
     // In a real app, we would fetch from the backend
     // const response = await api.get('/api/dashboard');
     // return response.data;
 
     const calculateChange = (current, previous) => {
-      if (previous === 0) return current === 0 ? 0 : 100;
-      return ((current - previous) / previous) * 100;
+      if (previous === 0) {
+        if (current === 0) return 0;
+        return 100;
+      }
+      return Math.round(((current - previous) / previous) * 100);
     };
 
     //projects
-    const [projects, tasksRes,usersRes] = await Promise.all([
-      // Add limit parameter to get all projects
-      projectsApi.getAllProjects({ limit: 100 }), // Increase limit or use -1 if your API supports it
-      fetchTasks(),
+    const [projects, tasksRes, usersRes] = await Promise.all([
+      projectsApi.getAllProjects({ limit: 100 }),
+      fetchAllTasks(),
       userApi.Allusers(),
     ]);
 
 
-    console.log(projects,"project is this");
     const completedProjects = projects.data.filter((project) => project.status === "completed");
-    const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
+    // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
 
     const currentProjects = projects.count;
     const previousProject =8;
@@ -46,13 +47,10 @@ export const fetchDashboardData = async () => {
       dueDate: new Date(pro.dueDate).toLocaleDateString('en-GB'),
     }));
 
-    // console.log(tasksRes.total);
 
-    console.log('Tasks from API:', tasksRes.tasks);
 
     const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
       const status = task.status.toLowerCase();
-      console.log('Processing task status:', status); // Debug log
       
       let statusKey;
       switch (status) {
@@ -77,7 +75,6 @@ export const fetchDashboardData = async () => {
         acc[statusKey] = 0;
       }
       acc[statusKey]++;
-      console.log('Current counts:', acc); // Debug log
       return acc;
     }, {});
 
@@ -87,33 +84,143 @@ export const fetchDashboardData = async () => {
       count
     }));
 
+    // Calculate task counts by status
+    const taskCounts = {
+      completed: 0,
+      pending: 0,
+      inProgress: 0,
+      review: 0,
+      cancelled: 0,
+    };
+    tasksRes.tasks.forEach((task) => {
+      const status = task.status.toLowerCase();
+      if (status === 'completed') taskCounts.completed++;
+      else if (status === 'pending') taskCounts.pending++;
+      else if (status === 'in-progress' || status === 'inprogress') taskCounts.inProgress++;
+      else if (status === 'review') taskCounts.review++;
+      else if (status === 'cancelled') taskCounts.cancelled++;
+    });
 
 
     // team members
     const currentMember = usersRes.data.data.count;
-    const changeMember = calculateChange(currentMember, currentMember);
 
     
 
     
+    let totalRevenue = 0;
+    let userRole = undefined;
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      userRole = userData?.role;
+    } catch (e) {
+      userRole = undefined;
+    }
+    if (userRole === 'admin' || userRole === 'manager') {
+      totalRevenue = tasksRes.tasks.reduce((acc, task) => acc + (task.amount || 0), 0);
+    } else if (userId) {
+      totalRevenue = tasksRes.tasks.reduce((acc, task) => {
+        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        if (assignedId === userId) {
+          return acc + (task.amount || 0);
+        }
+        return acc;
+      }, 0);
+    }
+
+    // --- Monthly Revenue & Task Count Aggregation ---
+    // For admin/manager: all tasks; for others: only assigned tasks
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleString('default', { month: 'short' }),
+        year: d.getFullYear(),
+        month: d.getMonth(),
+      });
+    }
+    const monthlyMap = {};
+    months.forEach(m => {
+      monthlyMap[m.key] = { month: m.label, revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
+    });
+    // Count projects per month (by createdAt or dueDate)
+    projects.data.forEach(project => {
+      const date = project.createdAt ? new Date(project.createdAt) : (project.dueDate ? new Date(project.dueDate) : null);
+      if (!date || isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (monthlyMap[key]) {
+        monthlyMap[key].projects += 1;
+      }
+    });
+
+    // console.log(usersRes.data,"^^^^^^^^^^^^^^^^^^^^$$$$$$$$$^^^^^^^^^^^");
+    
+    if (usersRes.data && Array.isArray(usersRes.data.data.users)) {
+      usersRes.data.data.users.forEach(user => {
+        const date = user.createdAt ? new Date(user.createdAt) : null;
+        if (!date || isNaN(date.getTime())) return;
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (monthlyMap[key]) {
+          monthlyMap[key].teamMembers += 1;
+        }
+        console.log(teamMembers,'teamMembers')
+      });
+    }
+
+    tasksRes.tasks.forEach(task => {
+      const date = task.dueDate ? new Date(task.dueDate) : (task.createdAt ? new Date(task.createdAt) : null);
+      if (!date || isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      let include = false;
+      if (userRole === 'admin' || userRole === 'manager') {
+        include = true;
+      } else if (userId) {
+        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        include = assignedId === userId;
+      }
+      if (monthlyMap[key] && include) {
+        monthlyMap[key].tasks += 1;
+        monthlyMap[key].revenue += task.amount || 0;
+      }
+    });
+    const monthlyRevenueData = months.map(m => monthlyMap[m.key]);
+
+    // Calculate dynamic changes for the latest month vs previous month
+    const getChangePercent = (current, previous) => {
+      if (previous === 0) {
+        if (current === 0) return 0;
+        return 100;
+      }
+      return Math.round(((current - previous) / previous) * 100);
+    };
+    const len = monthlyRevenueData.length;
+    const latest = monthlyRevenueData[len - 1];
+    const prev = monthlyRevenueData[len - 2] || { revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
+    const revenueChange = getChangePercent(latest.revenue, prev.revenue);
+    const tasksChange = getChangePercent(latest.tasks, prev.tasks);
+    const projectsChange = getChangePercent(latest.projects, prev.projects);
+    const teamMembersChange = getChangePercent(latest.teamMembers, prev.teamMembers);
+
     return {
       stats: {
         totalProjects: {
           value: currentProjects,
-          change: changeProjects,
+          change: projectsChange,
           iconType: "folder",
           color: "bg-blue-100",
         },
         activeTasks: {
-          value: tasksRes.total,
-          change: 4,
+          value: tasksRes.count,
+          change: tasksChange,
           iconType: "task",
           color: "bg-green-100",
         },
        
         teamMembers: {
           value: currentMember,
-          change: 1,
+          change: teamMembersChange,
           iconType: "team",
           color: "bg-purple-100",
         },
@@ -124,8 +231,8 @@ export const fetchDashboardData = async () => {
         //   color: "bg-purple-100",
         // },
         revenue: {
-          value: `$${totalRevenue}`,
-          change: 6,
+          value: `₹${totalRevenue}`,
+          change: revenueChange,
           iconType: "money",
           color: "bg-yellow-100",
         },
@@ -136,6 +243,7 @@ export const fetchDashboardData = async () => {
         //     color: "bg-yellow-100",
         // }
       },
+      taskCounts,
       recentTasks: [
         {
           id: 1,
@@ -337,6 +445,7 @@ export const fetchDashboardData = async () => {
         { status: "Pending", count: 34 },
         { status: "Delayed", count: 12 },
       ],
+      monthlyRevenueData, // <-- add this for frontend chart
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

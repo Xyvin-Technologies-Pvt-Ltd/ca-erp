@@ -66,8 +66,12 @@ exports.getProjects = async (req, res, next) => {
         let query = Project.find(filter)
             .sort(sort)
             .populate({
-                path: 'client',
-                select: 'name contactName contactEmail'
+                path: 'client'
+            })
+            .populate({
+                path: 'team',
+                model: 'User', 
+                select: 'name email role department avatar', 
             })
             .populate({
                 path: 'assignedTo',
@@ -155,14 +159,18 @@ exports.getProjects = async (req, res, next) => {
         // 🧠 Add completion stats for each project
         const projectsWithStats = await Promise.all(projects.map(async (project) => {
             const taskIds = project.tasks || [];
-            const totalTasks = taskIds.length;
+            
+            // Filter out deleted tasks for accurate counting
+            const activeTasks = await Task.find({
+                _id: { $in: taskIds },
+                deleted: { $ne: true }
+            });
+            
+            const totalTasks = activeTasks.length;
 
             let completedTasks = 0;
             if (totalTasks > 0) {
-                completedTasks = await Task.countDocuments({
-                    _id: { $in: taskIds },
-                    status: 'completed',
-                });
+                completedTasks = activeTasks.filter(task => task.status === 'completed').length;
             }
 
             const completionPercentage = totalTasks > 0
@@ -215,8 +223,7 @@ exports.getProject = async (req, res, next) => {
     try {
         const project = await Project.findById(req.params.id)
             .populate({
-                path: 'client',
-                select: 'name contactName contactEmail'
+                path: 'client'
             })
             .populate({
                 path: 'assignedTo',
@@ -228,8 +235,8 @@ exports.getProject = async (req, res, next) => {
             })
             .populate({
                 path: 'team',
-                model: 'User', // 👈 Ensures it's pulling from User collection
-                select: 'name email role department avatar', // ⬅️ Add any fields you want
+                model: 'User', 
+                select: 'name email role department avatar', 
             })
             .populate({
                 path: 'documents',
@@ -259,14 +266,18 @@ exports.getProject = async (req, res, next) => {
         const projectObject = project.toObject(); // Convert Mongoose doc to plain object
         // 🧠 Calculate task completion stats
         const taskIds = project.tasks; // array of ObjectId
-        const totalTasks = taskIds.length;
+        
+        // Filter out deleted tasks for accurate counting
+        const activeTasks = await Task.find({
+            _id: { $in: taskIds },
+            deleted: { $ne: true }
+        });
+        
+        const totalTasks = activeTasks.length;
 
         let completedTasks = 0;
         if (totalTasks > 0) {
-            completedTasks = await Task.countDocuments({
-                _id: { $in: taskIds },
-                status: 'completed',
-            });
+            completedTasks = activeTasks.filter(task => task.status === 'completed').length;
         }
 
         const completionPercentage = totalTasks > 0
@@ -276,10 +287,13 @@ exports.getProject = async (req, res, next) => {
         projectObject.totalTasks = totalTasks;
         projectObject.completedTasks = completedTasks;
         projectObject.completionPercentage = completionPercentage;
+        // Calculate total amount of all tasks as budget
+        const totalAmount = activeTasks.reduce((sum, task) => sum + (task.amount || 0), 0);
+        projectObject.budget = totalAmount;
         // Remove budget if user is not admin or finance
-        if (!['admin','manager', 'finance'].includes(req.user.role)) {
-            delete projectObject.budget;
-        }
+        // if (!['admin','manager', 'finance'].includes(req.user.role)) {
+        //     delete projectObject.budget;
+        // }
 
         res.status(200).json({
             success: true,
@@ -300,7 +314,10 @@ exports.createProject = async (req, res, next) => {
     try {
         // Add user to req.body
         req.body.createdBy = req.user.id;
-        console.log(req.body)
+        // Remove budget if present in payload
+        if ('budget' in req.body) {
+            delete req.body.budget;
+        }
         // Check if client exists
         if (req.body.client) {
             const client = await Client.findById(req.body.client);
@@ -369,7 +386,6 @@ exports.updateProject = async (req, res, next) => {
       // Check access - only admin and assigned users can update
       const isAdmin = req.user.role === 'admin';
       const isManager = req.user.role === 'manager';
-      // console.log(isTeamMember, "isTeamMember")
       const isTeamMember = project.team && Array.isArray(project.team) && 
   project.team.some(teamMember => 
       teamMember && teamMember.toString() === req.user.id.toString()
@@ -382,7 +398,6 @@ exports.updateProject = async (req, res, next) => {
       // Check if client exists
       if (req.body.client) {
         const client = await Client.findById(req.body.client);
-        console.log('Client found:', client);
         if (!client) {
           return next(new ErrorResponse(`Client not found with id of ${req.body.client}`, 404));
         }
@@ -407,7 +422,6 @@ exports.updateProject = async (req, res, next) => {
         return originalProject[key] !== req.body[key];
       });
       logger.debug(`Changed fields: ${JSON.stringify(changedFields)}, req.body: ${JSON.stringify(req.body)}`);
-      console.log('changedFields before tracking:', changedFields);
   
       // Update project
       project = await Project.findByIdAndUpdate(req.params.id, req.body, {
@@ -415,7 +429,7 @@ exports.updateProject = async (req, res, next) => {
         runValidators: true,
       }).populate({
         path: 'client',
-        select: 'name contactName contactEmail',
+        select: 'name contactName contactEmail contactPhone',
       }).populate({
         path: 'assignedTo',
         select: 'name email avatar',
@@ -427,21 +441,29 @@ exports.updateProject = async (req, res, next) => {
       // Track activity for project update
       try {
         if (changedFields.length > 0) {
-          const changesSummary = changedFields.map(field => {
-            const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
-            const newValue = req.body[field] ? req.body[field].toString() : 'none';
-            return `${field}: ${oldValue} → ${newValue}`;
-          }).join(', ');
-          await ActivityTracker.track({
-            type: 'project_updated',
-            title: 'Project Updated',
-            description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
-            entityType: 'project',
-            entityId: project._id,
-            userId: req.user._id,
-            link: `/projects/${project._id}`,
-          });
-          logger.info(`Activity tracked for project update ${project._id}`);
+          const changesSummary = changedFields
+            .filter(field => field !== 'budget') // Exclude budget from activity log
+            .map(field => {
+              const oldValue = originalProject[field] ? originalProject[field].toString() : 'none';
+              const newValue = req.body[field] ? req.body[field].toString() : 'none';
+              return `${field}: ${oldValue} → ${newValue}`;
+            })
+            .filter(Boolean)
+            .join(', ');
+          if (changesSummary) {
+            await ActivityTracker.track({
+              type: 'project_updated',
+              title: 'Project Updated',
+              description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
+              entityType: 'project',
+              entityId: project._id,
+              userId: req.user._id,
+              link: `/projects/${project._id}`,
+            });
+            logger.info(`Activity tracked for project update ${project._id}`);
+          } else {
+            logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
+          }
         } else {
           logger.debug(`No activity tracked for project ${project._id}: No significant changes detected`);
         }
@@ -500,7 +522,6 @@ exports.deleteProject = async (req, res, next) => {
  */
 exports.getProjectTasks = async (req, res, next) => {
     try {
-        console.log(req.params.id,"4444444444444444444444444")
         const project = await Project.findById(req.params.id);
 
         if (!project) {
@@ -518,7 +539,6 @@ exports.getProjectTasks = async (req, res, next) => {
 
         const isAdmin = req.user.role === 'admin';
         const isManager = req.user.role === 'manager';
-        // console.log(isTeamMember, "isTeamMember")
         const isTeamMember = project.team && 
             project.team.some(teamMember => 
                 teamMember.toString() === req.user.id.toString()
@@ -616,7 +636,6 @@ exports.updateProjectStatus = async (req, res, next) => {
 
         const isAdmin = req.user.role === 'admin';
         const isManager = req.user.role === 'manager';
-        // console.log(isTeamMember, "isTeamMember")
         const isTeamMember = project.team && Array.isArray(project.team) && 
     project.team.some(teamMember => 
         teamMember && teamMember.toString() === req.user.id.toString()
@@ -664,7 +683,7 @@ exports.updateProjectInvoiceStatus = async (req, res, next) => {
             }
         ).populate({
             path: 'client',
-            select: 'name contactName contactEmail'
+            select: 'name contactName contactEmail contactPhone'
         });
 
         if (!project) {

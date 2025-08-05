@@ -1,4 +1,27 @@
 import { useState, useEffect } from "react";
+import {
+  Bell,
+  Shield,
+  Users,
+  Zap,
+  CheckCircle,
+  AlertCircle,
+  X,
+  Loader2,
+  Save,
+  Mail,
+  UserCheck,
+  Activity,
+  FolderOpen,
+  Lock,
+  Clock,
+  Globe,
+  UserX,
+  Upload,
+  Archive,
+  Calendar,
+  UserPlus
+} from "lucide-react";
 
 const SystemPreferences = () => {
   const [loading, setLoading] = useState(false);
@@ -75,231 +98,194 @@ const SystemPreferences = () => {
     }
   };
 
+  // Enhanced Toggle Component
+  const ToggleSwitch = ({ id, checked, onChange, disabled = false }) => (
+    <div className="relative inline-block">
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+        className="sr-only"
+      />
+      <label
+        htmlFor={id}
+        className={`block w-12 h-6 rounded-full cursor-pointer transition-all duration-300 ease-in-out ${
+          checked
+            ? "bg-[#1c6ead] shadow-lg"
+            : "bg-gray-300 hover:bg-gray-400"
+        } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      >
+        <span
+          className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out shadow-md ${
+            checked ? "transform translate-x-6" : ""
+          }`}
+        />
+      </label>
+    </div>
+  );
+
   if (loading && !successMessage) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
+        <div className="flex items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-gray-600 font-medium text-lg">Loading system preferences...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-lg font-medium text-gray-900">
-          System Preferences
-        </h2>
-      </div>
-
+    <div className="space-y-8">
       {/* Success Message */}
       {successMessage && (
-        <div className="mb-6 bg-green-50 p-4 rounded-md">
-          <p className="text-green-700">{successMessage}</p>
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-medium text-emerald-900">Success!</p>
+                <p className="text-emerald-700">{successMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setSuccessMessage("")}
+              className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg p-2 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
 
-      <div className="space-y-6">
-        {/* Notification Preferences */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-md font-medium text-gray-900">
-              Notification Settings
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Configure what events trigger email notifications
-            </p>
-          </div>
-          <div className="px-6 py-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Email Notifications
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Enable email notifications system-wide
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="emailNotifications"
-                  checked={preferences.emailNotifications}
-                  onChange={() => handleToggleChange("emailNotifications")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="emailNotifications"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.emailNotifications
-                      ? "bg-blue-500"
-                      : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.emailNotifications
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
+      {/* Notification Preferences */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Bell className="w-5 h-5 text-blue-600" />
             </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Task Assignments
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Notify users when they are assigned to a task
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="taskAssignments"
-                  checked={preferences.taskAssignments}
-                  onChange={() => handleToggleChange("taskAssignments")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="taskAssignments"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.taskAssignments ? "bg-blue-500" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.taskAssignments
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Task Status Changes
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Notify when a task's status changes
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="taskStatusChanges"
-                  checked={preferences.taskStatusChanges}
-                  onChange={() => handleToggleChange("taskStatusChanges")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="taskStatusChanges"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.taskStatusChanges
-                      ? "bg-blue-500"
-                      : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.taskStatusChanges
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Project Updates
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Notify team members about project changes
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="projectUpdates"
-                  checked={preferences.projectUpdates}
-                  onChange={() => handleToggleChange("projectUpdates")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="projectUpdates"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.projectUpdates ? "bg-blue-500" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.projectUpdates
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Notification Settings</h3>
+              <p className="text-gray-600">Configure what events trigger email notifications</p>
             </div>
           </div>
         </div>
-
-        {/* Security Settings */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-md font-medium text-gray-900">
-              Security Settings
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Configure security options for the application
-            </p>
-          </div>
-          <div className="px-6 py-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Require MFA
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Require multi-factor authentication for all users
-                </p>
+        
+        <div className="p-8 space-y-6">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-blue-600" />
               </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="requireMfa"
-                  checked={preferences.requireMfa}
-                  onChange={() => handleToggleChange("requireMfa")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="requireMfa"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.requireMfa ? "bg-blue-500" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.requireMfa ? "transform translate-x-4" : ""
-                    }`}
-                  ></span>
-                </label>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Email Notifications</h4>
+                <p className="text-sm text-gray-600">Enable email notifications system-wide</p>
               </div>
             </div>
+            <ToggleSwitch
+              id="emailNotifications"
+              checked={preferences.emailNotifications}
+              onChange={() => handleToggleChange("emailNotifications")}
+            />
+          </div>
 
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <UserCheck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Task Assignments</h4>
+                <p className="text-sm text-gray-600">Notify users when they are assigned to a task</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="taskAssignments"
+              checked={preferences.taskAssignments}
+              onChange={() => handleToggleChange("taskAssignments")}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Activity className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Task Status Changes</h4>
+                <p className="text-sm text-gray-600">Notify when a task's status changes</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="taskStatusChanges"
+              checked={preferences.taskStatusChanges}
+              onChange={() => handleToggleChange("taskStatusChanges")}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <FolderOpen className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Project Updates</h4>
+                <p className="text-sm text-gray-600">Notify team members about project changes</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="projectUpdates"
+              checked={preferences.projectUpdates}
+              onChange={() => handleToggleChange("projectUpdates")}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Security Settings */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <Shield className="w-5 h-5 text-red-600" />
+            </div>
             <div>
+              <h3 className="text-xl font-semibold text-gray-900">Security Settings</h3>
+              <p className="text-gray-600">Configure security options for the application</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-8 space-y-6">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Lock className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Require MFA</h4>
+                <p className="text-sm text-gray-600">Require multi-factor authentication for all users</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="requireMfa"
+              checked={preferences.requireMfa}
+              onChange={() => handleToggleChange("requireMfa")}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-3">
               <label
                 htmlFor="passwordExpiryDays"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700"
               >
+                <Clock className="w-4 h-4 text-gray-500" />
                 Password Expiry (days)
               </label>
               <input
@@ -314,18 +300,21 @@ const SystemPreferences = () => {
                     parseInt(e.target.value, 10)
                   )
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                placeholder="90"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 Set to 0 for no expiry
               </p>
             </div>
 
-            <div>
+            <div className="space-y-3">
               <label
                 htmlFor="sessionTimeoutMinutes"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700"
               >
+                <Clock className="w-4 h-4 text-gray-500" />
                 Session Timeout (minutes)
               </label>
               <input
@@ -340,239 +329,197 @@ const SystemPreferences = () => {
                     parseInt(e.target.value, 10)
                   )
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                placeholder="30"
               />
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Minimum 5 minutes, maximum 8 hours
+              </p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Access Permissions */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-md font-medium text-gray-900">
-              Access & Permissions
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Configure access controls and permissions
+      {/* Access Permissions */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Access & Permissions</h3>
+              <p className="text-gray-600">Configure access controls and permissions</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-8 space-y-6">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Globe className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Client Portal</h4>
+                <p className="text-sm text-gray-600">Enable client portal access</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="clientPortalEnabled"
+              checked={preferences.clientPortalEnabled}
+              onChange={() => handleToggleChange("clientPortalEnabled")}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <UserX className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Guest Access</h4>
+                <p className="text-sm text-gray-600">Allow access to guests without accounts</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="allowGuestAccess"
+              checked={preferences.allowGuestAccess}
+              onChange={() => handleToggleChange("allowGuestAccess")}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label
+              htmlFor="fileUploadMaxSize"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
+              <Upload className="w-4 h-4 text-gray-500" />
+              Max File Upload Size (MB)
+            </label>
+            <input
+              id="fileUploadMaxSize"
+              type="number"
+              min="1"
+              max="100"
+              value={preferences.fileUploadMaxSize}
+              onChange={(e) =>
+                handleInputChange(
+                  "fileUploadMaxSize",
+                  parseInt(e.target.value, 10)
+                )
+              }
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              placeholder="10"
+            />
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Maximum allowed: 100MB
             </p>
           </div>
-          <div className="px-6 py-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Client Portal
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Enable client portal access
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="clientPortalEnabled"
-                  checked={preferences.clientPortalEnabled}
-                  onChange={() => handleToggleChange("clientPortalEnabled")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="clientPortalEnabled"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.clientPortalEnabled
-                      ? "bg-blue-500"
-                      : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.clientPortalEnabled
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
-            </div>
+        </div>
+      </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Guest Access
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Allow access to guests without accounts
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="allowGuestAccess"
-                  checked={preferences.allowGuestAccess}
-                  onChange={() => handleToggleChange("allowGuestAccess")}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="allowGuestAccess"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.allowGuestAccess ? "bg-blue-500" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.allowGuestAccess
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
+      {/* Automation Settings */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Zap className="w-5 h-5 text-purple-600" />
             </div>
-
             <div>
-              <label
-                htmlFor="fileUploadMaxSize"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Max File Upload Size (MB)
-              </label>
-              <input
-                id="fileUploadMaxSize"
-                type="number"
-                min="1"
-                max="100"
-                value={preferences.fileUploadMaxSize}
-                onChange={(e) =>
-                  handleInputChange(
-                    "fileUploadMaxSize",
-                    parseInt(e.target.value, 10)
-                  )
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
+              <h3 className="text-xl font-semibold text-gray-900">Automation Settings</h3>
+              <p className="text-gray-600">Configure automatic actions and workflows</p>
             </div>
           </div>
         </div>
+        
+        <div className="p-8 space-y-6">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Archive className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Auto-Archive Completed Projects</h4>
+                <p className="text-sm text-gray-600">Automatically archive projects after completion</p>
+              </div>
+            </div>
+            <ToggleSwitch
+              id="autoArchiveCompletedProjects"
+              checked={preferences.autoArchiveCompletedProjects}
+              onChange={() => handleToggleChange("autoArchiveCompletedProjects")}
+            />
+          </div>
 
-        {/* Automation Settings */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-md font-medium text-gray-900">
-              Automation Settings
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Configure automatic actions
+          <div className="space-y-3">
+            <label
+              htmlFor="autoArchiveDays"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
+              <Calendar className="w-4 h-4 text-gray-500" />
+              Archive After (days)
+            </label>
+            <input
+              id="autoArchiveDays"
+              type="number"
+              min="1"
+              max="365"
+              value={preferences.autoArchiveDays}
+              onChange={(e) =>
+                handleInputChange(
+                  "autoArchiveDays",
+                  parseInt(e.target.value, 10)
+                )
+              }
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              placeholder="30"
+            />
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Projects will be archived this many days after completion
             </p>
           </div>
-          <div className="px-6 py-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Auto-Archive Completed Projects
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Automatically archive projects after completion
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="autoArchiveCompletedProjects"
-                  checked={preferences.autoArchiveCompletedProjects}
-                  onChange={() =>
-                    handleToggleChange("autoArchiveCompletedProjects")
-                  }
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="autoArchiveCompletedProjects"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.autoArchiveCompletedProjects
-                      ? "bg-blue-500"
-                      : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.autoArchiveCompletedProjects
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
-              </div>
-            </div>
 
-            <div>
-              <label
-                htmlFor="autoArchiveDays"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Archive After (days)
-              </label>
-              <input
-                id="autoArchiveDays"
-                type="number"
-                min="1"
-                max="365"
-                value={preferences.autoArchiveDays}
-                onChange={(e) =>
-                  handleInputChange(
-                    "autoArchiveDays",
-                    parseInt(e.target.value, 10)
-                  )
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-blue-600" />
+              </div>
               <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Auto-Assign to Project Manager
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Automatically assign new tasks to the project manager
-                </p>
-              </div>
-              <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                <input
-                  type="checkbox"
-                  id="autoAssignToProjectManager"
-                  checked={preferences.autoAssignToProjectManager}
-                  onChange={() =>
-                    handleToggleChange("autoAssignToProjectManager")
-                  }
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="autoAssignToProjectManager"
-                  className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                    preferences.autoAssignToProjectManager
-                      ? "bg-blue-500"
-                      : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${
-                      preferences.autoAssignToProjectManager
-                        ? "transform translate-x-4"
-                        : ""
-                    }`}
-                  ></span>
-                </label>
+                <h4 className="text-sm font-semibold text-gray-900">Auto-Assign to Project Manager</h4>
+                <p className="text-sm text-gray-600">Automatically assign new tasks to the project manager</p>
               </div>
             </div>
+            <ToggleSwitch
+              id="autoAssignToProjectManager"
+              checked={preferences.autoAssignToProjectManager}
+              onChange={() => handleToggleChange("autoAssignToProjectManager")}
+            />
           </div>
         </div>
+      </div>
 
-        <div className="flex justify-end">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {loading ? "Saving..." : "Save Preferences"}
-          </button>
-        </div>
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="inline-flex items-center gap-3 px-8 py-4 bg-[#1c6ead]  text-white rounded-xl  transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5" />
+              Save Preferences
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ const TaskSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled','review'],
+            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'],
             default: 'pending',
         },
         priority: {
@@ -120,10 +120,14 @@ const TaskSchema = new mongoose.Schema(
             enum: ['low', 'medium', 'high', 'urgent'],
             default: 'medium',
         },
+        amount: {
+            type: Number,
+            default: 0,
+        },
         dueDate: {
             type: Date,
         },
-               attachments: [
+        attachments: [
             {
                 name: {
                     type: String,
@@ -133,7 +137,7 @@ const TaskSchema = new mongoose.Schema(
                     type: Number,
                     required: true,
                 },
-               
+
                 fileUrl: {
                     type: String,
                     required: true,
@@ -147,10 +151,10 @@ const TaskSchema = new mongoose.Schema(
                 },
             },
         ],
-       tags: {
-    type: [String],
-    default: []
-},
+        tags: {
+            type: [String],
+            default: []
+        },
 
         estimatedHours: {
             type: Number,
@@ -165,35 +169,35 @@ const TaskSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Task',
         },
-         subtasks: [
+        subtasks: [
             {
                 id: String,
                 title: String,
                 status: { type: String, enum: ['pending', 'in progress', 'completed'] }
             }
         ],
-       timeTracking: {
-                  entries: [
-                      {
-                          date: {
-                              type: Date,
-                              default: Date.now,
-                          },
-                          hours: {
-                              type: Number,
-                              required: [true, 'Please specify the hours spent'],
-                          },
-                          description: {
-                              type: String,
-                          },
-                          user: {
-                              type: mongoose.Schema.Types.ObjectId,
-                              ref: 'User',
-                              required: [true, 'Please specify the user for this time entry'],
-                          },
-                      }
-                  ]
-              },
+        timeTracking: {
+            entries: [
+                {
+                    date: {
+                        type: Date,
+                        default: Date.now,
+                    },
+                    hours: {
+                        type: Number,
+                        required: [true, 'Please specify the hours spent'],
+                    },
+                    description: {
+                        type: String,
+                    },
+                    user: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'User',
+                        required: [true, 'Please specify the user for this time entry'],
+                    },
+                }
+            ]
+        },
         // attachments: [
         //     {
         //         type: mongoose.Schema.Types.ObjectId,
@@ -258,7 +262,17 @@ const TaskSchema = new mongoose.Schema(
             ref: 'User'
         }],
         deleted: { type: Boolean, default: false },
-
+        tagDocuments: {
+            type: Map,
+            of: {
+                fileName: String,
+                filePath: String,
+                documentType: String,
+                tag: String,
+                uploadedAt: Date
+            },
+            default: {}
+        },
     },
     {
         timestamps: true,

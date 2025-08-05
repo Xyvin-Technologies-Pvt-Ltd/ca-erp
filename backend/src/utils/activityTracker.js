@@ -24,7 +24,8 @@ class ActivityTracker {
         user: data.userId,
         entityType: data.entityType,
         entityId: data.entityId,
-        link: data.link
+        link: data.link,
+        ...(data.project && { project: data.project }) // Save project if provided
       });
 
       await activity.save();
@@ -46,7 +47,8 @@ class ActivityTracker {
       entityType: 'task',
       entityId: task._id,
       userId,
-      link: `/tasks/${task._id}`
+      link: `/tasks/${task._id}`,
+      project: task.project 
     });
   }
 
@@ -136,7 +138,38 @@ class ActivityTracker {
       entityType: 'document',
       entityId: document._id,
       userId,
-      link: `/documents/${document._id}`
+      link: `/documents/${document._id}`,
+      project: document.project 
+    });
+  }
+
+  /**
+   * Track cron job creation
+   */
+  static async trackCronJobCreated(cronJob, userId) {
+    return this.track({
+      type: 'cronjob_created',
+      title: 'New Cron Job Created',
+      description: `Cron job "${cronJob.name}" was created for ${cronJob.frequency} frequency`,
+      entityType: 'cronjob',
+      entityId: cronJob._id,
+      userId,
+      link: `/cronjobs/${cronJob._id}`
+    });
+  }
+
+  /**
+   * Track cron job execution
+   */
+  static async trackCronJobExecuted(cronJob, project, userId) {
+    return this.track({
+      type: 'cronjob_executed',
+      title: 'Cron Job Executed',
+      description: `Project "${project.name}" was created from cron job "${cronJob.name}"`,
+      entityType: 'cronjob',
+      entityId: cronJob._id,
+      userId,
+      link: `/projects/${project._id}`
     });
   }
 }

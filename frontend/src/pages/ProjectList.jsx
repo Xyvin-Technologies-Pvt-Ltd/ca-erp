@@ -72,6 +72,13 @@ const ProgressBar = ({ percentage }) => {
 const ProjectCard = ({ project }) => {
   // Calculate days remaining or overdue
   const getDaysRemaining = () => {
+    if (!project.dueDate) {
+      return {
+        text: "No due date",
+        className: "text-gray-500",
+      };
+    }
+    
     const today = new Date();
     const dueDate = new Date(project.dueDate);
     const diffTime = dueDate - today;
@@ -125,13 +132,13 @@ const ProjectCard = ({ project }) => {
           <div>
             <p className="text-gray-500">Start Date</p>
             <p className="font-medium">
-              {new Date(project.startDate).toLocaleDateString()}
+              {project.startDate ? new Date(project.startDate).toLocaleDateString() : "No start date"}
             </p>
           </div>
           <div>
             <p className="text-gray-500">Due Date</p>
             <p className="font-medium flex items-center">
-              {new Date(project.dueDate).toLocaleDateString()}
+              {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "No due date"}
               <span className={`ml-2 text-xs ${daysRemaining.className}`}>
                 {daysRemaining.text}
               </span>
@@ -276,6 +283,9 @@ const ProjectList = () => {
 
   const sortedProjects = filteredProjects?.sort((a, b) => {
     if (sortBy === "dueDate") {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1; // Projects without due date go to the end
+      if (!b.dueDate) return -1; // Projects without due date go to the end
       return new Date(a.dueDate) - new Date(b.dueDate);
     }
     if (sortBy === "completionPercentage") {

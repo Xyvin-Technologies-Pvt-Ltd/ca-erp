@@ -14,6 +14,7 @@ const path = require('path');
 const { config } = require('dotenv');
 const WebSocket = require('ws');
 const websocketService = require('./utils/websocket');
+const cronService = require('./services/cronService');
 // Load env vars
 config();
 
@@ -28,6 +29,13 @@ const financeRoutes = require('./routes/finance.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const activityRoutes = require('./routes/activity.routes');
+const departments = require('./routes/department.routes')
+const positionRoutes = require('./routes/position.routes')
+const eventsRoutes = require('./routes/event.routes')
+const leavesRoutes = require('./routes/leave.routes')
+const attendanceRoutes = require('./routes/attendance.routes')
+const cronJobRoutes = require('./routes/cronJob.routes')
+const sectionRoutes = require('./routes/section.routes')
 
 // Initialize express app
 const app = express();
@@ -35,18 +43,21 @@ const app = express();
 // Connect to database
 connectDB();
 
+// Initialize cron jobs after DB connection
+cronService.init();
+
 // Set up rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: 'Too many requests from this IP, please try again after 15 minutes'
-});
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // limit each IP to 100 requests per windowMs
+//     standardHeaders: true,
+//     legacyHeaders: false,
+//     message: 'Too many requests from this IP, please try again after 15 minutes'
+// });
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -62,7 +73,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
-app.use(limiter);
+// app.use(limiter);
 
 // Prevent XSS attacks
 app.use(xss());
@@ -85,6 +96,14 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/departments',departments)
+app.use('/api/positions',positionRoutes)
+app.use('/api/events',eventsRoutes)
+app.use('/api/leaves',leavesRoutes)
+app.use('/api/attendance',attendanceRoutes)
+app.use('/api/cronjobs', cronJobRoutes)
+app.use('/api/sections', sectionRoutes)
+
 
 
 // Swagger documentation
@@ -105,42 +124,22 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5001;
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on port ${PORT}`);
+    
+    // Initialize cron service
+    try {
+        await cronService.init();
+        logger.info('Cron service initialized successfully');
+    } catch (error) {
+        logger.error('Failed to initialize cron service:', error);
+    }
 });
 // Initialize WebSocket
 websocketService.init(server);
 
-// const wss = new WebSocket.Server({ server });
-// Store WebSocket server instance
-// const wsInstance = {
-//   getWss: () => wss
-// };
-// wss.on('connection', (ws, req) => {
-//   console.log('New WebSocket connection');
 
-//   // Handle incoming messages
-//   ws.on('message', (message) => {
-//     try {
-//       const parsedMessage = JSON.parse(message);
-//       // Broadcast the message to all connected clients
-//       wss.clients.forEach((client) => {
-//         if (client !== ws && client.readyState === WebSocket.OPEN) {
-//           client.send(JSON.stringify(parsedMessage));
-//         }
-//       });
-//     } catch (error) {
-//       console.error('Error processing message:', error);
-//     }
-//   });
-// // Send initial connection success message
-// ws.send(JSON.stringify({ type: 'connection', message: 'Connected to WebSocket server' }))
-//   // Handle client disconnection
-//   ws.on('close', () => {
-//     console.log('Client disconnected');
-//   });
-// });
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
     logger.error(`Error: ${err.message}`);

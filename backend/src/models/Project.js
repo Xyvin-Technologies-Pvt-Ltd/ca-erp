@@ -110,9 +110,6 @@ const ProjectSchema = new mongoose.Schema(
         dueDate: {
             type: Date,
         },
-        budget: {
-            type: Number,
-        },
         priority: {
             type: String,
         },

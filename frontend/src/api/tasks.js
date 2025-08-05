@@ -12,13 +12,29 @@ export const fetchTasks = async (filters = {}) => {
         const response = await api.get(`/tasks?${query}`);
         
         return {
-            tasks: response.data.data, // ✅ This is the array of tasks
+            tasks: response.data.data, 
             pagination: response.data.pagination,
             total: response.data.total,
             team: response.data.team // if this exists
         };
     } catch (error) {
         console.error("Error fetching tasks:", error);
+        throw error;
+    }
+};
+
+/**
+ * @returns {Promise} Promise object containing all tasks data
+ */
+export const fetchAllTasks = async () => {
+    try {
+        const response = await api.get('/tasks/all');
+        return {
+            tasks: response.data.data,
+            count: response.data.count
+        };
+    } catch (error) {
+        console.error("Error fetching all tasks (no pagination):", error);
         throw error;
     }
 };
@@ -33,57 +49,11 @@ export const fetchTaskById = async (id) => {
     try {
         // In a real app, we would fetch from the backend
         const response = await api.get(`/tasks/${id}`);
-        console.log(response.data.data);
         
         return response.data.data;
  
-        // For demo purposes, return a mock task
-        // return {
-        //     id,
-        //     title: "Income Tax Audit for Tata Consultancy",
-        //     description: "Conduct comprehensive income tax audit as per Section 44AB for FY 2022-23, including verification of books of accounts, tax calculations, and preparation of Form 3CD.",
-        //     status: "In Progress",
-        //     project: { id: "2", name: "Tax Audit 2023" },
-        //     priority: "High",
-        //     assignedTo: { id: "2", name: "Priya Patel", avatar: null },
-        //     dueDate: "2023-08-05",
-        //     createdAt: "2023-06-15",
-        //     estimatedHours: 16,
-        //     actualHours: 10,
-        //     tags: ["Income Tax", "Audit", "44AB"],
-        //     comments: [
-        //         {
-        //             id: "1",
-        //             text: "Initial assessment of books of accounts completed. Some discrepancies in depreciation calculations noted.",
-        //             user: { id: "2", name: "Priya Patel", avatar: null },
-        //             timestamp: "2023-06-25T11:30:00Z"
-        //         },
-        //         {
-        //             id: "2",
-        //             text: "Please also review the provisions made for gratuity and verify compliance with AS-15.",
-        //             user: { id: "7", name: "Sanjay Kapoor", avatar: null },
-        //             timestamp: "2023-06-27T14:15:00Z"
-        //         }
-        //     ],
-        //     attachments: [
-        //         { id: "1", name: "tcs_trial_balance_fy2223.xlsx", size: "3.4MB", uploadedAt: "2023-06-20T10:45:00Z" },
-        //         { id: "2", name: "tax_audit_checklist.pdf", size: "1.2MB", uploadedAt: "2023-06-18T09:20:00Z" },
-        //         { id: "3", name: "tcs_fixed_assets_register.xlsx", size: "4.8MB", uploadedAt: "2023-07-02T11:15:00Z" }
-        //     ],
-        //     subtasks: [
-        //         { id: "101", title: "Verify books of accounts", status: "completed" },
-        //         { id: "102", title: "Review tax calculations", status: "in-progress" },
-        //         { id: "103", title: "Prepare Form 3CD", status: "pending" },
-        //         { id: "104", title: "Client meeting for clarifications", status: "completed" },
-        //         { id: "105", title: "Final report preparation", status: "pending" }
-        //     ],
-        //     timeTracking: [
-        //         { date: "2023-06-20", hours: 3, description: "Initial assessment of financial statements" },
-        //         { date: "2023-06-22", hours: 2.5, description: "Analysis of depreciation schedule" },
-        //         { date: "2023-06-25", hours: 2, description: "Review of transactions above Rs. 10,000" },
-        //         { date: "2023-07-01", hours: 2.5, description: "Client meeting" }
-        //     ]
-        // };
+        
+      
     } catch (error) {
         console.error(`Error fetching task ${id}:`, error);
         throw error;
@@ -100,7 +70,6 @@ export const fetchTasksByProject = async (projectId) => {
         // In a real app, we would fetch from the backend
         const response = await api.get(`/projects/${projectId}/tasks`);
           // return response.data;
-          console.log("Full response data:", response.data);
 
         return {
            data: response.data.data, 
@@ -130,7 +99,6 @@ export const createTask = async (taskData, token) => {
   try {
     const isFormData = taskData instanceof FormData;
 
-    console.log('Creating task with data:', taskData);
 
     const response = await api.post('/tasks', taskData, {
       headers: {
@@ -291,4 +259,70 @@ export const updateTaskTime = async (id, timeData, token) => {
     console.error(`Error updating time for task ${id}:`, error.response || error);
     throw error;
   }
+};
+
+/**
+ * Upload a tag document for a task
+ * @param {string} taskId - Task ID
+ * @param {Object} formData - Document data including file and tag info
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the uploaded document info
+ */
+export const uploadTagDocument = async (taskId, formData, token) => {
+    try {
+
+        // Log all FormData entries
+        for (let [key, value] of formData.entries()) {
+            console.log('FormData entry:', key, typeof value, value);
+        }
+
+        const response = await api.post(`/tasks/${taskId}/tag-documents`, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading document:', error.response?.data || error);
+        throw error;
+    }
+};
+
+/**
+ * Get tag documents for a task
+ * @param {string} taskId - Task ID
+ * @returns {Promise} Promise object containing the task's tag documents
+ */
+export const getTaskTagDocuments = async (taskId) => {
+    try {
+        const response = await api.get(`/tasks/${taskId}/tag-documents`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching tag documents for task ${taskId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Send reminder to client for document
+ * @param {string} taskId - Task ID
+ * @param {Object} reminderData - Reminder data including document name, type, and tag
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the reminder response
+ */
+export const remindClientForDocument = async (taskId, reminderData, token) => {
+    try {
+        const response = await api.post(`/tasks/${taskId}/remind-client`, reminderData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Error sending reminder for task ${taskId}:`, error);
+        throw error;
+    }
 };

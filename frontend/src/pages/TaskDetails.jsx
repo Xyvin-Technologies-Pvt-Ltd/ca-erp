@@ -223,7 +223,7 @@ const TaskDetails = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1c6ead]"></div>
       </div>
     );
   }
@@ -321,13 +321,13 @@ const TaskDetails = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setEditMode(!editMode)}
-                  className="px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1c6ead]"
                 >
                   {editMode ? "Cancel" : "Edit"}
                 </button>
                 <Link
                   to={`${ROUTES.TASKS}/${id}/edit`}
-                  className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1c6ead]"
                 >
                   Full Edit
                 </Link>
@@ -409,7 +409,7 @@ const TaskDetails = () => {
               <p className="text-gray-500">No attachments for this task.</p>
             )}
             <div className="mt-4">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1c6ead]">
                 <svg
                   className="-ml-1 mr-2 h-5 w-5 text-gray-500"
                   fill="currentColor"
@@ -470,7 +470,7 @@ const TaskDetails = () => {
               <div className="mt-2">
                 <textarea
                   rows="3"
-                  className="shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md"
+                  className="shadow-sm block w-full focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm border-gray-300 rounded-md"
                   placeholder="Write a comment..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
@@ -479,7 +479,7 @@ const TaskDetails = () => {
               <div className="mt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1c6ead]"
                 >
                   Post Comment
                 </button>
@@ -585,7 +585,7 @@ const TaskDetails = () => {
                       ) : null}
                       <div className="relative flex space-x-3">
                         <div>
-                          <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                          <span className="h-8 w-8 rounded-full bg-[#1c6ead] flex items-center justify-center ring-8 ring-white">
                             <svg
                               className="h-5 w-5 text-white"
                               fill="currentColor"

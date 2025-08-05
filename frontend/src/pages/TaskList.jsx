@@ -230,7 +230,7 @@ const TaskList = () => {
         <div className="mt-4 sm:mt-0">
           <Link
             to={ROUTES.TASK_NEW}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1c6ead]"
           >
             <svg
               className="-ml-1 mr-2 h-5 w-5"
@@ -277,7 +277,7 @@ const TaskList = () => {
               <input
                 id="search"
                 name="search"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm"
                 placeholder="Search tasks by title or description"
                 type="search"
                 value={searchQuery}
@@ -294,7 +294,7 @@ const TaskList = () => {
             <select
               id="project"
               name="project"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm rounded-md"
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
             >
@@ -317,7 +317,7 @@ const TaskList = () => {
                 type="button"
                 className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
                   viewMode === "board"
-                    ? "bg-blue-50 text-blue-700 z-10 border-blue-500"
+                    ? "bg-blue-50 text-blue-700 z-10 border-[#1c6ead]"
                     : "bg-white text-gray-700"
                 }`}
                 onClick={() => setViewMode("board")}
@@ -342,7 +342,7 @@ const TaskList = () => {
                 type="button"
                 className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
                   viewMode === "list"
-                    ? "bg-blue-50 text-blue-700 z-10 border-blue-500"
+                    ? "bg-blue-50 text-blue-700 z-10 border-[#1c6ead]"
                     : "bg-white text-gray-700"
                 }`}
                 onClick={() => setViewMode("list")}
@@ -376,7 +376,7 @@ const TaskList = () => {
             <select
               id="status"
               name="status"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm rounded-md"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -397,7 +397,7 @@ const TaskList = () => {
             <select
               id="priority"
               name="priority"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm rounded-md"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
             >
@@ -418,7 +418,7 @@ const TaskList = () => {
             <select
               id="assignee"
               name="assignee"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#1c6ead] focus:border-[#1c6ead] sm:text-sm rounded-md"
               value={assigneeFilter}
               onChange={(e) => setAssigneeFilter(e.target.value)}
             >
