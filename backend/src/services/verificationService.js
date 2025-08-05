@@ -11,11 +11,19 @@ class VerificationService {
         this.currentIndex = 0;
         this.verificationStaff = [];
         this.lastUpdate = null;
+        this.projectAssignmentHistory = new Map(); // Track last assigned user per project
     }
 
-    /**
-     * Get all verification staff members
-     */
+   
+    resetState() {
+        this.currentIndex = 0;
+        this.verificationStaff = [];
+        this.lastUpdate = null;
+        this.projectAssignmentHistory.clear();
+        logger.info('Verification service state reset');
+    }
+
+   
     async getVerificationStaff() {
         try {
             const staff = await User.find({ verificationStaff: true, status: 'active' })
@@ -25,6 +33,7 @@ class VerificationService {
             this.verificationStaff = staff;
             this.lastUpdate = Date.now();
             
+            logger.info(`Loaded ${staff.length} verification staff members`);
             return staff;
         } catch (error) {
             logger.error('Error fetching verification staff:', error);
@@ -32,9 +41,7 @@ class VerificationService {
         }
     }
 
-    /**
-     * Get next verification staff member using round-robin, excluding those already assigned to project tasks
-     */
+    
     async getNextVerificationStaff(projectId = null) {
         try {
             if (!this.lastUpdate || Date.now() - this.lastUpdate > 300000) {
@@ -46,8 +53,7 @@ class VerificationService {
                 return null;
             }
 
-            let availableStaff = [...this.verificationStaff];
-
+            let projectAssignedUsers = [];
             if (projectId) {
                 try {
                     const projectTasks = await Task.find({ 
@@ -56,57 +62,65 @@ class VerificationService {
                         assignedTo: { $exists: true, $ne: null }
                     }).select('assignedTo');
 
-                    const assignedUserIds = [...new Set(projectTasks.map(task => task.assignedTo.toString()))];
-
-                    availableStaff = this.verificationStaff.filter(staff => 
-                        !assignedUserIds.includes(staff._id.toString())
-                    );
-
-                    logger.info(`Project ${projectId}: ${assignedUserIds.length} users already assigned, ${availableStaff.length} verification staff available`);
+                    projectAssignedUsers = [...new Set(projectTasks.map(task => task.assignedTo.toString()))];
+                    logger.info(`Project ${projectId}: ${projectAssignedUsers.length} users already assigned to project tasks`);
                 } catch (error) {
-                    logger.error('Error filtering verification staff for project:', error);
-                    availableStaff = [...this.verificationStaff];
+                    logger.error('Error getting project assigned users:', error);
                 }
             }
+
+            const availableStaff = this.verificationStaff.filter(staff => 
+                !projectAssignedUsers.includes(staff._id.toString())
+            );
 
             if (availableStaff.length === 0) {
                 logger.warn(`No available verification staff for project ${projectId} - all staff members were already assigned to project tasks`);
                 return null;
             }
 
-            let staffMember = null;
+            const lastAssignedUserId = this.projectAssignmentHistory.get(projectId);
+            
+            let selectedStaff = null;
             let attempts = 0;
-            const maxAttempts = this.verificationStaff.length;
+            const maxAttempts = availableStaff.length * 2; // Allow multiple rounds
 
-            while (!staffMember && attempts < maxAttempts) {
+            while (!selectedStaff && attempts < maxAttempts) {
                 const nextStaff = this.verificationStaff[this.currentIndex];
                 this.currentIndex = (this.currentIndex + 1) % this.verificationStaff.length;
 
-                const isAvailable = availableStaff.some(staff => staff._id.toString() === nextStaff._id.toString());
-                
-                if (isAvailable) {
-                    staffMember = nextStaff;
+                const isAvailable = availableStaff.some(staff => 
+                    staff._id.toString() === nextStaff._id.toString()
+                );
+
+                if (isAvailable && (lastAssignedUserId !== nextStaff._id.toString() || availableStaff.length === 1)) {
+                    selectedStaff = nextStaff;
                 }
 
                 attempts++;
             }
 
-            if (staffMember) {
-                logger.info(`Assigned verification task to: ${staffMember.name} (${staffMember._id}) for project ${projectId}`);
+            if (!selectedStaff && availableStaff.length > 0) {
+                selectedStaff = availableStaff[0];
+                logger.info(`No staff found in rotation, using first available: ${selectedStaff.name}`);
+            }
+
+            if (selectedStaff) {
+                this.projectAssignmentHistory.set(projectId, selectedStaff._id.toString());
+                
+                logger.info(`Assigned verification task to: ${selectedStaff.name} (${selectedStaff._id}) for project ${projectId}`);
+                logger.info(`Available staff for project ${projectId}: ${availableStaff.map(s => s.name).join(', ')}`);
             } else {
                 logger.warn(`No available verification staff found after ${attempts} attempts for project ${projectId}`);
             }
 
-            return staffMember;
+            return selectedStaff;
         } catch (error) {
             logger.error('Error getting next verification staff:', error);
             throw error;
         }
     }
 
-    /**
-     * Check if all tasks in a project are completed
-     */
+   
     async areAllTasksCompleted(projectId) {
         try {
             const tasks = await Task.find({ 
@@ -250,6 +264,7 @@ class VerificationService {
             throw error;
         }
     }
+
     async handleVerificationTaskCompletion(verificationTaskId, completedBy) {
         try {
             const verificationTask = await Task.findById(verificationTaskId);
