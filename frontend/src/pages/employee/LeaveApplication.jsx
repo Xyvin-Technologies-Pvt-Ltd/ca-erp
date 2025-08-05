@@ -24,18 +24,23 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { createLeave, getMyLeaves } from "../../api/Leave.js";
-import moment from 'moment';
-
+import {
+  casualLeaveAvailable,
+  createLeave,
+  getMyLeaves,
+} from "../../api/Leave.js";
+import moment from "moment";
 
 const LeaveApplication = () => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
-    from: moment().add(7, 'days').startOf('day').toDate(),
-    to: moment().add(7, 'days').startOf('day').toDate(),
+    from: moment().add(7, "days").startOf("day").toDate(),
+    to: moment().add(7, "days").startOf("day").toDate(),
   });
-  const [currentMonth, setCurrentMonth] = useState(moment().startOf('month').toDate());
+  const [currentMonth, setCurrentMonth] = useState(
+    moment().startOf("month").toDate()
+  );
   const [leaveType, setLeaveType] = useState("");
   const [reason, setReason] = useState("");
   const [recentApplications, setRecentApplications] = useState([]);
@@ -43,15 +48,32 @@ const LeaveApplication = () => {
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState({
-    annual: { total: 14, used: 0, pending: 0 },
     sick: { total: 7, used: 0, pending: 0 },
-    personal: { total: 3, used: 0, pending: 0 },
-    maternity: { total: 90, used: 0, pending: 0 },
-    paternity: { total: 14, used: 0, pending: 0 },
+    casual: { total: 1, used: 0, pending: 0 },
     unpaid: { total: 0, used: 0, pending: 0 },
-    other: { total: 0, used: 0, pending: 0 },
+    Emergency: { total: 14, used: 0, pending: 0 },
+    Exam: { total: 14, used: 0, pending: 0 },
+    others: { total: 0, used: 0, pending: 0 },
   });
-
+  // const [leaveBalance, setLeaveBalance] = useState({
+  //   // annual: { total: 14, used: 0, pending: 0 },
+  //   sick: { total: 7, used: 0, pending: 0 },
+  //   casual: { total: 1, used: 0, pending: 0 },
+  //   // personal: { total: 3, used: 0, pending: 0 },
+  //   // maternity: { total: 90, used: 0, pending: 0 },
+  //   // paternity: { total: 14, used: 0, pending: 0 },
+  //   unpaid: { total: 0, used: 0, pending: 0 },
+  //   Emergency: { total: 14, used: 0, pending: 0 },
+  //   Exam: { total: 14, used: 0, pending: 0 },
+  //   others: { total: 0, used: 0, pending: 0 },
+  // });
+  const [casualLeaveIsHidden, setcasualLeaveIsHidden] = useState(false);
+  const [availableCasualLeaves, setAvailableCasualLeaves] = useState(0);
+  const now = new Date();
+  const [passMonth, setPassMonth] = useState({
+    startOfMonth: new Date(now.getFullYear(), now.getMonth(), 1),
+    startOfNextMonth: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+  });
   useEffect(() => {
     const fetchLeaveData = async () => {
       const loadingToast = toast.loading("Loading leave information...", {
@@ -63,9 +85,10 @@ const LeaveApplication = () => {
           setIsLoading(false);
           return;
         }
-
+        const CasualLeaveTaken = await casualLeaveAvailable();
+        console.log(CasualLeaveTaken?.data?.data);
+        setAvailableCasualLeaves(CasualLeaveTaken?.data?.data?.casual);
         const leaveResponse = await getMyLeaves();
-
         let leavesData = [];
         if (Array.isArray(leaveResponse)) {
           leavesData = leaveResponse;
@@ -84,45 +107,71 @@ const LeaveApplication = () => {
               leave.leaveType.charAt(0).toUpperCase() +
               leave.leaveType.slice(1) +
               " Leave",
-            from: moment(leave.startDate).format('YYYY-MM-DD'),
-            to: moment(leave.endDate).format('YYYY-MM-DD'),
+            from: moment(leave.startDate).format("YYYY-MM-DD"),
+            to: moment(leave.endDate).format("YYYY-MM-DD"),
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
             approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
             reviewNotes: leave.reviewNotes || "",
-            reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+            reviewedAt: leave.reviewedAt
+              ? moment(leave.reviewedAt).format("MMM DD, YYYY")
+              : "",
             reviewedBy: leave.reviewedBy || "",
-            originalLeave: leave, 
+            originalLeave: leave,
           }))
           .sort((a, b) => new Date(b.from) - new Date(a.from));
 
         setRecentApplications(sortedApplications);
-
-        const balanceCalculation = {
-          annual: { total: 14, used: 0, pending: 0 },
-          sick: { total: 7, used: 0, pending: 0 },
-          personal: { total: 3, used: 0, pending: 0 },
-          maternity: { total: 90, used: 0, pending: 0 },
-          paternity: { total: 14, used: 0, pending: 0 },
-          unpaid: { total: 0, used: 0, pending: 0 },
-          other: { total: 0, used: 0, pending: 0 },
-        };
-
-        sortedApplications.forEach((app) => {
-          const type = app.type.toLowerCase().replace(" leave", "");
-          if (balanceCalculation[type]) {
-            if (app.status === "Approved") {
-              balanceCalculation[type].used +=
-                moment(app.to).diff(moment(app.from), 'days') + 1;
-            } else if (app.status === "Pending") {
-              balanceCalculation[type].pending +=
-                moment(app.to).diff(moment(app.from), 'days') + 1;
+        if (CasualLeaveTaken?.data?.data.casual === 0) {
+          setcasualLeaveIsHidden(true);
+          const balanceCalculation = {
+            sick: { total: 7, used: 0, pending: 0 },
+            paid: { total: 10, used: 0, pending: 0 },
+            unpaid: { total: 0, used: 0, pending: 0 },
+            Emergency: { total: 14, used: 0, pending: 0 },
+            Exam: { total: 14, used: 0, pending: 0 },
+            others: { total: 0, used: 0, pending: 0 },
+          };
+          sortedApplications.forEach((app) => {
+            const type = app.type.toLowerCase().replace(" leave", "");
+            if (balanceCalculation[type]) {
+              if (app.status === "Approved") {
+                balanceCalculation[type].used +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
+              } else if (app.status === "Pending") {
+                balanceCalculation[type].pending +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
+              }
             }
-          }
-        });
+          });
 
-        setLeaveBalance(balanceCalculation);
-        setIsLoading(false);
+          setLeaveBalance(balanceCalculation);
+          setIsLoading(false);
+        } else {
+          setcasualLeaveIsHidden(false);
+          const balanceCalculation = {
+            sick: { total: 7, used: 0, pending: 0 },
+            casual: { total: 1, used: 0, pending: 0 },
+            unpaid: { total: 0, used: 0, pending: 0 },
+            Emergency: { total: 14, used: 0, pending: 0 },
+            Exam: { total: 14, used: 0, pending: 0 },
+            others: { total: 0, used: 0, pending: 0 },
+          };
+          sortedApplications.forEach((app) => {
+            const type = app.type.toLowerCase().replace(" leave", "");
+            if (balanceCalculation[type]) {
+              if (app.status === "Approved") {
+                balanceCalculation[type].used +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
+              } else if (app.status === "Pending") {
+                balanceCalculation[type].pending +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
+              }
+            }
+          });
+          setLeaveBalance(balanceCalculation);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching leave data:", error);
         toast.error("Failed to fetch leave requests");
@@ -136,9 +185,9 @@ const LeaveApplication = () => {
   const refreshLeaveData = async () => {
     try {
       if (!user) return;
-
+      const CasualLeaveTaken = await casualLeaveAvailable();
+      setAvailableCasualLeaves(CasualLeaveTaken?.data?.data?.casual);
       const leaveResponse = await getMyLeaves();
-
       let leavesData = [];
       if (Array.isArray(leaveResponse)) {
         leavesData = leaveResponse;
@@ -157,13 +206,14 @@ const LeaveApplication = () => {
             leave.leaveType.charAt(0).toUpperCase() +
             leave.leaveType.slice(1) +
             " Leave",
-          from: moment(leave.startDate).format('YYYY-MM-DD'),
-          to: moment(leave.endDate).format('YYYY-MM-DD'),
-          status:
-            leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
+          from: moment(leave.startDate).format("YYYY-MM-DD"),
+          to: moment(leave.endDate).format("YYYY-MM-DD"),
+          status: leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
           approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
           reviewNotes: leave.reviewNotes || "",
-          reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+          reviewedAt: leave.reviewedAt
+            ? moment(leave.reviewedAt).format("MMM DD, YYYY")
+            : "",
           reviewedBy: leave.reviewedBy || "",
           originalLeave: leave,
         }))
@@ -171,41 +221,71 @@ const LeaveApplication = () => {
 
       setRecentApplications(sortedApplications);
 
-      const balanceCalculation = {
-        annual: { total: 14, used: 0, pending: 0 },
-        sick: { total: 7, used: 0, pending: 0 },
-        personal: { total: 3, used: 0, pending: 0 },
-        maternity: { total: 90, used: 0, pending: 0 },
-        paternity: { total: 14, used: 0, pending: 0 },
-        unpaid: { total: 0, used: 0, pending: 0 },
-        other: { total: 0, used: 0, pending: 0 },
-      };
-
-      sortedApplications.forEach((app) => {
-        const type = app.type.toLowerCase().replace(" leave", "");
-        if (balanceCalculation[type]) {
-          if (app.status === "Approved") {
-            balanceCalculation[type].used +=
-              moment(app.to).diff(moment(app.from), 'days') + 1;
-          } else if (app.status === "Pending") {
-            balanceCalculation[type].pending +=
-              moment(app.to).diff(moment(app.from), 'days') + 1;
+      if (CasualLeaveTaken?.data?.data.casual === 0) {
+        setcasualLeaveIsHidden(true);
+        const balanceCalculation = {
+          sick: { total: 7, used: 0, pending: 0 },
+          paid: { total: 10, used: 0, pending: 0 },
+          unpaid: { total: 0, used: 0, pending: 0 },
+          Emergency: { total: 14, used: 0, pending: 0 },
+          Exam: { total: 14, used: 0, pending: 0 },
+          others: { total: 0, used: 0, pending: 0 },
+        };
+        sortedApplications.forEach((app) => {
+          const type = app.type.toLowerCase().replace(" leave", "");
+          if (balanceCalculation[type]) {
+            if (app.status === "Approved") {
+              balanceCalculation[type].used +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            } else if (app.status === "Pending") {
+              balanceCalculation[type].pending +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            }
           }
-        }
-      });
+        });
 
-      setLeaveBalance(balanceCalculation);
+        setLeaveBalance(balanceCalculation);
+        setIsLoading(false);
+      } else {
+        setcasualLeaveIsHidden(false);
+        const balanceCalculation = {
+          sick: { total: 7, used: 0, pending: 0 },
+          casual: { total: 1, used: 0, pending: 0 },
+          unpaid: { total: 0, used: 0, pending: 0 },
+          Emergency: { total: 14, used: 0, pending: 0 },
+          Exam: { total: 14, used: 0, pending: 0 },
+          others: { total: 0, used: 0, pending: 0 },
+        };
+        sortedApplications.forEach((app) => {
+          const type = app.type.toLowerCase().replace(" leave", "");
+          if (balanceCalculation[type]) {
+            if (app.status === "Approved") {
+              balanceCalculation[type].used +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            } else if (app.status === "Pending") {
+              balanceCalculation[type].pending +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            }
+          }
+        });
+        setLeaveBalance(balanceCalculation);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Error refreshing leave data:", error);
     }
   };
 
   const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => moment(prev).subtract(1, 'month').startOf('month').toDate());
+    setCurrentMonth((prev) =>
+      moment(prev).subtract(1, "month").startOf("month").toDate()
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth((prev) => moment(prev).add(1, 'month').startOf('month').toDate());
+    setCurrentMonth((prev) =>
+      moment(prev).add(1, "month").startOf("month").toDate()
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -231,18 +311,47 @@ const LeaveApplication = () => {
         toast.error("User information not found");
         return;
       }
+      const date1 = new Date(dateRange.from);
+      const date2 = new Date(dateRange.to);
 
-      const leaveRequest = {
-        startDate: moment(dateRange.from).format('YYYY-MM-DD'),
-        endDate: moment(dateRange.to).format('YYYY-MM-DD'),
-        reason: reason.trim(),
-        employee: user._id || user.id || user.employeeId,
-        leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
-        status: "Pending",
-      };
-
+      const diffInMs = date2 - date1;
+      const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+      let a = diffInDays + 1;
+      // console.log(leaveType);
+      // console.log(availableCasualLeaves)
+      // return;
+      if (leaveType === "casual") {
+        if (availableCasualLeaves < a) {
+          toast.error("Failed to submit leave request");
+          console.log("error");
+          return;
+        }
+      }
+      console.log("y");
+      let leaveRequest = {};
+      if (leaveType === "casual") {
+        leaveRequest = {
+          startDate: moment(dateRange.from).format("YYYY-MM-DD"),
+          endDate: moment(dateRange.to).format("YYYY-MM-DD"),
+          reason: reason.trim(),
+          employee: user._id || user.id || user.employeeId,
+          leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
+          status: "Pending",
+          casual: true,
+        };
+      } else {
+        leaveRequest = {
+          startDate: moment(dateRange.from).format("YYYY-MM-DD"),
+          endDate: moment(dateRange.to).format("YYYY-MM-DD"),
+          reason: reason.trim(),
+          employee: user._id || user.id || user.employeeId,
+          leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
+          status: "Pending",
+        };
+      }
       const response = await createLeave(leaveRequest);
 
+      console.log(response);
       if (!response || !response.data) {
         toast.error("Failed to submit leave request");
         return;
@@ -250,7 +359,10 @@ const LeaveApplication = () => {
 
       setLeaveType("");
       setReason("");
-      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
+      setDateRange({
+        from: moment().add(7, "days").startOf("day").toDate(),
+        to: moment().add(7, "days").startOf("day").toDate(),
+      });
 
       if (response && response.data) {
         toast.success("Leave request submitted successfully", {
@@ -314,11 +426,14 @@ const LeaveApplication = () => {
   };
 
   const handleDateClick = (date) => {
-    if (!date || moment(date).isBefore(moment().add(6, 'days').startOf('day'))) {
+    if (
+      !date ||
+      moment(date).isBefore(moment().add(6, "days").startOf("day"))
+    ) {
       return; // Don't allow selection of disabled dates
     }
 
-    const localDate = moment(date).startOf('day').toDate();
+    const localDate = moment(date).startOf("day").toDate();
 
     if (!dateRange.from || (dateRange.from && dateRange.to)) {
       // Start new selection
@@ -335,61 +450,70 @@ const LeaveApplication = () => {
 
   const isDateInRange = (date) => {
     if (!dateRange.from || !dateRange.to || !date) return false;
-    const localDate = moment(date).startOf('day');
-    return (moment(localDate).isSameOrAfter(moment(dateRange.from)) &&
-            moment(localDate).isSameOrBefore(moment(dateRange.to)));
+    const localDate = moment(date).startOf("day");
+    return (
+      moment(localDate).isSameOrAfter(moment(dateRange.from)) &&
+      moment(localDate).isSameOrBefore(moment(dateRange.to))
+    );
   };
 
   const isDateSelected = (date) => {
     if (!date) return false;
-    const localDate = moment(date).startOf('day');
-    return (dateRange.from && moment(localDate).isSame(moment(dateRange.from), 'day')) ||
-           (dateRange.to && moment(localDate).isSame(moment(dateRange.to), 'day'));
+    const localDate = moment(date).startOf("day");
+    return (
+      (dateRange.from &&
+        moment(localDate).isSame(moment(dateRange.from), "day")) ||
+      (dateRange.to && moment(localDate).isSame(moment(dateRange.to), "day"))
+    );
   };
 
   const isDateDisabled = (date) => {
     if (!date) return true;
-    return moment(date).isBefore(moment().add(6, 'days').startOf('day'));
+    return moment(date).isBefore(moment().add(6, "days").startOf("day"));
   };
 
   const isToday = (date) => {
     if (!date) return false;
-    return moment(date).isSame(moment(), 'day');
+    return moment(date).isSame(moment(), "day");
   };
 
   const getDaysInMonth = (date) => {
     const year = moment(date).year();
     const month = moment(date).month();
     const firstDay = moment([year, month, 1]);
-    const lastDay = moment([year, month]).endOf('month');
+    const lastDay = moment([year, month]).endOf("month");
     const daysInMonth = lastDay.date();
     const startingDayOfWeek = firstDay.day();
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(moment([year, month, day]).toDate());
     }
-    
+
     return days;
   };
 
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
-      const days = moment(dateRange.to).diff(moment(dateRange.from), 'days') + 1;
+      const days =
+        moment(dateRange.to).diff(moment(dateRange.from), "days") + 1;
       return (
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
-          <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
+          <span className="font-semibold text-gray-900">
+            {days} day{days > 1 ? "s" : ""}
+          </span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
-            {moment(dateRange.from).format('MMM D')} - {moment(dateRange.to).format('MMM D, YYYY')}
+            {moment(dateRange.from).format("MMM D")} -{" "}
+            {moment(dateRange.to).format("MMM D, YYYY")}
           </span>
         </div>
       );
@@ -408,33 +532,39 @@ const LeaveApplication = () => {
         range.to = range.from;
       }
       setDateRange({
-        from: moment(range.from).startOf('day').toDate(),
-        to: moment(range.to).startOf('day').toDate(),
+        from: moment(range.from).startOf("day").toDate(),
+        to: moment(range.to).startOf("day").toDate(),
       });
     } else {
-      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
+      setDateRange({
+        from: moment().add(7, "days").startOf("day").toDate(),
+        to: moment().add(7, "days").startOf("day").toDate(),
+      });
     }
   };
 
   const disabledDays = {
-    before: moment().add(6, 'days').startOf('day').toDate(),
+    before: moment().add(6, "days").startOf("day").toDate(),
   };
 
   const renderCalendar = (month) => {
     const days = getDaysInMonth(month);
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     return (
       <div className="w-full">
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {weekDays.map(day => (
-            <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center text-sm font-medium text-gray-500 py-2"
+            >
               {day}
             </div>
           ))}
         </div>
-        
+
         {/* Calendar days */}
         <div className="grid grid-cols-7 gap-1">
           {days.map((date, index) => {
@@ -447,18 +577,23 @@ const LeaveApplication = () => {
             const inRange = isDateInRange(date);
             const today = isToday(date);
 
-            let dayClasses = "h-10 w-10 flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ";
+            let dayClasses =
+              "h-10 w-10 flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ";
 
             if (disabled) {
               dayClasses += "text-gray-400 cursor-not-allowed opacity-50 ";
             } else if (selected) {
-              dayClasses += "bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-600 text-white font-semibold shadow-lg transform scale-105 ring-2 ring-indigo-300 ring-offset-1 ";
+              dayClasses +=
+                "bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-600 text-white font-semibold shadow-lg transform scale-105 ring-2 ring-indigo-300 ring-offset-1 ";
             } else if (inRange) {
-              dayClasses += "bg-gradient-to-r from-indigo-200 to-indigo-100 text-indigo-900 font-medium shadow-sm ";
+              dayClasses +=
+                "bg-gradient-to-r from-indigo-200 to-indigo-100 text-indigo-900 font-medium shadow-sm ";
             } else if (today) {
-              dayClasses += "bg-indigo-50 text-indigo-600 font-semibold border-2 border-indigo-300 ";
+              dayClasses +=
+                "bg-indigo-50 text-indigo-600 font-semibold border-2 border-indigo-300 ";
             } else {
-              dayClasses += "text-gray-700 hover:bg-indigo-100 hover:scale-105 hover:shadow-md ";
+              dayClasses +=
+                "text-gray-700 hover:bg-indigo-100 hover:scale-105 hover:shadow-md ";
             }
 
             return (
@@ -496,14 +631,18 @@ const LeaveApplication = () => {
       >
         <div className="flex items-center space-x-3">
           <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
-          <h1 className="text-3xl font-bold text-gray-900">Leave Application</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Leave Application
+          </h1>
         </div>
         <Button
           variant="outline"
           className="mt-4 md:mt-0 flex items-center gap-2 bg-white hover:bg-indigo-50 border-indigo-300 shadow-sm rounded-lg transition-all duration-300 hover:shadow-md"
         >
           <DocumentTextIcon className="h-5 w-5 text-[#1c6ead]" />
-          <span className="font-medium text-[#1c6ead] cursor-pointer">Download Leave Policy</span>
+          <span className="font-medium text-[#1c6ead] cursor-pointer">
+            Download Leave Policy
+          </span>
         </Button>
       </motion.div>
 
@@ -528,13 +667,56 @@ const LeaveApplication = () => {
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-indigo-100 shadow-lg rounded-lg cursor-pointer">
-                      <SelectItem value="annual" className="hover:bg-indigo-50 cursor-pointer">Annual Leave</SelectItem>
-                      <SelectItem value="sick" className="hover:bg-indigo-50 cursor-pointer">Sick Leave</SelectItem>
-                      <SelectItem value="personal" className="hover:bg-indigo-50 cursor-pointer">Personal Leave</SelectItem>
-                      <SelectItem value="unpaid" className="hover:bg-indigo-50 cursor-pointer">Unpaid Leave</SelectItem>
-                      <SelectItem value="other" className="hover:bg-indigo-50 cursor-pointer">Other Leave</SelectItem>
-                      <SelectItem value="maternity" className="hover:bg-indigo-50 cursor-pointer">Maternity Leave</SelectItem>
-                      <SelectItem value="paternity" className="hover:bg-indigo-50 cursor-pointer">Paternity Leave</SelectItem>
+                      <SelectItem
+                        value="sick"
+                        className="hover:bg-indigo-50 cursor-pointer"
+                      >
+                        Sick Leave
+                      </SelectItem>
+                      {availableCasualLeaves > 0 ? (
+                        <>
+                          {" "}
+                          <SelectItem
+                            value="casual"
+                            className="hover:bg-indigo-50 cursor-pointer"
+                          >
+                            Casual
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem
+                            value="paid"
+                            className="hover:bg-indigo-50 cursor-pointer"
+                          >
+                            Paid
+                          </SelectItem>
+                        </>
+                      )}
+                      <SelectItem
+                        value="unpaid"
+                        className="hover:bg-indigo-50 cursor-pointer"
+                      >
+                        Unpaid Leave
+                      </SelectItem>
+                      <SelectItem
+                        value="emergency"
+                        className="hover:bg-indigo-50 cursor-pointer"
+                      >
+                        Emergency Leave
+                      </SelectItem>
+                      <SelectItem
+                        value="exam"
+                        className="hover:bg-indigo-50 cursor-pointer"
+                      >
+                        Exam Leave
+                      </SelectItem>
+                      <SelectItem
+                        value="others"
+                        className="hover:bg-indigo-50 cursor-pointer"
+                      >
+                        Others Leave
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -583,7 +765,9 @@ const LeaveApplication = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                       {renderCalendar(currentMonth)}
-                      {renderCalendar(moment(currentMonth).add(1, 'month').toDate())}
+                      {renderCalendar(
+                        moment(currentMonth).add(1, "month").toDate()
+                      )}
                     </div>
                   </div>
                 </div>
@@ -641,7 +825,10 @@ const LeaveApplication = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className={`flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md ${
-                        application.approvedBy === "Reviewed" && application.reviewNotes ? "cursor-pointer" : ""
+                        application.approvedBy === "Reviewed" &&
+                        application.reviewNotes
+                          ? "cursor-pointer"
+                          : ""
                       }`}
                       onClick={() => handleLeaveClick(application)}
                     >
@@ -653,7 +840,9 @@ const LeaveApplication = () => {
                           <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
                         </motion.div>
                         <div>
-                          <p className="font-semibold text-gray-900">{application.type}</p>
+                          <p className="font-semibold text-gray-900">
+                            {application.type}
+                          </p>
                           <p className="text-sm text-gray-500">
                             {application.from} to {application.to}
                           </p>
@@ -670,7 +859,9 @@ const LeaveApplication = () => {
                             {getStatusIcon(application.status)}
                             <span>{application.status}</span>
                           </motion.div>
-                          <p className="text-sm text-gray-500">{application.approvedBy}</p>
+                          <p className="text-sm text-gray-500">
+                            {application.approvedBy}
+                          </p>
                         </div>
                       </div>
                     </motion.div>
@@ -722,7 +913,9 @@ const LeaveApplication = () => {
                               ? 100
                               : 0
                             : balance.total > 0
-                            ? ((balance.used + balance.pending) / balance.total) * 100
+                            ? ((balance.used + balance.pending) /
+                                balance.total) *
+                              100
                             : 0
                         }%`,
                       }}
@@ -781,8 +974,8 @@ const LeaveApplication = () => {
                       </p> */}
                     </div>
                   </div>
-                  <button 
-                    onClick={closeReviewModal} 
+                  <button
+                    onClick={closeReviewModal}
                     className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
                   >
                     <XMarkIcon className="h-6 w-6" />
@@ -803,7 +996,11 @@ const LeaveApplication = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedLeave.status)}`}>
+                    <div
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                        selectedLeave.status
+                      )}`}
+                    >
                       {getStatusIcon(selectedLeave.status)}
                       <span className="ml-1">{selectedLeave.status}</span>
                     </div>
@@ -811,15 +1008,20 @@ const LeaveApplication = () => {
 
                   {selectedLeave.reviewedAt && (
                     <div className="text-sm text-gray-600">
-                      <span className="font-medium">Reviewed on:</span> {selectedLeave.reviewedAt}
+                      <span className="font-medium">Reviewed on:</span>{" "}
+                      {selectedLeave.reviewedAt}
                     </div>
                   )}
 
                   {selectedLeave.reviewNotes && (
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Review Notes:</h4>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                        Review Notes:
+                      </h4>
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p className="text-gray-700 whitespace-pre-wrap">{selectedLeave.reviewNotes}</p>
+                        <p className="text-gray-700 whitespace-pre-wrap">
+                          {selectedLeave.reviewNotes}
+                        </p>
                       </div>
                     </div>
                   )}

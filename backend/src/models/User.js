@@ -94,6 +94,10 @@ const UserSchema = new mongoose.Schema({
             'Please add a valid email',
         ],
     },
+    casual: {
+    type: Number,
+    default: 1,
+   },
     role: {
         type: String,
         enum: ['admin', 'staff', 'manager', 'finance'],
@@ -142,25 +146,24 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
-
 // Encrypt password using bcrypt before saving
-UserSchema.pre('save', async function (next) {
-    // Only run this if password was modified
-    if (!this.isModified('password')) {
-        return next();
-    }
+UserSchema.pre("save", async function (next) {
+  // Only run this if password was modified
+  if (!this.isModified("password")) {
+    return next();
+  }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
+  // Hash the password
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE
-    });
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
 };
 
 // Add timestamps to the schema
