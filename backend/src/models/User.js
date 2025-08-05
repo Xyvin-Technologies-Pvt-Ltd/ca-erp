@@ -54,6 +54,10 @@ require('dotenv').config();
  *           type: boolean
  *           default: false
  *           description: Whether the employee is a verification staff member
+ *         incentive:
+ *           type: number
+ *           default: 0
+ *           description: Total incentive earned by the user
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -96,8 +100,14 @@ const UserSchema = new mongoose.Schema({
     },
     casual: {
     type: Number,
-    default: 1,
-   },
+    default:1,
+  },
+    incentive: {
+        type: Map,
+        of: Number,
+        default: new Map(),
+        description: 'Monthly incentive earned by the user (format: YYYY-MM -> amount)'
+    },
     role: {
         type: String,
         enum: ['admin', 'staff', 'manager', 'finance'],
@@ -172,6 +182,29 @@ UserSchema.set('timestamps', true);
 // Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Get total incentive across all months
+UserSchema.methods.getTotalIncentive = function () {
+    if (!this.incentive || !(this.incentive instanceof Map)) {
+        return 0;
+    }
+    let total = 0;
+    for (const [key, value] of this.incentive) {
+        if (typeof value === 'number') {
+            total += value;
+        }
+    }
+    return total;
+};
+
+// Get incentive for a specific month
+UserSchema.methods.getIncentiveForMonth = function (year, month) {
+    if (!this.incentive || !(this.incentive instanceof Map)) {
+        return 0;
+    }
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+    return this.incentive.get(monthKey) || 0;
 };
 
 module.exports = mongoose.model('User', UserSchema);

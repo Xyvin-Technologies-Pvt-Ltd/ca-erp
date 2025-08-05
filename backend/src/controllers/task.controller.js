@@ -10,6 +10,7 @@ const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
 const webhookService = require('../services/webhookService');
 const verificationService = require('../services/verificationService');
+const INCENTIVE_ON_COMPLETE = 0.04;
 /**
  * @desc    Get all tasks
  * @route   GET /api/tasks
@@ -476,7 +477,6 @@ exports.updateTask = async (req, res, next) => {
                 }
                 continue;
             } else if (field === 'dueDate') {
-                // Only log dueDate if it actually changed (ignore time if only date is relevant)
                 const oldDate = oldVal ? new Date(oldVal) : null;
                 const newDate = newVal ? new Date(newVal) : null;
                 if (
@@ -566,17 +566,38 @@ exports.updateTask = async (req, res, next) => {
             }
         }
 
-        // Check if task status was changed to completed and handle verification task creation
         if (req.body.status === 'completed' && originalTaskObj.status !== 'completed') {
             try {
-                const verificationTask = await verificationService.handleTaskCompletion(
-                    task._id, 
-                    task.project, 
-                    req.user.id
-                );
-                
-                if (verificationTask) {
-                    logger.info(`Verification task created for project ${task.project} after task completion via update`);
+                if (task.title === 'Project Verification Task') {
+                    const verificationResult = await verificationService.handleVerificationTaskCompletion(
+                        task._id,
+                        task.assignedTo 
+                    );
+                    
+                    if (verificationResult) {
+                        logger.info(`Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`);
+                    }
+                } else {
+                    if (task.amount && task.amount > 0 && task.assignedTo) {
+                        const taskCompleterIncentive = task.amount * INCENTIVE_ON_COMPLETE; 
+                        const now = new Date();
+                        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                        await User.findByIdAndUpdate(
+                            task.assignedTo,
+                            { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
+                        );
+                        logger.info(`Incentive distributed: ${taskCompleterIncentive} to task assignee ${task.assignedTo} for task ${task._id}`);
+                    }
+
+                    const verificationTask = await verificationService.handleTaskCompletion(
+                        task._id, 
+                        task.project, 
+                        req.user.id
+                    );
+                    
+                    if (verificationTask) {
+                        logger.info(`Verification task created for project ${task.project} after task completion via update`);
+                    }
                 }
             } catch (verificationError) {
                 logger.error('Error handling verification task creation:', verificationError);
@@ -706,24 +727,45 @@ exports.updateTaskStatus = async (req, res, next) => {
             }
         );
 
-        // Log the status update
         logger.info(`Task status updated for ${task.title} (${task._id}) to ${status} by ${req.user.name} (${req.user._id})`);
 
-        // Check if task was completed and handle verification task creation
         if (status === 'completed') {
             try {
-                const verificationTask = await verificationService.handleTaskCompletion(
-                    task._id, 
-                    task.project, 
-                    req.user.id
-                );
-                
-                if (verificationTask) {
-                    logger.info(`Verification task created for project ${task.project} after task completion`);
+                if (task.title === 'Project Verification Task') {
+                    const verificationResult = await verificationService.handleVerificationTaskCompletion(
+                        task._id,
+                        task.assignedTo 
+                    );
+                    
+                    if (verificationResult) {
+                        logger.info(`Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`);
+                    }
+                } else {
+                    if (task.amount && task.amount > 0 && task.assignedTo) {
+                        const taskCompleterIncentive = task.amount * INCENTIVE_ON_COMPLETE; // e.g. 4% to assignee
+
+                        const now = new Date();
+                        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                        await User.findByIdAndUpdate(
+                            task.assignedTo,
+                            { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
+                        );
+
+                        logger.info(`Incentive distributed: ${taskCompleterIncentive} to task assignee ${task.assignedTo} for task ${task._id}`);
+                    }
+
+                    const verificationTask = await verificationService.handleTaskCompletion(
+                        task._id, 
+                        task.project, 
+                        req.user.id
+                    );
+                    
+                    if (verificationTask) {
+                        logger.info(`Verification task created for project ${task.project} after task completion`);
+                    }
                 }
             } catch (verificationError) {
                 logger.error('Error handling verification task creation:', verificationError);
-                // Don't fail the main request if verification fails
             }
         }
 
