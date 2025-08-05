@@ -613,7 +613,7 @@ const Documents = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px">
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(1)}
                         disabled={currentPage === 1}
                         className={`relative inline-flex items-center px-3 py-2 rounded-l-lg border text-sm font-medium ${
@@ -623,7 +623,7 @@ const Documents = () => {
                         }`}
                       >
                         <ChevronsLeft className="w-4 h-4" />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -659,7 +659,7 @@ const Documents = () => {
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(totalPage)}
                         disabled={currentPage === totalPage}
                         className={`relative inline-flex items-center px-3 py-2 rounded-r-lg border text-sm font-medium ${
@@ -669,7 +669,7 @@ const Documents = () => {
                         }`}
                       >
                         <ChevronsRight className="w-4 h-4" />
-                      </button>
+                      </button> */}
                     </nav>
                   </div>
                 </div>
