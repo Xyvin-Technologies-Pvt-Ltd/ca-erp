@@ -54,6 +54,10 @@ require('dotenv').config();
  *           type: boolean
  *           default: false
  *           description: Whether the employee is a verification staff member
+ *         incentive:
+ *           type: number
+ *           default: 0
+ *           description: Total incentive earned by the user
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -96,8 +100,13 @@ const UserSchema = new mongoose.Schema({
     },
     casual: {
     type: Number,
-    default: 1,
-   },
+    default:1,
+  },
+    incentive: {
+        type: Number,
+        default: 0,
+        description: 'Total incentive earned by the user'
+    },
     role: {
         type: String,
         enum: ['admin', 'staff', 'manager', 'finance'],

@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const { logger } = require('../utils/logger');
 const Notification = require('../models/Notification');
 const websocketService = require('../utils/websocket');
+const INCENTIVE_ON_VERIFY = 0.01;
 
 class VerificationService {
     constructor() {
@@ -246,6 +247,45 @@ class VerificationService {
             return null;
         } catch (error) {
             logger.error('Error handling task completion:', error);
+            throw error;
+        }
+    }
+    async handleVerificationTaskCompletion(verificationTaskId, completedBy) {
+        try {
+            const verificationTask = await Task.findById(verificationTaskId);
+            if (!verificationTask) {
+                logger.error(`Verification task not found: ${verificationTaskId}`);
+                return null;
+            }
+
+            const projectId = verificationTask.project;
+            
+            const completedTasks = await Task.find({
+                project: projectId,
+                status: 'completed'
+            });
+
+            let totalVerificationIncentive = 0;
+            let tasksProcessed = 0;
+
+            for (const task of completedTasks) {
+                if (task.amount && task.amount > 0) {
+                    const verificationIncentive = task.amount * INCENTIVE_ON_VERIFY; 
+                    
+                    await User.findByIdAndUpdate(
+                        completedBy,
+                        { $inc: { incentive: verificationIncentive } }
+                    );
+                    
+                    totalVerificationIncentive += verificationIncentive;
+                    tasksProcessed++;
+                    logger.info(`Verification incentive ${verificationIncentive} distributed to verification staff ${completedBy} for task ${task._id}`);
+                }
+            }
+
+            return { totalVerificationIncentive, tasksProcessed };
+        } catch (error) {
+            logger.error('Error handling verification task completion:', error);
             throw error;
         }
     }
