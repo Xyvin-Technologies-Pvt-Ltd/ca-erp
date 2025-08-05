@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendance } from "../../api/attendance";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import moment from 'moment';
 import {
   CalendarIcon,
   ClockIcon,
@@ -13,6 +14,10 @@ import {
   MoonIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
+import useHeaderStore from "../../stores/useHeaderStore";
+
+
+// moment.tz.setDefault('UTC');
 
 const statusColors = {
   Present: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", icon: CheckCircleIcon },
@@ -26,20 +31,23 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  // Use moment to create dates in local timezone
+  const start = moment(date).startOf('month');
+  const end = moment(date).endOf('month');
+  
   return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 
 function getDaysInMonth(year, month) {
   const days = [];
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    days.push(new Date(date));
-    date.setDate(date.getDate() + 1);
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0); // This gets the last day of the month
+  
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    days.push(new Date(year, month, day));
   }
   return days;
 }
@@ -61,7 +69,7 @@ const EmployeeAttendance = () => {
     setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
-      const range = getMonthRange(new Date(year, month - 1));
+      const range = getMonthRange(new Date(year, month));
       const res = await getMyAttendance({ ...range });
       setAttendance(res.data?.attendance || []);
       setStats(res.data?.overallStats || {});
@@ -92,19 +100,42 @@ const EmployeeAttendance = () => {
 
   const attendanceByDate = {};
   attendance.forEach((a) => {
-    const dateStr = a.date ? new Date(a.date).toISOString().split("T")[0] : null;
-    if (dateStr) attendanceByDate[dateStr] = a;
+    if (a.date) {
+      const date = new Date(a.date);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      attendanceByDate[dateStr] = a;
+    }
   });
 
-  const [year, month] = selectedMonth.split("-");
-  const days = getDaysInMonth(Number(year), Number(month) - 1);
-  const firstDayOfWeek = days[0].getDay();
+  const now = new Date();
+  let year, month;
+  if (selectedMonth && selectedMonth.includes("-")) {
+    [year, month] = selectedMonth.split("-");
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+  year = Number(year);
+  month = Number(month);
+  const days = getDaysInMonth(year, month - 1);
+  const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
+  const attendanceDays = days.filter((day) => {
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    return attendanceByDate[dateStr];
+  });
 
-  const attendanceDays = days.filter((day) => attendanceByDate[day.toISOString().split("T")[0]]);
+  const { profileIsActive, profileDropdown } = useHeaderStore();
+  const checkHeader = () => {
+    if (profileDropdown === true) {
+      profileIsActive(false);
+    }
+  };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Header */}
+    <div
+      onClick={checkHeader}
+      className="p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100"
+    >      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -115,7 +146,11 @@ const EmployeeAttendance = () => {
           <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
         </div>
-        <div className="relative">
+        <div
+          className={
+            profileDropdown === true ? `opacity-10 relative` : `relative`
+          }
+        >
           <motion.input
             type="month"
             value={selectedMonth}
@@ -186,9 +221,11 @@ const EmployeeAttendance = () => {
           ))}
           <AnimatePresence>
             {days.map((day, index) => {
-              const dateStr = day.toISOString().split("T")[0];
-              const today = new Date().toISOString().split("T")[0];
-              const isToday = dateStr === today;
+              // Create a proper date string in YYYY-MM-DD format
+              const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+              const today = new Date();
+              const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+              const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
               return (
@@ -272,7 +309,7 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = day.toISOString().split("T")[0];
+                    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                     const att = attendanceByDate[dateStr];
                     const Icon = statusColors[att?.status]?.icon;
                     return (
@@ -284,12 +321,14 @@ const EmployeeAttendance = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-4 text-base text-gray-900">{att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "-"}</td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkIn?.time ? new Date(att.checkIn.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.date ? moment(att.date).format('DD/MM/YYYY') : (att?.checkIn?.time ? moment(att.checkIn.time).format('DD/MM/YYYY') : "-")}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkOut?.time ? new Date(att.checkOut.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+                          {att?.checkIn?.time ? moment(att.checkIn.time).format('h:mm A') : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.checkOut?.time ? moment(att.checkOut.time).format('h:mm A') : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.workHours != null ? att.workHours : "-"}
@@ -332,5 +371,4 @@ const EmployeeAttendance = () => {
     </div>
   );
 };
-
 export default EmployeeAttendance;

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Calendar } from "../../components/ui/calendar";
-import { format, differenceInDays, addMonths, subMonths, addDays, isSameDay, isAfter, isBefore, startOfDay } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -21,24 +19,29 @@ import {
   ChevronRightIcon,
   UserIcon,
   SunIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { createLeave, getMyLeaves } from "../../api/Leave.js";
+import moment from 'moment';
+
 
 const LeaveApplication = () => {
   const { user } = useAuth();
 
   const [dateRange, setDateRange] = useState({
-    from: addDays(new Date(), 7),
-    to: addDays(new Date(), 7),
+    from: moment().add(7, 'days').startOf('day').toDate(),
+    to: moment().add(7, 'days').startOf('day').toDate(),
   });
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(moment().startOf('month').toDate());
   const [leaveType, setLeaveType] = useState("");
   const [reason, setReason] = useState("");
   const [recentApplications, setRecentApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState({
     annual: { total: 14, used: 0, pending: 0 },
     sick: { total: 7, used: 0, pending: 0 },
@@ -74,18 +77,22 @@ const LeaveApplication = () => {
           leavesData = leaveResponse.data;
         }
 
-
         const sortedApplications = leavesData
           .map((leave) => ({
+            _id: leave._id,
             type:
               leave.leaveType.charAt(0).toUpperCase() +
               leave.leaveType.slice(1) +
               " Leave",
-            from: format(new Date(leave.startDate), "yyyy-MM-dd"),
-            to: format(new Date(leave.endDate), "yyyy-MM-dd"),
+            from: moment(leave.startDate).format('YYYY-MM-DD'),
+            to: moment(leave.endDate).format('YYYY-MM-DD'),
             status:
               leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
             approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
+            reviewNotes: leave.reviewNotes || "",
+            reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+            reviewedBy: leave.reviewedBy || "",
+            originalLeave: leave, 
           }))
           .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -106,10 +113,10 @@ const LeaveApplication = () => {
           if (balanceCalculation[type]) {
             if (app.status === "Approved") {
               balanceCalculation[type].used +=
-                differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+                moment(app.to).diff(moment(app.from), 'days') + 1;
             } else if (app.status === "Pending") {
               balanceCalculation[type].pending +=
-                differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+                moment(app.to).diff(moment(app.from), 'days') + 1;
             }
           }
         });
@@ -143,18 +150,22 @@ const LeaveApplication = () => {
         leavesData = leaveResponse.data;
       }
 
-
       const sortedApplications = leavesData
         .map((leave) => ({
+          _id: leave._id,
           type:
             leave.leaveType.charAt(0).toUpperCase() +
             leave.leaveType.slice(1) +
             " Leave",
-          from: format(new Date(leave.startDate), "yyyy-MM-dd"),
-          to: format(new Date(leave.endDate), "yyyy-MM-dd"),
+          from: moment(leave.startDate).format('YYYY-MM-DD'),
+          to: moment(leave.endDate).format('YYYY-MM-DD'),
           status:
             leave.status.charAt(0).toUpperCase() + leave.status.slice(1),
           approvedBy: leave.approvalChain?.length ? "Reviewed" : "",
+          reviewNotes: leave.reviewNotes || "",
+          reviewedAt: leave.reviewedAt ? moment(leave.reviewedAt).format('MMM DD, YYYY') : "",
+          reviewedBy: leave.reviewedBy || "",
+          originalLeave: leave,
         }))
         .sort((a, b) => new Date(b.from) - new Date(a.from));
 
@@ -175,10 +186,10 @@ const LeaveApplication = () => {
         if (balanceCalculation[type]) {
           if (app.status === "Approved") {
             balanceCalculation[type].used +=
-              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+              moment(app.to).diff(moment(app.from), 'days') + 1;
           } else if (app.status === "Pending") {
             balanceCalculation[type].pending +=
-              differenceInDays(new Date(app.to), new Date(app.from)) + 1;
+              moment(app.to).diff(moment(app.from), 'days') + 1;
           }
         }
       });
@@ -190,11 +201,11 @@ const LeaveApplication = () => {
   };
 
   const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => subMonths(prev, 1));
+    setCurrentMonth((prev) => moment(prev).subtract(1, 'month').startOf('month').toDate());
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth((prev) => addMonths(prev, 1));
+    setCurrentMonth((prev) => moment(prev).add(1, 'month').startOf('month').toDate());
   };
 
   const handleSubmit = async (e) => {
@@ -216,15 +227,14 @@ const LeaveApplication = () => {
     }
 
     try {
-
       if (!user) {
         toast.error("User information not found");
         return;
       }
 
       const leaveRequest = {
-        startDate: dateRange.from.toISOString(),
-        endDate: dateRange.to.toISOString(),
+        startDate: moment(dateRange.from).format('YYYY-MM-DD'),
+        endDate: moment(dateRange.to).format('YYYY-MM-DD'),
         reason: reason.trim(),
         employee: user._id || user.id || user.employeeId,
         leaveType: leaveType.charAt(0).toUpperCase() + leaveType.slice(1),
@@ -240,20 +250,20 @@ const LeaveApplication = () => {
 
       setLeaveType("");
       setReason("");
-      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
+      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
 
       if (response && response.data) {
-      toast.success("Leave request submitted successfully", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      toast.error("Failed to submit leave request");
-    }
+        toast.success("Leave request submitted successfully", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        toast.error("Failed to submit leave request");
+      }
 
       await refreshLeaveData();
     } catch (error) {
@@ -265,6 +275,18 @@ const LeaveApplication = () => {
           : "Failed to submit leave request");
       toast.error(message);
     }
+  };
+
+  const handleLeaveClick = (application) => {
+    if (application.approvedBy === "Reviewed" && application.reviewNotes) {
+      setSelectedLeave(application);
+      setShowReviewModal(true);
+    }
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setSelectedLeave(null);
   };
 
   const getStatusColor = (status) => {
@@ -292,51 +314,56 @@ const LeaveApplication = () => {
   };
 
   const handleDateClick = (date) => {
-    if (!date || isBefore(date, addDays(startOfDay(new Date()), 6))) {
+    if (!date || moment(date).isBefore(moment().add(6, 'days').startOf('day'))) {
       return; // Don't allow selection of disabled dates
     }
 
+    const localDate = moment(date).startOf('day').toDate();
+
     if (!dateRange.from || (dateRange.from && dateRange.to)) {
       // Start new selection
-      setDateRange({ from: date, to: null });
+      setDateRange({ from: localDate, to: null });
     } else if (dateRange.from && !dateRange.to) {
       // Complete the range
-      if (isBefore(date, dateRange.from)) {
-        setDateRange({ from: date, to: dateRange.from });
+      if (moment(localDate).isBefore(moment(dateRange.from))) {
+        setDateRange({ from: localDate, to: dateRange.from });
       } else {
-        setDateRange({ from: dateRange.from, to: date });
+        setDateRange({ from: dateRange.from, to: localDate });
       }
     }
   };
 
   const isDateInRange = (date) => {
     if (!dateRange.from || !dateRange.to || !date) return false;
-    return (isAfter(date, dateRange.from) || isSameDay(date, dateRange.from)) &&
-           (isBefore(date, dateRange.to) || isSameDay(date, dateRange.to));
+    const localDate = moment(date).startOf('day');
+    return (moment(localDate).isSameOrAfter(moment(dateRange.from)) &&
+            moment(localDate).isSameOrBefore(moment(dateRange.to)));
   };
 
   const isDateSelected = (date) => {
     if (!date) return false;
-    return (dateRange.from && isSameDay(date, dateRange.from)) ||
-           (dateRange.to && isSameDay(date, dateRange.to));
+    const localDate = moment(date).startOf('day');
+    return (dateRange.from && moment(localDate).isSame(moment(dateRange.from), 'day')) ||
+           (dateRange.to && moment(localDate).isSame(moment(dateRange.to), 'day'));
   };
 
   const isDateDisabled = (date) => {
     if (!date) return true;
-    return isBefore(date, addDays(startOfDay(new Date()), 6));
+    return moment(date).isBefore(moment().add(6, 'days').startOf('day'));
   };
 
   const isToday = (date) => {
     if (!date) return false;
-    return isSameDay(date, new Date());
+    return moment(date).isSame(moment(), 'day');
   };
-   const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+
+  const getDaysInMonth = (date) => {
+    const year = moment(date).year();
+    const month = moment(date).month();
+    const firstDay = moment([year, month, 1]);
+    const lastDay = moment([year, month]).endOf('month');
+    const daysInMonth = lastDay.date();
+    const startingDayOfWeek = firstDay.day();
 
     const days = [];
     
@@ -347,7 +374,7 @@ const LeaveApplication = () => {
     
     // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      days.push(moment([year, month, day]).toDate());
     }
     
     return days;
@@ -355,14 +382,14 @@ const LeaveApplication = () => {
 
   const getFormattedDateRange = () => {
     if (dateRange && dateRange.from && dateRange.to) {
-      const days = differenceInDays(dateRange.to, dateRange.from) + 1;
+      const days = moment(dateRange.to).diff(moment(dateRange.from), 'days') + 1;
       return (
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-[#1c6ead]" />
           <span className="font-semibold text-gray-900">{days} day{days > 1 ? "s" : ""}</span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-700">
-            {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d, yyyy")}
+            {moment(dateRange.from).format('MMM D')} - {moment(dateRange.to).format('MMM D, YYYY')}
           </span>
         </div>
       );
@@ -380,15 +407,19 @@ const LeaveApplication = () => {
       if (!range.to) {
         range.to = range.from;
       }
-      setDateRange(range);
+      setDateRange({
+        from: moment(range.from).startOf('day').toDate(),
+        to: moment(range.to).startOf('day').toDate(),
+      });
     } else {
-      setDateRange({ from: addDays(new Date(), 7), to: addDays(new Date(), 7) });
+      setDateRange({ from: moment().add(7, 'days').startOf('day').toDate(), to: moment().add(7, 'days').startOf('day').toDate() });
     }
   };
 
   const disabledDays = {
-    before: addDays(new Date(), 6),
+    before: moment().add(6, 'days').startOf('day').toDate(),
   };
+
   const renderCalendar = (month) => {
     const days = getDaysInMonth(month);
     const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -438,7 +469,7 @@ const LeaveApplication = () => {
                 whileHover={!disabled ? { scale: 1.05 } : {}}
                 whileTap={!disabled ? { scale: 0.95 } : {}}
               >
-                {date.getDate()}
+                {moment(date).date()}
               </motion.div>
             );
           })}
@@ -446,6 +477,7 @@ const LeaveApplication = () => {
       </div>
     );
   };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center text-gray-600">
@@ -521,7 +553,7 @@ const LeaveApplication = () => {
                 </div>
               </div>
 
-             <div>
+              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <SunIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
                   Date Range
@@ -538,7 +570,7 @@ const LeaveApplication = () => {
                         <ChevronLeftIcon className="h-4 w-4 text-[#1c6ead]" />
                       </Button>
                       <div className="text-sm font-semibold text-gray-700">
-                        {format(currentMonth, "MMMM yyyy")}
+                        {moment(currentMonth).format("MMMM YYYY")}
                       </div>
                       <Button
                         variant="outline"
@@ -551,31 +583,30 @@ const LeaveApplication = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                       {renderCalendar(currentMonth)}
-                      {renderCalendar(addMonths(currentMonth, 1))}
+                      {renderCalendar(moment(currentMonth).add(1, 'month').toDate())}
                     </div>
                   </div>
                 </div>
               </div>
 
-             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                Reason
-              </label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                maxLength={500}
-                placeholder="Please provide a reason for your leave request"
-                className="min-h-[100px] bg-white border-indigo-200 focus:border-[#1c6ead] rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
-              />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {reason.length}/500
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
+                  Reason
+                </label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  maxLength={500}
+                  placeholder="Please provide a reason for your leave request"
+                  className="min-h-[100px] bg-white border-indigo-200 focus:border-[#1c6ead] rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
+                />
+                <div className="text-right text-sm text-gray-500 mt-1">
+                  {reason.length}/500
+                </div>
               </div>
-            </div>
 
-
-              <motion.div  whileTap={{ scale: 0.98 }}>
+              <motion.div whileTap={{ scale: 0.98 }}>
                 <Button
                   type="submit"
                   className="w-full group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
@@ -609,7 +640,10 @@ const LeaveApplication = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md"
+                      className={`flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white hover:bg-indigo-50 transition-all duration-300 shadow-sm hover:shadow-md ${
+                        application.approvedBy === "Reviewed" && application.reviewNotes ? "cursor-pointer" : ""
+                      }`}
+                      onClick={() => handleLeaveClick(application)}
                     >
                       <div className="flex items-center gap-4">
                         <motion.div
@@ -713,6 +747,100 @@ const LeaveApplication = () => {
           </div>
         </Card>
       </div>
+
+      {/* Review Notes Modal */}
+      <AnimatePresence>
+        {showReviewModal && selectedLeave && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={closeReviewModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-blue-50 px-6 py-5 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
+                      <DocumentTextIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Review Details
+                      </h2>
+                      {/* <p className="text-sm text-gray-600 mt-1">
+                        Leave request review information
+                      </p> */}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={closeReviewModal} 
+                    className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {selectedLeave.type}
+                    </h3>
+                    {/* <p className="text-sm text-gray-600">
+                      {selectedLeave.from} to {selectedLeave.to}
+                    </p> */}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedLeave.status)}`}>
+                      {getStatusIcon(selectedLeave.status)}
+                      <span className="ml-1">{selectedLeave.status}</span>
+                    </div>
+                  </div>
+
+                  {selectedLeave.reviewedAt && (
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Reviewed on:</span> {selectedLeave.reviewedAt}
+                    </div>
+                  )}
+
+                  {selectedLeave.reviewNotes && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Review Notes:</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p className="text-gray-700 whitespace-pre-wrap">{selectedLeave.reviewNotes}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex justify-end">
+                  <Button
+                    onClick={closeReviewModal}
+                    className="px-6 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

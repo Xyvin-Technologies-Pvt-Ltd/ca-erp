@@ -2,11 +2,17 @@ import { useState, useEffect } from "react";
 import { BookmarkIcon as XMarkIcon, CheckIcon, ClockIcon, AirplayIcon as PaperAirplaneIcon, ArrowRightCircleIcon as ArrowRightOnRectangleIcon, CalendarDaysIcon, MoonIcon, TriangleIcon as ExclamationTriangleIcon } from "lucide-react";
 import { createBulkAttendance, getAttendance } from "../api/attendance";
 import { userApi } from "../api/userApi";
+import moment from 'moment-timezone';
+
+moment.tz.setDefault('UTC');
 
 const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
-    time: new Date().toTimeString().split(" ")[0].slice(0, 5),
+    date: (() => {
+      const now = moment.tz('UTC');
+      return now.format('YYYY-MM-DD');
+    })(),
+    time: moment.tz('UTC').format('HH:mm'),
     type: "checkIn",
     status: "Present",
     shift: "Morning",
@@ -20,6 +26,13 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [errors, setErrors] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false); // New state for popup
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    console.log("Current Date: form modal", currentDate);
 
   const statusIcons = {
     Present: <CheckIcon className="h-4 w-4 text-green-800" />,
@@ -319,13 +332,20 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     setLoading(true);
     try {
       const attendanceData = formData.selectedEmployees.map((employeeId) => {
-        const dateTimeString = `${formData.date}T${formData.time}:00`;
-        const attendanceDateTime = new Date(dateTimeString);
-
+        // Create date and time using moment in UTC timezone
+        const [year, month, day] = formData.date.split('-').map(Number);
+        const [hours, minutes] = formData.time.split(':').map(Number);
+        
+        // Create attendance date-time in UTC
+        const attendanceDateTime = moment.tz([year, month - 1, day, hours, minutes], 'UTC');
+        
+        // Create date-only object (start of day in UTC)
+        const dateOnly = moment.tz([year, month - 1, day], 'UTC').startOf('day');
+        
         return {
           employee: employeeId,
-          date: attendanceDateTime,
-          [formData.type]: { time: attendanceDateTime },
+          date: dateOnly.toISOString(), // Send as ISO string in UTC
+          [formData.type]: { time: attendanceDateTime.toISOString() }, // Send as ISO string in UTC
           status: formData.status,
           shift: formData.shift,
           notes: formData.notes || getDefaultNotes(formData.status),

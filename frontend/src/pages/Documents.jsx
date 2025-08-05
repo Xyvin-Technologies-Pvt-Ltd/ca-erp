@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Upload, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Trash2, 
-  X, 
-  ChevronLeft, 
+import {
+  Upload,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Trash2,
+  X,
+  ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
@@ -20,7 +20,7 @@ import {
   User,
   FolderOpen,
   HardDrive,
-  Plus
+  Plus,
 } from "lucide-react";
 import { documents } from "../dummyData/documents";
 import { documentsApi } from "../api/documentsApi";
@@ -28,7 +28,8 @@ import { fetchProjects } from "../api/projects";
 import { userApi } from "../api/userApi";
 import ConfirmModal from "../components/settings/DeleteModal";
 import { projectsApi } from "../api";
-
+import useHeaderStore from "../stores/useHeaderStore";
+import { motion, AnimatePresence } from "framer-motion";
 // Enhanced File type icons using lucide-react
 const getFileIcon = (type) => {
   if (type.includes("pdf")) {
@@ -57,8 +58,8 @@ const getFileIcon = (type) => {
 };
 
 const getFileExtension = (fileUrl) => {
-  const parts = fileUrl.split('.');
-  return parts.length > 1 ? parts.pop().toLowerCase() : '';
+  const parts = fileUrl.split(".");
+  return parts.length > 1 ? parts.pop().toLowerCase() : "";
 };
 
 const Documents = () => {
@@ -90,14 +91,19 @@ const Documents = () => {
   });
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewDocument, setPreviewDocument] = useState(null);
-
+  const { profileDropdown, profileIsActive } = useHeaderStore();
   const fetchInitialData = async () => {
     try {
       setLoading(true);
       const [documentsRes, projectsRes, usersRes] = await Promise.all([
-        documentsApi.getAllDocuments({ ...filters, search: searchTerm, page: currentPage, limit: 10 }),
+        documentsApi.getAllDocuments({
+          ...filters,
+          search: searchTerm,
+          page: currentPage,
+          limit: 10,
+        }),
         projectsApi.getAllProjects(),
-        userApi.Allusers()
+        userApi.Allusers(),
       ]);
 
       setAllDocuments(documentsRes);
@@ -107,7 +113,7 @@ const Documents = () => {
       setPaginations({
         page: currentPage,
         total: documentsRes.total,
-        limit: filteredDocuments.pagination?.prev?.limit || 10
+        limit: filteredDocuments.pagination?.prev?.limit || 10,
       });
       setLoading(false);
     } catch (err) {
@@ -123,7 +129,7 @@ const Documents = () => {
 
   useEffect(() => {
     fetchInitialData();
-  }, [filters, searchTerm, currentPage]);
+  }, [filters,  currentPage]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -162,7 +168,7 @@ const Documents = () => {
 
     const originalFileName = file.name;
     const fileNameWithoutExtension = originalFileName.replace(/\.[^/.]+$/, "");
-    
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("name", fileNameWithoutExtension);
@@ -198,7 +204,9 @@ const Documents = () => {
   const handlePreviewDocument = async (documentId, filename) => {
     try {
       const blob = await documentsApi.downloadDocument(documentId);
-      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const url = window.URL.createObjectURL(
+        new Blob([blob], { type: "application/pdf" })
+      );
       setPreviewDocument({ url, filename });
       setShowPreviewModal(true);
     } catch (error) {
@@ -252,7 +260,15 @@ const Documents = () => {
       </div>
     );
   }
-
+  const resetFilters = () => {
+    setSearchTerm("");
+    setFilters((prevUser) => ({
+      ...prevUser,
+      type: "",
+      project: "",
+      uploadedBy: "",
+    }));
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -260,12 +276,20 @@ const Documents = () => {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Document Library</h1>
-              <p className="text-gray-600">Manage and organize your project documents</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Document Library
+              </h1>
+              <p className="text-gray-600">
+                Manage and organize your project documents
+              </p>
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="inline-flex items-center px-6 py-3 bg-[#1c6ead] text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className={
+                profileDropdown === true
+                  ? `opacity-10`
+                  : ` inline-flex items-center px-6 py-3 bg-[#1c6ead] text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5`
+              }
             >
               <Plus className="w-5 h-5 mr-2" />
               Upload Document
@@ -304,7 +328,9 @@ const Documents = () => {
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <Filter className="w-5 h-5 text-gray-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Search & Filter
+              </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative">
@@ -324,9 +350,15 @@ const Documents = () => {
               >
                 <option value="">All File Types</option>
                 <option value="application/pdf">PDF Documents</option>
-                <option value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">Excel Spreadsheets</option>
-                <option value="application/vnd.openxmlformats-officedocument.wordprocessingml.document">Word Documents</option>
-                <option value="application/vnd.openxmlformats-officedocument.presentationml.presentation">PowerPoint Presentations</option>
+                <option value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                  Excel Spreadsheets
+                </option>
+                <option value="application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                  Word Documents
+                </option>
+                <option value="application/vnd.openxmlformats-officedocument.presentationml.presentation">
+                  PowerPoint Presentations
+                </option>
               </select>
               <select
                 value={filters.project}
@@ -342,7 +374,9 @@ const Documents = () => {
               </select>
               <select
                 value={filters.uploadedBy}
-                onChange={(e) => handleFilterChange("uploadedBy", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("uploadedBy", e.target.value)
+                }
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
               >
                 <option value="">All Users</option>
@@ -352,6 +386,16 @@ const Documents = () => {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={resetFilters}
+                className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+              >
+                Reset All Filters
+              </motion.button>
             </div>
           </div>
         </div>
@@ -367,7 +411,15 @@ const Documents = () => {
               {filteredDocuments.length > 0 && (
                 <div className="text-sm text-gray-500 flex items-center gap-1">
                   <HardDrive className="w-4 h-4" />
-                  {Math.ceil(filteredDocuments.reduce((acc, doc) => acc + (doc.fileSize || 0), 0) / 1024 / 1024)} MB total
+                  {Math.ceil(
+                    filteredDocuments.reduce(
+                      (acc, doc) => acc + (doc.fileSize || 0),
+                      0
+                    ) /
+                      1024 /
+                      1024
+                  )}{" "}
+                  MB total
                 </div>
               )}
             </div>
@@ -400,7 +452,10 @@ const Documents = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {filteredDocuments.map((document) => (
-                    <tr key={document.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <tr
+                      key={document.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 mr-4">
@@ -433,13 +488,17 @@ const Documents = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <User className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">{document.uploadedBy.name}</span>
+                          <span className="text-sm text-gray-900">
+                            {document.uploadedBy.name}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">{formatDate(document.createdAt)}</span>
+                          <span className="text-sm text-gray-900">
+                            {formatDate(document.createdAt)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -451,7 +510,12 @@ const Documents = () => {
                         <div className="flex items-center space-x-2">
                           {getFileExtension(document.fileUrl) === "pdf" && (
                             <button
-                              onClick={() => handlePreviewDocument(document._id, document.name)}
+                              onClick={() =>
+                                handlePreviewDocument(
+                                  document._id,
+                                  document.name
+                                )
+                              }
                               className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-150"
                               title="Preview"
                             >
@@ -459,7 +523,12 @@ const Documents = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => handleDownloadDocument(document._id, document.name)}
+                            onClick={() =>
+                              handleDownloadDocument(
+                                document._id,
+                                document.name
+                              )
+                            }
                             className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-150"
                             title="Download"
                           >
@@ -481,9 +550,13 @@ const Documents = () => {
             ) : (
               <div className="text-center py-16">
                 <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No documents found
+                </h3>
                 <p className="text-gray-500">
-                  {loading ? "Loading documents..." : "No documents match your search criteria."}
+                  {loading
+                    ? "Loading documents..."
+                    : "No documents match your search criteria."}
                 </p>
               </div>
             )}
@@ -528,9 +601,14 @@ const Documents = () => {
                       </span>{" "}
                       to{" "}
                       <span className="font-medium">
-                        {Math.min(currentPage * paginations.limit, paginations.total)}
+                        {Math.min(
+                          currentPage * paginations.limit,
+                          paginations.total
+                        )}
                       </span>{" "}
-                      of <span className="font-medium">{paginations.total}</span> results
+                      of{" "}
+                      <span className="font-medium">{paginations.total}</span>{" "}
+                      results
                     </p>
                   </div>
                   <div>
@@ -602,11 +680,11 @@ const Documents = () => {
 
         {/* Enhanced Upload Modal */}
         {showUploadModal && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={() => setShowUploadModal(false)}
           >
-            <div 
+            <div
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
               onClick={(e) => e.stopPropagation()}
             >
@@ -629,9 +707,11 @@ const Documents = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select File
                     </label>
-                    <div 
+                    <div
                       className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-                      onClick={() => document.getElementById('fileInput').click()}
+                      onClick={() =>
+                        document.getElementById("fileInput").click()
+                      }
                     >
                       <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <div className="space-y-2">
@@ -656,13 +736,18 @@ const Documents = () => {
                     />
                     {file && (
                       <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800 font-medium">Selected: {file.name}</p>
+                        <p className="text-sm text-blue-800 font-medium">
+                          Selected: {file.name}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Description
                     </label>
                     <textarea
@@ -677,7 +762,10 @@ const Documents = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="project"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Project (Optional)
                     </label>
                     <select

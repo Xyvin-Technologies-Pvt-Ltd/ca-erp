@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 /**
  * @swagger
@@ -86,118 +86,110 @@ const mongoose = require('mongoose');
  */
 
 const ClientSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: [true, 'Please add a client name'],
-            trim: true,
-            maxlength: [100, 'Client name cannot be more than 100 characters'],
-        },
-        contactName: {
-            type: String,
-            trim: true,
-            maxlength: [50, 'Contact name cannot be more than 50 characters'],
-        },
-        contactEmail: {
-            type: String,
-            required: [true, 'Please add a contact email'],
-            match: [
-                /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-                'Please add a valid email',
-            ],
-        },
-        contactPhone: {
-            type: String,
-            maxlength: [20, 'Phone number cannot be longer than 20 characters'],
-        },
-        country: {
-            type: String,
-            maxlength: [50, 'Country cannot be more than 50 characters'],
-        },
-        state: {
-            type: String,
-            maxlength: [50, 'State cannot be more than 50 characters'],
-        },
-        city: {
-            type: String,
-            maxlength: [50, 'City cannot be more than 50 characters'],
-        },
-        pin: {
-            type: String,
-            maxlength: [20, 'PIN/Postal code cannot be more than 20 characters'],
-        },
-        gstin: {
-            type: String,
-            maxlength: [20, 'GSTIN cannot be more than 20 characters'],
-        },
-        pan: {
-            type: String,
-            maxlength: [10, 'PAN cannot be more than 10 characters'],
-        },
-        cin: {
-            type: String,
-            maxlength: [21, 'CIN cannot be more than 21 characters'],
-        },
-        currencyFormat: {
-            type: String,
-            maxlength: [10, 'Currency format cannot be more than 10 characters'],
-        },
-        website: {
-            type: String,
-            match: [
-                /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
-                'Please use a valid URL with HTTP or HTTPS',
-            ],
-        },
-        directors: {
-        type: [String], // Array of strings
-        default: [],
-        validate: {
-            validator: function(directors) {
-                // Filter out empty strings and check minimum requirement
-                const validDirectors = directors.filter(d => d && d.trim());
-                return validDirectors.length >= 2;
-            },
-            message: 'At least 2 directors are required'
-        }
+  {
+    name: {
+      type: String,
+      required: [true, "Please add a client name"],
+      trim: true,
+      maxlength: [100, "Client name cannot be more than 100 characters"],
     },
-        industry: {
-            type: String,
-            maxlength: [50, 'Industry cannot be more than 50 characters'],
-        },
-        notes: {
-            type: String,
-        },
-        status: {
-            type: String,
-            enum: ['active', 'inactive'],
-            default: 'active',
-        },
-        createdBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        }
+    contactName: {
+      type: String,
+      trim: true,
+      maxlength: [50, "Contact name cannot be more than 50 characters"],
     },
-    {
-        timestamps: true,
-        toJSON: { virtuals: true },
-        toObject: { virtuals: true },
-    }
+    contactEmail: {
+      type: String,
+      required: [true, "Please add a contact email"],
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please add a valid email",
+      ],
+    },
+    contactPhone: {
+      type: String,
+      maxlength: [20, "Phone number cannot be longer than 20 characters"],
+    },
+    country: {
+      type: String,
+      maxlength: [50, "Country cannot be more than 50 characters"],
+    },
+    state: {
+      type: String,
+      maxlength: [50, "State cannot be more than 50 characters"],
+    },
+    city: {
+      type: String,
+      maxlength: [50, "City cannot be more than 50 characters"],
+    },
+    pin: {
+      type: String,
+      maxlength: [20, "PIN/Postal code cannot be more than 20 characters"],
+    },
+    gstin: {
+      type: String,
+      maxlength: [20, "GSTIN cannot be more than 20 characters"],
+    },
+    pan: {
+      type: String,
+      maxlength: [10, "PAN cannot be more than 10 characters"],
+    },
+    cin: {
+      type: String,
+      maxlength: [21, "CIN cannot be more than 21 characters"],
+    },
+    currencyFormat: {
+      type: String,
+      maxlength: [10, "Currency format cannot be more than 10 characters"],
+    },
+    website: {
+      type: String,
+      match: [
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
+        "Please use a valid URL with HTTP or HTTPS",
+      ],
+    },
+    directors: {
+      type: [String], // Array of strings
+      default: [],
+    },
+    industry: {
+      type: String,
+      maxlength: [50, "Industry cannot be more than 50 characters"],
+    },
+    notes: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 // Reverse populate with virtuals
-ClientSchema.virtual('projects', {
-    ref: 'Project',
-    localField: '_id',
-    foreignField: 'client',
-    justOne: false,
+ClientSchema.virtual("projects", {
+  ref: "Project",
+  localField: "_id",
+  foreignField: "client",
+  justOne: false,
 });
 
 // Cascade delete projects when a client is deleted
-ClientSchema.pre('remove', async function (next) {
-    await this.model('Project').deleteMany({ client: this._id });
-    next();
+ClientSchema.pre("remove", async function (next) {
+  await this.model("Project").deleteMany({ client: this._id });
+  next();
 });
 
-module.exports = mongoose.model('Client', ClientSchema); 
+module.exports = mongoose.model("Client", ClientSchema);

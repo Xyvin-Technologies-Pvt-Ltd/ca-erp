@@ -4,6 +4,7 @@ import AttendanceModal from "../../components/AttendanceModal";
 import AttendanceEditModal from "../../components/AttendanceEditModal";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import moment from 'moment-timezone';
 import {
   CalendarIcon,
   ClockIcon,
@@ -18,6 +19,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
+// Set default timezone to UTC for consistent handling
+// moment.tz.setDefault('UTC');
 
 const statusColors = {
   Present: {
@@ -87,11 +91,12 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const start = moment(date).startOf('month');
+  const end = moment(date).endOf('month');
+  
   return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 
@@ -109,17 +114,47 @@ const Attendance = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchName, setSearchName] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    setPage(1); // Reset to first page when filters change
+    fetchData(1);
+  }, [selectedMonth, modalOpen, editModal.open]);
+
+useEffect(() => {
+  setIsSearching(true);
+  setPage(1);
+  fetchData(1).finally(() => setIsSearching(false));
+}, [searchName, selectedDate]);
+
 
   useEffect(() => {
     fetchData(page);
-  }, [selectedMonth, modalOpen, editModal.open, page]);
+  }, [page]);
 
   const fetchData = async (pageNum = page) => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
-      const range = getMonthRange(new Date(year, month - 1));
-      const attRes = await getAttendance({ ...range, page: pageNum, limit });
+      const range = getMonthRange(new Date(year, month));
+      
+      const queryParams = { 
+        ...range, 
+        page: pageNum, 
+        limit 
+      };
+      
+      if (searchName.trim()) {
+        queryParams.employeeName = searchName.trim();
+      }
+      
+      if (selectedDate) {
+        queryParams.specificDate = selectedDate;
+      }
+      
+      const attRes = await getAttendance(queryParams);
       setAttendance(attRes.data?.attendance || []);
       setTotalPages(attRes.totalPages || 1);
       setTotal(attRes.total || 0);
@@ -163,6 +198,14 @@ const Attendance = () => {
 
   const sortedAttendance = [...attendance].sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+     console.log("Current Date: attendnace", currentDate);
+
+     
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -195,13 +238,15 @@ const Attendance = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-             <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
+            <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
             Add Bulk Attendance
           </motion.button>
         </div>
       </motion.div>
+
+    
 
       {/* Summary Cards */}
       <motion.div
@@ -237,8 +282,83 @@ const Attendance = () => {
           })}
         </AnimatePresence>
       </motion.div>
+  <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6"
+      >
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-4 items-end">
+          {/* Name Search */}
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search by Employee Name
+              {/* {searchName && (
+                <span className="ml-2 text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+                  Active
+                </span>
+              )} */}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter employee name..."
+                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 ${isSearching ? 'animate-pulse' : ''}`}
+              />
+              <UserIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isSearching ? 'text-indigo-500' : 'text-gray-400'}`} />
+            </div>
+          </div>
 
-      {/* Attendance Table */}
+          {/* Date Filter */}
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Specific Date
+              {/* {selectedDate && (
+                <span className="ml-2 text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+                  Active
+                </span>
+              )} */}
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 cursor-pointer"
+              />
+              <CalendarDaysIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <motion.button
+              type="button"
+              onClick={() => {
+                setSearchName("");
+                setSelectedDate("");
+                setPage(1);
+              }}
+              className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Reset Filters
+            </motion.button>
+          </div>
+        </form>
+      </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -311,22 +431,16 @@ const Attendance = () => {
                           {a.employee?.department?.name || a.employee?.department || "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.date ? new Date(a.date).toLocaleDateString("en-GB") : "-"}
+                          {a.date ? moment(a.date).format('DD/MM/YYYY') : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkIn?.time
-                            ? new Date(a.checkIn.time).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
+                            ? moment(a.checkIn.time).format('h:mm A')
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkOut?.time
-                            ? new Date(a.checkOut.time).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
+                            ? moment(a.checkOut.time).format('h:mm A')
                             : "-"}
                         </td>
                         <td className="px-6 py-4">
@@ -447,60 +561,57 @@ const Attendance = () => {
           </div>
         </div>
       )} */}
-{totalPages > 0 && (
-                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-                                    <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
-                                    <span className="font-medium">{total}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    <button
-                                        onClick={() => setPage(page - 1)}
-                                        disabled={page === 1}
-                                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                                        page === 1
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                                        }`}
-                                    >
-                                        <span className="sr-only">First</span>
-                                        <ChevronLeftIcon className="h-5 w-5" />
-                                    </button>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                                        <button
-                                        key={p}
-                                        onClick={() => setPage(p)}
-                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                            p === page
-                                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
-                                        }`}
-                                        >
-                                        {p}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setPage(page + 1)}
-                                        disabled={page === totalPages}
-                                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                                        page === totalPages
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                                        }`}
-                                    >
-                                        <span className="sr-only">Next</span>
-                                        <ChevronRightIcon className="h-5 w-5" />
-                                    </button>
-                                    </nav>
-                                </div>
-                                </div>
-                            </div>
-                        )}
+      {totalPages > 0 && attendance.length > 0 && (
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
+                <span className="font-medium">{total}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${page === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                    }`}
+                >
+                  <span className="sr-only">First</span>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page
+                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                        : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${page === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                    }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Loading Overlay */}
       {loading && (

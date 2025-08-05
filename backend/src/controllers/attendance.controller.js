@@ -2,35 +2,116 @@ const Attendance = require('../models/Attendance');
 const Employee = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const { createError } = require('../utils/errors');
+const moment = require('moment-timezone');
+
+moment.tz.setDefault('UTC');
 
 exports.getAllAttendance = catchAsync(async (req, res) => {
-  const { startDate, endDate, employeeId, departmentId, page = 1, limit = 10 } = req.query;
+  const { startDate, endDate, employeeId, departmentId, page = 1, limit = 10, employeeName, specificDate } = req.query;
+  
+  console.log("getAllAttendance called with params:", { startDate, endDate, employeeId, departmentId, page, limit, employeeName, specificDate });
   
   let query = { isDeleted: false };
   
-  if (startDate && endDate) {
+  // Handle date filtering: specificDate takes precedence
+  if (specificDate) {
+    // If specific date is provided, use it instead of date range
+    const specificDateTime = moment.tz(specificDate + 'T00:00:00', 'UTC').toDate();
+    const specificEndDateTime = moment.tz(specificDate + 'T23:59:59', 'UTC').toDate();
+    
+    console.log("Specific date query:", { specificDateTime, specificEndDateTime });
+    
     query.date = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $gte: specificDateTime,
+      $lte: specificEndDateTime
+    };
+  } else if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+    
+    console.log("Date range query:", { startDateTime, endDateTime });
+    
+    query.date = {
+      $gte: startDateTime,
+      $lte: endDateTime
+    };
+  } else {
+    // Default to current month if no date filters provided
+    const now = moment.tz('UTC');
+    const startOfMonth = now.clone().startOf('month').toDate();
+    const endOfMonth = now.clone().endOf('month').toDate();
+    
+    query.date = {
+      $gte: startOfMonth,
+      $lte: endOfMonth
     };
   }
   
+  // Employee filtering logic
+  let employeeQueryIds = [];
+  let employeeFilterApplied = false;
+
   if (employeeId) {
+    // If specific employee ID is provided, use it directly
     query.employee = employeeId;
+  } else {
+    // Handle department and employee name filtering
+    if (departmentId) {
+      const departmentEmployees = await Employee.find({ department: departmentId }).select('_id');
+      employeeQueryIds = departmentEmployees.map(emp => emp._id);
+      employeeFilterApplied = true;
+    }
+
+    if (employeeName && employeeName.trim()) {
+      const nameSearchRegex = new RegExp(employeeName.trim(), 'i');
+      const nameFilter = {
+        $or: [
+          { name: nameSearchRegex },
+          { firstName: nameSearchRegex },
+          { lastName: nameSearchRegex }
+        ]
+      };
+
+      let nameFilteredEmployees = await Employee.find(nameFilter).select('_id');
+      let nameFilteredIds = nameFilteredEmployees.map(emp => emp._id);
+
+      if (employeeFilterApplied) {
+        // If both department and name filters are applied, intersect the results
+        employeeQueryIds = employeeQueryIds.filter(id => nameFilteredIds.includes(id));
+      } else {
+        // Only name filter is applied
+        employeeQueryIds = nameFilteredIds;
+        employeeFilterApplied = true;
+      }
+    }
+
+    // Apply the employee filter if any filtering was applied
+    if (employeeFilterApplied) {
+      if (employeeQueryIds.length > 0) {
+        query.employee = { $in: employeeQueryIds };
+      } else {
+        // No employees match the combined filters, return empty result
+        return res.status(200).json({
+          status: 'success',
+          results: 0,
+          data: { attendance: [] },
+          total: 0,
+          page: parseInt(page, 10),
+          totalPages: 0
+        });
+      }
+    }
   }
   
-  if (departmentId) {
-    const employees = await Employee.find({ department: departmentId }).select('_id');
-    query.employee = { $in: employees.map(emp => emp._id) };
-  }
-
+  console.log("Final query:", JSON.stringify(query, null, 2));
+  
   const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+  
   const [attendance, total] = await Promise.all([
     Attendance.find(query)
       .populate({
         path: 'employee',
-        match: { status: 'active' },
-        select: 'name department position',
+        select: 'name firstName lastName department position',
         populate: [
           { path: 'department', select: 'name' },
           { path: 'position', select: 'title' }
@@ -41,6 +122,8 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
       .limit(parseInt(limit, 10)),
     Attendance.countDocuments(query)
   ]);
+
+  console.log("Found attendance records:", attendance.length);
 
   res.status(200).json({
     status: 'success',
@@ -76,9 +159,12 @@ exports.getAttendance = catchAsync(async (req, res) => {
 exports.createAttendance = catchAsync(async (req, res) => {
   const { employee, date, checkIn, status, notes, shift = 'Morning' } = req.body;
 
+  // Use moment to parse date in UTC
+  const attendanceDate = moment.tz(date, 'UTC').startOf('day').toDate();
+
   const existingAttendance = await Attendance.findOne({
     employee,
-    date: new Date(date)
+    date: attendanceDate
   });
 
   if (existingAttendance) {
@@ -87,9 +173,9 @@ exports.createAttendance = catchAsync(async (req, res) => {
 
   const attendance = await Attendance.create({
     employee,
-    date: new Date(date),
+    date: attendanceDate,
     checkIn: {
-      time: checkIn?.time || new Date(),
+      time: checkIn?.time ? moment.tz(checkIn.time, 'UTC').toDate() : new Date(),
       device: checkIn?.device || 'Web',
       ipAddress: checkIn?.ipAddress
     },
@@ -130,8 +216,8 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       throw createError(400, `Date is required for record at index ${index}`);
     }
     
-    const date = new Date(record.date);
-    if (isNaN(date.getTime())) {
+    const date = moment.tz(record.date, 'UTC');
+    if (!date.isValid()) {
       throw createError(400, `Invalid date format for record at index ${index}`);
     }
   });
@@ -160,8 +246,16 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
 
   for (const record of attendanceRecords) {
     try {
-      const attendanceDate = new Date(record.date);
-      attendanceDate.setHours(0, 0, 0, 0);
+      // Parse date using moment in UTC timezone
+      let attendanceDate;
+      if (record.date instanceof Date) {
+        attendanceDate = moment.tz(record.date, 'UTC').startOf('day').toDate();
+      } else if (typeof record.date === 'string') {
+        // If it's a YYYY-MM-DD string, parse it as UTC date
+        attendanceDate = moment.tz(record.date, 'UTC').startOf('day').toDate();
+      } else {
+        attendanceDate = moment.tz(record.date, 'UTC').toDate();
+      }
 
       const existingAttendance = await Attendance.findOne({
         employee: record.employee,
@@ -171,7 +265,24 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       if (existingAttendance) {
         if (record.checkOut && !['Holiday', 'On-Leave'].includes(record.status)) {
           const checkInTime = existingAttendance.checkIn?.time;
-          const checkOutTime = new Date(record.checkOut.time || new Date());
+          let checkOutTime;
+          
+          if (record.checkOut.time instanceof Date) {
+            // Extract time components and apply to the attendance date
+            const checkOutMoment = moment.tz(record.checkOut.time, 'UTC');
+            const hours = checkOutMoment.hours();
+            const minutes = checkOutMoment.minutes();
+            const seconds = checkOutMoment.seconds();
+            
+            checkOutTime = moment.tz(attendanceDate, 'UTC')
+              .hours(hours)
+              .minutes(minutes)
+              .seconds(seconds)
+              .toDate();
+          } else {
+            // Parse ISO string and convert to UTC
+            checkOutTime = moment.tz(record.checkOut.time, 'UTC').toDate();
+          }
           
           // Calculate work hours
           const workHours = calculateWorkHours(checkInTime, checkOutTime);
@@ -217,7 +328,30 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       };
 
       if (!['Holiday', 'On-Leave'].includes(record.status)) {
-        const checkInTime = record.checkIn?.time ? new Date(record.checkIn.time) : new Date();
+        let checkInTime;
+        
+        if (record.checkIn?.time) {
+          if (record.checkIn.time instanceof Date) {
+            // Extract time components from the Date object
+            const checkInMoment = moment.tz(record.checkIn.time, 'UTC');
+            const hours = checkInMoment.hours();
+            const minutes = checkInMoment.minutes();
+            const seconds = checkInMoment.seconds();
+            
+            // Create check-in time using the attendance date and extracted time
+            checkInTime = moment.tz(attendanceDate, 'UTC')
+              .hours(hours)
+              .minutes(minutes)
+              .seconds(seconds)
+              .toDate();
+          } else { // This path is taken for ISO string from frontend
+            // Parse the ISO string and convert to UTC
+            checkInTime = moment.tz(record.checkIn.time, 'UTC').toDate();
+          }
+        } else {
+          checkInTime = new Date();
+        }
+        
         if (isNaN(checkInTime.getTime())) {
           throw createError(400, 'Invalid check-in time format');
         }
@@ -246,23 +380,25 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
 
       results.push(populatedAttendance);
     } catch (error) {
-      console.error(`Error processing record for employee ${record.employee}:`, error);
       errors.push({
         employee: record.employee,
-        date: record.date,
         error: error.message
       });
-      continue;
     }
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      status: 'partial_success',
+      message: `Created ${results.length} records, ${errors.length} failed`,
+      data: { results, errors }
+    });
   }
 
   res.status(201).json({
     status: 'success',
     results: results.length,
-    data: { 
-      attendance: results,
-      errors: errors.length > 0 ? errors : undefined
-    }
+    data: { results }
   });
 });
 
@@ -378,10 +514,10 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
   const { startDate, endDate, departmentId } = req.query;
 
   try {
-    const validStartDate = startDate ? new Date(startDate) : new Date();
+    const validStartDate = startDate ? moment.tz(startDate + 'T00:00:00', 'UTC').toDate() : new Date();
     validStartDate.setHours(0, 0, 0, 0);
     
-    const validEndDate = endDate ? new Date(endDate) : new Date();
+    const validEndDate = endDate ? moment.tz(endDate + 'T23:59:59', 'UTC').toDate() : new Date();
     validEndDate.setHours(23, 59, 59, 999);
 
     if (isNaN(validStartDate.getTime()) || isNaN(validEndDate.getTime())) {
@@ -656,14 +792,14 @@ exports.updateAttendance = catchAsync(async (req, res) => {
   const updatedAttendance = await Attendance.findByIdAndUpdate(
     req.params.id,
     {
-      date: date ? new Date(date) : attendance.date,
+      date: date ? moment.tz(date, 'UTC').startOf('day').toDate() : attendance.date,
       checkIn: checkIn ? {
-        time: new Date(checkIn.time),
+        time: checkIn.time ? moment.tz(checkIn.time, 'UTC').toDate() : attendance.checkIn.time,
         device: checkIn.device || 'Web',
         ipAddress: checkIn.ipAddress
       } : attendance.checkIn,
       checkOut: checkOut ? {
-        time: new Date(checkOut.time),
+        time: checkOut.time ? moment.tz(checkOut.time, 'UTC').toDate() : attendance.checkOut.time,
         device: checkOut.device || 'Web',
         ipAddress: checkOut.ipAddress
       } : attendance.checkOut,
@@ -718,9 +854,17 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
     
     // Add date range filter if provided
     if (startDate && endDate) {
+      // Create dates in local timezone to avoid timezone conversion issues
+      const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+      const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+      
+      // Set hours to ensure the full day is covered in the local timezone
+      startDateTime.setHours(0, 0, 0, 0);
+      endDateTime.setHours(23, 59, 59, 999);
+      
       query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $gte: startDateTime,
+        $lte: endDateTime
       };
     }
 
@@ -755,16 +899,16 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
     // Format attendance records with proper date strings
     const formattedAttendance = attendance.map(record => ({
       ...record,
-      date: new Date(record.date).toISOString(),
+      date: moment.tz(record.date, 'UTC').toISOString(),
       checkIn: record.checkIn ? {
         ...record.checkIn,
-        time: record.checkIn.time ? new Date(record.checkIn.time).toISOString() : null
+        time: record.checkIn.time ? moment.tz(record.checkIn.time, 'UTC').toISOString() : null
       } : null,
       checkOut: record.checkOut ? {
         ...record.checkOut,
-        time: record.checkOut.time ? new Date(record.checkOut.time).toISOString() : null
+        time: record.checkOut.time ? moment.tz(record.checkOut.time, 'UTC').toISOString() : null
       } : null,
-      monthYear: new Date(record.date).toLocaleString('default', { month: 'long', year: 'numeric' })
+      monthYear: moment.tz(record.date, 'UTC').toLocaleString('default', { month: 'long', year: 'numeric' })
     }));
 
     // Group by month for statistics
@@ -824,9 +968,17 @@ exports.getAttendanceByEmployeeId = catchAsync(async (req, res) => {
   
   // Add date range filter if provided
   if (startDate && endDate) {
+    // Create dates in local timezone to avoid timezone conversion issues
+    const startDateTime = moment.tz(startDate + 'T00:00:00', 'UTC').toDate();
+    const endDateTime = moment.tz(endDate + 'T23:59:59', 'UTC').toDate();
+    
+    // Set hours to ensure the full day is covered in the local timezone
+    startDateTime.setHours(0, 0, 0, 0);
+    endDateTime.setHours(23, 59, 59, 999);
+    
     query.date = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $gte: startDateTime,
+      $lte: endDateTime
     };
   }
 

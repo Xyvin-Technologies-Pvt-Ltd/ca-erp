@@ -20,6 +20,7 @@ const statusColors = {
   review: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-gray-100 text-gray-800",
+  verification: "bg-indigo-100 text-indigo-800",
 };
 
 const priorityColors = {
@@ -420,6 +421,13 @@ const Tasks = () => {
                           <Link to={`/tasks/${task._id}`} className="text-gray-500 hover:text-blue-600">
                             {task.title.charAt(0).toUpperCase() + task.title.slice(1)}
                           </Link>
+                          {task.title === 'Project Verification Task' && (
+                            <div className="mt-1">
+                              {/* <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                Verification Task
+                              </span> */}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                           <motion.span

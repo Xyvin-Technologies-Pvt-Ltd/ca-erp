@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ROLES } from "../config/constants";
+import { useAuth } from "../context/AuthContext";
 import { 
   Settings as SettingsIcon, 
   Building2, 
@@ -18,34 +18,12 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("company");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user, isSuperadmin, isLoading } = useAuth();
 
   useEffect(() => {
-    // Simulate loading user data
-    const loadUserData = async () => {
-      setLoading(true);
-      try {
-        // In a real app, this would fetch current user data from API/context
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Mock current user with admin role for demo
-        setCurrentUser({
-          id: "user-1",
-          name: "Admin User",
-          email: "admin@ca-erp.com",
-          role: ROLES.ADMIN
-        });
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to load user data:", error);
-        setError("Failed to load user data. Please try again.");
-        setLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, []);
+    // Set loading state based on auth context
+    setLoading(isLoading);
+  }, [isLoading]);
 
   if (loading) {
     return (
@@ -74,7 +52,7 @@ const Settings = () => {
               <p className="text-gray-600 mb-6">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Loader2 className="w-4 h-4" />
                 Try Again
@@ -86,8 +64,8 @@ const Settings = () => {
     );
   }
 
-  // Only admin should have access to settings
-  if (currentUser && currentUser.role !== ROLES.ADMIN) {
+  // Only superadmin should have access to settings
+  if (!isSuperadmin()) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
@@ -98,11 +76,11 @@ const Settings = () => {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h3>
               <p className="text-gray-600 mb-6">
-                You don't have permission to access the settings page. Please contact an administrator.
+                Only superadmin can access the settings page. Please contact a superadmin for assistance.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <User className="w-4 h-4" />
-                <span>Current Role: {currentUser?.role || 'Unknown'}</span>
+                <span>Current User: {user?.email || 'Unknown'}</span>
               </div>
             </div>
           </div>
@@ -141,7 +119,7 @@ const Settings = () => {
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-[#1c6ead] rounded-xl flex items-center justify-center shadow-lg">
               <SettingsIcon className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -155,19 +133,19 @@ const Settings = () => {
           </div>
 
           {/* User Info Card */}
-          {currentUser && (
+          {user && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
                   <User className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{currentUser.name}</h3>
-                  <p className="text-gray-600">{currentUser.email}</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{user.name || user.email}</h3>
+                  <p className="text-gray-600">{user.email}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Shield className="w-4 h-4 text-emerald-600" />
                     <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                      {currentUser.role}
+                      Superadmin
                     </span>
                   </div>
                 </div>
@@ -201,60 +179,21 @@ const Settings = () => {
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className={`font-semibold transition-colors duration-200 ${
-                          activeTab === tab.id ? "text-blue-600" : "text-gray-900"
-                        }`}>
-                          {tab.label}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {tab.description}
-                        </p>
+                        <h3 className="font-semibold">{tab.label}</h3>
+                        <p className="text-sm text-gray-500">{tab.description}</p>
                       </div>
                     </div>
-                    
-                    {/* Active indicator */}
-                    {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-blue-700"></div>
-                    )}
                   </button>
                 );
               })}
             </nav>
           </div>
 
-          {/* Enhanced Tab Content */}
+          {/* Tab Content */}
           <div className="p-8">
-            <div className="transition-all duration-300 ease-in-out">
-              {/* {activeTab === "users" && <UserManagement />} */}
-              {activeTab === "company" && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Company Settings</h2>
-                      <p className="text-gray-600">Configure your company information and branding preferences</p>
-                    </div>
-                  </div>
-                  <CompanySettings />
-                </div>
-              )}
-              {activeTab === "system" && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Sliders className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">System Preferences</h2>
-                      <p className="text-gray-600">Manage system-wide settings and preferences</p>
-                    </div>
-                  </div>
-                  <SystemPreferences />
-                </div>
-              )}
-            </div>
+            {activeTab === "company" && <CompanySettings />}
+            {activeTab === "system" && <SystemPreferences />}
+            {/* {activeTab === "users" && <UserManagement />} */}
           </div>
         </div>
       </div>

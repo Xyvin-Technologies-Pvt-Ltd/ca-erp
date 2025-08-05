@@ -96,38 +96,38 @@ const navigation = [
     icon: DollarSign,
     roles: ["finance", "admin"],
   },
-  { name: "Settings", to: ROUTES.SETTINGS, icon: Settings, roles: ["admin", "manager"] },
+  { name: "Settings", to: ROUTES.SETTINGS, icon: Settings, superadminOnly: true },
 ];
 
 const Sidebar = ({ onCloseMobile, projects = [] }) => {
   const location = useLocation();
-  const { user, role } = useAuth();
+  const { user, role, isSuperadmin } = useAuth();
   const [logoFilename, setLogoFilename] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [expandedItems, setExpandedItems] = useState({});
 
-  useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const response = await api.get("/settings");
-        const logo = response.data?.data?.company?.logo;
-        const company = response.data?.data?.company;
+  // useEffect(() => {
+  //   const fetchLogo = async () => {
+  //     try {
+  //       const response = await api.get("/settings/company-info");
+  //       const logo = response.data?.data?.company?.logo;
+  //       const company = response.data?.data?.company;
 
-        if (company?.logo) {
-          const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
-          setLogoFilename(fullLogoUrl);
-        }
+  //       if (company?.logo) {
+  //         const fullLogoUrl = `${import.meta.env.VITE_BASE_URL}${company.logo}`;
+  //         setLogoFilename(fullLogoUrl);
+  //       }
 
-        if (company?.name) {
-          setCompanyName(company.name);
-        }
-      } catch (error) {
-        console.error("Failed to load logo", error);
-      }
-    };
+  //       if (company?.name) {
+  //         setCompanyName(company.name);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to load logo", error);
+  //     }
+  //   };
 
-    fetchLogo();
-  }, []);
+  //   fetchLogo();
+  // }, []);
 
   const toggleExpand = (itemName) => {
     setExpandedItems((prev) => {
@@ -148,8 +148,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
     }
   }, [location.pathname]);
 
-  const getVisibleNavigation = (role) => {
+  const getVisibleNavigation = (role, isSuperadminUser) => {
     return navigation.filter((item) => {
+      // Superadmin can only see Settings
+      if (isSuperadminUser) {
+        return item.name === "Settings";
+      }
+
+      // For non-superadmin users, check role-based access
       switch (item.name) {
         case "Dashboard":
           return true;
@@ -163,14 +169,14 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
         case "HRM":
           return ["admin", "manager"].includes(role);
         case "Settings":
-        return item.roles ? item.roles.includes(role) : true;
+          return item.superadminOnly ? isSuperadminUser : (item.roles ? item.roles.includes(role) : true);
         default:
           return false;
       }
     });
   };
 
-  const filteredNavigation = getVisibleNavigation(role || "staff");
+  const filteredNavigation = getVisibleNavigation(user?.role || "staff", isSuperadmin());
 
   // Handle link clicks to close mobile sidebar
   const handleLinkClick = () => {
@@ -184,7 +190,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
       {/* Logo and mobile close button */}
       <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm ml-5">
         <Link to={ROUTES.DASHBOARD} className="flex-shrink-0 group" onClick={handleLinkClick}>
-          {logoFilename ? (
+          {/* {logoFilename ? (
             <img 
               src={logoFilename} 
               alt="Company Logo" 
@@ -199,7 +205,9 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
                 {companyName || "Company"}
               </span>
             </div>
-          )}
+          )} */}
+        <img src="/logo/company-logo.png" alt="Logo" className="h-12 object-contain" />
+
         </Link>
         {onCloseMobile && (
           <button
@@ -305,7 +313,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
             <div className="flex-shrink-0">
               {user.avatar ? (
                 <img
-                  src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
+                  src={`${user.avatar}`}
                   alt="Avatar"
                   className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
                  onError={(e) => {

@@ -15,6 +15,7 @@ const { config } = require('dotenv');
 const WebSocket = require('ws');
 const websocketService = require('./utils/websocket');
 const cronService = require('./services/cronService');
+const seedSuperAdmin = require('./utils/seedSuperAdmin').seedSuperAdmin;
 // Load env vars
 config();
 
@@ -36,12 +37,30 @@ const leavesRoutes = require('./routes/leave.routes')
 const attendanceRoutes = require('./routes/attendance.routes')
 const cronJobRoutes = require('./routes/cronJob.routes')
 const sectionRoutes = require('./routes/section.routes')
+const uploadRoutes = require('./routes/upload.routes')
+
 
 // Initialize express app
 const app = express();
 
-// Connect to database
-connectDB();
+// Connect to database and seed superadmin
+const initializeServer = async () => {
+    try {
+        // Connect to database
+        await connectDB();
+        logger.info('Database connected successfully');
+
+        // Seed superadmin after database connection
+        console.log('🔍 Checking for superadmin...');
+        await seedSuperAdmin();
+        console.log('✅ Superadmin check completed');
+
+    } catch (error) {
+        logger.error('Failed to initialize server:', error);
+        console.error('❌ Server initialization failed:', error.message);
+        process.exit(1);
+    }
+};
 
 // Initialize cron jobs after DB connection
 cronService.init();
@@ -103,6 +122,7 @@ app.use('/api/leaves',leavesRoutes)
 app.use('/api/attendance',attendanceRoutes)
 app.use('/api/cronjobs', cronJobRoutes)
 app.use('/api/sections', sectionRoutes)
+app.use('/api/upload', uploadRoutes);
 
 
 
@@ -110,8 +130,26 @@ app.use('/api/sections', sectionRoutes)
 swaggerDocs(app);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'Server is running' });
+app.get('/api/health', async (req, res) => {
+    try {
+        const { checkSuperAdmin } = require('./utils/seedSuperAdmin');
+        const superadminExists = await checkSuperAdmin();
+        
+        res.status(200).json({ 
+            status: 'ok', 
+            message: 'Server is running',
+            superadmin: {
+                exists: superadminExists,
+                email: 'xyvinSuperadmin@gmail.com'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'Server is running but health check failed',
+            error: error.message
+        });
+    }
 });
 
 // Error handling middleware
@@ -127,6 +165,17 @@ const PORT = process.env.PORT || 5001;
 const server = app.listen(PORT, async () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on port ${PORT}`);
+    
+    // Initialize server (database connection and seeding)
+    try {
+        await initializeServer();
+        logger.info('Server initialized successfully');
+        console.log('✅ Server initialized successfully');
+    } catch (error) {
+        logger.error('Failed to initialize server:', error);
+        console.error('❌ Server initialization failed:', error.message);
+        process.exit(1);
+    }
     
     // Initialize cron service
     try {

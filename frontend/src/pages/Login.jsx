@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 const Login = () => {
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, isSuperadmin } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -30,13 +30,6 @@ const Login = () => {
     },
   });
 
-  // If already authenticated, redirect to dashboard
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD);
-    }
-  }, [isAuthenticated, navigate]);
-
   // Clear auth errors when unmounting
   useEffect(() => {
     return () => {
@@ -46,8 +39,13 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      await login(data);
-      // Navigation will happen automatically due to the useEffect above
+      const result = await login(data);
+      // Check if user is superadmin and redirect immediately
+      if (result?.user?.superadmin) {
+        navigate(ROUTES.SETTINGS);
+      } else {
+        navigate(ROUTES.DASHBOARD);
+      }
     } catch (error) {
       // Error is handled by the auth store
       console.error("Login failed:", error);

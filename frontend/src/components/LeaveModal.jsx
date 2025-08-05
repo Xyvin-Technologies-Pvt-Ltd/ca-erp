@@ -5,6 +5,10 @@ import { createLeave, updateLeave, reviewLeave } from "../api/Leave";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { XMarkIcon, CalendarIcon, ClockIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import moment from 'moment-timezone';
+
+
 
 const validationSchema = Yup.object({
   leaveType: Yup.string().required("Leave type is required"),
@@ -18,12 +22,13 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
   const { user } = useAuth();
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); 
 
   const formik = useFormik({
     initialValues: {
       leaveType: leave?.leaveType || "",
-      startDate: leave?.startDate ? new Date(leave.startDate).toISOString().split("T")[0] : "",
-      endDate: leave?.endDate ? new Date(leave.endDate).toISOString().split("T")[0] : "",
+      startDate: leave?.startDate ? moment(leave.startDate).format('YYYY-MM-DD') : "",
+      endDate: leave?.endDate ? moment(leave.endDate).format('YYYY-MM-DD') : "",
       reason: leave?.reason || "",
       status: leave?.status || "Pending",
       reviewNotes: leave?.reviewNotes || "",
@@ -33,8 +38,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
       try {
         const payload = {
           ...values,
-          duration:
-            Math.ceil((new Date(values.endDate) - new Date(values.startDate)) / (1000 * 60 * 60 * 24)) + 1,
+          duration: Math.ceil(moment(values.endDate).diff(moment.tz(values.startDate), 'days')) + 1,
           employee: user?._id,
         };
         if (leave) {
@@ -64,9 +68,9 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (formik.values.startDate && formik.values.endDate) {
-      const start = new Date(formik.values.startDate);
-      const end = new Date(formik.values.endDate);
-      const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const start = moment(formik.values.startDate);
+      const end = moment(formik.values.endDate);
+      const durationInDays = Math.ceil(end.diff(start, 'days')) + 1;
       formik.setFieldValue("duration", durationInDays);
     }
     // eslint-disable-next-line
@@ -90,25 +94,37 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
   };
+const handleCancel = () => {
+    setShowConfirmModal(true); 
+  };
+
+  const confirmDiscard = () => {
+    setShowConfirmModal(false);
+    onClose();
+  };
+
+  const cancelDiscard = () => {
+    setShowConfirmModal(false);
+  };
 
   const calculateDuration = () => {
     if (formik.values.startDate && formik.values.endDate) {
-      const start = new Date(formik.values.startDate);
-      const end = new Date(formik.values.endDate);
-      const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      const start = moment(formik.values.startDate);
+      const end = moment(formik.values.endDate);
+      const duration = Math.ceil(end.diff(start, 'days')) + 1;
       return duration > 0 ? duration : 0;
     }
     return 0;
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-2xl overflow-hidden transform transition-all duration-300 scale-100">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300"     onClick={handleCancel}>
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-2xl overflow-hidden transform transition-all duration-300 scale-100 " onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-[#1c6ead] to-indigo-500 text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
                 <DocumentTextIcon className="h-6 w-6" />
               </div>
               <div>
@@ -319,7 +335,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
               <button
                 type="submit"
                 disabled={formik.isSubmitting}
-                className="px-6 py-3 bg-gradient-to-r from-[#1c6ead] to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {formik.isSubmitting ? (
                   <span className="flex items-center">
@@ -342,6 +358,38 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
           </form>
         </div>
       </div>
+       {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
+              <button
+                onClick={cancelDiscard}
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to discard changes? Any unsaved changes will be lost.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelDiscard}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDiscard}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

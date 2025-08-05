@@ -3,7 +3,7 @@ import { ROLES } from "../../config/constants";
 import UserForm from "./UserForm";
 import { userApi } from "../../api/userApi";
 import { toast } from "react-toastify";
-import { PencilIcon, TrashIcon, UserIcon, EnvelopeIcon, ShieldCheckIcon, BuildingOfficeIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, UserIcon, EnvelopeIcon, ShieldCheckIcon, BuildingOfficeIcon, CheckCircleIcon, XCircleIcon, GlobeAltIcon, ShieldExclamationIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 
 const UserManagement = () => {
@@ -275,6 +275,18 @@ const UserManagement = () => {
                         <span>Status</span>
                       </div>
                     </th>
+                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center space-x-2">
+                        <GlobeAltIcon className="h-4 w-4 text-indigo-600" />
+                        <span>Work</span>
+                      </div>
+                    </th>
+                    {/* <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center space-x-2">
+                        <ShieldExclamationIcon className="h-4 w-4 text-indigo-600" />
+                        <span>Verification</span>
+                      </div>
+                    </th> */}
                     <th scope="col" className="px-4 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
                       <div className="flex items-center justify-end space-x-2">
                         <svg className="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,7 +314,7 @@ const UserManagement = () => {
                               {user.avatar ? (
                                 <img
                                   className="h-10 w-10 rounded-full transition-transform duration-200 hover:scale-110"
-                                  src={`${import.meta.env.VITE_BASE_URL}${user.avatar}`}
+                                  src={`${user.avatar}`}
                                   onError={(e) => {
                                     e.target.outerHTML = `
                                       <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
@@ -363,6 +375,40 @@ const UserManagement = () => {
                             {user.status}
                           </motion.span>
                         </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <motion.span
+                            className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${
+                              user.workType === "onsite"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-purple-100 text-purple-800"
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {user.workType === "onsite" ? "On-site" : "Remote"}
+                          </motion.span>
+                        </td>
+                        {/* <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <motion.span
+                            className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${
+                              user.verificationStaff
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {user.verificationStaff ? (
+                              <>
+                                <CheckCircleIcon className="h-5 w-5 mr-1 text-green-600" />
+                                Active
+                              </>
+                            ) : (
+                              <>
+                                <XCircleIcon className="h-5 w-5 mr-1 text-gray-600" />
+                                Inactive
+                              </>
+                            )}
+                          </motion.span>
+                        </td> */}
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2 sm:space-x-3">
                             <motion.button

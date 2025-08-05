@@ -1,10 +1,10 @@
-import React, { Fragment, useRef, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Menu, Transition } from '@headlessui/react';
-import { Bell, Check, Trash2, Clock, ExternalLink } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import useNotificationStore from "../hooks/useNotificationsStore"
-import { Link, useNavigate } from 'react-router-dom';
+import React, { Fragment, useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { Menu, Transition } from "@headlessui/react";
+import { Bell, Check, Trash2, Clock, ExternalLink } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import useNotificationStore from "../hooks/useNotificationsStore";
+import { Link, useNavigate } from "react-router-dom";
 
 const NotificationDropdown = () => {
   const {
@@ -16,12 +16,18 @@ const NotificationDropdown = () => {
     isLoading,
     error,
     fetchNotifications,
+    clearNotification,
+    hideNotificationDropdown,
+    manageNotiDrop,
   } = useNotificationStore();
 
   const navigate = useNavigate();
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null); // Add ref for dropdown
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    right: 0,
+  });
   const [isOpen, setIsOpen] = useState(false);
 
   // Fetch notifications when the component mounts
@@ -38,17 +44,22 @@ const NotificationDropdown = () => {
         right: window.innerWidth - rect.right,
       });
     }
-  }, [isOpen]);
+    if (hideNotificationDropdown === true) {
+      setIsOpen(false);
+    }
+  }, [isOpen, hideNotificationDropdown]);
 
   // Format the notification date
   const formatDate = (dateString) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch (error) {
-      return 'Unknown date';
+      return "Unknown date";
     }
   };
-
+  const clearAllNotification = () => {
+    clearNotification();
+  };
   const DropdownContent = () => (
     <Transition
       show={isOpen}
@@ -77,7 +88,9 @@ const NotificationDropdown = () => {
                 <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
                   <Bell className="h-4 w-4" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900">Notifications</h3>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Notifications
+                </h3>
                 {unreadCount > 0 && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {unreadCount} new
@@ -120,8 +133,12 @@ const NotificationDropdown = () => {
                   <Bell className="h-6 w-6 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">No notifications</p>
-                  <p className="text-xs text-slate-500 mt-1">You're all caught up!</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    No notifications
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    You're all caught up!
+                  </p>
                 </div>
               </div>
             </div>
@@ -132,19 +149,29 @@ const NotificationDropdown = () => {
                   key={notification._id}
                   className={`
                     relative px-6 py-4 transition-all duration-200 cursor-pointer
-                    ${!notification.read ? 'bg-gradient-to-r from-blue-50/50 to-transparent border-l-2 border-blue-400' : ''}
-                    ${index !== notifications.slice(0, 5).length - 1 ? 'border-b border-slate-100' : ''}
+                    ${
+                      !notification.read
+                        ? "bg-gradient-to-r from-blue-50/50 to-transparent border-l-2 border-blue-400"
+                        : ""
+                    }
+                    ${
+                      index !== notifications.slice(0, 5).length - 1
+                        ? "border-b border-slate-100"
+                        : ""
+                    }
                     hover:bg-slate-50 group
                   `}
                   // onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex gap-4">
                     {/* Notification Icon */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                      !notification.read 
-                        ? 'bg-blue-100 text-blue-600' 
-                        : 'bg-slate-100 text-slate-500'
-                    }`}>
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                        !notification.read
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
                       <Bell className="h-4 w-4" />
                     </div>
 
@@ -153,9 +180,13 @@ const NotificationDropdown = () => {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="block group-hover:text-blue-600 transition-colors duration-200">
-                            <p className={`text-sm font-medium leading-tight ${
-                              !notification.read ? 'text-slate-900' : 'text-slate-700'
-                            }`}>
+                            <p
+                              className={`text-sm font-medium leading-tight ${
+                                !notification.read
+                                  ? "text-slate-900"
+                                  : "text-slate-700"
+                              }`}
+                            >
                               {notification.title}
                             </p>
                             <p className="text-sm text-slate-600 mt-1 line-clamp-2">
@@ -178,9 +209,9 @@ const NotificationDropdown = () => {
                           {!notification.read && (
                             <button
                               onClick={(e) => {
-                                      e.stopPropagation();
-                                      markAsRead(notification._id);
-                                    }}
+                                e.stopPropagation();
+                                markAsRead(notification._id);
+                              }}
                               className="p-1.5 text-blue-600 hover:text-blue-800 rounded-lg hover:bg-blue-100 transition-all duration-200"
                               title="Mark as read"
                             >
@@ -189,9 +220,9 @@ const NotificationDropdown = () => {
                           )}
                           <button
                             onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteNotification(notification._id);
-                                  }}
+                              e.stopPropagation();
+                              deleteNotification(notification._id);
+                            }}
                             className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-200"
                             title="Delete notification"
                           >
@@ -215,12 +246,22 @@ const NotificationDropdown = () => {
           {notifications.length > 0 && (
             <div className="px-6 py-3 border-t border-slate-200/50 bg-gradient-to-r from-slate-50 to-white">
               <Link
-                  to="/notifications"
-                  className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded-lg hover:bg-blue-50 transition-all duration-200 group"
+                to="/notifications"
+                className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded-lg hover:bg-blue-50 transition-all duration-200 group"
+              >
+                <span onClick={()=>setIsOpen(false)}>
+                  View all notifications
+                </span>
+                <ExternalLink className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Link>
+              <div className="text-center ">
+                <button
+                  onClick={clearAllNotification}
+                  className="hover:bg-slate-200 w-full px-12 text-sm py-2 mt-1 rounded-2xl text-blue-700 font-semibold cursor-pointer"
                 >
-                  <span>View all notifications</span>
-                  <ExternalLink className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </Link>
+                  Clear all
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -233,29 +274,45 @@ const NotificationDropdown = () => {
     const handleClickOutside = (event) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target)) {
         // Check if the click is inside the dropdown using the ref
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
           setIsOpen(false);
         }
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen]);
 
   // Close dropdown on escape key
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setIsOpen(false);
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("scroll", handleScroll, true);
+      return () => document.removeEventListener("scroll", handleScroll, true);
     }
   }, [isOpen]);
 
@@ -265,21 +322,28 @@ const NotificationDropdown = () => {
         <div>
           <Menu.Button
             ref={buttonRef}
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              manageNotiDrop(false);
+              setIsOpen(!isOpen);
+            }}
             className="relative p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 group"
           >
             <span className="sr-only">View notifications</span>
-            <Bell className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
+            <Bell
+              className="h-5 w-5 transition-transform duration-200 group-hover:scale-110"
+              aria-hidden="true"
+            />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold shadow-lg animate-pulse">
-                {unreadCount > 9 ? '9+' : unreadCount}
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </Menu.Button>
         </div>
 
         {/* Render dropdown in portal */}
-        {typeof window !== 'undefined' && createPortal(<DropdownContent />, document.body)}
+        {typeof window !== "undefined" &&
+          createPortal(<DropdownContent />, document.body)}
       </Menu>
     </>
   );

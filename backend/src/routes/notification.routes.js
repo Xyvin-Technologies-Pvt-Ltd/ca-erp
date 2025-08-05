@@ -1,15 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
-    getNotifications,
-    getNotification,
-    createNotification,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification
-} = require('../controllers/notification.controller');
+  getNotifications,
+  getNotification,
+  createNotification,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+} = require("../controllers/notification.controller");
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require("../middleware/auth");
 
 /**
  * @swagger
@@ -47,16 +48,16 @@ const { protect, authorize } = require('../middleware/auth');
  *       401:
  *         description: Unauthorized
  */
-router.route('/')
-    .get(protect, getNotifications)
-    .post(protect,  createNotification);
+router
+  .route("/")
+  .get(protect, getNotifications)
+  .post(protect, createNotification);
 
-router.route('/read-all')
-    .put(protect, markAllAsRead);
-
-router.route('/:id')
-    .get(protect, getNotification)
-    .put(protect, markAsRead)
-    .delete(protect, deleteNotification);
-
+router.route("/read-all").put(protect, markAllAsRead);
+router.route("/delete").delete(protect, deleteAllNotifications);
+router
+  .route("/:id")
+  .get(protect, getNotification)
+  .put(protect, markAsRead)
+  .delete(protect, deleteNotification);
 module.exports = router;

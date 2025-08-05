@@ -16,4 +16,9 @@ export const sectionsApi = {
     const response = await axios.delete(`/sections/${id}`);
     return response.data;
   },
+  //edit section
+  editSection:async(data)=>{
+    const response = await axios.put('/sections/edit', {},{params: { data }});
+    return response.data;
+  }
 }; 

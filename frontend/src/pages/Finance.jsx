@@ -84,6 +84,7 @@ const Finance = () => {
         page: currentPage,
         limit: paginations.limit
       });
+      console.log(data);
       
       const transformed = data.projects.map(project => ({
         ...project,
@@ -262,7 +263,7 @@ const Finance = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-[#1c6ead] rounded-xl flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -284,7 +285,7 @@ const Finance = () => {
                 </div>
               </div>
               
-              <button
+              {/* <button
                 onClick={openInvoiceModal}
                 disabled={selectedProjects.length === 0}
                 className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
@@ -295,7 +296,7 @@ const Finance = () => {
               >
                 <Receipt className="w-4 h-4" />
                 Create Invoice ({selectedProjects.length})
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -415,15 +416,7 @@ const Finance = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-purple-600 font-medium">Total Hours</p>
-                    <p className="text-2xl font-bold text-purple-900">{totalHours}</p>
-                  </div>
-                </div>
+                
               </div>
               
               <button
@@ -652,17 +645,7 @@ const Finance = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
-                        onClick={() => handlePageChanges(1)}
-                        disabled={currentPage === 1}
-                        className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
-                          currentPage === 1
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
-                        }`}
-                      >
-                        <ChevronsLeft className="w-4 h-4" />
-                      </button>
+                      
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -698,17 +681,7 @@ const Finance = () => {
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handlePageChanges(totalPage)}
-                        disabled={currentPage === totalPage}
-                        className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
-                          currentPage === totalPage
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
-                        }`}
-                      >
-                        <ChevronsRight className="w-4 h-4" />
-                      </button>
+                     
                     </nav>
                   </div>
                 </div>

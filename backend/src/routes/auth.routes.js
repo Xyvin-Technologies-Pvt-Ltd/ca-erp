@@ -64,7 +64,8 @@ router.post('/register', validate(userValidation.register), register);
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login a user
+ *     summary: Login a user or superadmin
+ *     description: Login with email and password. Supports both regular users and superadmin accounts.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -79,12 +80,14 @@ router.post('/register', validate(userValidation.register), register);
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: Email address (user or superadmin)
  *               password:
  *                 type: string
  *                 format: password
+ *                 description: Password
  *     responses:
  *       200:
- *         description: User logged in successfully
+ *         description: User or superadmin logged in successfully
  *         content:
  *           application/json:
  *             schema:
@@ -95,8 +98,19 @@ router.post('/register', validate(userValidation.register), register);
  *                   example: true
  *                 token:
  *                   type: string
+ *                   description: JWT token
  *                 data:
- *                   $ref: '#/components/schemas/User'
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     superadmin:
+ *                       type: boolean
+ *                       description: True if logged in as superadmin
+ *       400:
+ *         description: Missing credentials
+ *       401:
+ *         description: Invalid credentials
  */
 router.post('/login', validate(userValidation.login), login);
 

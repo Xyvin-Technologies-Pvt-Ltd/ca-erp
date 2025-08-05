@@ -1,14 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Section = require('../models/Section');
-const { protect } = require('../middleware/auth');
+const Section = require("../models/Section");
+const { protect } = require("../middleware/auth");
 
 // Create section
-router.post('/', protect, async (req, res, next) => {
+router.post("/", protect, async (req, res, next) => {
   try {
     const { name, client } = req.body;
     if (!name || !client) {
-      return res.status(400).json({ success: false, error: 'Name and client are required' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Name and client are required" });
     }
     const section = await Section.create({
       name,
@@ -20,9 +22,21 @@ router.post('/', protect, async (req, res, next) => {
     next(err);
   }
 });
-
+//update section
+router.put("/edit", protect, async (req, res, next) => {
+  try {
+    console.log(req.query);
+    await Section.findByIdAndUpdate(
+      { _id: req.query.data._id }, // filter
+      { $set: { name: req.query.data.name } }
+    );
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next();
+  }
+});
 // List sections by client
-router.get('/client/:clientId', protect, async (req, res, next) => {
+router.get("/client/:clientId", protect, async (req, res, next) => {
   try {
     const sections = await Section.find({ client: req.params.clientId });
     res.status(200).json({ success: true, data: sections });
@@ -32,13 +46,14 @@ router.get('/client/:clientId', protect, async (req, res, next) => {
 });
 
 // Delete section
-router.delete('/:id', protect, async (req, res, next) => {
+router.delete("/:id", protect, async (req, res, next) => {
   try {
-    await Section.findByIdAndDelete(req.params.id);
+    console.log("ok")
+    await Section.findByIdAndDelete({_id:req.params.id});
     res.status(200).json({ success: true });
   } catch (err) {
     next(err);
   }
 });
 
-module.exports = router; 
+module.exports = router;
