@@ -276,6 +276,7 @@ const TaskSchema = new mongoose.Schema(
             ref: 'User'
         }],
         deleted: { type: Boolean, default: false },
+        incentiveAwarded: { type: Boolean, default: false }, // Track if incentive already given
         tagDocuments: {
             type: Map,
             of: {

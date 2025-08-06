@@ -572,12 +572,11 @@ exports.updateTask = async (req, res, next) => {
                         task._id,
                         task.assignedTo 
                     );
-                    
                     if (verificationResult) {
                         logger.info(`Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`);
                     }
                 } else {
-                    if (task.amount && task.amount > 0 && task.assignedTo) {
+                    if (task.amount && task.amount > 0 && task.assignedTo && !task.incentiveAwarded) {
                         const taskIncentivePercentage = task.taskIncentivePercentage || 4; // fallback to 4% if not set
                         const taskCompleterIncentive = task.amount * (taskIncentivePercentage / 100); 
                         const now = new Date();
@@ -586,15 +585,14 @@ exports.updateTask = async (req, res, next) => {
                             task.assignedTo,
                             { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
+                        await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
                         logger.info(`Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`);
                     }
-
                     const verificationTask = await verificationService.handleTaskCompletion(
                         task._id, 
                         task.project, 
                         req.user.id
                     );
-                    
                     if (verificationTask) {
                         logger.info(`Verification task created for project ${task.project} after task completion via update`);
                     }
@@ -736,31 +734,27 @@ exports.updateTaskStatus = async (req, res, next) => {
                         task._id,
                         task.assignedTo 
                     );
-                    
                     if (verificationResult) {
                         logger.info(`Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`);
                     }
                 } else {
-                    if (task.amount && task.amount > 0 && task.assignedTo) {
+                    if (task.amount && task.amount > 0 && task.assignedTo && !task.incentiveAwarded) {
                         const taskIncentivePercentage = task.taskIncentivePercentage || 4; // fallback to 4% if not set
                         const taskCompleterIncentive = task.amount * (taskIncentivePercentage / 100); // e.g. 4% to assignee
-
                         const now = new Date();
                         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                         await User.findByIdAndUpdate(
                             task.assignedTo,
                             { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
-
+                        await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
                         logger.info(`Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`);
                     }
-
                     const verificationTask = await verificationService.handleTaskCompletion(
                         task._id, 
                         task.project, 
                         req.user.id
                     );
-                    
                     if (verificationTask) {
                         logger.info(`Verification task created for project ${task.project} after task completion`);
                     }
