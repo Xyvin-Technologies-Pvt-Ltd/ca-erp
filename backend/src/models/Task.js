@@ -124,6 +124,20 @@ const TaskSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        taskIncentivePercentage: {
+            type: Number,
+            default: 4,
+            min: 0,
+            max: 100,
+            description: 'Percentage of task amount given as incentive to task assignee (default: 4%)'
+        },
+        verificationIncentivePercentage: {
+            type: Number,
+            default: 1,
+            min: 0,
+            max: 100,
+            description: 'Percentage of task amount given as incentive to verification staff (default: 1%)'
+        },
         dueDate: {
             type: Date,
         },

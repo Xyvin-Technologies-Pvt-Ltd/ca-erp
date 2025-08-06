@@ -10,7 +10,6 @@ const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
 const webhookService = require('../services/webhookService');
 const verificationService = require('../services/verificationService');
-const INCENTIVE_ON_COMPLETE = 0.04;
 /**
  * @desc    Get all tasks
  * @route   GET /api/tasks
@@ -579,14 +578,15 @@ exports.updateTask = async (req, res, next) => {
                     }
                 } else {
                     if (task.amount && task.amount > 0 && task.assignedTo) {
-                        const taskCompleterIncentive = task.amount * INCENTIVE_ON_COMPLETE; 
+                        const taskIncentivePercentage = task.taskIncentivePercentage || 4; // fallback to 4% if not set
+                        const taskCompleterIncentive = task.amount * (taskIncentivePercentage / 100); 
                         const now = new Date();
                         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                         await User.findByIdAndUpdate(
                             task.assignedTo,
                             { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
-                        logger.info(`Incentive distributed: ${taskCompleterIncentive} to task assignee ${task.assignedTo} for task ${task._id}`);
+                        logger.info(`Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`);
                     }
 
                     const verificationTask = await verificationService.handleTaskCompletion(
@@ -742,7 +742,8 @@ exports.updateTaskStatus = async (req, res, next) => {
                     }
                 } else {
                     if (task.amount && task.amount > 0 && task.assignedTo) {
-                        const taskCompleterIncentive = task.amount * INCENTIVE_ON_COMPLETE; // e.g. 4% to assignee
+                        const taskIncentivePercentage = task.taskIncentivePercentage || 4; // fallback to 4% if not set
+                        const taskCompleterIncentive = task.amount * (taskIncentivePercentage / 100); // e.g. 4% to assignee
 
                         const now = new Date();
                         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -751,7 +752,7 @@ exports.updateTaskStatus = async (req, res, next) => {
                             { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
 
-                        logger.info(`Incentive distributed: ${taskCompleterIncentive} to task assignee ${task.assignedTo} for task ${task._id}`);
+                        logger.info(`Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`);
                     }
 
                     const verificationTask = await verificationService.handleTaskCompletion(
