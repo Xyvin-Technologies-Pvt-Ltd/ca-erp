@@ -2451,7 +2451,7 @@ const Dashboard = () => {
     queryFn: () => fetchDashboardData(userId),
   });
 
-  const [scrollDirection, setScrollDirection] = useState(null); // 'up' or 'down'
+  const [scrollDirection, setScrollDirection] = useState(null); 
   const { notificationDropDownIsActive } = useNotificationStore();
   const [lastScrollY, setLastScrollY] = useState(window.scrollY);
 
@@ -2465,7 +2465,7 @@ const Dashboard = () => {
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll); // Cleanup on unmount
+      window.removeEventListener("scroll", handleScroll); 
     };
   }, [lastScrollY]);
 
@@ -2608,7 +2608,7 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div
           onClick={() => setIsIncentiveModalOpen(true)}
           style={{ cursor: "pointer" }}
@@ -2636,6 +2636,13 @@ const Dashboard = () => {
             color="bg-pink-100"
           />
         </div>
+        <StatCard
+          title="Pending Verification Tasks"
+          value={dashboardStats.verificationTasks.value}
+          change={dashboardStats.verificationTasks.change}
+          iconType={dashboardStats.verificationTasks.iconType}
+          color={dashboardStats.verificationTasks.color}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
