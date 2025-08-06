@@ -619,6 +619,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                   />
                 </div>
 
+                {/* Task Incentive % */}
                 {user?.role === 'admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -626,8 +627,16 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     </label>
                     <input
                       type="number"
-                      value={taskIncentivePercentage}
-                      onChange={(e) => { setTaskIncentivePercentage(Number(e.target.value)); setIsFormDirty(true); }}
+                      value={taskIncentivePercentage === null || taskIncentivePercentage === undefined ? '' : taskIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="Enter incentive percentage"
                       min="0"
@@ -644,8 +653,16 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     </label>
                     <input
                       type="number"
-                      value={verificationIncentivePercentage}
-                      onChange={(e) => { setVerificationIncentivePercentage(Number(e.target.value)); setIsFormDirty(true); }}
+                      value={verificationIncentivePercentage === null || verificationIncentivePercentage === undefined ? '' : verificationIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="Enter verification incentive percentage"
                       min="0"

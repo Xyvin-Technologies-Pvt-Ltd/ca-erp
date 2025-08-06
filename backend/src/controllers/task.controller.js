@@ -578,7 +578,7 @@ exports.updateTask = async (req, res, next) => {
                     }
                 } else {
                     if (task.amount && task.amount > 0 && task.assignedTo && !task.incentiveAwarded) {
-                        const taskIncentivePercentage = task.taskIncentivePercentage || 4; // fallback to 4% if not set
+                        const taskIncentivePercentage = task.taskIncentivePercentage || 4; 
                         const taskCompleterIncentive = task.amount * (taskIncentivePercentage / 100); 
                         const now = new Date();
                         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

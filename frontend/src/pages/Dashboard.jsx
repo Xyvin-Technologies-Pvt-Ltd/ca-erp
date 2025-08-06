@@ -2368,6 +2368,58 @@ const AttendanceYearChart = () => {
     </motion.div>
   );
 };
+const IncentiveModal = ({ isOpen, onRequestClose, userIncentive }) => {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
+    }
+  }, [isOpen]);
+
+  const handleMonthChange = (e) => {
+    setSelectedMonth(e.target.value);
+  };
+
+  const incentiveValue = userIncentive?.[selectedMonth] || 0;
+
+  const [year, month] = selectedMonth.split("-");
+  const displayMonth = new Date(selectedMonth + "-01").toLocaleString("default", { month: "long" });
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onRequestClose}
+      className="bg-white rounded-2xl shadow-2xl p-0 max-w-lg mx-auto mt-20 max-h-[80vh] overflow-hidden border-[#1c6ead]"
+      overlayClassName="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    >
+      <div className="p-8 flex flex-col items-center">
+        <h2 className="text-2xl font-bold mb-4 text-[#1c6ead]">Monthly Incentive</h2>
+        <label className="mb-2 text-gray-700 font-medium" htmlFor="month-picker">Select Month & Year:</label>
+        <input
+          id="month-picker"
+          type="month"
+          value={selectedMonth}
+          onChange={handleMonthChange}
+          className="mb-6 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1c6ead]"
+        />
+        <div className="text-lg font-semibold text-gray-800 mb-2">
+          Incentive for {displayMonth} {year}:
+        </div>
+        <div className="text-3xl font-bold text-blue-600 mb-6">₹{incentiveValue.toLocaleString()}</div>
+        <button
+          onClick={onRequestClose}
+          className="px-6 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-800 transition-colors font-medium"
+        >
+          Close
+        </button>
+      </div>
+    </Modal>
+  );
+};
 
 const Dashboard = () => {
   const { user, role } = useAuth();
@@ -2380,6 +2432,7 @@ const Dashboard = () => {
   });
   const [recentTasks, setRecentTasks] = useState([]);
   const [complianceTasks, setComplianceTasks] = useState([]);
+  const [isIncentiveModalOpen, setIsIncentiveModalOpen] = useState(false);
 
   let userId = undefined;
   try {
@@ -2556,28 +2609,33 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Monthly Incentive"
-          value={(() => {
-            if (!user?.incentive) return 0;
-            const now = new Date();
-            const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            return user.incentive[key] || 0;
-          })()}
-          change={(() => {
-            if (!user?.incentive) return 0;
-            const now = new Date();
-            const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
-            const thisMonth = user.incentive[thisMonthKey] || 0;
-            const prevMonth = user.incentive[lastMonthKey] || 0;
-            if (prevMonth === 0) return thisMonth > 0 ? 100 : 0;
-            return Math.round(((thisMonth - prevMonth) / prevMonth) * 100);
-          })()}
-          iconType="incentive"
-          color="bg-pink-100"
-        />
+        <div
+          onClick={() => setIsIncentiveModalOpen(true)}
+          style={{ cursor: "pointer" }}
+        >
+          <StatCard
+            title="Monthly Incentive"
+            value={(() => {
+              if (!user?.incentive) return 0;
+              const now = new Date();
+              const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+              return user.incentive[key] || 0;
+            })()}
+            change={(() => {
+              if (!user?.incentive) return 0;
+              const now = new Date();
+              const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+              const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+              const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+              const thisMonth = user.incentive[thisMonthKey] || 0;
+              const prevMonth = user.incentive[lastMonthKey] || 0;
+              if (prevMonth === 0) return thisMonth > 0 ? 100 : 0;
+              return Math.round(((thisMonth - prevMonth) / prevMonth) * 100);
+            })()}
+            iconType="incentive"
+            color="bg-pink-100"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -2624,6 +2682,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 gap-6">
         <EventCalendar />
       </div>
+      <IncentiveModal
+        isOpen={isIncentiveModalOpen}
+        onRequestClose={() => setIsIncentiveModalOpen(false)}
+        userIncentive={user?.incentive || {}}
+      />
     </div>
   );
 };
