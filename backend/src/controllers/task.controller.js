@@ -6,6 +6,7 @@ const { logger } = require('../utils/logger');
 // const { wsInstance } = require('../server');
 // const WebSocket = require('ws');
 const websocketService = require('../utils/websocket');
+const Incentive = require('../models/Incentive');
 const Notification = require('../models/Notification');
 const ActivityTracker = require('../utils/activityTracker');
 const webhookService = require('../services/webhookService');
@@ -585,6 +586,15 @@ exports.updateTask = async (req, res, next) => {
                             task.assignedTo,
                             { $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive } }
                         );
+                        await Incentive.create({
+                            userId: task.assignedTo,
+                            taskId: task._id,
+                            projectId: task.project,
+                            taskAmount: task.amount,
+                            incentiveAmount: taskCompleterIncentive,
+                            date: now,
+                            incentiveType: 'Task'
+                        });
                         await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
                         logger.info(`Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`);
                     }

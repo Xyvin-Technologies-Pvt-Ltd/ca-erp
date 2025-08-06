@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const { logger } = require('../utils/logger');
 const Notification = require('../models/Notification');
 const websocketService = require('../utils/websocket');
+const Incentive = require('../models/Incentive');
 
 class VerificationService {
     constructor() {
@@ -293,6 +294,15 @@ class VerificationService {
                         completedBy,
                         { $inc: { [`incentive.${monthKey}`]: verificationIncentive } }
                     );
+                    await Incentive.create({
+                        userId: completedBy,
+                        taskId: task._id,
+                        projectId: task.project,
+                        taskAmount: task.amount,
+                        incentiveAmount: verificationIncentive,
+                        date: now,
+                        incentiveType: 'Verification'
+                    });
                     totalVerificationIncentive += verificationIncentive;
                     tasksProcessed++;
                     logger.info(`Verification incentive ${verificationIncentive} (${verificationIncentivePercentage}%) distributed to verification staff ${completedBy} for task ${task._id}`);
