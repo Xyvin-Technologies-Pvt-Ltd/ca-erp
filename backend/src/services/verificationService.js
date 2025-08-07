@@ -4,7 +4,7 @@ const Project = require('../models/Project');
 const { logger } = require('../utils/logger');
 const Notification = require('../models/Notification');
 const websocketService = require('../utils/websocket');
-const INCENTIVE_ON_VERIFY = 0.01;
+const Incentive = require('../models/Incentive');
 
 class VerificationService {
     constructor() {
@@ -285,7 +285,8 @@ class VerificationService {
 
             for (const task of completedTasks) {
                 if (task.amount && task.amount > 0) {
-                    const verificationIncentive = task.amount * INCENTIVE_ON_VERIFY; 
+                    const verificationIncentivePercentage = task.verificationIncentivePercentage || 1; 
+                    const verificationIncentive = task.amount * (verificationIncentivePercentage / 100); 
                     // Update monthly incentive
                     const now = new Date();
                     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -293,9 +294,18 @@ class VerificationService {
                         completedBy,
                         { $inc: { [`incentive.${monthKey}`]: verificationIncentive } }
                     );
+                    await Incentive.create({
+                        userId: completedBy,
+                        taskId: task._id,
+                        projectId: task.project,
+                        taskAmount: task.amount,
+                        incentiveAmount: verificationIncentive,
+                        date: now,
+                        incentiveType: 'Verification'
+                    });
                     totalVerificationIncentive += verificationIncentive;
                     tasksProcessed++;
-                    logger.info(`Verification incentive ${verificationIncentive} distributed to verification staff ${completedBy} for task ${task._id}`);
+                    logger.info(`Verification incentive ${verificationIncentive} (${verificationIncentivePercentage}%) distributed to verification staff ${completedBy} for task ${task._id}`);
                 }
             }
 

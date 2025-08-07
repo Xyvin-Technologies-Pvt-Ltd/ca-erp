@@ -6,6 +6,7 @@ import { clientsApi } from "../api/clientsApi";
 import CreateClientModal from "../components/CreateClientModal";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
+
 // Status badge component with enhanced styling
 const StatusBadge = ({ status }) => {
   const getStatusStyle = () => {
@@ -29,6 +30,31 @@ const StatusBadge = ({ status }) => {
     >
       <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-60"></span>
       {status}
+    </span>
+  );
+};
+
+// Priority badge component
+const PriorityBadge = ({ priority }) => {
+  const getPriorityStyle = () => {
+    switch (priority?.toLowerCase()) {
+      case "high":
+        return "bg-red-50 text-red-700 border-red-200 ring-red-100";
+      case "medium":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200 ring-yellow-100";
+      case "low":
+        return "bg-green-50 text-green-700 border-green-200 ring-green-100";
+      default:
+        return "bg-slate-50 text-slate-700 border-slate-200 ring-slate-100";
+    }
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getPriorityStyle()} border ring-1 shadow-sm transition-all duration-200`}
+    >
+      <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-60"></span>
+      {priority}
     </span>
   );
 };
@@ -123,15 +149,15 @@ const ClientCard = ({ client }) => {
                 </div>
               )}
               {/* Online indicator */}
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-sm"></div>
-            </div>
+              <div className={`absolute -top-1 -right-1 w-4 h-4 ${client.status?.toLowerCase() === 'active' ? 'bg-emerald-400' : 'bg-red-400'} rounded-full border-2 border-white shadow-sm`}></div>            </div>
 
             <div className="ml-5 flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 truncate group-hover:text-blue-600">
                   {client.name}
                 </h3>
-                <StatusBadge status={client.status} />
+                  {/* <StatusBadge status={client.status} /> */}
+                  <PriorityBadge priority={client.priority} />
               </div>
               <p className="mt-2 text-sm text-gray-500 font-medium flex items-center">
                 <span className="w-2 h-2 bg-gray-300 rounded-full mr-2"></span>
@@ -205,8 +231,9 @@ const ClientList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("priority");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // State for pagination
@@ -219,6 +246,7 @@ const ClientList = () => {
     total: 0,
     industries: [],
     statuses: [],
+    priorities: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -242,6 +270,7 @@ const ClientList = () => {
       if (searchQuery) params.search = searchQuery;
       if (statusFilter !== "all") params.status = statusFilter;
       if (industryFilter !== "all") params.industry = industryFilter;
+      if (priorityFilter !== "all") params.priority = priorityFilter;
 
       const response = await clientsApi.getAllClients(params);
 
@@ -252,6 +281,7 @@ const ClientList = () => {
           total: response.total,
           industries: response.filters?.industries || [],
           statuses: response.filters?.statuses || [],
+          priorities: response.filters?.priorities || [],
         }));
       } else {
         throw new Error(response.error || "Failed to fetch clients");
@@ -274,9 +304,10 @@ const ClientList = () => {
   }, [
     currentPage,
     limit,
-    // searchQuery,
+    searchQuery,
     statusFilter,
     industryFilter,
+    priorityFilter,
     sortBy,
     sortOrder,
   ]);
@@ -314,8 +345,9 @@ const ClientList = () => {
     setSearchQuery("");
     setStatusFilter("all");
     setIndustryFilter("all");
-    setSortBy("name");
-    setSortOrder("asc");
+    setPriorityFilter("all");
+    setSortBy("priority");
+    setSortOrder("desc");
     setCurrentPage(1);
   };
 
@@ -450,7 +482,7 @@ const ClientList = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
             <label
               htmlFor="search"
@@ -529,6 +561,28 @@ const ClientList = () => {
 
           <div>
             <label
+              htmlFor="priority"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Priority Filter
+            </label>
+            <select
+              id="priority"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+            >
+              <option value="all">All Priorities</option>
+              {clientsData?.priorities.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
               htmlFor="sort"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
@@ -544,22 +598,21 @@ const ClientList = () => {
                 <option value="name">Name</option>
                 <option value="industry">Industry</option>
                 <option value="status">Status</option>
-                <option value="projectCount">Projects</option>
+                <option value="priority">Priority</option>
                 <option value="onboardingDate">Onboarding Date</option>
               </select>
-              <Tippy content="Manage Ascending, Descending Order">
-              <motion.button
-              
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-                className="px-4 py-3 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
-              >
-                {sortOrder === "asc" ? "↑" : "↓"}
-              </motion.button>
-              </Tippy>
+              {/* <Tippy content="Manage Ascending, Descending Order">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  className="px-4 py-3 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm"
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </motion.button>
+              </Tippy> */}
             </div>
           </div>
         </div>
@@ -614,6 +667,15 @@ const ClientList = () => {
               </span>{" "}
               Pending
             </div>
+            {/* <div className="text-xs text-gray-500">
+              <span className="font-semibold text-red-600">
+                {
+                  clientsData.clients.filter((c) => c.priority === "High")
+                    .length
+                }
+              </span>{" "}
+              High Priority
+            </div> */}
           </div>
         </div>
 
@@ -671,13 +733,14 @@ const ClientList = () => {
             No clients found
           </h2>
           <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-            {searchQuery || statusFilter !== "all" || industryFilter !== "all"
+            {searchQuery || statusFilter !== "all" || industryFilter !== "all" || priorityFilter !== "all"
               ? "Try adjusting your filters or search query to find what you're looking for."
               : "Get started by adding your first client to begin managing your business relationships."}
           </p>
           {!searchQuery &&
             statusFilter === "all" &&
-            industryFilter === "all" && (
+            industryFilter === "all" &&
+            priorityFilter === "all" && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

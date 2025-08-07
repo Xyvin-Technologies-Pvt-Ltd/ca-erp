@@ -55,16 +55,14 @@ require('dotenv').config();
  *           default: false
  *           description: Whether the employee is a verification staff member
  *         incentive:
- *           type: number
- *           default: 0
- *           description: Total incentive earned by the user
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: Date and time when the user was created
- *         position:
- *           type: string
- *           description: Position (ObjectId reference)
+ *           type: object
+ *           description: Monthly incentive earned by the user (format: YYYY-MM -> amount)
+ *         incentives:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: ObjectId reference to Incentive
+ *           description: Array of Incentive ObjectIds for this user
  *       example:
  *         name: Admin User
  *         email: admin@ca-erp.com
@@ -106,8 +104,13 @@ const UserSchema = new mongoose.Schema({
         type: Map,
         of: Number,
         default: new Map(),
-        description: 'Monthly incentive earned by the user (format: YYYY-MM -> amount)'
+        description: 'Monthly incentive earned by the user'
     },
+    incentives: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Incentive',
+        description: 'References to Incentive documents'
+    }],
     role: {
         type: String,
         enum: ['admin', 'staff', 'manager', 'finance'],

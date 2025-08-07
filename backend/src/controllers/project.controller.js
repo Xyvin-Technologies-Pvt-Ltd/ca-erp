@@ -54,8 +54,8 @@ exports.getProjects = async (req, res, next) => {
     if (req.query.client) {
       filter.client = req.query.client;
     }
-    if (req.query.assignedTo) {
-      filter.assignedTo = req.query.assignedTo;
+    if (req.query.priority) {
+      filter.priority = req.query.priority;
     }
     const total = await Project.countDocuments(filter);
 

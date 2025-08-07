@@ -4,6 +4,7 @@ import { userApi } from "../api/userApi";
 import { createTask, updateTask, uploadTagDocument, getTaskTagDocuments, remindClientForDocument } from "../api/tasks";
 import { projectsApi } from "../api/projectsApi";
 import { useNotifications } from "../context/NotificationContext";
+import { useAuth } from "../context/AuthContext";
 import Select from "react-select";
 import TagDocumentUpload from "./TagDocumentUpload";
 import { tagDocumentRequirements } from "../utils/tagDocumentFields";
@@ -27,6 +28,7 @@ import ProjectForm from "./ProjectForm"; // Adjust the import path as needed
 
 const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const tagOptions = [
     "GST",
     "Income Tax",
@@ -67,6 +69,8 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
   const [clientInfo, setClientInfo] = useState(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [amount, setAmount] = useState(task?.amount);
+  const [taskIncentivePercentage, setTaskIncentivePercentage] = useState(task?.taskIncentivePercentage || 4);
+  const [verificationIncentivePercentage, setVerificationIncentivePercentage] = useState(task?.verificationIncentivePercentage || 1);
   const dueDateRef = useRef(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -92,9 +96,11 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       JSON.stringify(selectedTags) !== JSON.stringify(task?.tags?.map(tag => ({ id: tag, text: tag })) || []) ||
       projectId !== (task?.project?._id || projectIds) ||
       amount !== (task?.amount || undefined) ||
+      taskIncentivePercentage !== (task?.taskIncentivePercentage || 4) ||
+      verificationIncentivePercentage !== (task?.verificationIncentivePercentage || 1) ||
       Object.keys(tagDocuments).length > 0;
     setIsFormDirty(isDirty);
-  }, [title, status, priority, assignedTo, dueDate, description, file, selectedTags, projectId, amount, tagDocuments, task]);
+  }, [title, status, priority, assignedTo, dueDate, description, file, selectedTags, projectId, amount, taskIncentivePercentage, verificationIncentivePercentage, tagDocuments, task]);
 
   // Clear project due date error when project changes
   useEffect(() => {
@@ -253,6 +259,11 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       taskPayload.append("description", description);
       if (file) taskPayload.append("file", file);
       tagList.forEach(tag => taskPayload.append("tags[]", tag));
+      
+      if (user?.role === 'admin') {
+        taskPayload.append("taskIncentivePercentage", taskIncentivePercentage);
+        taskPayload.append("verificationIncentivePercentage", verificationIncentivePercentage);
+      }
 
       let response;
       if (task) {
@@ -327,6 +338,13 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       fetchClientInfo(task.project._id);
     }
   }, [task?.project?._id]);
+
+  useEffect(() => {
+    if (task) {
+      setTaskIncentivePercentage(task.taskIncentivePercentage || 4);
+      setVerificationIncentivePercentage(task.verificationIncentivePercentage || 1);
+    }
+  }, [task]);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -600,6 +618,59 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                     step="0.01"
                   />
                 </div>
+
+                {/* Task Incentive % */}
+                {user?.role === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Task Incentive % 
+                    </label>
+                    <input
+                      type="number"
+                      value={taskIncentivePercentage === null || taskIncentivePercentage === undefined ? '' : taskIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                      placeholder="Enter incentive percentage"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                )}
+
+                {user?.role === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Verification Incentive % 
+                    </label>
+                    <input
+                      type="number"
+                      value={verificationIncentivePercentage === null || verificationIncentivePercentage === undefined ? '' : verificationIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                      placeholder="Enter verification incentive percentage"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Description */}

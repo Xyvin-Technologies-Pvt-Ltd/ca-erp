@@ -6,9 +6,6 @@ import { projectsApi } from "./projectsApi";
  * Fetch comprehensive dashboard data including tasks, deadlines and projects
  * @returns {Promise} Promise object containing all dashboard data
  */
-
-
-
 export const fetchDashboardData = async (userId) => {
   try {
     // In a real app, we would fetch from the backend
@@ -30,12 +27,11 @@ export const fetchDashboardData = async (userId) => {
       userApi.Allusers(),
     ]);
 
-
     const completedProjects = projects.data.filter((project) => project.status === "completed");
     // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
 
     const currentProjects = projects.count;
-    const previousProject =8;
+    const previousProject = 8;
     const changeProjects = calculateChange(currentProjects, previousProject);
 
     const projectList = projects.data.map((pro) => ({
@@ -46,8 +42,6 @@ export const fetchDashboardData = async (userId) => {
       completionPercentage: pro.completionPercentage,
       dueDate: new Date(pro.dueDate).toLocaleDateString('en-GB'),
     }));
-
-
 
     const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
       const status = task.status.toLowerCase();
@@ -101,13 +95,9 @@ export const fetchDashboardData = async (userId) => {
       else if (status === 'cancelled') taskCounts.cancelled++;
     });
 
-
     // team members
     const currentMember = usersRes.data.data.count;
 
-    
-
-    
     let totalRevenue = 0;
     let userRole = undefined;
     try {
@@ -128,8 +118,13 @@ export const fetchDashboardData = async (userId) => {
       }, 0);
     }
 
-    // --- Monthly Revenue & Task Count Aggregation ---
-    // For admin/manager: all tasks; for others: only assigned tasks
+    let verificationTasksCount = 0;
+      verificationTasksCount = tasksRes.tasks.filter(task => 
+        (task.title === 'Project Verification Task' || task.status.toLowerCase() === 'verificationpending' || task.status.toLowerCase() === 'verification-pending') &&
+        task.status.toLowerCase() !== 'completed' &&
+        (typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo) === userId
+      ).length;
+    
     const now = new Date();
     const months = [];
     for (let i = 5; i >= 0; i--) {
@@ -165,7 +160,7 @@ export const fetchDashboardData = async (userId) => {
         if (monthlyMap[key]) {
           monthlyMap[key].teamMembers += 1;
         }
-        console.log(teamMembers,'teamMembers')
+        console.log(monthlyMap[key].teamMembers, 'teamMembers');
       });
     }
 
@@ -217,7 +212,13 @@ export const fetchDashboardData = async (userId) => {
           iconType: "task",
           color: "bg-green-100",
         },
-       
+        verificationTasks: {
+          value: verificationTasksCount,
+          change:null,
+          iconType: "verification",
+          color: "bg-violet-100",
+          showOnlyFor: "verificationStaff"
+        },
         teamMembers: {
           value: currentMember,
           change: teamMembersChange,

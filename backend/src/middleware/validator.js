@@ -116,6 +116,7 @@ const clientValidation = {
             notes: Joi.string().allow("").optional(),
             directors: Joi.array().items(Joi.string().max(50)).optional(),
             status: Joi.string().valid("active", "inactive").allow("").optional(),
+            priority: Joi.string(),
         }),
     }),
 
@@ -141,6 +142,7 @@ const clientValidation = {
             notes: Joi.string().allow("").optional(),
             directors: Joi.array().items(Joi.string().max(50)).min(2).optional(),
             status: Joi.string().valid('active', 'inactive').allow("").optional(),
+                        priority: Joi.string(),
         }),
     }),
 };
@@ -198,6 +200,8 @@ const taskValidation = {
             project: Joi.string().required(),
             assignedTo: Joi.string().required(),
             amount: Joi.number().min(0),
+            taskIncentivePercentage: Joi.number().min(0).max(100).default(4),
+            verificationIncentivePercentage: Joi.number().min(0).max(100).default(1),
             status: Joi.string().valid('pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'),
             priority: Joi.string().valid('low', 'medium', 'high', 'urgent'),
             dueDate: Joi.date().required(),
@@ -233,6 +237,8 @@ const taskValidation = {
             fileType: Joi.string(),
             fileSize: Joi.number(),
             amount: Joi.number().min(0),
+            taskIncentivePercentage: Joi.number().min(0).max(100),
+            verificationIncentivePercentage: Joi.number().min(0).max(100),
             team: Joi.array().items(Joi.string()),
         }),
     }),

@@ -15,6 +15,7 @@ import CronJobSection from "../components/CronJobSection";
 import CronJobList from "../components/CronJobList";
 import { sectionsApi } from "../api/sections";
 import useHeaderStore from "../stores/useHeaderStore";
+import { TrashIcon } from "@heroicons/react/20/solid"; // Assuming TrashIcon is from @heroicons/react
 
 const ClientDetails = () => {
   const { id } = useParams();
@@ -38,7 +39,7 @@ const ClientDetails = () => {
   const [allProjectLogsError, setAllProjectLogsError] = useState(null);
   const [allProjectLogsPage, setAllProjectLogsPage] = useState(1);
   const allProjectLogsPerPage = 10;
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Added state for delete modal
   // Cron job states
   const [cronJobs, setCronJobs] = useState([]);
   const [cronJobsLoading, setCronJobsLoading] = useState(false);
@@ -219,19 +220,23 @@ const ClientDetails = () => {
     }
   }, [tab, id]);
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this client?")) {
-      try {
-        const response = await clientsApi.deleteClient(id);
-        if (response.success) {
-          toast.success("Client deleted successfully");
-          navigate("/clients");
-        } else {
-          throw new Error(response.error || "Failed to delete client");
-        }
-      } catch (err) {
-        toast.error(err.message || "Failed to delete client");
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true); 
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const response = await clientsApi.deleteClient(id);
+      if (response.success) {
+        toast.success("Client deleted successfully");
+        navigate("/clients");
+      } else {
+        throw new Error(response.error || "Failed to delete client");
       }
+    } catch (err) {
+      toast.error(err.message || "Failed to delete client");
+    } finally {
+      setIsDeleteModalOpen(false); // Close the modal
     }
   };
 
@@ -600,9 +605,6 @@ const ClientDetails = () => {
             </Link>
             <button
               onClick={handleDelete}
-              //       className={
-              //   profileDropdown === true ? `opacity-10 relative` : `relative`
-              // }
               className={
                 profileDropdown === true
                   ? `opacity-10 inline-flex items-center px-5 py-2.5 bg-red-100  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
@@ -1363,7 +1365,7 @@ const ClientDetails = () => {
               {projectsError}
             </div>
           ) : (
-            <div className="grid   gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {projects.length === 0 ? (
                 <div className="col-span-full text-center text-gray-500">
                   No projects found for this client.
@@ -1380,6 +1382,42 @@ const ClientDetails = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center bg-black bg-opacity-60 animate-fade-in px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-full sm:max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-95 animate-scale-in">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6v10h6V6H7zm5 2a1 1 0 00-1 1v6a1 1 0 102 0V9a1 1 0 00-1-1zm-3 1a1 1 0 00-1 1v4a1 1 0 102 0V9a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Confirm Deletion
+            </h3>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
+              Are you sure you want to delete this client? This action cannot be undone.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-5 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md text-sm sm:text-base"
+              >
+                <TrashIcon className="h-5 w-5 mr-2" />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
