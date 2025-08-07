@@ -23,6 +23,9 @@ exports.getClients = async (req, res, next) => {
         if (req.query.industry) {
             filter.industry = req.query.industry;
         }
+        if (req.query.priority) {
+            filter.priority = req.query.priority;
+        }
 
         // Search
         if (req.query.search) {
@@ -33,34 +36,54 @@ exports.getClients = async (req, res, next) => {
             ];
         }
 
-        // Sort
-        const sort = {};
-        if (req.query.sort) {
-            const fields = req.query.sort.split(',');
-            fields.forEach(field => {
-                if (field.startsWith('-')) {
-                    sort[field.substring(1)] = -1;
-                } else {
-                    sort[field] = 1;
-                }
-            });
-        } else {
-            sort.createdAt = -1;
-        }
+        const priorityOrder = {
+            High: 3,
+            Medium: 2,
+            Low: 1,
+        };
+
+        // Aggregation pipeline
+        const pipeline = [
+            { $match: filter },
+            {
+                $addFields: {
+                    priorityWeight: {
+                        $switch: {
+                            branches: [
+                                { case: { $eq: ["$priority", "High"] }, then: 3 },
+                                { case: { $eq: ["$priority", "Medium"] }, then: 2 },
+                                { case: { $eq: ["$priority", "Low"] }, then: 1 },
+                            ],
+                            default: 0,
+                        },
+                    },
+                },
+            },
+            {
+                $sort: {
+                    priorityWeight: -1, // Sort by priorityWeight descending (High > Medium > Low)
+                    createdAt: -1, // Secondary sort by createdAt descending
+                },
+            },
+            { $skip: startIndex },
+            { $limit: limit },
+            {
+                $project: {
+                    priorityWeight: 0, // Remove temporary priorityWeight field
+                },
+            },
+        ];
+
+        // Execute query
+        const clients = await Client.aggregate(pipeline).exec();
 
         // Get total count
         const total = await Client.countDocuments(filter);
 
-        // Execute query
-        const clients = await Client.find(filter)
-            .sort(sort)
-            .skip(startIndex)
-            .limit(limit)
-            .lean();
-
-        // Get unique industries and statuses for filters
+        // Get unique industries, statuses, and priorities for filters
         const industries = await Client.distinct('industry');
         const statuses = await Client.distinct('status');
+        const priorities = await Client.distinct('priority');
 
         res.status(200).json({
             success: true,
@@ -74,7 +97,8 @@ exports.getClients = async (req, res, next) => {
             },
             filters: {
                 industries,
-                statuses
+                statuses,
+                priorities
             }
         });
     } catch (error) {
@@ -112,7 +136,6 @@ exports.getClient = async (req, res, next) => {
  * @route   POST /api/clients
  * @access  Private
  */
-// Updated createClient function
 exports.createClient = async (req, res, next) => {
   try {
     console.log("Call");
@@ -121,7 +144,7 @@ exports.createClient = async (req, res, next) => {
 
     const allowedFields = [
       'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
-      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors'
+      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors', 'priority'
     ];
 
     const clientData = {};
@@ -166,12 +189,12 @@ exports.createClient = async (req, res, next) => {
     next(error);
   }
 };
+
 /**
  * @desc    Update client
  * @route   PUT /api/clients/:id
  * @access  Private
  */
-// Updated updateClient function
 exports.updateClient = async (req, res, next) => {
     console.log('UpdateClient req.body:', req.body);
   try {
@@ -184,7 +207,7 @@ exports.updateClient = async (req, res, next) => {
 
     const allowedFields = [
       'name', 'contactName', 'contactEmail', 'contactPhone', 'website', 'industry', 'notes', 'status',
-      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors'
+      'country', 'state', 'city', 'pin', 'gstin', 'pan', 'cin', 'currencyFormat', 'directors', 'priority'
     ];
 
     const updateData = {};
@@ -193,7 +216,7 @@ exports.updateClient = async (req, res, next) => {
         updateData[field] = req.body[field];
       }
     });
-console.log('req.body.directors:', req.body.directors);
+
     // Validate directors if provided
     if (updateData.directors) {
       if (!Array.isArray(updateData.directors) || updateData.directors.length < 2) {
@@ -339,4 +362,4 @@ exports.getClientProjects = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};

@@ -63,6 +63,11 @@ const mongoose = require("mongoose");
  *           enum: [active, inactive]
  *           default: active
  *           description: Client account status
+ *         priority:
+ *           type: string
+ *           enum: [High, Medium, Low]
+ *           default: Medium
+ *           description: Client priority level
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -83,6 +88,7 @@ const mongoose = require("mongoose");
  *         website: https://xyzcorp.com
  *         industry: Technology
  *         status: active
+ *         priority: Medium
  */
 
 const ClientSchema = new mongoose.Schema(
@@ -150,7 +156,7 @@ const ClientSchema = new mongoose.Schema(
       ],
     },
     directors: {
-      type: [String], // Array of strings
+      type: [String],
       default: [],
     },
     industry: {
@@ -164,6 +170,11 @@ const ClientSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+    },
+    priority: {
+      type: String,
+      enum: ["High", "Medium", "Low"],
+      default: "Medium",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
