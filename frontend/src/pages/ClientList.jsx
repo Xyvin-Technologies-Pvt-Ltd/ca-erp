@@ -581,7 +581,7 @@ const ClientList = () => {
             </select>
           </div>
 
-          <div>
+          {/* <div>
             <label
               htmlFor="sort"
               className="block text-sm font-semibold text-gray-700 mb-2"
@@ -601,7 +601,7 @@ const ClientList = () => {
                 <option value="priority">Priority</option>
                 <option value="onboardingDate">Onboarding Date</option>
               </select>
-              {/* <Tippy content="Manage Ascending, Descending Order">
+              <Tippy content="Manage Ascending, Descending Order">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -612,11 +612,9 @@ const ClientList = () => {
                 >
                   {sortOrder === "asc" ? "↑" : "↓"}
                 </motion.button>
-              </Tippy> */}
+              </Tippy>
             </div>
-          </div>
-        </div>
-
+          </div> */}
         <div className="mt-6 flex justify-end">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -627,6 +625,8 @@ const ClientList = () => {
             Reset All Filters
           </motion.button>
         </div>
+        </div>
+
       </motion.div>
 
       {/* Enhanced Results Info */}
@@ -650,24 +650,6 @@ const ClientList = () => {
               Active
             </div>
             <div className="text-xs text-gray-500">
-              <span className="font-semibold text-blue-600">
-                {
-                  clientsData.clients.filter((c) => c.status === "onboarding")
-                    .length
-                }
-              </span>{" "}
-              Onboarding
-            </div>
-            <div className="text-xs text-gray-500">
-              <span className="font-semibold text-amber-600">
-                {
-                  clientsData.clients.filter((c) => c.status === "pending")
-                    .length
-                }
-              </span>{" "}
-              Pending
-            </div>
-            {/* <div className="text-xs text-gray-500">
               <span className="font-semibold text-red-600">
                 {
                   clientsData.clients.filter((c) => c.priority === "High")
@@ -675,7 +657,25 @@ const ClientList = () => {
                 }
               </span>{" "}
               High Priority
-            </div> */}
+            </div>
+            <div className="text-xs text-gray-500">
+              <span className="font-semibold text-red-600">
+                {
+                  clientsData.clients.filter((c) => c.priority === "Medium")
+                    .length
+                }
+              </span>{" "}
+              Medium Priority
+            </div>
+            <div className="text-xs text-gray-500">
+              <span className="font-semibold text-red-600">
+                {
+                  clientsData.clients.filter((c) => c.priority === "Low")
+                    .length
+                }
+              </span>{" "}
+              Low Priority
+            </div>
           </div>
         </div>
 
