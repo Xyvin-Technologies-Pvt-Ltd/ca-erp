@@ -25,6 +25,7 @@
     "formik": "^2.4.6",
     "framer-motion": "^12.23.0",
     "frontend": "file:",
+    "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.522.0",
     "moment": "^2.30.1",
