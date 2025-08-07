@@ -3,7 +3,13 @@ import {
   fetchCompletedProjectsForInvoicing,
   markProjectAsInvoiced
 } from "../api/projects";
+import { getFinancialSummary, recordPayment, getInvoices, createInvoice } from "../api/finance";
 import { Link } from "react-router-dom";
+import PaymentModal from "../components/PaymentModal";
+import InvoiceModal from "../components/InvoiceModal";
+import InvoicePreview from "../components/InvoicePreview";
+import { generateInvoicePDFNew } from "../utils/pdfGenerator";
+import { toast } from "react-hot-toast";
 import { 
   CreditCard, 
   FileText, 
@@ -25,7 +31,20 @@ import {
   Building2,
   Briefcase,
   TrendingUp,
-  Receipt
+  Receipt,
+  Plus,
+  Wallet,
+  BarChart3,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  CalendarDays,
+  Target,
+  UserCheck
 } from "lucide-react";
 
 const statusColors = {
@@ -37,15 +56,21 @@ const statusColors = {
   cancelled: "bg-gray-50 text-gray-700 border-gray-200",
 };
 
-const priorityColors = {
-  high: "bg-red-50 text-red-700 border-red-200",
-  medium: "bg-orange-50 text-orange-700 border-orange-200",
-  low: "bg-green-50 text-green-700 border-green-200",
-};
+// const priorityColors = {
+//   high: "bg-red-50 text-red-700 border-red-200",
+//   medium: "bg-orange-50 text-orange-700 border-orange-200",
+//   low: "bg-green-50 text-green-700 border-green-200",
+// };
 
 const invoiceStatusColors = {
   'Not Created': "bg-amber-50 text-amber-700 border-amber-200",
   'Created': "bg-emerald-50 text-emerald-700 border-emerald-200"
+};
+
+const paymentStatusColors = {
+  'Not Paid': "bg-red-50 text-red-700 border-red-200",
+  'Partially Paid': "bg-yellow-50 text-yellow-700 border-yellow-200",
+  'Fully Paid': "bg-emerald-50 text-emerald-700 border-emerald-200"
 };
 
 const Finance = () => {
@@ -60,12 +85,26 @@ const Finance = () => {
     selectedProjectIds: [],
   });
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedProjectForPayment, setSelectedProjectForPayment] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [financialSummary, setFinancialSummary] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [showInvoiceTable, setShowInvoiceTable] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
   const [filters, setFilters] = useState({
     project: "",
     client: "",
+    paymentStatus: "",
+    invoiceStatus: "",
+    priority: "",
+    manager: "",
+    startDate: "",
+    endDate: "",
+    amountRange: "",
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,11 +123,13 @@ const Finance = () => {
         page: currentPage,
         limit: paginations.limit
       });
-      console.log(data);
       
       const transformed = data.projects.map(project => ({
         ...project,
-        cost: project.budget || 0,
+        cost: project.amount || 0,
+        receivedAmount: project.receivedAmount || 0,
+        balanceAmount: project.balanceAmount || 0,
+        paymentStatus: project.paymentStatus || 'Not Paid',
       }));
 
       setProjects(transformed);
@@ -116,8 +157,28 @@ const Finance = () => {
     }
   };
 
+  const loadFinancialSummary = async () => {
+    try {
+      const summary = await getFinancialSummary();
+      setFinancialSummary(summary.data);
+    } catch (err) {
+      console.error("Failed to load financial summary:", err);
+    }
+  };
+
+  const loadInvoices = async () => {
+    try {
+      const invoiceData = await getInvoices();
+      setInvoices(invoiceData.data);
+    } catch (err) {
+      console.error("Failed to load invoices:", err);
+    }
+  };
+
   useEffect(() => {
     loadProjects();
+    loadFinancialSummary();
+    loadInvoices();
   }, [currentPage]);
 
   const handlePageChanges = (newPage) => {
@@ -150,6 +211,13 @@ const Finance = () => {
     setFilters({
       project: "",
       client: "",
+      paymentStatus: "",
+      invoiceStatus: "",
+      priority: "",
+      manager: "",
+      startDate: "",
+      endDate: "",
+      amountRange: "",
     });
   };
 
@@ -159,27 +227,265 @@ const Finance = () => {
       return;
     }
 
-    const clientName = projects.find(p => selectedProjects.includes(p.id))?.client?.name || "Unknown Client";
-    setInvoiceData({
+    // Get selected projects data
+    const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
+    
+    // Create invoice data for the modal
+    const invoiceForModal = {
+      id: `temp-${Date.now()}`,
       invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-      invoiceDate: new Date().toISOString().split("T")[0],
-      client: clientName,
-      selectedProjectIds: selectedProjects,
-    });
+      amount: selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || p.amount || 0), 0),
+      client: selectedProjectsData[0]?.client,
+      project: selectedProjectsData[0], // Use first project as main project
+      issueDate: new Date().toISOString().split("T")[0],
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 30 days from now
+      status: 'draft',
+      paidAmount: selectedProjectsData.reduce((sum, p) => sum + Number(p.receivedAmount || 0), 0),
+      total: selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || p.amount || 0), 0),
+      name: selectedProjectsData.length === 1 ? selectedProjectsData[0].name : `${selectedProjectsData.length} Projects`,
+      description: selectedProjectsData.length === 1 ? selectedProjectsData[0].description : `Invoice for ${selectedProjectsData.length} projects`,
+      notes: `Invoice created for ${selectedProjectsData.length} project(s)`,
+      currency: 'INR',
+      selectedProjects: selectedProjectsData // Store all selected projects
+    };
 
+    setSelectedInvoice(invoiceForModal);
     setShowInvoiceModal(true);
+  };
+
+  const openPaymentModal = (project) => {
+    setSelectedProjectForPayment(project);
+    setShowPaymentModal(true);
+  };
+
+  const viewInvoiceModal = (project) => {
+    setSelectedInvoice(project);
+    setShowInvoiceModal(true);
+  };
+
+  const handleInvoiceDownload = async (project) => {
+    try {
+      console.log('Starting PDF download for project:', project);
+      
+      // Create invoice data structure
+      const invoiceData = {
+        id: project._id,
+        invoiceNumber: project.invoiceNumber,
+        amount: project.cost,
+        client: project.client,
+        project: project,
+        issueDate: project.invoiceDate,
+        dueDate: project.dueDate,
+        status: project.invoiceStatus,
+        paidAmount: project.receivedAmount,
+        total: project.cost,
+        name: project.name,
+        description: project.description,
+        notes: project.notes,
+        currency: project.currency || 'INR'
+      };
+      
+      // Create a temporary container for PDF generation
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.backgroundColor = '#ffffff';
+      tempContainer.setAttribute('data-invoice-preview', 'true');
+      document.body.appendChild(tempContainer);
+      
+      try {
+        // Create a React root and render the InvoicePreview component
+        const { createRoot } = await import('react-dom/client');
+        const root = createRoot(tempContainer);
+        
+        // Render the InvoicePreview component
+        root.render(
+          <div style={{ padding: '20px', backgroundColor: '#ffffff' }}>
+            <InvoicePreview 
+              invoice={invoiceData} 
+              isPreview={true}
+            />
+          </div>
+        );
+        
+        // Wait for the component to render
+        setTimeout(async () => {
+          try {
+            // Generate PDF from the temporary element
+            await generateInvoicePDFNew(invoiceData, tempContainer);
+            toast.success('Invoice downloaded successfully!');
+          } catch (error) {
+            console.error('PDF generation failed:', error);
+            toast.error('Failed to download invoice. Please try again.');
+          } finally {
+            // Clean up
+            root.unmount();
+            document.body.removeChild(tempContainer);
+          }
+        }, 1000); // Give time for the component to render
+      } catch (error) {
+        console.error('PDF download failed:', error);
+        toast.error('Failed to download invoice. Please try again.');
+        // Clean up on error
+        if (tempContainer.parentNode) {
+          document.body.removeChild(tempContainer);
+        }
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download invoice. Please try again.');
+    }
+  };
+
+  const handleInvoiceView = (project) => {
+    // Open invoice preview in new tab like a hyperlink
+    try {
+      console.log('Opening invoice preview for project:', project);
+      
+      const invoiceData = {
+        id: project._id,
+        invoiceNumber: project.invoiceNumber,
+        amount: project.cost,
+        client: project.client,
+        project: project,
+        issueDate: project.invoiceDate,
+        dueDate: project.dueDate,
+        status: project.invoiceStatus,
+        paidAmount: project.receivedAmount,
+        total: project.cost,
+        name: project.name,
+        description: project.description,
+        notes: project.notes,
+        currency: project.currency || 'INR'
+      };
+      
+      console.log('Invoice data being passed:', invoiceData);
+      const previewUrl = `/invoice-preview?invoice=${encodeURIComponent(JSON.stringify(invoiceData))}`;
+      console.log('Opening URL:', previewUrl);
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening invoice preview:', error);
+      // Fallback: open with just the ID
+      const fallbackUrl = `/invoice-preview?id=${project._id}`;
+      console.log('Opening fallback URL:', fallbackUrl);
+      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleInvoicePrint = (project) => {
+    // Implement print logic for project invoice
+    console.log('Printing invoice for project:', project.name);
+  };
+
+  const handlePaymentRecorded = (paymentData) => {
+    // Update the project in the list with new payment data
+    setProjects(prev => prev.map(project => 
+      project._id === paymentData.project._id 
+        ? { ...project, ...paymentData.project }
+        : project
+    ));
+    
+    setSuccessMessage(`Payment of ₹${paymentData.payment.amount.toLocaleString("en-IN")} recorded successfully for ${paymentData.project.name}`);
+    setShowSuccessMessage(true);
+    
+    // Reload financial summary
+    loadFinancialSummary();
+    
+    setTimeout(() => setShowSuccessMessage(false), 5000);
+  };
+
+  const handleCreateInvoiceFromModal = async () => {
+    try {
+      setLoading(true);
+      
+      if (!selectedInvoice) {
+        toast.error('No invoice data available');
+        return;
+      }
+      
+      // Get selected projects data
+      const selectedProjectsData = selectedInvoice.selectedProjects || projects.filter(p => selectedProjects.includes(p.id));
+      
+      // Create invoice data for the backend
+      const invoiceDataToSend = {
+        client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
+        projects: selectedProjectsData.map(project => ({
+          projectId: project._id || project.id,
+          name: project.name,
+          amount: project.cost || project.amount,
+          description: project.description
+        })),
+        issueDate: selectedInvoice.issueDate,
+        dueDate: selectedInvoice.dueDate,
+        invoiceNumber: selectedInvoice.invoiceNumber,
+        status: 'draft',
+        currency: selectedInvoice.currency || 'INR',
+        taxRate: 0,
+        discount: 0,
+        notes: selectedInvoice.notes || `Invoice for ${selectedProjectsData.length} project(s)`,
+        terms: 'Payment due within 30 days'
+      };
+      
+      console.log('Creating invoice with data:', invoiceDataToSend);
+      
+      // Create the invoice using the finance API
+      const createdInvoice = await createInvoice(invoiceDataToSend);
+      console.log('Invoice created:', createdInvoice);
+      
+      // The backend will automatically update project invoice status
+      // No need to manually call markProjectAsInvoiced since the backend handles it
+
+      await loadProjects();
+      setSelectedProjects([]);
+      setSuccessMessage(`Invoice ${selectedInvoice.invoiceNumber} created successfully!`);
+      setShowSuccessMessage(true);
+      setShowInvoiceModal(false);
+
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+    } catch (err) {
+      console.error("Invoice creation failed:", err);
+      toast.error("Failed to create invoice. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateInvoice = async () => {
     try {
       setLoading(true);
-      for (const id of selectedProjects) {
-        await markProjectAsInvoiced(id, {
-          invoiceNumber: invoiceData.invoiceNumber,
-          invoiceDate: invoiceData.invoiceDate,
-          invoiceStatus: 'Created'
-        });
-      }
+      
+      // Get selected projects data
+      const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
+      
+      // Create invoice data for the backend
+      const invoiceDataToSend = {
+        client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
+        projects: selectedProjectsData.map(project => ({
+          projectId: project._id || project.id,
+          name: project.name,
+          amount: project.cost || project.amount,
+          description: project.description
+        })),
+        issueDate: invoiceData.invoiceDate,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 30 days from now
+        invoiceNumber: invoiceData.invoiceNumber,
+        status: 'draft',
+        currency: 'INR',
+        taxRate: 0,
+        discount: 0,
+        notes: `Invoice for ${selectedProjectsData.length} project(s)`,
+        terms: 'Payment due within 30 days'
+      };
+      
+      console.log('Creating invoice with data:', invoiceDataToSend);
+      
+      // Create the invoice using the finance API
+      const createdInvoice = await createInvoice(invoiceDataToSend);
+      console.log('Invoice created:', createdInvoice);
+      
+      // The backend will automatically update project invoice status
+      // No need to manually call markProjectAsInvoiced since the backend handles it
 
       await loadProjects();
       setSelectedProjects([]);
@@ -200,6 +506,41 @@ const Finance = () => {
     if (p.status !== 'completed') return false;
     if (filters.project && p.id !== filters.project) return false;
     if (filters.client && p.client?.id !== filters.client) return false;
+    if (filters.paymentStatus && p.paymentStatus !== filters.paymentStatus) return false;
+    if (filters.invoiceStatus && p.invoiceStatus !== filters.invoiceStatus) return false;
+    if (filters.priority && p.priority !== filters.priority) return false;
+    if (filters.manager && p.manager?.id !== filters.manager) return false;
+    
+    // Date range filtering
+    if (filters.startDate && p.startDate) {
+      const startDate = new Date(filters.startDate);
+      const projectStartDate = new Date(p.startDate);
+      if (projectStartDate < startDate) return false;
+    }
+    if (filters.endDate && p.dueDate) {
+      const endDate = new Date(filters.endDate);
+      const projectDueDate = new Date(p.dueDate);
+      if (projectDueDate > endDate) return false;
+    }
+    
+    // Amount range filtering
+    if (filters.amountRange) {
+      const amount = Number(p.cost || p.amount || 0);
+      switch (filters.amountRange) {
+        case 'low':
+          if (amount >= 50000) return false;
+          break;
+        case 'medium':
+          if (amount < 50000 || amount >= 200000) return false;
+          break;
+        case 'high':
+          if (amount < 200000) return false;
+          break;
+        default:
+          break;
+      }
+    }
+    
     return true;
   });
 
@@ -212,8 +553,19 @@ const Finance = () => {
     ).values()
   ).filter(c => c.id && c.name);
 
+  const managers = Array.from(
+    new Map(
+      projects.map(p => [p.manager?.id, {
+        id: p.manager?.id,
+        name: p.manager?.name,
+      }])
+    ).values()
+  ).filter(m => m.id && m.name);
+
   const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
   const totalAmount = selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || 0), 0);
+  const totalReceived = selectedProjectsData.reduce((sum, p) => sum + Number(p.receivedAmount || 0), 0);
+  const totalBalance = selectedProjectsData.reduce((sum, p) => sum + Number(p.balanceAmount || 0), 0);
   const totalHours = selectedProjectsData.reduce((sum, p) => sum + Number(p.actualHours || p.estimatedHours || 0), 0);
 
   if (loading && projects.length === 0) {
@@ -243,7 +595,7 @@ const Finance = () => {
               <p className="text-gray-600 mb-6">{error}</p>
               <button
                 onClick={loadProjects}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -254,6 +606,18 @@ const Finance = () => {
       </div>
     );
   }
+
+  const toggleRowExpansion = (projectId) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -285,21 +649,63 @@ const Finance = () => {
                 </div>
               </div>
               
-              {/* <button
-                onClick={openInvoiceModal}
-                disabled={selectedProjects.length === 0}
-                className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
-                  selectedProjects.length === 0
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                    : "bg-[#1c6ead]  text-white transform hover:scale-105"
-                }`}
-              >
-                <Receipt className="w-4 h-4" />
-                Create Invoice ({selectedProjects.length})
-              </button> */}
+              
             </div>
           </div>
         </div>
+
+        {/* Financial Summary Cards */}
+        {financialSummary && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                  <p className="text-2xl font-bold text-gray-900">{financialSummary.totalOverview?.totalProjects || 0}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Amount</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{(financialSummary.totalOverview?.totalAmount || 0).toLocaleString("en-IN")}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Received</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{(financialSummary.totalOverview?.totalReceived || 0).toLocaleString("en-IN")}</p>
+                </div>
+                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <Wallet className="w-6 h-6 text-emerald-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Balance</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{(financialSummary.totalOverview?.totalBalance || 0).toLocaleString("en-IN")}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Success Message */}
         {showSuccessMessage && (
@@ -316,7 +722,7 @@ const Finance = () => {
               </div>
               <button
                 onClick={() => setShowSuccessMessage(false)}
-                className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg p-2 transition-colors"
+                className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg p-2 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -336,7 +742,7 @@ const Finance = () => {
               </div>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 text-sm text-[#1c6ead] hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-[#1c6ead] hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reset Filters
@@ -345,7 +751,7 @@ const Finance = () => {
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-2">
                   <Briefcase className="w-4 h-4 inline mr-2" />
@@ -387,6 +793,94 @@ const Finance = () => {
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label htmlFor="paymentStatus" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Wallet className="w-4 h-4 inline mr-2" />
+                  Payment Status
+                </label>
+                <select
+                  id="paymentStatus"
+                  name="paymentStatus"
+                  value={filters.paymentStatus}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">All Payment Status</option>
+                  <option value="Not Paid">Not Paid</option>
+                  <option value="Partially Paid">Partially Paid</option>
+                  <option value="Fully Paid">Fully Paid</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="invoiceStatus" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Receipt className="w-4 h-4 inline mr-2" />
+                  Invoice Status
+                </label>
+                <select
+                  id="invoiceStatus"
+                  name="invoiceStatus"
+                  value={filters.invoiceStatus}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">All Invoice Status</option>
+                  <option value="Not Created">Not Created</option>
+                  <option value="Created">Created</option>
+                </select>
+              </div>
+
+              
+
+              <div>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-2" />
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  id="startDate"
+                  name="startDate"
+                  value={filters.startDate}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-2" />
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  id="endDate"
+                  name="endDate"
+                  value={filters.endDate}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="amountRange" className="block text-sm font-medium text-gray-700 mb-2">
+                  <DollarSign className="w-4 h-4 inline mr-2" />
+                  Amount Range
+                </label>
+                <select
+                  id="amountRange"
+                  name="amountRange"
+                  value={filters.amountRange}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">All Amounts</option>
+                  <option value="low">Less than ₹50,000</option>
+                  <option value="medium">₹50,000 - ₹2,00,000</option>
+                  <option value="high">More than ₹2,00,000</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -395,7 +889,7 @@ const Finance = () => {
         {selectedProjects.length > 0 && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-200 p-6 mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                     <FileText className="w-5 h-5 text-blue-600" />
@@ -415,13 +909,31 @@ const Finance = () => {
                     <p className="text-2xl font-bold text-emerald-900">₹{totalAmount.toLocaleString("en-IN")}</p>
                   </div>
                 </div>
-                
-                
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-green-600 font-medium">Total Received</p>
+                    <p className="text-2xl font-bold text-green-900">₹{totalReceived.toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-purple-600 font-medium">Total Balance</p>
+                    <p className="text-2xl font-bold text-purple-900">₹{totalBalance.toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
               </div>
               
               <button
                 onClick={openInvoiceModal}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
               >
                 <Receipt className="w-4 h-4" />
                 Create Invoice
@@ -430,7 +942,7 @@ const Finance = () => {
           </div>
         )}
 
-        {/* Enhanced Projects List */}
+       
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -464,127 +976,416 @@ const Finance = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <span className="sr-only">Select</span>
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Project Details
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Project Name
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Client
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tasks
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cost (₹)
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Received
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Completion Date
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Balance
                     </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Status
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Invoice Status
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span className="sr-only">Expand</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProjects.map((pro) => (
-                    <tr
-                      key={pro.id}
-                      className={`transition-all duration-200 ${
-                        selectedProjects.includes(pro.id)
-                          ? "bg-blue-50 border-l-4 border-[#1c6ead]"
-                          : pro.tasks?.length === 0
-                          ? "bg-gray-50 text-gray-500"
-                          : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedProjects.includes(pro.id)}
-                          onChange={() => handleProjectSelection(pro.id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] focus:ring-2"
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
+                    <>
+                      <tr
+                        key={pro.id}
+                        className={`transition-all duration-200 ${
+                          selectedProjects.includes(pro.id)
+                            ? "bg-blue-50 border-l-4 border-[#1c6ead]"
+                            : pro.tasks?.length === 0
+                            ? "bg-gray-50 text-gray-500"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        {/* Select Checkbox */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedProjects.includes(pro.id)}
+                            onChange={() => handleProjectSelection(pro.id)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] focus:ring-2"
+                          />
+                        </td>
+
+                        {/* Project Name */}
+                        <td className="px-4 py-4">
+                          <div className="space-y-2">
+                            <div>
                               <Link
                                 to={`/projects/${pro.id}`}
-                                className={`hover:text-blue-600 transition-colors ${
+                                className={`text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors ${
                                   pro.tasks?.length === 0 ? "text-gray-500" : ""
                                 }`}
                               >
                                 {pro.name}
                               </Link>
                             </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              <span
-                                className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                                  statusColors[pro.status] || "bg-gray-50 text-gray-700 border-gray-200"
-                                }`}
-                              >
-                                {pro.status}
-                              </span>
-                              <span
-                                className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                                  priorityColors[pro.priority] || "bg-gray-50 text-gray-700 border-gray-200"
-                                }`}
-                              >
-                                {pro.priority}
+                          </div>
+                        </td>
+
+                        {/* Client */}
+                        <td className="px-4 py-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm font-medium text-gray-900">
+                                {pro.client?.name || "No Client"}
                               </span>
                             </div>
+                            {pro.client?.companyType && (
+                              <span className="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                {pro.client.companyType}
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-900">
-                            {pro.client?.name || "No Client"}
+                        </td>
+
+                        {/* Amount */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-bold text-gray-900">
+                            ₹{Number(pro.cost || pro.amount || 0).toLocaleString("en-IN")}
+                          </div>
+                        </td>
+
+                        {/* Received */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-green-600">
+                            ₹{Number(pro.receivedAmount || 0).toLocaleString("en-IN")}
+                          </div>
+                        </td>
+
+                        {/* Balance */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-red-600">
+                            ₹{Number(pro.balanceAmount || 0).toLocaleString("en-IN")}
+                          </div>
+                        </td>
+
+                        {/* Payment Status */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
+                              paymentStatusColors[pro.paymentStatus] || "bg-gray-50 text-gray-700 border-gray-200"
+                            }`}
+                          >
+                            {pro.paymentStatus}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-900">
-                            {pro.tasks ? `${pro.tasks.length} Tasks` : "0 Tasks"}
+                          {pro.paymentHistory && pro.paymentHistory.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-gray-500">
+                                {pro.paymentHistory.length} payment{pro.paymentHistory.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Invoice Status */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
+                              invoiceStatusColors[pro.invoiceStatus || "Not Created"]
+                            }`}
+                          >
+                            {pro.invoiceStatus || "Not Created"}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {Number(pro.cost || 0).toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-500">
-                            {pro.completedAt
-                              ? new Date(pro.completedAt).toLocaleDateString()
-                              : pro.updatedAt
-                              ? new Date(pro.updatedAt).toLocaleDateString()
-                              : ""}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                            invoiceStatusColors[pro.invoiceStatus || "Not Created"]
-                          }`}
-                        >
-                          {pro.invoiceStatus || "Not Created"}
-                        </span>
-                      </td>
-                    </tr>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openPaymentModal(pro)}
+                              disabled={pro.paymentStatus === 'Fully Paid'}
+                              className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                                pro.paymentStatus === 'Fully Paid'
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer"
+                              }`}
+                            >
+                              <Plus className="w-3 h-3" />
+                              Payment
+                            </button>
+                            
+                            {/* Invoice Actions */}
+                            {pro.invoiceStatus === 'Created' ? (
+                              <>
+                                <button
+                                  onClick={() => handleInvoiceDownload(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer"
+                                  title="Download Invoice"
+                                >
+                                  <Download className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => viewInvoiceModal(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors cursor-pointer"
+                                  title="View Invoice"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleInvoiceView(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors cursor-pointer"
+                                  title="Open in New Tab"
+                                >
+                                  <Share2 className="w-3 h-3" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleInvoiceView(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                                  title="Preview Invoice"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleInvoiceDownload(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                                  title="Preview Download"
+                                >
+                                  <Download className="w-3 h-3" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Expand/Collapse Button */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => toggleRowExpansion(pro.id)}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                            title={expandedRows.has(pro.id) ? "Collapse Details" : "Expand Details"}
+                          >
+                            {expandedRows.has(pro.id) ? (
+                              <ChevronUp className="w-4 h-4 text-gray-600" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* Expanded Row Details */}
+                      {expandedRows.has(pro.id) && (
+                        <tr className="bg-gray-50">
+                          <td colSpan="10" className="px-4 py-6">
+                            <div className="space-y-6">
+                              {/* Project Timeline Table */}
+                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-blue-50 px-4 py-3 border-b border-gray-200">
+                                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <CalendarDays className="w-4 h-4 text-blue-600" />
+                                    Project Timeline
+                                  </h4>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {pro.startDate && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Start Date</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{new Date(pro.startDate).toLocaleDateString()}</td>
+                                      </tr>
+                                    )}
+                                    {pro.dueDate && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Due Date</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{new Date(pro.dueDate).toLocaleDateString()}</td>
+                                      </tr>
+                                    )}
+                                    {pro.createdAt && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Created Date</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{new Date(pro.createdAt).toLocaleDateString()}</td>
+                                      </tr>
+                                    )}
+                                    {pro.lastPaymentDate && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Last Payment</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{new Date(pro.lastPaymentDate).toLocaleDateString()}</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Team & Management Table */}
+                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-green-50 px-4 py-3 border-b border-gray-200">
+                                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <UserCheck className="w-4 h-4 text-green-600" />
+                                    Team & Management
+                                  </h4>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {pro.manager && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Project Manager</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.manager?.name || "Manager"}</td>
+                                      </tr>
+                                    )}
+                                    {pro.assignedTo && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Assigned To</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.assignedTo?.name || "Assigned"}</td>
+                                      </tr>
+                                    )}
+                                    {pro.team && pro.team.length > 0 && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Team Size</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.team.length} member{pro.team.length !== 1 ? 's' : ''}</td>
+                                      </tr>
+                                    )}
+                                    {pro.createdBy && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Created By</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.createdBy?.name || "Unknown"}</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Additional Details Table */}
+                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-purple-50 px-4 py-3 border-b border-gray-200">
+                                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <Target className="w-4 h-4 text-purple-600" />
+                                    Additional Details
+                                  </h4>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {pro.client?.city && pro.client?.state && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Location</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.city}, {pro.client.state}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.country && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Country</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.country}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.gstin && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">GSTIN</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.gstin}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.pan && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">PAN</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.pan}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.cin && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">CIN</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.cin}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.industry && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Industry</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.industry}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.website && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Website</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                          <a 
+                                            href={pro.client.website} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                          >
+                                            {pro.client.website}
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.contactName && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Contact Person</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.contactName}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.contactEmail && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Contact Email</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                          <a 
+                                            href={`mailto:${pro.client.contactEmail}`}
+                                            className="text-blue-600 hover:text-blue-800"
+                                          >
+                                            {pro.client.contactEmail}
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.contactPhone && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Contact Phone</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                          <a 
+                                            href={`tel:${pro.client.contactPhone}`}
+                                            className="text-blue-600 hover:text-blue-800"
+                                          >
+                                            {pro.client.contactPhone}
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.pin && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">PIN Code</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.pin}</td>
+                                      </tr>
+                                    )}
+                                    {pro.client?.currencyFormat && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Currency Format</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">{pro.client.currencyFormat}</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))}
                 </tbody>
               </table>
@@ -610,7 +1411,7 @@ const Finance = () => {
                     className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                       currentPage === 1
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md"
+                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md cursor-pointer"
                     }`}
                   >
                     <ChevronLeft className="w-4 h-4 mr-1" />
@@ -622,7 +1423,7 @@ const Finance = () => {
                     className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                       currentPage === totalPage
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md"
+                        : "bg-white text-blue-600 hover:bg-blue-50 border border-gray-300 shadow-sm hover:shadow-md cursor-pointer"
                     }`}
                   >
                     Next
@@ -645,14 +1446,24 @@ const Finance = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                      
+                      <button
+                        onClick={() => handlePageChanges(1)}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
+                        }`}
+                      >
+                        <ChevronsLeft className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
                         className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                           currentPage === 1
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
                         }`}
                       >
                         <ChevronLeft className="w-4 h-4" />
@@ -661,7 +1472,7 @@ const Finance = () => {
                         <button
                           key={page}
                           onClick={() => handlePageChanges(page)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 ${
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-all duration-200 cursor-pointer ${
                             page === currentPage
                               ? "z-10 bg-blue-50 border-[#1c6ead] text-blue-600"
                               : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-blue-300"
@@ -676,12 +1487,22 @@ const Finance = () => {
                         className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
                           currentPage === totalPage
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
                         }`}
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                     
+                      <button
+                        onClick={() => handlePageChanges(totalPage)}
+                        disabled={currentPage === totalPage}
+                        className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
+                          currentPage === totalPage
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
+                        }`}
+                      >
+                        <ChevronsRight className="w-4 h-4" />
+                      </button>
                     </nav>
                   </div>
                 </div>
@@ -690,134 +1511,28 @@ const Finance = () => {
           )}
         </div>
 
-        {/* Enhanced Create Invoice Modal */}
-        {showInvoiceModal && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowInvoiceModal(false)}
-          >
-            <div 
-              className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 transform transition-all"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Receipt className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Create Invoice</h3>
-                  </div>
-                  <button
-                    onClick={() => setShowInvoiceModal(false)}
-                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+        {/* Invoice creation is now handled by InvoiceModal */}
 
-              <div className="p-6 space-y-6">
-                <div>
-                  <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    Invoice Number
-                  </label>
-                  <input
-                    type="text"
-                    id="invoiceNumber"
-                    value={invoiceData.invoiceNumber}
-                    onChange={(e) =>
-                      setInvoiceData({
-                        ...invoiceData,
-                        invoiceNumber: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
+       
 
-                <div>
-                  <label htmlFor="invoiceDate" className="block text-sm font-medium text-gray-700 mb-2">
-                    Invoice Date
-                  </label>
-                  <input
-                    type="date"
-                    id="invoiceDate"
-                    value={invoiceData.invoiceDate}
-                    onChange={(e) =>
-                      setInvoiceData({
-                        ...invoiceData,
-                        invoiceDate: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          project={selectedProjectForPayment}
+          onPaymentRecorded={handlePaymentRecorded}
+        />
 
-                <div>
-                  <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
-                    Client
-                  </label>
-                  <input
-                    type="text"
-                    id="client"
-                    value={invoiceData.client}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600"
-                    disabled
-                  />
-                </div>
-
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-                  <h4 className="text-sm font-medium text-blue-900 mb-4 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Invoice Summary
-                  </h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-900">{selectedProjects.length}</p>
-                      <p className="text-xs text-blue-600">Projects</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-emerald-900">₹{totalAmount.toLocaleString("en-IN")}</p>
-                      <p className="text-xs text-emerald-600">Total Amount</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-900">{totalHours}</p>
-                      <p className="text-xs text-purple-600">Total Hours</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowInvoiceModal(false)}
-                  className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateInvoice}
-                  disabled={loading}
-                  className="px-6 py-3 bg-[#1c6ead] text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
-                    </span>
-                  ) : (
-                    "Create Invoice"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Invoice Modal */}
+        <InvoiceModal
+          isOpen={showInvoiceModal}
+          onClose={() => setShowInvoiceModal(false)}
+          invoice={selectedInvoice}
+          onDownload={handleInvoiceDownload}
+          onView={handleInvoiceView}
+          onPrint={handleInvoicePrint}
+          onCreateInvoice={handleCreateInvoiceFromModal}
+        />
       </div>
     </div>
   );

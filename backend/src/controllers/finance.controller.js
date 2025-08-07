@@ -152,15 +152,25 @@ exports.createInvoice = async (req, res, next) => {
             return next(new ErrorResponse(`Client not found with id of ${req.body.client}`, 404));
         }
 
-        // Validate project if provided
-        if (req.body.project) {
-            const project = await Project.findById(req.body.project);
-            if (!project) {
-                return next(new ErrorResponse(`Project not found with id of ${req.body.project}`, 404));
-            }
-            // Check if project belongs to the client
-            if (project.client.toString() !== req.body.client) {
-                return next(new ErrorResponse(`Project does not belong to the selected client`, 400));
+        // Validate projects if provided
+        if (req.body.projects && req.body.projects.length > 0) {
+            for (const projectData of req.body.projects) {
+                const project = await Project.findById(projectData.projectId);
+                if (!project) {
+                    return next(new ErrorResponse(`Project not found with id of ${projectData.projectId}`, 404));
+                }
+                // Check if project belongs to the client
+                if (project.client.toString() !== req.body.client) {
+                    return next(new ErrorResponse(`Project ${project.name} does not belong to the selected client`, 400));
+                }
+                // Check if project is completed
+                if (project.status !== 'completed') {
+                    return next(new ErrorResponse(`Project ${project.name} is not completed and cannot be invoiced`, 400));
+                }
+                // Check if project is already invoiced
+                if (project.invoiceStatus === 'Created') {
+                    return next(new ErrorResponse(`Project ${project.name} is already invoiced`, 400));
+                }
             }
         }
 
@@ -172,10 +182,63 @@ exports.createInvoice = async (req, res, next) => {
             req.body.invoiceNumber = `${prefix}-${date}-${count.toString().padStart(4, '0')}`;
         }
 
+        // Create invoice items from projects
+        if (req.body.projects && req.body.projects.length > 0) {
+            req.body.items = req.body.projects.map(projectData => ({
+                description: projectData.name || 'Project Services',
+                quantity: 1,
+                rate: projectData.amount || 0,
+                amount: projectData.amount || 0,
+                projectId: projectData.projectId
+            }));
+        }
+
+        // Calculate totals
+        const subtotal = req.body.items ? req.body.items.reduce((sum, item) => sum + (item.amount || 0), 0) : 0;
+        const taxAmount = (subtotal * (req.body.taxRate || 0)) / 100;
+        const total = subtotal + taxAmount - (req.body.discount || 0);
+
+        req.body.subtotal = subtotal;
+        req.body.taxAmount = taxAmount;
+        req.body.total = total;
+
         // Create invoice
         const invoice = await Invoice.create(req.body);
 
-        // Update task status to invoiced if tasks are included
+        // Update project invoice status and link projects to invoice
+        if (req.body.projects && req.body.projects.length > 0) {
+            for (const projectData of req.body.projects) {
+                await Project.findByIdAndUpdate(
+                    projectData.projectId,
+                    {
+                        invoiceStatus: 'Created',
+                        invoiceNumber: req.body.invoiceNumber,
+                        invoiceDate: req.body.issueDate,
+                        invoiceId: invoice._id,
+                        updatedAt: new Date()
+                    }
+                );
+
+                // Update tasks in the project to invoiced status
+                const project = await Project.findById(projectData.projectId).populate('tasks');
+                if (project.tasks && project.tasks.length > 0) {
+                    for (const task of project.tasks) {
+                        await Task.findByIdAndUpdate(
+                            task._id,
+                            {
+                                'invoiceDetails.invoiced': true,
+                                'invoiceDetails.invoiceDate': invoice.issueDate,
+                                'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
+                                'invoiceDetails.invoiceId': invoice._id,
+                                status: 'invoiced'
+                            }
+                        );
+                    }
+                }
+            }
+        }
+
+        // Update task status to invoiced if tasks are included directly
         if (req.body.items && req.body.items.length > 0) {
             for (const item of req.body.items) {
                 if (item.task) {
@@ -185,6 +248,7 @@ exports.createInvoice = async (req, res, next) => {
                             'invoiceDetails.invoiced': true,
                             'invoiceDetails.invoiceDate': invoice.issueDate,
                             'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
+                            'invoiceDetails.invoiceId': invoice._id,
                             status: 'invoiced'
                         }
                     );
@@ -485,6 +549,230 @@ exports.getInvoiceStats = async (req, res, next) => {
                 },
                 topClients
             }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Record payment for a project
+ * @route   POST /api/finance/projects/:id/payment
+ * @access  Private/Finance,Admin
+ */
+exports.recordPayment = async (req, res, next) => {
+    try {
+        const { amount, method, reference, notes } = req.body;
+
+        // Validate required fields
+        if (!amount || amount <= 0) {
+            return next(new ErrorResponse('Payment amount is required and must be greater than 0', 400));
+        }
+
+        if (!method) {
+            return next(new ErrorResponse('Payment method is required', 400));
+        }
+
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        // Create payment record
+        const paymentRecord = {
+            amount: Number(amount),
+            method,
+            reference: reference || '',
+            notes: notes || '',
+            recordedBy: req.user.id
+        };
+
+        // Add payment to history
+        project.paymentHistory.push(paymentRecord);
+        
+        // Update received amount
+        project.receivedAmount += Number(amount);
+        
+        // Update last payment date
+        project.lastPaymentDate = new Date();
+        
+        // Save project (this will trigger the pre-save middleware to update balance and status)
+        await project.save();
+
+        // Log the payment
+        logger.info(`Payment recorded for project ${project.name} (${project._id}): ${amount} by ${req.user.name} (${req.user._id})`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                project,
+                payment: paymentRecord
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get payment history for a project
+ * @route   GET /api/finance/projects/:id/payments
+ * @access  Private/Finance,Admin
+ */
+exports.getPaymentHistory = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id)
+            .populate({
+                path: 'paymentHistory.recordedBy',
+                select: 'name email'
+            })
+            .populate({
+                path: 'client',
+                select: 'name'
+            });
+
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                project: {
+                    _id: project._id,
+                    name: project.name,
+                    amount: project.amount,
+                    receivedAmount: project.receivedAmount,
+                    balanceAmount: project.balanceAmount,
+                    paymentStatus: project.paymentStatus,
+                    lastPaymentDate: project.lastPaymentDate,
+                    client: project.client
+                },
+                paymentHistory: project.paymentHistory
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get financial summary for all projects
+ * @route   GET /api/finance/summary
+ * @access  Private/Finance,Admin
+ */
+exports.getFinancialSummary = async (req, res, next) => {
+    try {
+        // Get total amounts by payment status
+        const paymentStatusSummary = await Project.aggregate([
+            {
+                $group: {
+                    _id: '$paymentStatus',
+                    count: { $sum: 1 },
+                    totalAmount: { $sum: '$amount' },
+                    totalReceived: { $sum: '$receivedAmount' },
+                    totalBalance: { $sum: '$balanceAmount' }
+                }
+            }
+        ]);
+
+        // Get total financial overview
+        const totalOverview = await Project.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalProjects: { $sum: 1 },
+                    totalAmount: { $sum: '$amount' },
+                    totalReceived: { $sum: '$receivedAmount' },
+                    totalBalance: { $sum: '$balanceAmount' },
+                    totalInvoiced: { $sum: { $cond: [{ $eq: ['$invoiceStatus', 'Created'] }, 1, 0] } },
+                    totalNotInvoiced: { $sum: { $cond: [{ $eq: ['$invoiceStatus', 'Not Created'] }, 1, 0] } }
+                }
+            }
+        ]);
+
+        // Get recent payments
+        const recentPayments = await Project.aggregate([
+            {
+                $unwind: '$paymentHistory'
+            },
+            {
+                $sort: { 'paymentHistory.date': -1 }
+            },
+            {
+                $limit: 10
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'paymentHistory.recordedBy',
+                    foreignField: '_id',
+                    as: 'recordedBy'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clients',
+                    localField: 'client',
+                    foreignField: '_id',
+                    as: 'client'
+                }
+            },
+            {
+                $project: {
+                    projectName: '$name',
+                    payment: '$paymentHistory',
+                    recordedBy: { $arrayElemAt: ['$recordedBy.name', 0] },
+                    clientName: { $arrayElemAt: ['$client.name', 0] }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                paymentStatusSummary,
+                totalOverview: totalOverview[0] || {},
+                recentPayments
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update project payment status manually
+ * @route   PUT /api/finance/projects/:id/payment-status
+ * @access  Private/Finance,Admin
+ */
+exports.updatePaymentStatus = async (req, res, next) => {
+    try {
+        const { paymentStatus, receivedAmount } = req.body;
+
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        // Update payment status and received amount
+        if (paymentStatus) {
+            project.paymentStatus = paymentStatus;
+        }
+
+        if (receivedAmount !== undefined) {
+            project.receivedAmount = Number(receivedAmount);
+        }
+
+        // Save project (this will trigger the pre-save middleware)
+        await project.save();
+
+        // Log the update
+        logger.info(`Payment status updated for project ${project.name} (${project._id}) to ${project.paymentStatus} by ${req.user.name} (${req.user._id})`);
+
+        res.status(200).json({
+            success: true,
+            data: project
         });
     } catch (error) {
         next(error);
