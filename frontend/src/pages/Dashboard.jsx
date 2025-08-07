@@ -515,38 +515,47 @@ const StatCard = ({ title, value, change, iconType, color }) => {
       </svg>
     ),
     Revenue: <IndianRupee className="w-6 h-6 text-yellow-600" />,
-    Incentive: (
-      <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3" />
-      </svg>
+    "Monthly Incentive": (
+    <IndianRupee className="w-6 h-6 text-yellow-600" />
+  ),
+  "Pending Verification Tasks": (
+    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
     ),
   };
 
   return (
-    <div className="group bg-white rounded-xl  border-2 border-[#1c6ead] shadow-lg  p-6 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 hover:transform hover:-translate-y-1">
-      <div className="flex justify-between items-center">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            {titleIcons[title]}
-            <p className="text-sm font-medium text-slate-600">{title}</p>
-          </div>
-          <p className="text-3xl font-bold text-slate-900 mb-2 group-hover:text-[#1c6ead] transition-colors duration-200">
-            {value}
-          </p>
-          {change !== null && (
-            <div className={`flex items-center ${changeClass}`}>
-              <span className="flex items-center text-sm font-semibold">
-                <span className="mr-1 transition-transform duration-200 group-hover:scale-110">
-                  {changeIcon}
-                </span>
-                <span>{Math.abs(change)}% from last month</span>
-              </span>
-            </div>
-          )}
-        </div>
+    <div className="group bg-white h-35 rounded-xl border-2 border-[#1c6ead] shadow-lg p-6 hover:shadow-lg hover:border-[#1c6ead] transition-all duration-300 hover:transform hover:-translate-y-1">
+  <div className="flex justify-between items-center h-full">
+    <div className="flex-1">
+      <div className="flex items-center space-x-3 mb-3">
+        {titleIcons[title]}
+        <p className="text-sm font-medium text-slate-600">{title}</p>
       </div>
+      {change !== null && (
+        <div className={`flex items-center ${changeClass}`}>
+          <span className="flex items-center text-sm font-semibold">
+            <span className="mr-1 transition-transform duration-200 group-hover:scale-110">
+              {changeIcon}
+            </span>
+            <span>{Math.abs(change)}% from last month</span>
+          </span>
+        </div>
+      )}
     </div>
+    <div>
+      <p className="text-4xl font-bold text-slate-900 mb-2 group-hover:text-[#1c6ead] transition-colors duration-200">
+        {value}
+      </p>
+    </div>
+  </div>
+</div>
   );
 };
 
