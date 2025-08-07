@@ -149,8 +149,7 @@ const ClientCard = ({ client }) => {
                 </div>
               )}
               {/* Online indicator */}
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-sm"></div>
-            </div>
+              <div className={`absolute -top-1 -right-1 w-4 h-4 ${client.status?.toLowerCase() === 'active' ? 'bg-emerald-400' : 'bg-red-400'} rounded-full border-2 border-white shadow-sm`}></div>            </div>
 
             <div className="ml-5 flex-1 min-w-0">
               <div className="flex items-center justify-between">
