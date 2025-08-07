@@ -32,6 +32,7 @@ import LeaveApplication from "./pages/employee/LeaveApplication";
 import Attendance from './pages/hrm/Attendance';
 import EmployeeAttendance from './pages/employee/EmployeeAttendance';
 import { useAuth } from "./context/AuthContext";
+import InvoicePreviewPage from "./pages/InvoicePreviewPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,11 @@ function App() {
                 <Route path={ROUTES.LOGIN} element={<Login />} />
               </Route>
 
+ {/* Invoice Preview Route - Standalone (no layout) - MUST BE BEFORE CATCH-ALL */}
+              <Route path={ROUTES.INVOICE_PREVIEW} element={<InvoicePreviewPage />} />
+              <Route path="/invoice-preview" element={<InvoicePreviewPage />} />
+              <Route path="/invoice-preview/*" element={<InvoicePreviewPage />} />
+              
               {/* Protected routes */}
               <Route element={<MainLayout />}>
                 <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />

@@ -359,7 +359,7 @@ const Tasks = () => {
                 ? "Get started by creating your first task."
                 : "Try changing your filters or create a new task."}
             </p>
-            {role !== "staff" && (
+            {/* {role !== "staff" && (
               <motion.button
                 onClick={() => setIsModalOpen(true)}
                 className="px-4 py-2 bg-[#1c6ead] text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 cursor-pointer"
@@ -371,7 +371,7 @@ const Tasks = () => {
                   <span>Create Task</span>
                 </div>
               </motion.button>
-            )}
+            )} */}
           </motion.div>
         ) : (
           <motion.div

@@ -25,6 +25,7 @@
     "formik": "^2.4.6",
     "framer-motion": "^12.23.0",
     "frontend": "file:",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.522.0",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.48",
