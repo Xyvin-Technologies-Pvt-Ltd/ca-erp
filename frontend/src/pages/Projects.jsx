@@ -11,7 +11,6 @@ import {
   UsersIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 
 const statusColors = {

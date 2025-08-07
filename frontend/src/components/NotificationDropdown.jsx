@@ -304,12 +304,16 @@ const NotificationDropdown = () => {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleScroll = () => {
+ useEffect(() => {
+    const handleScroll = (event) => {
       if (isOpen) {
+        if (dropdownRef.current && dropdownRef.current.contains(event.target)) {
+          return;
+        }
         setIsOpen(false);
       }
     };
+    
     if (isOpen) {
       document.addEventListener("scroll", handleScroll, true);
       return () => document.removeEventListener("scroll", handleScroll, true);
