@@ -104,7 +104,7 @@ const UserSchema = new mongoose.Schema({
         type: Map,
         of: Number,
         default: new Map(),
-        description: 'Monthly incentive earned by the user (format: YYYY-MM -> amount)'
+        description: 'Monthly incentive earned by the user'
     },
     incentives: [{
         type: mongoose.Schema.Types.ObjectId,
