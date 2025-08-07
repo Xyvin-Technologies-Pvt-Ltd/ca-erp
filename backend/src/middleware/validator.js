@@ -116,6 +116,7 @@ const clientValidation = {
             notes: Joi.string().allow("").optional(),
             directors: Joi.array().items(Joi.string().max(50)).optional(),
             status: Joi.string().valid("active", "inactive").allow("").optional(),
+            priority: Joi.string(),
         }),
     }),
 
@@ -141,6 +142,7 @@ const clientValidation = {
             notes: Joi.string().allow("").optional(),
             directors: Joi.array().items(Joi.string().max(50)).min(2).optional(),
             status: Joi.string().valid('active', 'inactive').allow("").optional(),
+                        priority: Joi.string(),
         }),
     }),
 };

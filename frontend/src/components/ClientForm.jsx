@@ -56,6 +56,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       contactPhone: "",
       industry: "",
       status: "active",
+      priority: "Medium",
       country: "",
       state: "",
       city: "",
@@ -459,6 +460,21 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Priority
+                  </label>
+                  <select
+                    {...register("priority")}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
                   </select>
                 </div>
 
