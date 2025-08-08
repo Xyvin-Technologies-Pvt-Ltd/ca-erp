@@ -160,7 +160,7 @@ const projectValidation = {
             status: Joi.string().valid('planning', 'in-progress', 'on-hold', 'completed', 'archived'),
             startDate: Joi.date().allow(null),
             dueDate: Joi.date().allow(null),
-            budget: Joi.number().min(0),
+            amount: Joi.number().min(0),
         }),
     }),
 
@@ -302,7 +302,7 @@ const invoiceValidation = {
                     amount: Joi.number().min(0).required(),
                     task: Joi.string(),
                 })
-            ).required(),
+            ),
             amount: Joi.number().min(0).required(),
             tax: Joi.number().min(0),
             status: Joi.string().valid('draft', 'sent', 'paid', 'cancelled', 'overdue'),

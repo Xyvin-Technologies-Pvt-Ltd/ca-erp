@@ -407,15 +407,20 @@ const Finance = () => {
       // Get selected projects data
       const selectedProjectsData = selectedInvoice.selectedProjects || projects.filter(p => selectedProjects.includes(p.id));
       
+      // Calculate total amount and create items array
+      const totalAmount = selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || p.amount || 0), 0);
+      const items = selectedProjectsData.map(project => ({
+        description: project.name,
+        quantity: 1,
+        rate: project.cost || project.amount || 0,
+        amount: project.cost || project.amount || 0
+      }));
+
       // Create invoice data for the backend
       const invoiceDataToSend = {
         client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
-        projects: selectedProjectsData.map(project => ({
-          projectId: project._id || project.id,
-          name: project.name,
-          amount: project.cost || project.amount,
-          description: project.description
-        })),
+        items,
+        amount: totalAmount,
         issueDate: selectedInvoice.issueDate,
         dueDate: selectedInvoice.dueDate,
         invoiceNumber: selectedInvoice.invoiceNumber,
