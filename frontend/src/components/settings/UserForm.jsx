@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ROLES } from "../../config/constants";
 import { userApi } from "../../api/userApi";
-import { getDepartments } from '../../api/department.api';
-import { getPositions } from '../../api/positions.api';
+import { getDepartments } from "../../api/department.api";
+import { getPositions } from "../../api/positions.api";
 import { toast } from "react-toastify";
 import { X, UserPlus, UserCog } from "lucide-react";
 
@@ -11,17 +11,18 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [status, setStatus] = useState(["Permanent", "Probation"]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const isEditMode = !!user;
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
+  const [handleRole, setHandleRole] = useState("");
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    watch
+    watch,
   } = useForm({
     defaultValues: {
       name: "",
@@ -44,7 +45,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
       try {
         const [departmentsResponse, positionsResponse] = await Promise.all([
           getDepartments(),
-          getPositions()
+          getPositions(),
         ]);
         setDepartments(departmentsResponse.data || []);
         setPositions(positionsResponse.data || []);
@@ -62,10 +63,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   // Reset form values with user data
   useEffect(() => {
     if (user && dataLoaded) {
-      const departmentId = user.department?._id ;
-      const positionId = user.position?._id ;
-      
-      
+      const departmentId = user.department?._id;
+      const positionId = user.position?._id;
+
       reset({
         name: user.name || "",
         email: user.email || "",
@@ -84,12 +84,12 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     if (isEditMode && user && user._id) {
       onSubmit({ ...data, _id: user._id });
     } else {
-      onSubmit(data);
+      onSubmit(data,handleRole);
     }
   };
 
   const handleCancel = () => {
-    setShowConfirmModal(true); 
+    setShowConfirmModal(true);
   };
   const confirmDiscard = () => {
     setShowConfirmModal(false);
@@ -101,7 +101,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 min-h-screen overflow-hidden"
       onClick={onCancel}
     >
@@ -131,7 +131,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
           }
         `}
       </style>
-      <div 
+      <div
         className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-100"
         onClick={(e) => e.stopPropagation()}
       >
@@ -150,7 +150,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   {isEditMode ? "Edit User" : "Create New User"}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {isEditMode ? "Update user details" : "Add a new user to the system"}
+                  {isEditMode
+                    ? "Update user details"
+                    : "Add a new user to the system"}
                 </p>
               </div>
             </div>
@@ -179,7 +181,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                 />
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
 
@@ -203,7 +207,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -219,7 +225,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   type="text"
                   {...register("phone", {
                     pattern: {
-                      value: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+                      value:
+                        /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
                       message: "Invalid phone number format",
                     },
                   })}
@@ -227,7 +234,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   placeholder="+1 234 567 8901"
                 />
                 {errors.phone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.phone.message}
+                  </p>
                 )}
               </div>
 
@@ -251,7 +260,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     <option value={ROLES.STAFF}>Staff</option>
                   </select>
                   {errors.role && (
-                    <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.role.message}
+                    </p>
                   )}
                 </div>
 
@@ -281,7 +292,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     )}
                   </select>
                   {errors.department && (
-                    <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.department.message}
+                    </p>
                   )}
                 </div>
 
@@ -311,29 +324,67 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     )}
                   </select>
                   {errors.position && (
-                    <p className="mt-1 text-sm text-red-600">{errors.position.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.position.message}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <label htmlFor="workType" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="workType"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Work Type <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="workType"
-                    {...register("workType", { required: "Work type is required" })}
+                    {...register("workType", {
+                      required: "Work type is required",
+                    })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
                     <option value="onsite">On-site</option>
                     <option value="remote">Remote</option>
                   </select>
                   {errors.workType && (
-                    <p className="mt-1 text-sm text-red-600">{errors.workType.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.workType.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                   onChange={(e)=>setHandleRole(e.target.value)}
+                   value={handleRole}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                  >
+                    <option value="">Status</option>
+                    {status.length > 0 ? (
+                      status.map((pos, id) => (
+                        <option key={id} value={pos}>
+                          {pos}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>Loading...</option>
+                    )}
+                  </select>
+                  {errors.position && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.position.message}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Verification Staff
@@ -345,7 +396,10 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       {...register("verificationStaff")}
                       className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] transition-all duration-200"
                     />
-                    <label htmlFor="verificationStaff" className="ml-2 block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor="verificationStaff"
+                      className="ml-2 block text-sm font-medium text-gray-900"
+                    >
                       Enable verification staff privileges
                     </label>
                   </div>
@@ -362,7 +416,10 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       onChange={(e) => setShowPasswordReset(e.target.checked)}
                       className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-[#1c6ead] transition-all duration-200"
                     />
-                    <label htmlFor="resetPassword" className="ml-2 block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor="resetPassword"
+                      className="ml-2 block text-sm font-medium text-gray-900"
+                    >
                       Reset Password
                     </label>
                   </div>
@@ -389,7 +446,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                         />
                         {errors.password && (
-                          <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.password.message}
+                          </p>
                         )}
                       </div>
 
@@ -398,7 +457,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                           htmlFor="confirmPassword"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Confirm New Password <span className="text-red-500">*</span>
+                          Confirm New Password{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <input
                           id="confirmPassword"
@@ -406,12 +466,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                           {...register("confirmPassword", {
                             required: "Please confirm your new password",
                             validate: (value) =>
-                              value === watch("password") || "Passwords do not match",
+                              value === watch("password") ||
+                              "Passwords do not match",
                           })}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                         />
                         {errors.confirmPassword && (
-                          <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.confirmPassword.message}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -441,7 +504,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                     />
                     {errors.password && (
-                      <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
 
@@ -458,12 +523,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       {...register("confirmPassword", {
                         required: "Please confirm your password",
                         validate: (value) =>
-                          value === watch("password") || "Passwords do not match",
+                          value === watch("password") ||
+                          "Passwords do not match",
                       })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                     />
                     {errors.confirmPassword && (
-                      <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.confirmPassword.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -491,44 +559,51 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
               ) : (
                 <UserPlus className="h-4 w-4 mr-2 animate-wiggle" />
               )}
-              {loading ? "Saving..." : isEditMode ? "Update User" : "Create User"}
+              {loading
+                ? "Saving..."
+                : isEditMode
+                ? "Update User"
+                : "Create User"}
             </button>
           </div>
         </form>
       </div>
-       {/* Confirmation Popup */}
-            {showConfirmModal && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
-                    <button
-                      onClick={cancelDiscard}
-                      className="text-gray-400 hover:text-gray-600 hover:bg-white/80 rounded-full p-2 transition-all duration-200"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Are you sure you want to discard changes? Any unsaved changes will be lost.
-                  </p>
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      onClick={cancelDiscard}
-                      className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={confirmDiscard}
-                      className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 font-medium"
-                    >
-                      Discard
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+      {/* Confirmation Popup */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Discard Changes?
+              </h3>
+              <button
+                onClick={cancelDiscard}
+                className="text-gray-400 hover:text-gray-600 hover:bg-white/80 rounded-full p-2 transition-all duration-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to discard changes? Any unsaved changes will
+              be lost.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelDiscard}
+                className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDiscard}
+                className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 font-medium"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
