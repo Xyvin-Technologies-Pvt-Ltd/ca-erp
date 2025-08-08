@@ -395,7 +395,7 @@ const Finance = () => {
     setTimeout(() => setShowSuccessMessage(false), 5000);
   };
 
-  const handleCreateInvoiceFromModal = async () => {
+   const handleCreateInvoiceFromModal = async () => {
     try {
       setLoading(true);
       
@@ -407,20 +407,15 @@ const Finance = () => {
       // Get selected projects data
       const selectedProjectsData = selectedInvoice.selectedProjects || projects.filter(p => selectedProjects.includes(p.id));
       
-      // Calculate total amount and create items array
-      const totalAmount = selectedProjectsData.reduce((sum, p) => sum + Number(p.cost || p.amount || 0), 0);
-      const items = selectedProjectsData.map(project => ({
-        description: project.name,
-        quantity: 1,
-        rate: project.cost || project.amount || 0,
-        amount: project.cost || project.amount || 0
-      }));
-
       // Create invoice data for the backend
       const invoiceDataToSend = {
         client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
-        items,
-        amount: totalAmount,
+        projects: selectedProjectsData.map(project => ({
+          projectId: project._id || project.id,
+          name: project.name,
+          amount: project.cost || project.amount,
+          description: project.description
+        })),
         issueDate: selectedInvoice.issueDate,
         dueDate: selectedInvoice.dueDate,
         invoiceNumber: selectedInvoice.invoiceNumber,
@@ -432,7 +427,7 @@ const Finance = () => {
         terms: 'Payment due within 30 days'
       };
       
-      console.log('Creating invoice with data:', invoiceDataToSend);
+      console.log('Creating invoice with data:  ##################', invoiceDataToSend);
       
       // Create the invoice using the finance API
       const createdInvoice = await createInvoice(invoiceDataToSend);
@@ -460,18 +455,30 @@ const Finance = () => {
     try {
       setLoading(true);
       
-      // Get selected projects data
-      const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
+      // Get selected projects data      
+      const selectedProjectsData = selectedInvoice.selectedProjects || projects.filter(p => selectedProjects.includes(p.id));
       
+      if (!selectedProjectsData || selectedProjectsData.length === 0) {
+        toast.error('No projects selected for invoice');
+        return;
+      }
+
       // Create invoice data for the backend
       const invoiceDataToSend = {
         client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
-        projects: selectedProjectsData.map(project => ({
-          projectId: project._id || project.id,
-          name: project.name,
-          amount: project.cost || project.amount,
-          description: project.description
-        })),
+        projects: selectedProjectsData.map(project => {
+          const projectId = project._id || project.id;
+          if (!projectId) {
+            console.error('Missing project ID for project:', project);
+            throw new Error('Invalid project data: Missing project ID');
+          }
+          return {
+            projectId,
+            name: project.name || 'Untitled Project',
+            amount: Number(project.cost || project.amount || 0),
+            description: project.description || project.name || 'No description available'
+          };
+        }),
         issueDate: invoiceData.invoiceDate,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 30 days from now
         invoiceNumber: invoiceData.invoiceNumber,

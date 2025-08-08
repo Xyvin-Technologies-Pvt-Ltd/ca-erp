@@ -293,7 +293,14 @@ const invoiceValidation = {
         body: Joi.object({
             invoiceNumber: Joi.string().required(),
             client: Joi.string().required(),
-            project: Joi.string(),
+            projects: Joi.array().items(
+                Joi.object({
+                    projectId: Joi.string().required(),
+                    name: Joi.string().required(),
+                    amount: Joi.number().min(0).required(),
+                    description: Joi.string()
+                })
+            ),
             items: Joi.array().items(
                 Joi.object({
                     description: Joi.string().required(),
@@ -303,7 +310,7 @@ const invoiceValidation = {
                     task: Joi.string(),
                 })
             ),
-            amount: Joi.number().min(0).required(),
+            amount: Joi.number().min(0),
             tax: Joi.number().min(0),
             status: Joi.string().valid('draft', 'sent', 'paid', 'cancelled', 'overdue'),
             issueDate: Joi.date(),
