@@ -3,6 +3,8 @@ import axios from './axios';
 // Record payment for a project
 export const recordPayment = async (projectId, paymentData) => {
   try {
+    console.log('📥 Recording payment for project:', paymentData);
+    
     const response = await axios.post(`/finance/projects/${projectId}/payment`, paymentData);
     return response.data;
   } catch (error) {

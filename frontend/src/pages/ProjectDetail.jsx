@@ -602,7 +602,7 @@ const ProjectDetail = () => {
                     <div>
                       <span className="text-sm text-gray-600 block">Budget</span>
                       <span className="text-sm font-medium text-gray-900">
-                        {formatCurrency(project.budget)}
+                        {formatCurrency(project.amount)}
                       </span>
                     </div>
                     {project.spent && (

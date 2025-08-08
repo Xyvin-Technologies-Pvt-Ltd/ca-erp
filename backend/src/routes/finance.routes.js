@@ -8,7 +8,11 @@ const {
     deleteInvoice,
     updateInvoiceStatus,
     getCompletedTasks,
-    getInvoiceStats
+    getInvoiceStats,
+    recordPayment,
+    getPaymentHistory,
+    getFinancialSummary,
+    updatePaymentStatus
 } = require('../controllers/finance.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -386,6 +390,150 @@ router.get(
     protect,
     authorize('admin', 'finance'),
     getInvoiceStats
+);
+
+/**
+ * @swagger
+ * /api/finance/projects/{id}/payment:
+ *   post:
+ *     summary: Record payment for a project
+ *     description: Records a payment for a specific project
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - method
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 description: Payment amount
+ *               method:
+ *                 type: string
+ *                 enum: [Cash, Bank Transfer, Cheque, Online Payment, Other]
+ *                 description: Payment method
+ *               reference:
+ *                 type: string
+ *                 description: Payment reference number
+ *               notes:
+ *                 type: string
+ *                 description: Additional notes
+ *     responses:
+ *       200:
+ *         description: Payment recorded successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Project not found
+ */
+router.post(
+    '/projects/:id/payment',
+    protect,
+    authorize('admin', 'finance'),
+    recordPayment
+);
+
+/**
+ * @swagger
+ * /api/finance/projects/{id}/payments:
+ *   get:
+ *     summary: Get payment history for a project
+ *     description: Retrieves payment history for a specific project
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     responses:
+ *       200:
+ *         description: Payment history
+ *       404:
+ *         description: Project not found
+ */
+router.get(
+    '/projects/:id/payments',
+    protect,
+    authorize('admin', 'finance'),
+    getPaymentHistory
+);
+
+/**
+ * @swagger
+ * /api/finance/summary:
+ *   get:
+ *     summary: Get financial summary
+ *     description: Retrieves financial summary for all projects
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Financial summary
+ */
+router.get(
+    '/summary',
+    protect,
+    authorize('admin', 'finance'),
+    getFinancialSummary
+);
+
+/**
+ * @swagger
+ * /api/finance/projects/{id}/payment-status:
+ *   put:
+ *     summary: Update project payment status
+ *     description: Updates payment status for a specific project
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               paymentStatus:
+ *                 type: string
+ *                 enum: [Not Paid, Partially Paid, Fully Paid]
+ *               receivedAmount:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Payment status updated successfully
+ *       404:
+ *         description: Project not found
+ */
+router.put(
+    '/projects/:id/payment-status',
+    protect,
+    authorize('admin', 'finance'),
+    updatePaymentStatus
 );
 
 module.exports = router; 
