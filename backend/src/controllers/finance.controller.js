@@ -222,20 +222,20 @@ exports.createInvoice = async (req, res, next) => {
 
                 // Update tasks in the project to invoiced status
                 const project = await Project.findById(projectData.projectId).populate('tasks');
-                if (project.tasks && project.tasks.length > 0) {
-                    for (const task of project.tasks) {
-                        await Task.findByIdAndUpdate(
-                            task._id,
-                            {
-                                'invoiceDetails.invoiced': true,
-                                'invoiceDetails.invoiceDate': invoice.issueDate,
-                                'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
-                                'invoiceDetails.invoiceId': invoice._id,
-                                status: 'invoiced'
-                            }
-                        );
-                    }
-                }
+                // if (project.tasks && project.tasks.length > 0) {
+                //     for (const task of project.tasks) {
+                //         await Task.findByIdAndUpdate(
+                //             task._id,
+                //             {
+                //                 'invoiceDetails.invoiced': true,
+                //                 'invoiceDetails.invoiceDate': invoice.issueDate,
+                //                 'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
+                //                 'invoiceDetails.invoiceId': invoice._id,
+                //                 status: 'invoiced'
+                //             }
+                //         );
+                //     }
+                // }
             }
         }
 

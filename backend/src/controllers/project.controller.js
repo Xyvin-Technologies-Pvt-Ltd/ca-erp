@@ -212,14 +212,20 @@ exports.getProjects = async (req, res, next) => {
           ).length;
         }
 
-        const completionPercentage =
+        let completionPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        if (completionPercentage == 100 && 
+            (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
+             !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+          completionPercentage = 99;
+        }
 
         const projectObj = project.toObject();
         projectObj.totalTasks = totalTasks;
         projectObj.completedTasks = completedTasks;
         projectObj.completionPercentage = completionPercentage;
-
+        
         return projectObj;
       })
     );
@@ -325,13 +331,18 @@ exports.getProject = async (req, res, next) => {
       ).length;
     }
 
-    const completionPercentage =
+    let completionPercentage =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    if (completionPercentage === 100 && 
+        (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
+         !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+      completionPercentage = 99;
+    }
 
     projectObject.totalTasks = totalTasks;
     projectObject.completedTasks = completedTasks;
     projectObject.completionPercentage = completionPercentage;
-    // Calculate total amount of all tasks as budget
     const totalAmount = activeTasks.reduce(
       (sum, task) => sum + (task.amount),
       0

@@ -506,7 +506,7 @@ const Projects = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-blue-600">
                           {project.totalTasks && project.totalTasks > 0
-                            ? Math.round((project.completedTasks || 0) / project.totalTasks * 100)
+                            ? Math.round((project.completionPercentage ))
                             : 0}% Complete
                         </span>
                         <span className="text-xs font-medium text-gray-500">
@@ -519,7 +519,7 @@ const Projects = () => {
                           initial={{ width: 0 }}
                           animate={{
                             width: `${project.totalTasks && project.totalTasks > 0
-                              ? Math.round((project.completedTasks || 0) / project.totalTasks * 100)
+                              ? Math.round((project.completionPercentage ))
                               : 0}%`,
                           }}
                           transition={{ duration: 0.5, ease: "easeOut" }}

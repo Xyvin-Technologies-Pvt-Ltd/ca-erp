@@ -56,7 +56,7 @@ require('dotenv').config();
  *           description: Whether the employee is a verification staff member
  *         incentive:
  *           type: object
- *           description: Monthly incentive earned by the user (format: YYYY-MM -> amount)
+ *           description: Monthly incentive earned by the user 
  *         incentives:
  *           type: array
  *           items:
