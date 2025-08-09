@@ -12,11 +12,13 @@ const {
     recordPayment,
     getPaymentHistory,
     getFinancialSummary,
-    updatePaymentStatus
+    updatePaymentStatus,
+    uploadReceipt
 } = require('../controllers/finance.controller');
 
 const { protect, authorize } = require('../middleware/auth');
 const { validate, invoiceValidation } = require('../middleware/validator');
+const { uploadReceipt: uploadReceiptMiddleware } = require('../middleware/upload');
 
 /**
  * @swagger
@@ -536,4 +538,47 @@ router.put(
     updatePaymentStatus
 );
 
-module.exports = router; 
+/**
+ * @swagger
+ * /api/finance/projects/{id}/upload-receipt:
+ *   post:
+ *     summary: Upload receipt for a project
+ *     description: Upload an image or document as a payment receipt for a project
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Receipt file (image or document)
+ *     responses:
+ *       200:
+ *         description: Receipt uploaded successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Project not found
+ */
+router.post(
+    '/projects/:id/upload-receipt',
+    protect,
+    authorize('admin', 'finance'),
+    uploadReceiptMiddleware.single('file'),
+    uploadReceipt
+);
+
+module.exports = router;

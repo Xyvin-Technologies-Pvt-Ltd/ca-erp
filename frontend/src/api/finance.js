@@ -131,3 +131,18 @@ export const getInvoiceStats = async () => {
     throw error.response?.data || error;
   }
 }; 
+export const uploadReceipt = async (projectId, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    // Use the backend endpoint for uploading receipts
+    const response = await axios.post(`/finance/projects/${projectId}/upload-receipt`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};

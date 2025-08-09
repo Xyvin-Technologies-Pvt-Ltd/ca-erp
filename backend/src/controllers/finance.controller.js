@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const Client = require('../models/Client');
 const { ErrorResponse } = require('../middleware/errorHandler');
 const { logger } = require('../utils/logger');
+const path = require('path');
 
 /**
  * @desc    Get all invoices
@@ -777,4 +778,40 @@ exports.updatePaymentStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
+
+
+/**
+ * @desc    Upload receipt for a project (image or document)
+ * @route   POST /api/finance/projects/:id/upload-receipt
+ * @access  Private/Finance,Admin
+ */
+exports.uploadReceipt = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        if (!req.file) {
+            return next(new ErrorResponse('Please upload a file', 400));
+        }
+         console.log(req.file, "File uploaded successfully");
+        const receiptPath = `/uploads/receipts/${req.file.originalname}`;
+        const updatedProject = await Project.findByIdAndUpdate(
+            req.params.id,
+            { receipts: receiptPath },
+            { new: true, runValidators: true }
+        );
+
+        logger.info(`Receipt uploaded for project: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`);
+
+        res.status(200).json({
+            success: true,
+            data: updatedProject
+        });
+    } catch (error) {
+        console.error("Error in uploadReceipt:", error);
+        next(error);
+    }
+};

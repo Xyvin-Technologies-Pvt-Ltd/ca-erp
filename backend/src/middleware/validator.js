@@ -161,6 +161,7 @@ const projectValidation = {
             startDate: Joi.date().allow(null),
             dueDate: Joi.date().allow(null),
             amount: Joi.number().min(0),
+            receipts: Joi.string().allow(""),
         }),
     }),
 

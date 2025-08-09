@@ -103,7 +103,6 @@ const ProjectSchema = new mongoose.Schema(
             enum: ['planning', 'in-progress', 'on-hold', 'completed', 'archived'],
             default: 'planning',
         },
-     
         startDate: {
             type: Date,
         },
@@ -136,7 +135,6 @@ const ProjectSchema = new mongoose.Schema(
             }, 
         ],
         deleted: { type: Boolean, default: false },
-        // Add this field in ProjectSchema
         invoiceStatus: {
             type: String,
             enum: ['Not Created', 'Created'],
@@ -162,6 +160,9 @@ const ProjectSchema = new mongoose.Schema(
         lastPaymentDate: {
             type: Date
         },
+        receipts: {
+          type: String,
+        },
         paymentHistory: [
             {
                 amount: { type: Number, required: true },
@@ -179,7 +180,9 @@ const ProjectSchema = new mongoose.Schema(
                 }
             }
         ],
+        
     },
+   
     {
         timestamps: true,
         toJSON: { virtuals: true },
