@@ -1499,7 +1499,7 @@ const Finance = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(1)}
                         disabled={currentPage === 1}
                         className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
@@ -1509,11 +1509,11 @@ const Finance = () => {
                         }`}
                       >
                         <ChevronsLeft className="w-4 h-4" />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                        className={`relative inline-flex items-center px-3 py-2 border rounded-l-xl text-sm font-medium transition-all duration-200 ${
                           currentPage === 1
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
@@ -1537,7 +1537,7 @@ const Finance = () => {
                       <button
                         onClick={() => handlePageChanges(currentPage + 1)}
                         disabled={currentPage === totalPage}
-                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                        className={`relative inline-flex items-center px-3 py-2 border rounded-r-xl text-sm font-medium transition-all duration-200 ${
                           currentPage === totalPage
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
@@ -1545,7 +1545,7 @@ const Finance = () => {
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(totalPage)}
                         disabled={currentPage === totalPage}
                         className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
@@ -1554,8 +1554,8 @@ const Finance = () => {
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
                         }`}
                       >
-                        <ChevronsRight className="w-4 h-4" />
-                      </button>
+                         <ChevronsRight className="w-4 h-4" /> 
+                      {/* </button> */} 
                     </nav>
                   </div>
                 </div>
@@ -1589,113 +1589,113 @@ const Finance = () => {
 
         {/* Receipt Upload Modal */}
         {showReceiptModal && (
-  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-800">
-          Upload Receipt
-        </h3>
-        <button
-          onClick={() => setShowReceiptModal(false)}
-          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Upload Receipt
+                </h3>
+                <button
+                  onClick={() => setShowReceiptModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-      {/* Project name */}
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-2">Project:</p>
-        <p className="font-semibold text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border">
-          {receiptUploadProject?.name}
-        </p>
-      </div>
+              {/* Project name */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-2">Project:</p>
+                <p className="font-semibold text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border">
+                  {receiptUploadProject?.name}
+                </p>
+              </div>
 
-      {/* File upload area */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Select Receipt File
-        </label>
-        <div className="relative">
-          <input
-            type="file"
-            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
-            onChange={handleReceiptFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-          />
-          <div className={`
-            border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
-            ${receiptFile 
-              ? 'border-[#1c6ead] bg-blue-50' 
-              : 'border-gray-300 hover:border-[#1c6ead] hover:bg-gray-50'
-            }
-          `}>
-            <div className="flex flex-col items-center">
-              <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              {receiptFile ? (
-                <div>
-                  <p className="text-sm font-medium text-[#1c6ead]">
-                    Selected: {receiptFile.name}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+              {/* File upload area */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Receipt File
+                </label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
+                    onChange={handleReceiptFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className={`
+                    border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
+                    ${receiptFile 
+                      ? 'border-[#1c6ead] bg-blue-50' 
+                      : 'border-gray-300 hover:border-[#1c6ead] hover:bg-gray-50'
+                    }
+                  `}>
+                    <div className="flex flex-col items-center">
+                      <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      {receiptFile ? (
+                        <div>
+                          <p className="text-sm font-medium text-[#1c6ead]">
+                            Selected: {receiptFile.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            Click to select file or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Images, PDF, DOC, XLS, CSV files supported
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Click to select file or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Images, PDF, DOC, XLS, CSV files supported
-                  </p>
-                </div>
-              )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleReceiptUpload}
+                  disabled={!receiptFile || receiptUploading}
+                  className={`
+                    flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200
+                    ${!receiptFile || receiptUploading
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-[#1c6ead] text-white hover:bg-[#155a96] active:scale-95 shadow-lg hover:shadow-xl'
+                    }
+                  `}
+                >
+                  {receiptUploading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Uploading...
+                    </div>
+                  ) : (
+                    'Upload Receipt'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowReceiptModal(false)}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        <button
-          onClick={handleReceiptUpload}
-          disabled={!receiptFile || receiptUploading}
-          className={`
-            flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200
-            ${!receiptFile || receiptUploading
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-[#1c6ead] text-white hover:bg-[#155a96] active:scale-95 shadow-lg hover:shadow-xl'
-            }
-          `}
-        >
-          {receiptUploading ? (
-            <div className="flex items-center justify-center gap-2">
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Uploading...
-            </div>
-          ) : (
-            'Upload Receipt'
-          )}
-        </button>
-        <button
-          onClick={() => setShowReceiptModal(false)}
-          className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        )}
       </div>
     </div>
   );
