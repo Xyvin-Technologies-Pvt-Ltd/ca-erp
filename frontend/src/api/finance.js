@@ -146,3 +146,13 @@ export const uploadReceipt = async (projectId, file) => {
     throw error.response?.data || error;
   }
 };
+export const downloadReceipt = async (projectId) => {
+  try {
+    const response = await axios.get(`/finance/projects/${projectId}/download-receipt`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};

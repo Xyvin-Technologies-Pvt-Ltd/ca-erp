@@ -3,7 +3,7 @@ import {
   fetchCompletedProjectsForInvoicing,
   markProjectAsInvoiced
 } from "../api/projects";
-import { getFinancialSummary, recordPayment, getInvoices, createInvoice, uploadReceipt } from "../api/finance";
+import { getFinancialSummary, recordPayment, getInvoices, createInvoice, uploadReceipt, downloadReceipt } from "../api/finance";
 import { Link } from "react-router-dom";
 import PaymentModal from "../components/PaymentModal";
 import InvoiceModal from "../components/InvoiceModal";
@@ -665,6 +665,31 @@ const Finance = () => {
   }
 };
 
+const handleReceiptDownload = async (project) => {
+  try {
+    const blob = await downloadReceipt(project._id || project.id);
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const filename = project.receipts ? 
+      project.receipts.split('/').pop() : 
+      `receipt-${project.name}-${Date.now()}.pdf`;
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('Receipt downloaded successfully!');
+  } catch (error) {
+    console.error('Download error:', error);
+    toast.error('Failed to download receipt. Please try again.');
+  }
+};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1183,22 +1208,33 @@ const Finance = () => {
                               <Upload className="w-3 h-3" />
                             </button>
                             
+                            {pro.receipts && (
+                              <button
+                                onClick={() => handleReceiptDownload(pro)}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors cursor-pointer"
+                                title="Download Receipt"
+                              >
+                                <Download className="w-3 h-3" />
+                              </button>
+                            )}
+                            
+                            
                             {/* Invoice Actions */}
                             {pro.invoiceStatus === 'Created' ? (
                               <>
-                                <button
-                                  onClick={() => handleInvoiceDownload(pro)}
-                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer"
-                                  title="Download Invoice"
-                                >
-                                  <Download className="w-3 h-3" />
-                                </button>
                                 <button
                                   onClick={() => viewInvoiceModal(pro)}
                                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors cursor-pointer"
                                   title="View Invoice"
                                 >
                                   <Eye className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleInvoiceDownload(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer"
+                                  title="Download Invoice"
+                                >
+                                  <Download className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handleInvoiceView(pro)}
@@ -1325,6 +1361,50 @@ const Finance = () => {
                                   </tbody>
                                 </table>
                               </div>
+                              {/* <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-orange-50 px-4 py-3 border-b border-gray-200">
+                                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <Receipt className="w-4 h-4 text-orange-600" />
+                                    Receipt Information
+                                  </h4>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    <tr className="hover:bg-gray-50">
+                                      <td className="px-4 py-3 text-sm text-gray-500 font-medium">Receipt Status</td>
+                                      <td className="px-4 py-3 text-sm text-gray-900">
+                                        {pro.receipts ? (
+                                          <div className="flex items-center gap-2">
+                                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-green-50 text-green-700 border border-green-200">
+                                              Available
+                                            </span>
+                                            <button
+                                              onClick={() => handleReceiptDownload(pro)}
+                                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors cursor-pointer"
+                                              title="Download Receipt"
+                                            >
+                                              <Download className="w-3 h-3" />
+                                              Download
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-gray-50 text-gray-700 border border-gray-200">
+                                            Not Available
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                    {pro.receipts && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Receipt File</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                          {pro.receipts.split('/').pop()}
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div> */}
 
                               {/* Additional Details Table */}
                               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">

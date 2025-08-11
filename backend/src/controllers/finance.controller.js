@@ -815,3 +815,39 @@ exports.uploadReceipt = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Download receipt for a project
+ * @route   GET /api/finance/projects/:id/download-receipt
+ * @access  Private/Finance,Admin
+ */
+exports.downloadReceipt = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        if (!project.receipts) {
+            return next(new ErrorResponse('No receipt found for this project', 404));
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+        
+        const filePath = path.join(__dirname, '../../public', project.receipts);
+        
+        if (!fs.existsSync(filePath)) {
+            return next(new ErrorResponse('Receipt file not found', 404));
+        }
+
+        const filename = path.basename(project.receipts);
+        
+        logger.info(`Receipt downloaded for project: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`);
+
+        res.download(filePath, filename);
+    } catch (error) {
+        console.error("Error in downloadReceipt:", error);
+        next(error);
+    }
+};

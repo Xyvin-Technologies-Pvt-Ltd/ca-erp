@@ -13,7 +13,8 @@ const {
     getPaymentHistory,
     getFinancialSummary,
     updatePaymentStatus,
-    uploadReceipt
+    uploadReceipt,
+    downloadReceipt
 } = require('../controllers/finance.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -579,6 +580,46 @@ router.post(
     authorize('admin', 'finance'),
     uploadReceiptMiddleware.single('file'),
     uploadReceipt
+);
+
+/**
+ * @swagger
+ * /api/finance/projects/{id}/download-receipt:
+ *   get:
+ *     summary: Download receipt for a project
+ *     description: Download the receipt file associated with a project
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     responses:
+ *       200:
+ *         description: Receipt file download
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Project or receipt not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Not authorized to download this receipt
+ */
+router.get(
+    '/projects/:id/download-receipt',
+    protect,
+    authorize('admin', 'finance'),
+    downloadReceipt
 );
 
 module.exports = router;
