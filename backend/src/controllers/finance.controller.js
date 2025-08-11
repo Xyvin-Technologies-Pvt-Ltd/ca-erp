@@ -795,9 +795,10 @@ exports.uploadReceipt = async (req, res, next) => {
 
         if (!req.file) {
             return next(new ErrorResponse('Please upload a file', 400));
-        }
-         console.log(req.file, "File uploaded successfully");
-        const receiptPath = `/uploads/receipts/${req.file.originalname}`;
+        }        
+        // const receiptPath = `/uploads/receipts/${req.file.originalname}`;
+        const receiptPath = `/uploads/receipts/${req.file.filename}`;
+        
         const updatedProject = await Project.findByIdAndUpdate(
             req.params.id,
             { receipts: receiptPath },
