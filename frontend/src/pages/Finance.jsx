@@ -1158,28 +1158,28 @@ const handleReceiptDownload = async (project) => {
 
                         {/* Payment Status */}
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                              paymentStatusColors[pro.paymentStatus] || "bg-gray-50 text-gray-700 border-gray-200"
-                            }`}
-                          >
-                            {pro.paymentStatus}
-                          </span>
-                          {pro.paymentHistory && pro.paymentHistory.length > 0 && (
-                            <div className="mt-1">
-                              <span className="text-xs text-gray-500">
-                                {pro.paymentHistory.length} payment{pro.paymentHistory.length !== 1 ? 's' : ''}
-                              </span>
+                          <div className="grid" style={{gridTemplateRows: 'auto 0rem'}}>
+                            <span
+                              className={`px-3 py-1 inline-flex items-center justify-center text-center text-xs leading-5 font-medium rounded-full border ${
+                                 paymentStatusColors[pro.paymentStatus] || "bg-gray-50 text-gray-700 border-gray-200"
+                               }`}
+                            >
+                              {pro.paymentStatus}
+                            </span>
+                              {pro.paymentHistory && pro.paymentHistory.length > 0 && (
+                                <span className="text-xs text-gray-500">
+                                  {pro.paymentHistory.length} payment{pro.paymentHistory.length !== 1 ? 's' : ''}
+                                </span>
+                              )}
                             </div>
-                          )}
                         </td>
 
                         {/* Invoice Status */}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                              invoiceStatusColors[pro.invoiceStatus || "Not Created"]
-                            }`}
+                            className={`px-3 py-1 inline-flex items-center justify-center text-center text-xs leading-5 font-medium rounded-full border ${
+                               invoiceStatusColors[pro.invoiceStatus || "Not Created"]
+                             }`}
                           >
                             {pro.invoiceStatus || "Not Created"}
                           </span>
