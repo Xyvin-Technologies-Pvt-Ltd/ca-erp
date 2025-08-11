@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const User = require('../models/User');
-const { ErrorResponse } = require('../middleware/errorHandler');
-const { logger } = require('../utils/logger');
+const User = require("../models/User");
+const { ErrorResponse } = require("../middleware/errorHandler");
+const { logger } = require("../utils/logger");
 
 /**
  * @swagger
@@ -86,50 +86,50 @@ const { logger } = require('../utils/logger');
  * @access  Private/Admin
  */
 exports.getUsers = async (req, res, next) => {
-    try {
-        const page = parseInt(req.query.page, 10) || 1;
-        const limit = parseInt(req.query.limit, 10) || 10;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-        const total = await User.countDocuments();
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await User.countDocuments();
 
-        const filter = {};
-        if (req.query.role) {
-            filter.role = req.query.role;
-        }
-        if (req.query.status) {
-            filter.status = req.query.status;
-        }
-        if (req.query.department) {
-            filter.department = mongoose.Types.ObjectId(req.query.department);
-        }
-
-        const users = await User.find(filter)
-            .populate('department')
-            .populate('position')
-            .skip(startIndex)
-            .limit(limit)
-            .sort({ createdAt: -1 });
-
-        const pagination = {};
-        if (endIndex < total) {
-            pagination.next = { page: page + 1, limit };
-        }
-        if (startIndex > 0) {
-            pagination.prev = { page: page - 1, limit };
-        }
-
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            pagination,
-            total,
-            data: users,
-        });
-    } catch (error) {
-        console.error("Error in getUsers:", error);
-        next(error);
+    const filter = {};
+    if (req.query.role) {
+      filter.role = req.query.role;
     }
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    if (req.query.department) {
+      filter.department = mongoose.Types.ObjectId(req.query.department);
+    }
+
+    const users = await User.find(filter)
+      .populate("department")
+      .populate("position")
+      .skip(startIndex)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const pagination = {};
+    if (endIndex < total) {
+      pagination.next = { page: page + 1, limit };
+    }
+    if (startIndex > 0) {
+      pagination.prev = { page: page - 1, limit };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      pagination,
+      total,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error in getUsers:", error);
+    next(error);
+  }
 };
 
 /**
@@ -138,23 +138,25 @@ exports.getUsers = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.getUser = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.params.id)
-            .populate('department')
-            .populate('position');
+  try {
+    const user = await User.findById(req.params.id)
+      .populate("department")
+      .populate("position");
 
-        if (!user) {
-            return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
-        }
-
-        res.status(200).json({
-            success: true,
-            data: user,
-        });
-    } catch (error) {
-        console.error("Error in getUser:", error);
-        next(error);
+    if (!user) {
+      return next(
+        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      );
     }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error in getUser:", error);
+    next(error);
+  }
 };
 
 /**
@@ -163,77 +165,106 @@ exports.getUser = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.createUser = async (req, res, next) => {
-    try {
+  try {
+    // console.log(req.body.userData);
+    // return;
+    // Check if user already exists
+    // const existingUser = await User.findOne({ email: req.body.email });
+    // if (existingUser) {
+    //     return next(new ErrorResponse('Email already in use', 400));
+    // }
 
-        // Check if user already exists
-        // const existingUser = await User.findOne({ email: req.body.email });
-        // if (existingUser) {
-        //     return next(new ErrorResponse('Email already in use', 400));
-        // }
-
-        // Validate required fields first
-        if (!req.body.department) {
-            return next(new ErrorResponse('Department is required', 400));
-        }
-        if (!req.body.position) {
-            return next(new ErrorResponse('Position is required', 400));
-        }
-
-        // Validate workType if provided
-        if (req.body.workType && !['onsite', 'remote'].includes(req.body.workType)) {
-            return next(new ErrorResponse('Work type must be either "onsite" or "remote"', 400));
-        }
-
-        // Validate ObjectIds format
-        if (!mongoose.Types.ObjectId.isValid(req.body.department)) {
-            return next(new ErrorResponse('Invalid department ID format', 400));
-        }
-        if (!mongoose.Types.ObjectId.isValid(req.body.position)) {
-            return next(new ErrorResponse('Invalid position ID format', 400));
-        }
-
-        // Convert to ObjectId using the correct syntax
-        const departmentId = new mongoose.Types.ObjectId(req.body.department);
-        const positionId = new mongoose.Types.ObjectId(req.body.position);
-
-        // Verify that department and position exist
-        const [departmentExists, positionExists] = await Promise.all([
-            mongoose.model('Department').findById(departmentId),
-            mongoose.model('Position').findById(positionId)
-        ]);
-
-        if (!departmentExists) {
-            return next(new ErrorResponse('Department not found', 404));
-        }
-        if (!positionExists) {
-            return next(new ErrorResponse('Position not found', 404));
-        }
-
-        // Create user data object
-        const userData = {
-            ...req.body,
-            department: departmentId,
-            position: positionId,
-            workType: req.body.workType || 'onsite',
-            verificationStaff: req.body.verificationStaff || false
-        };
-
-        // Create user and populate references
-        const user = await User.create(userData);
-        const populatedUser = await user.populate(['department', 'position']);
-
-        if (user.verificationStaff) {
-            logger.info(`Verification staff created: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
-        }
-
-        res.status(201).json({
-            success: true,
-            data: populatedUser
-        });
-    } catch (error) {
-        console.error("Error in createUser:", error);
-        next(error);
+    // Validate required fields first
+    if (!req.body.userData.department) {
+      return next(new ErrorResponse("Department is required", 400));
     }
+    if (!req.body.userData.position) {
+      return next(new ErrorResponse("Position is required", 400));
+    }
+
+    // Validate workType if provided
+    if (
+      req.body.userData.workType &&
+      !["onsite", "remote"].includes(req.body.userData.workType)
+    ) {
+      return next(
+        new ErrorResponse('Work type must be either "onsite" or "remote"', 400)
+      );
+    }
+
+    // Validate ObjectIds format
+    if (!mongoose.Types.ObjectId.isValid(req.body.userData.department)) {
+      return next(new ErrorResponse("Invalid department ID format", 400));
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.body.userData.position)) {
+      return next(new ErrorResponse("Invalid position ID format", 400));
+    }
+
+    // Convert to ObjectId using the correct syntax
+    const departmentId = new mongoose.Types.ObjectId(
+      req.body.userData.department
+    );
+    const positionId = new mongoose.Types.ObjectId(req.body.userData.position);
+
+    // Verify that department and position exist
+    const [departmentExists, positionExists] = await Promise.all([
+      mongoose.model("Department").findById(departmentId),
+      mongoose.model("Position").findById(positionId),
+    ]);
+
+    if (!departmentExists) {
+      return next(new ErrorResponse("Department not found", 404));
+    }
+    if (!positionExists) {
+      return next(new ErrorResponse("Position not found", 404));
+    }
+    let userData = {};
+    // Create user data object
+    console.log(req.body.userData.role);
+    console.log(req.body.status);
+    console.log(req.body);
+    if (req.body.userData.role === "staff" && req.body.status === "Probation") {
+      console.log("1");
+      userData = {
+        ...req.body.userData,
+        emp_status: req.body.status,
+        department: departmentId,
+        position: positionId,
+        casual: 0,
+        workType: req.body.userData.workType || "onsite",
+        verificationStaff: req.body.userData.verificationStaff || false,
+      };
+    } else {
+      console.log("2");
+      userData = {
+        ...req.body.userData,
+        emp_status: req.body.status,
+        department: departmentId,
+        position: positionId,
+        casual: 1,
+        workType: req.body.userData.workType || "onsite",
+        verificationStaff: req.body.userData.verificationStaff || false,
+      };
+    }
+
+    // Create user and populate references
+    const user = await User.create(userData);
+    const populatedUser = await user.populate(["department", "position"]);
+
+    if (user.verificationStaff) {
+      logger.info(
+        `Verification staff created: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      data: populatedUser,
+    });
+  } catch (error) {
+    console.error("Error in createUser:", error);
+    next(error);
+  }
 };
 
 /**
@@ -242,83 +273,91 @@ exports.createUser = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.updateUser = async (req, res, next) => {
-    try {
-
-        const existingUser = await User.findById(req.params.id);
-        if (!existingUser) {
-            return next(new ErrorResponse('User not found', 404));
-        }
-
-        if (req.body.email && req.body.email !== existingUser.email) {
-            const emailExists = await User.findOne({ email: req.body.email });
-            if (emailExists) {
-                return next(new ErrorResponse('Email already in use', 400));
-            }
-        }
-
-        // Validate required fields
-        if (!req.body.department) {
-            return next(new ErrorResponse('Department is required', 400));
-        }
-        if (!req.body.position) {
-            return next(new ErrorResponse('Position is required', 400));
-        }
-        if (req.body.workType && !['onsite', 'remote'].includes(req.body.workType)) {
-            return next(new ErrorResponse('Work type must be either "onsite" or "remote"', 400));
-        }
-
-        // Validate ObjectIds
-        // if (!mongoose.Types.ObjectId.isValid(req.body.department)) {
-        //     return next(new ErrorResponse('Invalid department ID', 400));
-        // }
-        // if (!mongoose.Types.ObjectId.isValid(req.body.position)) {
-        //     return next(new ErrorResponse('Invalid position ID', 400));
-        // }
-
-        const updateData = {
-            ...req.body,
-            department: (req.body.department),
-            position: (req.body.position)
-        };
-
-        if (req.body.password) {
-            const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(req.body.password, salt);
-        }
-
-        // First verify that department and position exist
-        const [departmentExists, positionExists] = await Promise.all([
-            mongoose.model('Department').findById(updateData.department),
-            mongoose.model('Position').findById(updateData.position)
-        ]);
-
-        if (!departmentExists || !positionExists) {
-            return next(new ErrorResponse('Department or Position not found', 404));
-        }
-
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true, runValidators: true }
-        ).populate(['department', 'position']);
-
-        if (!user) {
-            return next(new ErrorResponse('Failed to update user', 500));
-        }
-
-        if (req.body.verificationStaff !== undefined && req.body.verificationStaff !== existingUser.verificationStaff) {
-            const status = req.body.verificationStaff ? 'activated' : 'deactivated';
-            logger.info(`Verification staff status ${status} for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
-        }
-
-        res.status(200).json({
-            success: true,
-            data: user
-        });
-    } catch (error) {
-        console.error("Error in updateUser:", error);
-        next(error);
+  try {
+    const existingUser = await User.findById(req.params.id);
+    if (!existingUser) {
+      return next(new ErrorResponse("User not found", 404));
     }
+
+    if (req.body.email && req.body.email !== existingUser.email) {
+      const emailExists = await User.findOne({ email: req.body.email });
+      if (emailExists) {
+        return next(new ErrorResponse("Email already in use", 400));
+      }
+    }
+
+    // Validate required fields
+    if (!req.body.department) {
+      return next(new ErrorResponse("Department is required", 400));
+    }
+    if (!req.body.position) {
+      return next(new ErrorResponse("Position is required", 400));
+    }
+    if (
+      req.body.workType &&
+      !["onsite", "remote"].includes(req.body.workType)
+    ) {
+      return next(
+        new ErrorResponse('Work type must be either "onsite" or "remote"', 400)
+      );
+    }
+
+    // Validate ObjectIds
+    // if (!mongoose.Types.ObjectId.isValid(req.body.department)) {
+    //     return next(new ErrorResponse('Invalid department ID', 400));
+    // }
+    // if (!mongoose.Types.ObjectId.isValid(req.body.position)) {
+    //     return next(new ErrorResponse('Invalid position ID', 400));
+    // }
+
+    const updateData = {
+      ...req.body,
+      department: req.body.department,
+      position: req.body.position,
+    };
+
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    // First verify that department and position exist
+    const [departmentExists, positionExists] = await Promise.all([
+      mongoose.model("Department").findById(updateData.department),
+      mongoose.model("Position").findById(updateData.position),
+    ]);
+
+    if (!departmentExists || !positionExists) {
+      return next(new ErrorResponse("Department or Position not found", 404));
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate(["department", "position"]);
+
+    if (!user) {
+      return next(new ErrorResponse("Failed to update user", 500));
+    }
+
+    if (
+      req.body.verificationStaff !== undefined &&
+      req.body.verificationStaff !== existingUser.verificationStaff
+    ) {
+      const status = req.body.verificationStaff ? "activated" : "deactivated";
+      logger.info(
+        `Verification staff status ${status} for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error in updateUser:", error);
+    next(error);
+  }
 };
 
 /**
@@ -327,28 +366,32 @@ exports.updateUser = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.deleteUser = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
-        }
-
-        if (user._id.toString() === req.user._id.toString()) {
-            return next(new ErrorResponse('You cannot delete your own account', 400));
-        }
-
-        logger.info(`User deleted: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
-        await user.deleteOne();
-
-        res.status(200).json({
-            success: true,
-            data: {},
-            message: 'User deleted successfully',
-        });
-    } catch (error) {
-        console.error("Error in deleteUser:", error);
-        next(error);
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(
+        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      );
     }
+
+    if (user._id.toString() === req.user._id.toString()) {
+      return next(new ErrorResponse("You cannot delete your own account", 400));
+    }
+
+    logger.info(
+      `User deleted: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
+    );
+    await user.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      data: {},
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
+    next(error);
+  }
 };
 
 /**
@@ -357,33 +400,37 @@ exports.deleteUser = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.uploadAvatar = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
-        }
-
-        if (!req.file) {
-            return next(new ErrorResponse('Please upload a file', 400));
-        }
-
-        const avatarPath = `/uploads/avatars/${req.file.filename}`;
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            { avatar: avatarPath },
-            { new: true, runValidators: true }
-        );
-
-        logger.info(`Avatar updated for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`);
-
-        res.status(200).json({
-            success: true,
-            data: updatedUser,
-        });
-    } catch (error) {
-        console.error("Error in uploadAvatar:", error);
-        next(error);
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(
+        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      );
     }
+
+    if (!req.file) {
+      return next(new ErrorResponse("Please upload a file", 400));
+    }
+
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatar: avatarPath },
+      { new: true, runValidators: true }
+    );
+
+    logger.info(
+      `Avatar updated for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error in uploadAvatar:", error);
+    next(error);
+  }
 };
 
 /**
@@ -392,17 +439,20 @@ exports.uploadAvatar = async (req, res, next) => {
  * @access  Private/Admin
  */
 exports.Allusers = async (req, res, next) => {
-    try {
-        const users = await User.find().populate('department').populate('position').sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            data: users,
-        });
-    } catch (error) {
-        console.error("Error in Allusers:", error);
-        next(error);
-    }
+  try {
+    const users = await User.find()
+      .populate("department")
+      .populate("position")
+      .sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error in Allusers:", error);
+    next(error);
+  }
 };
 
 /**
@@ -411,19 +461,19 @@ exports.Allusers = async (req, res, next) => {
  * @access  Private/Admin/Manager
  */
 exports.getVerificationStaff = async (req, res, next) => {
-    try {
-        const verificationStaff = await User.find({ verificationStaff: true })
-            .populate('department')
-            .populate('position')
-            .sort({ createdAt: -1 });
+  try {
+    const verificationStaff = await User.find({ verificationStaff: true })
+      .populate("department")
+      .populate("position")
+      .sort({ createdAt: -1 });
 
-        res.status(200).json({
-            success: true,
-            count: verificationStaff.length,
-            data: verificationStaff,
-        });
-    } catch (error) {
-        console.error("Error in getVerificationStaff:", error);
-        next(error);
-    }
+    res.status(200).json({
+      success: true,
+      count: verificationStaff.length,
+      data: verificationStaff,
+    });
+  } catch (error) {
+    console.error("Error in getVerificationStaff:", error);
+    next(error);
+  }
 };

@@ -3,7 +3,18 @@ import { ROLES } from "../../config/constants";
 import UserForm from "./UserForm";
 import { userApi } from "../../api/userApi";
 import { toast } from "react-toastify";
-import { PencilIcon, TrashIcon, UserIcon, EnvelopeIcon, ShieldCheckIcon, BuildingOfficeIcon, CheckCircleIcon, XCircleIcon, GlobeAltIcon, ShieldExclamationIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  UserIcon,
+  EnvelopeIcon,
+  ShieldCheckIcon,
+  BuildingOfficeIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  GlobeAltIcon,
+  ShieldExclamationIcon,
+} from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 
 const UserManagement = () => {
@@ -17,7 +28,7 @@ const UserManagement = () => {
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
-    total: 0
+    total: 0,
   });
 
   const loadUsers = async (page = 1) => {
@@ -25,7 +36,7 @@ const UserManagement = () => {
     try {
       const response = await userApi.getAllUsers({
         page,
-        limit: pagination.limit
+        limit: pagination.limit,
       });
       setUsers(response.data);
       setPagination({
@@ -36,7 +47,8 @@ const UserManagement = () => {
       setError(null);
     } catch (error) {
       console.error("Failed to load users:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to load users";
+      const errorMessage =
+        error.response?.data?.error || error.message || "Failed to load users";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -52,10 +64,17 @@ const UserManagement = () => {
     loadUsers(newPage);
   };
 
-  const handleAddUser = async (userData) => {
+  const handleAddUser = async (userData, status) => {
     try {
-      const response = await userApi.createUser(userData);
-      if (response && response.data && response.data.department && response.data.position) {
+      // console.log(userData, status);
+      // return;
+      const response = await userApi.createUser(userData,status);
+      if (
+        response &&
+        response.data &&
+        response.data.department &&
+        response.data.position
+      ) {
         toast.success("User created successfully!");
         await loadUsers();
         setShowAddModal(false);
@@ -63,7 +82,8 @@ const UserManagement = () => {
         throw new Error("Failed to assign department or position to user");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || "Failed to add user";
+      const errorMessage =
+        error.response?.data?.error || error.message || "Failed to add user";
       toast.error(errorMessage);
     }
   };
@@ -76,7 +96,8 @@ const UserManagement = () => {
       setShowEditModal(false);
     } catch (error) {
       console.error("Failed to update user:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to update user";
+      const errorMessage =
+        error.response?.data?.error || error.message || "Failed to update user";
       toast.error(errorMessage);
     }
   };
@@ -89,7 +110,8 @@ const UserManagement = () => {
       setShowDeleteModal(false);
     } catch (error) {
       console.error("Failed to delete user:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to delete user";
+      const errorMessage =
+        error.response?.data?.error || error.message || "Failed to delete user";
       toast.error(errorMessage);
     }
   };
@@ -157,8 +179,18 @@ const UserManagement = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h5m11-1V4m0 0h-5m5 0l-7 7m-2 5v5h5" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 4v5h5m11-1V4m0 0h-5m5 0l-7 7m-2 5v5h5"
+            />
           </svg>
           <span>Try Again</span>
         </motion.button>
@@ -181,7 +213,9 @@ const UserManagement = () => {
           className="flex items-center space-x-3 mb-4 sm:mb-0"
         >
           <UserIcon className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Employees</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Employees
+          </h1>
         </motion.div>
         <motion.button
           onClick={() => setShowAddModal(true)}
@@ -189,8 +223,18 @@ const UserManagement = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <svg
+            className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
           </svg>
           <span>Add User</span>
         </motion.button>
@@ -219,8 +263,18 @@ const UserManagement = () => {
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 <span>Add User</span>
               </div>
@@ -239,43 +293,64 @@ const UserManagement = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <UserIcon className="h-4 w-4 text-indigo-600" />
                         <span>Name</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <EnvelopeIcon className="h-4 w-4 text-indigo-600" />
                         <span>Email</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <ShieldCheckIcon className="h-4 w-4 text-indigo-600" />
                         <span>Role</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <BuildingOfficeIcon className="h-4 w-4 text-indigo-600" />
                         <span>Department</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <BuildingOfficeIcon className="h-4 w-4 text-indigo-600" />
                         <span>Position</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <CheckCircleIcon className="h-4 w-4 text-indigo-600" />
                         <span>Status</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center space-x-2">
                         <GlobeAltIcon className="h-4 w-4 text-indigo-600" />
                         <span>Work</span>
@@ -287,10 +362,23 @@ const UserManagement = () => {
                         <span>Verification</span>
                       </div>
                     </th> */}
-                    <th scope="col" className="px-4 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       <div className="flex items-center justify-end space-x-2">
-                        <svg className="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        <svg
+                          className="h-4 w-4 text-indigo-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                          />
                         </svg>
                         <span>Actions</span>
                       </div>
@@ -319,44 +407,63 @@ const UserManagement = () => {
                                     e.target.outerHTML = `
                                       <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                         <span class="text-white font-medium text-sm">
-                                          ${user.name?.charAt(0).toUpperCase() || ''}
+                                          ${
+                                            user.name
+                                              ?.charAt(0)
+                                              .toUpperCase() || ""
+                                          }
                                         </span>
-                                      </div>`
+                                      </div>`;
                                   }}
                                   alt={`${user.name}'s avatar`}
                                 />
                               ) : (
                                 <div className="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                   <span className="text-white font-medium text-sm">
-                                    {user.name?.charAt(0) || ''}
+                                    {user.name?.charAt(0) || ""}
                                   </span>
                                 </div>
                               )}
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              <div className="text-[12px] text-gray-500">{user.phone ? 
-                                `(${user.phone.slice(0, 3)}) ${user.phone.slice(3, 6)}-${user.phone.slice(6, 10)}` : 
-                                'N/A'}</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {user.name}
+                              </div>
+                              <div className="text-[12px] text-gray-500">
+                                {user.phone
+                                  ? `(${user.phone.slice(
+                                      0,
+                                      3
+                                    )}) ${user.phone.slice(
+                                      3,
+                                      6
+                                    )}-${user.phone.slice(6, 10)}`
+                                  : "N/A"}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{user.email}</div>
+                          <div className="text-sm text-gray-900">
+                            {user.email}
+                          </div>
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <motion.span
-                            className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${getRoleBadgeColor(user.role)}`}
+                            className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${getRoleBadgeColor(
+                              user.role
+                            )}`}
                             whileHover={{ scale: 1.05 }}
                           >
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            {user.role.charAt(0).toUpperCase() +
+                              user.role.slice(1)}
                           </motion.span>
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.department?.name || 'N/A'}
+                          {user.department?.name || "N/A"}
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.position?.title || 'N/A'}
+                          {user.position?.title || "N/A"}
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <motion.span
@@ -472,13 +579,20 @@ const UserManagement = () => {
                       </span>{" "}
                       to{" "}
                       <span className="font-medium">
-                        {Math.min(pagination.page * pagination.limit, pagination.total)}
+                        {Math.min(
+                          pagination.page * pagination.limit,
+                          pagination.total
+                        )}
                       </span>{" "}
-                      of <span className="font-medium">{pagination.total}</span> results
+                      of <span className="font-medium">{pagination.total}</span>{" "}
+                      results
                     </p>
                   </div>
                   <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <nav
+                      className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                      aria-label="Pagination"
+                    >
                       <button
                         onClick={() => handlePageChange(1)}
                         disabled={pagination.page === 1}
@@ -489,7 +603,11 @@ const UserManagement = () => {
                         }`}
                       >
                         <span className="sr-only">First</span>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg
+                          className="h-5 w-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
@@ -520,7 +638,11 @@ const UserManagement = () => {
                         }`}
                       >
                         <span className="sr-only">Next</span>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg
+                          className="h-5 w-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
@@ -588,7 +710,8 @@ const UserManagement = () => {
                   <span>Confirm Delete</span>
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500">
-                  Are you sure you want to delete {currentUser.name}? This action cannot be undone.
+                  Are you sure you want to delete {currentUser.name}? This
+                  action cannot be undone.
                 </p>
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">

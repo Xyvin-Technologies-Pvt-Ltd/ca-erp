@@ -148,7 +148,7 @@ const EmployeeAttendance = () => {
         </div>
         <div
           className={
-            profileDropdown === true ? `opacity-10 relative` : `relative`
+            profileDropdown === true ? `opacity-0 relative` : `relative`
           }
         >
           <motion.input

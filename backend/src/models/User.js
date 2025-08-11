@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 /**
  * @swagger
@@ -75,88 +75,93 @@ require('dotenv').config();
  */
 
 const UserSchema = new mongoose.Schema({
-    status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
-    },
-    name: {
-        type: String,
-        required: [true, 'Please add a name'],
-        trim: true
-    },
-    email: {
-        type: String,
-        required: [true, 'Please add an email'],
-        unique: true,
-        trim: true,
-        lowercase: true,
-        match: [
-            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-            'Please add a valid email',
-        ],
-    },
-    casual: {
-    type: Number,
-    default:1,
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "active",
   },
-    incentive: {
-        type: Map,
-        of: Number,
-        default: new Map(),
-        description: 'Monthly incentive earned by the user'
+  emp_status: {
+    type: String,
+  },
+  name: {
+    type: String,
+    required: [true, "Please add a name"],
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: [true, "Please add an email"],
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      "Please add a valid email",
+    ],
+  },
+  casual: {
+    type: Number,
+    default: 1,
+  },
+  incentive: {
+    type: Map,
+    of: Number,
+    default: new Map(),
+    description: "Monthly incentive earned by the user",
+  },
+  incentives: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Incentive",
+      description: "References to Incentive documents",
     },
-    incentives: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Incentive',
-        description: 'References to Incentive documents'
-    }],
-    role: {
-        type: String,
-        enum: ['admin', 'staff', 'manager', 'finance'],
-        default: 'staff',
-    },
-    password: {
-        type: String,
-        required: [true, 'Please add a password'],
-        minlength: 6,
-        select: false,
-    },
-    phone: {
-        type: String,
-        trim: true
-    },
-    avatar: {
-        type: String,
-    },
-    department: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-        required: [true, 'Please assign a department'],
-        index: true
-    },
-    position: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Position',
-        required: [true, 'Please assign a position'],
-        index: true
-    },
-    workType: {
-        type: String,
-        enum: ['onsite', 'remote'],
-        default: 'onsite',
-        required: [true, 'Please specify work type']
-    },
-    verificationStaff: {
-        type: Boolean,
-        default: false
-    },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+  ],
+  role: {
+    type: String,
+    enum: ["admin", "staff", "manager", "finance"],
+    default: "staff",
+  },
+  password: {
+    type: String,
+    required: [true, "Please add a password"],
+    minlength: 6,
+    select: false,
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  avatar: {
+    type: String,
+  },
+  department: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Department",
+    required: [true, "Please assign a department"],
+    index: true,
+  },
+  position: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Position",
+    required: [true, "Please assign a position"],
+    index: true,
+  },
+  workType: {
+    type: String,
+    enum: ["onsite", "remote"],
+    default: "onsite",
+    required: [true, "Please specify work type"],
+  },
+  verificationStaff: {
+    type: Boolean,
+    default: false,
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 // Encrypt password using bcrypt before saving
@@ -180,34 +185,34 @@ UserSchema.methods.getSignedJwtToken = function () {
 };
 
 // Add timestamps to the schema
-UserSchema.set('timestamps', true);
+UserSchema.set("timestamps", true);
 
 // Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // Get total incentive across all months
 UserSchema.methods.getTotalIncentive = function () {
-    if (!this.incentive || !(this.incentive instanceof Map)) {
-        return 0;
+  if (!this.incentive || !(this.incentive instanceof Map)) {
+    return 0;
+  }
+  let total = 0;
+  for (const [key, value] of this.incentive) {
+    if (typeof value === "number") {
+      total += value;
     }
-    let total = 0;
-    for (const [key, value] of this.incentive) {
-        if (typeof value === 'number') {
-            total += value;
-        }
-    }
-    return total;
+  }
+  return total;
 };
 
 // Get incentive for a specific month
 UserSchema.methods.getIncentiveForMonth = function (year, month) {
-    if (!this.incentive || !(this.incentive instanceof Map)) {
-        return 0;
-    }
-    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-    return this.incentive.get(monthKey) || 0;
+  if (!this.incentive || !(this.incentive instanceof Map)) {
+    return 0;
+  }
+  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  return this.incentive.get(monthKey) || 0;
 };
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model("User", UserSchema);
