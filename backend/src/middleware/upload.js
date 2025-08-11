@@ -93,9 +93,10 @@ const storage = {
             cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const ext = path.extname(file.originalname);
-            cb(null, `receipt-${uniqueSuffix}${ext}`);
+            // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            // const ext = path.extname(file.originalname);
+            // cb(null, `receipt-${uniqueSuffix}${ext}`);
+          cb(null, file.originalname);
         },
     }),
 };
