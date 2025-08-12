@@ -9,6 +9,7 @@ import { fetchTasks } from "../api/tasks";
 import { projectsApi } from "../api/projectsApi";
 import { clientsApi } from "../api/clientsApi";
 import useHeaderStore from "../stores/useHeaderStore";
+import { checkOut } from "../api/attendance";
 const AvatarWithFallback = ({ name, src, size }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -189,7 +190,7 @@ const Header = ({ onOpenSidebar }) => {
     }
   };
   const profileDropDownClicked = () => {
-   profileIsActive(true);
+    profileIsActive(true);
   };
   useEffect(() => {
     if (showUserMenu === false) {
@@ -302,11 +303,7 @@ const Header = ({ onOpenSidebar }) => {
                   <span className="sr-only">Open user menu</span>
                   <AvatarWithFallback
                     name={user?.name || "User"}
-                    src={
-                      user?.avatar
-                        ? `${user.avatar}`
-                        : undefined
-                    }
+                    src={user?.avatar ? `${user.avatar}` : undefined}
                   />
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-slate-800 leading-tight">
@@ -330,11 +327,7 @@ const Header = ({ onOpenSidebar }) => {
                       <div className="flex items-center gap-3">
                         <AvatarWithFallback
                           name={user?.name || "User"}
-                          src={
-                            user?.avatar
-                              ? `${user.avatar}`
-                              : undefined
-                          }
+                          src={user?.avatar ? `${user.avatar}` : undefined}
                           size="sm"
                         />
                         <div className="flex-1 min-w-0">

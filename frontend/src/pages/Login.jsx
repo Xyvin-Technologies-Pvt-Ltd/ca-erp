@@ -7,14 +7,16 @@ import { Button, Input } from "../ui";
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../config/constants";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-
+import { toast } from "react-toastify";
+import { checkIn } from "../api/attendance";
 const schema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const Login = () => {
-  const { login, isLoading, error, clearError, isAuthenticated, isSuperadmin } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, isSuperadmin } =
+    useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,7 +41,14 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
+      let now = new Date();
+
       const result = await login(data);
+      const res = await checkIn({ now });
+      if (res.beforeNine) {
+        toast.error(res.msg);
+      }
+      console.log(res.beforeNine);
       // Check if user is superadmin and redirect immediately
       if (result?.user?.superadmin) {
         navigate(ROUTES.SETTINGS);

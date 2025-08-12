@@ -29,13 +29,15 @@ export const updateAttendance = async (id, data) => {
 
 // Check in
 export const checkIn = async (data) => {
+  console.log(data)
   const response = await api.post('/attendance/check-in', data);
   return response.data;
 };
 
 // Check out
-export const checkOut = async (id) => {
-  const response = await api.post(`/attendance/${id}/check-out`);
+export const checkOut = async () => {
+  console.log("OKK")
+  const response = await api.post("/attendance/check-out");
   return response.data;
 };
 

@@ -20,13 +20,13 @@ router.get('/my-attendance', getEmployeeAttendance);
 router.get('/employee/:employeeId',  getAttendanceByEmployeeId);
 router.post('/bulk',  createBulkAttendance);
 router.get('/stats',  getAttendanceStats);
-router.route('/')
+router.route('/check-in')
   .get( getAllAttendance)
   .post( createAttendance);
 router.route('/:id')
   .get( getAttendance)
   .put( updateAttendance)
   .delete( deleteAttendance);
-router.post('/:id/checkout',  checkOut);
+router.post('/check-out',  checkOut);
 
 module.exports = router; 
