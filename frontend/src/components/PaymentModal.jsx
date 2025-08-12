@@ -104,7 +104,7 @@ const PaymentModal = ({ isOpen, onClose, project, onPaymentRecorded }) => {
   };
 
   if (!isOpen || !project) return null;
-
+  
   const remainingBalance = project.amount - project.receivedAmount;
 
   return (

@@ -96,7 +96,7 @@ exports.getTasks = async (req, res, next) => {
         .sort(sort)
         .populate({
             path: 'project',
-            select: 'name projectNumber budget',
+            select: 'name projectNumber amount',
             match: { deleted: { $ne: true } }
         })
         .populate({
@@ -1321,7 +1321,7 @@ exports.getAllTasksNoPagination = async (req, res, next) => {
             .sort(sort)
             .populate({
                 path: 'project',
-                select: 'name projectNumber budget',
+                select: 'name projectNumber amount',
                 match: { deleted: { $ne: true } }
             })
             .populate({

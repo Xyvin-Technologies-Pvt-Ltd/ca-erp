@@ -86,7 +86,19 @@ const storage = {
                 cb(error);
             }
         }
-    })
+    }),
+    receipts: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const uploadPath = createUploadDir('/receipts');
+            cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+            // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            // const ext = path.extname(file.originalname);
+            // cb(null, `receipt-${uniqueSuffix}${ext}`);
+          cb(null, file.originalname);
+        },
+    }),
 };
 
 // File filter to check file types
@@ -113,6 +125,7 @@ const fileFilter = (req, file, cb) => {
                 'image/png',
             ],
             avatars: ['image/jpeg', 'image/png', 'image/gif'],
+            receipts: ['image/jpeg', 'image/png', 'application/pdf'],
             logos: ['image/jpeg', 'image/png', 'image/svg+xml'],
             taskFiles: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'image/jpeg', 'image/png', 'application/zip', 'application/x-zip-compressed'],
             tagDocuments: [
@@ -138,7 +151,9 @@ const fileFilter = (req, file, cb) => {
             uploadType = 'logos';
         } else if (req.originalUrl.includes('tag-documents')) {
             uploadType = 'tagDocuments';
-        }
+        }else if (req.originalUrl.includes('upload-receipt')) {
+    uploadType = 'receipts';
+}
 
 
         // Check if the file type is allowed
@@ -179,5 +194,6 @@ module.exports = {
     uploadAvatar: upload('avatars'),
     uploadLogo: upload('logos'),
     uploadTaskFile: upload('taskFiles'),
-    uploadTagDocument: upload('tagDocuments')
+    uploadTagDocument: upload('tagDocuments'),
+    uploadReceipt:upload('receipts')
 }; 

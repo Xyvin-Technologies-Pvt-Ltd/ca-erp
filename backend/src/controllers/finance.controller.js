@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const Client = require('../models/Client');
 const { ErrorResponse } = require('../middleware/errorHandler');
 const { logger } = require('../utils/logger');
+const path = require('path');
 
 /**
  * @desc    Get all invoices
@@ -221,20 +222,20 @@ exports.createInvoice = async (req, res, next) => {
 
                 // Update tasks in the project to invoiced status
                 const project = await Project.findById(projectData.projectId).populate('tasks');
-                if (project.tasks && project.tasks.length > 0) {
-                    for (const task of project.tasks) {
-                        await Task.findByIdAndUpdate(
-                            task._id,
-                            {
-                                'invoiceDetails.invoiced': true,
-                                'invoiceDetails.invoiceDate': invoice.issueDate,
-                                'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
-                                'invoiceDetails.invoiceId': invoice._id,
-                                status: 'invoiced'
-                            }
-                        );
-                    }
-                }
+                // if (project.tasks && project.tasks.length > 0) {
+                //     for (const task of project.tasks) {
+                //         await Task.findByIdAndUpdate(
+                //             task._id,
+                //             {
+                //                 'invoiceDetails.invoiced': true,
+                //                 'invoiceDetails.invoiceDate': invoice.issueDate,
+                //                 'invoiceDetails.invoiceNumber': invoice.invoiceNumber,
+                //                 'invoiceDetails.invoiceId': invoice._id,
+                //                 status: 'invoiced'
+                //             }
+                //         );
+                //     }
+                // }
             }
         }
 
@@ -777,4 +778,77 @@ exports.updatePaymentStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
+
+
+/**
+ * @desc    Upload receipt for a project (image or document)
+ * @route   POST /api/finance/projects/:id/upload-receipt
+ * @access  Private/Finance,Admin
+ */
+exports.uploadReceipt = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        if (!req.file) {
+            return next(new ErrorResponse('Please upload a file', 400));
+        }        
+        // const receiptPath = `/uploads/receipts/${req.file.originalname}`;
+        const receiptPath = `/uploads/receipts/${req.file.filename}`;
+        
+        const updatedProject = await Project.findByIdAndUpdate(
+            req.params.id,
+            { receipts: receiptPath },
+            { new: true, runValidators: true }
+        );
+
+        logger.info(`Receipt uploaded for project: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`);
+
+        res.status(200).json({
+            success: true,
+            data: updatedProject
+        });
+    } catch (error) {
+        console.error("Error in uploadReceipt:", error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Download receipt for a project
+ * @route   GET /api/finance/projects/:id/download-receipt
+ * @access  Private/Finance,Admin
+ */
+exports.downloadReceipt = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return next(new ErrorResponse(`Project not found with id of ${req.params.id}`, 404));
+        }
+
+        if (!project.receipts) {
+            return next(new ErrorResponse('No receipt found for this project', 404));
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+        
+        const filePath = path.join(__dirname, '../../public', project.receipts);
+        
+        if (!fs.existsSync(filePath)) {
+            return next(new ErrorResponse('Receipt file not found', 404));
+        }
+
+        const filename = path.basename(project.receipts);
+        
+        logger.info(`Receipt downloaded for project: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`);
+
+        res.download(filePath, filename);
+    } catch (error) {
+        console.error("Error in downloadReceipt:", error);
+        next(error);
+    }
+};

@@ -3,7 +3,7 @@ import {
   fetchCompletedProjectsForInvoicing,
   markProjectAsInvoiced
 } from "../api/projects";
-import { getFinancialSummary, recordPayment, getInvoices, createInvoice } from "../api/finance";
+import { getFinancialSummary, recordPayment, getInvoices, createInvoice, uploadReceipt, downloadReceipt } from "../api/finance";
 import { Link } from "react-router-dom";
 import PaymentModal from "../components/PaymentModal";
 import InvoiceModal from "../components/InvoiceModal";
@@ -44,7 +44,8 @@ import {
   Mail,
   CalendarDays,
   Target,
-  UserCheck
+  UserCheck,
+  Upload
 } from "lucide-react";
 
 const statusColors = {
@@ -115,6 +116,11 @@ const Finance = () => {
   });
   const [totalPage, setTotalPage] = useState(0);
   const [pages, setPages] = useState([]);
+
+  const [receiptUploadProject, setReceiptUploadProject] = useState(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [receiptUploading, setReceiptUploading] = useState(false);
 
   const loadProjects = async () => {
     try {
@@ -395,7 +401,7 @@ const Finance = () => {
     setTimeout(() => setShowSuccessMessage(false), 5000);
   };
 
-  const handleCreateInvoiceFromModal = async () => {
+   const handleCreateInvoiceFromModal = async () => {
     try {
       setLoading(true);
       
@@ -427,7 +433,7 @@ const Finance = () => {
         terms: 'Payment due within 30 days'
       };
       
-      console.log('Creating invoice with data:', invoiceDataToSend);
+      console.log('Creating invoice with data:  ##################', invoiceDataToSend);
       
       // Create the invoice using the finance API
       const createdInvoice = await createInvoice(invoiceDataToSend);
@@ -455,18 +461,30 @@ const Finance = () => {
     try {
       setLoading(true);
       
-      // Get selected projects data
-      const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
+      // Get selected projects data      
+      const selectedProjectsData = selectedInvoice.selectedProjects || projects.filter(p => selectedProjects.includes(p.id));
       
+      if (!selectedProjectsData || selectedProjectsData.length === 0) {
+        toast.error('No projects selected for invoice');
+        return;
+      }
+
       // Create invoice data for the backend
       const invoiceDataToSend = {
         client: selectedProjectsData[0]?.client?._id || selectedProjectsData[0]?.client,
-        projects: selectedProjectsData.map(project => ({
-          projectId: project._id || project.id,
-          name: project.name,
-          amount: project.cost || project.amount,
-          description: project.description
-        })),
+        projects: selectedProjectsData.map(project => {
+          const projectId = project._id || project.id;
+          if (!projectId) {
+            console.error('Missing project ID for project:', project);
+            throw new Error('Invalid project data: Missing project ID');
+          }
+          return {
+            projectId,
+            name: project.name || 'Untitled Project',
+            amount: Number(project.cost || project.amount || 0),
+            description: project.description || project.name || 'No description available'
+          };
+        }),
         issueDate: invoiceData.invoiceDate,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 30 days from now
         invoiceNumber: invoiceData.invoiceNumber,
@@ -618,6 +636,59 @@ const Finance = () => {
       return newSet;
     });
   };
+
+  const openReceiptModal = (project) => {
+    setReceiptUploadProject(project);
+    setShowReceiptModal(true);
+    setReceiptFile(null);
+  };
+
+  const handleReceiptFileChange = (e) => {
+    setReceiptFile(e.target.files[0]);
+  };
+
+ const handleReceiptUpload = async () => {
+  if (!receiptFile || !receiptUploadProject) return;
+  setReceiptUploading(true);
+  try {
+    console.log('Uploading receipt for project:', receiptFile);
+    
+    await uploadReceipt(receiptUploadProject._id || receiptUploadProject.id, receiptFile);
+    setSuccessMessage("Receipt uploaded successfully!");
+    setShowSuccessMessage(true);
+    setShowReceiptModal(false);
+    loadProjects();
+  } catch (err) {
+    setError("Failed to upload receipt. Please try again.");
+  } finally {
+    setReceiptUploading(false);
+  }
+};
+
+const handleReceiptDownload = async (project) => {
+  try {
+    const blob = await downloadReceipt(project._id || project.id);
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const filename = project.receipts ? 
+      project.receipts.split('/').pop() : 
+      `receipt-${project.name}-${Date.now()}.pdf`;
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('Receipt downloaded successfully!');
+  } catch (error) {
+    console.error('Download error:', error);
+    toast.error('Failed to download receipt. Please try again.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -1087,28 +1158,28 @@ const Finance = () => {
 
                         {/* Payment Status */}
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                              paymentStatusColors[pro.paymentStatus] || "bg-gray-50 text-gray-700 border-gray-200"
-                            }`}
-                          >
-                            {pro.paymentStatus}
-                          </span>
-                          {pro.paymentHistory && pro.paymentHistory.length > 0 && (
-                            <div className="mt-1">
-                              <span className="text-xs text-gray-500">
-                                {pro.paymentHistory.length} payment{pro.paymentHistory.length !== 1 ? 's' : ''}
-                              </span>
+                          <div className="grid" style={{gridTemplateRows: 'auto 0rem'}}>
+                            <span
+                              className={`px-3 py-1 inline-flex items-center justify-center text-center text-xs leading-5 font-medium rounded-full border ${
+                                 paymentStatusColors[pro.paymentStatus] || "bg-gray-50 text-gray-700 border-gray-200"
+                               }`}
+                            >
+                              {pro.paymentStatus}
+                            </span>
+                              {pro.paymentHistory && pro.paymentHistory.length > 0 && (
+                                <span className="text-xs text-gray-500">
+                                  {pro.paymentHistory.length} payment{pro.paymentHistory.length !== 1 ? 's' : ''}
+                                </span>
+                              )}
                             </div>
-                          )}
                         </td>
 
                         {/* Invoice Status */}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full border ${
-                              invoiceStatusColors[pro.invoiceStatus || "Not Created"]
-                            }`}
+                            className={`px-3 py-1 inline-flex items-center justify-center text-center text-xs leading-5 font-medium rounded-full border ${
+                               invoiceStatusColors[pro.invoiceStatus || "Not Created"]
+                             }`}
                           >
                             {pro.invoiceStatus || "Not Created"}
                           </span>
@@ -1129,23 +1200,41 @@ const Finance = () => {
                               <Plus className="w-3 h-3" />
                               Payment
                             </button>
+                            <button
+                              onClick={() => openReceiptModal(pro)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors cursor-pointer"
+                              title="Upload Receipt"
+                            >
+                              <Upload className="w-3 h-3" />
+                            </button>
+                            
+                            {pro.receipts && (
+                              <button
+                                onClick={() => handleReceiptDownload(pro)}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors cursor-pointer"
+                                title="Download Receipt"
+                              >
+                                <Download className="w-3 h-3" />
+                              </button>
+                            )}
+                            
                             
                             {/* Invoice Actions */}
                             {pro.invoiceStatus === 'Created' ? (
                               <>
-                                <button
-                                  onClick={() => handleInvoiceDownload(pro)}
-                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer"
-                                  title="Download Invoice"
-                                >
-                                  <Download className="w-3 h-3" />
-                                </button>
                                 <button
                                   onClick={() => viewInvoiceModal(pro)}
                                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors cursor-pointer"
                                   title="View Invoice"
                                 >
                                   <Eye className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleInvoiceDownload(pro)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer"
+                                  title="Download Invoice"
+                                >
+                                  <Download className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handleInvoiceView(pro)}
@@ -1272,6 +1361,50 @@ const Finance = () => {
                                   </tbody>
                                 </table>
                               </div>
+                              {/* <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-orange-50 px-4 py-3 border-b border-gray-200">
+                                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <Receipt className="w-4 h-4 text-orange-600" />
+                                    Receipt Information
+                                  </h4>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    <tr className="hover:bg-gray-50">
+                                      <td className="px-4 py-3 text-sm text-gray-500 font-medium">Receipt Status</td>
+                                      <td className="px-4 py-3 text-sm text-gray-900">
+                                        {pro.receipts ? (
+                                          <div className="flex items-center gap-2">
+                                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-green-50 text-green-700 border border-green-200">
+                                              Available
+                                            </span>
+                                            <button
+                                              onClick={() => handleReceiptDownload(pro)}
+                                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors cursor-pointer"
+                                              title="Download Receipt"
+                                            >
+                                              <Download className="w-3 h-3" />
+                                              Download
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-gray-50 text-gray-700 border border-gray-200">
+                                            Not Available
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                    {pro.receipts && (
+                                      <tr className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-500 font-medium">Receipt File</td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                          {pro.receipts.split('/').pop()}
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div> */}
 
                               {/* Additional Details Table */}
                               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -1446,7 +1579,7 @@ const Finance = () => {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(1)}
                         disabled={currentPage === 1}
                         className={`relative inline-flex items-center px-3 py-2 rounded-l-xl border text-sm font-medium transition-all duration-200 ${
@@ -1456,11 +1589,11 @@ const Finance = () => {
                         }`}
                       >
                         <ChevronsLeft className="w-4 h-4" />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => handlePageChanges(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                        className={`relative inline-flex items-center px-3 py-2 border rounded-l-xl text-sm font-medium transition-all duration-200 ${
                           currentPage === 1
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
@@ -1484,7 +1617,7 @@ const Finance = () => {
                       <button
                         onClick={() => handlePageChanges(currentPage + 1)}
                         disabled={currentPage === totalPage}
-                        className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium transition-all duration-200 ${
+                        className={`relative inline-flex items-center px-3 py-2 border rounded-r-xl text-sm font-medium transition-all duration-200 ${
                           currentPage === totalPage
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
@@ -1492,7 +1625,7 @@ const Finance = () => {
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handlePageChanges(totalPage)}
                         disabled={currentPage === totalPage}
                         className={`relative inline-flex items-center px-3 py-2 rounded-r-xl border text-sm font-medium transition-all duration-200 ${
@@ -1501,8 +1634,8 @@ const Finance = () => {
                             : "bg-white text-gray-500 hover:bg-gray-50 border-gray-300 hover:border-blue-300 cursor-pointer"
                         }`}
                       >
-                        <ChevronsRight className="w-4 h-4" />
-                      </button>
+                         <ChevronsRight className="w-4 h-4" /> 
+                      {/* </button> */} 
                     </nav>
                   </div>
                 </div>
@@ -1533,6 +1666,116 @@ const Finance = () => {
           onPrint={handleInvoicePrint}
           onCreateInvoice={handleCreateInvoiceFromModal}
         />
+
+        {/* Receipt Upload Modal */}
+        {showReceiptModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Upload Receipt
+                </h3>
+                <button
+                  onClick={() => setShowReceiptModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Project name */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-2">Project:</p>
+                <p className="font-semibold text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border">
+                  {receiptUploadProject?.name}
+                </p>
+              </div>
+
+              {/* File upload area */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Receipt File
+                </label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv"
+                    onChange={handleReceiptFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className={`
+                    border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
+                    ${receiptFile 
+                      ? 'border-[#1c6ead] bg-blue-50' 
+                      : 'border-gray-300 hover:border-[#1c6ead] hover:bg-gray-50'
+                    }
+                  `}>
+                    <div className="flex flex-col items-center">
+                      <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      {receiptFile ? (
+                        <div>
+                          <p className="text-sm font-medium text-[#1c6ead]">
+                            Selected: {receiptFile.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            Click to select file or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Images, PDF, DOC, XLS, CSV files supported
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleReceiptUpload}
+                  disabled={!receiptFile || receiptUploading}
+                  className={`
+                    flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200
+                    ${!receiptFile || receiptUploading
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-[#1c6ead] text-white hover:bg-[#155a96] active:scale-95 shadow-lg hover:shadow-xl'
+                    }
+                  `}
+                >
+                  {receiptUploading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Uploading...
+                    </div>
+                  ) : (
+                    'Upload Receipt'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowReceiptModal(false)}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

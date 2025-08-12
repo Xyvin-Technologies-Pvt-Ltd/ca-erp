@@ -40,7 +40,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       priority: "",
       startDate: "",
       dueDate: "",
-      budget: "",
+      amount: "",
     },
   });
 

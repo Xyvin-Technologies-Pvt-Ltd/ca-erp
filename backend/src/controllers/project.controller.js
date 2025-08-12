@@ -160,8 +160,9 @@ exports.getProjects = async (req, res, next) => {
             (sum, task) => sum + (task.amount || 0),
             0
           );
+              await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
 
-          projectObj.budget = totalAmount;
+          projectObj.amount = totalAmount;
 
           return projectObj;
         })
@@ -211,14 +212,20 @@ exports.getProjects = async (req, res, next) => {
           ).length;
         }
 
-        const completionPercentage =
+        let completionPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        if (completionPercentage == 100 && 
+            (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
+             !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+          completionPercentage = 99;
+        }
 
         const projectObj = project.toObject();
         projectObj.totalTasks = totalTasks;
         projectObj.completedTasks = completedTasks;
         projectObj.completionPercentage = completionPercentage;
-
+        
         return projectObj;
       })
     );
@@ -324,18 +331,24 @@ exports.getProject = async (req, res, next) => {
       ).length;
     }
 
-    const completionPercentage =
+    let completionPercentage =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    if (completionPercentage === 100 && 
+        (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
+         !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+      completionPercentage = 99;
+    }
 
     projectObject.totalTasks = totalTasks;
     projectObject.completedTasks = completedTasks;
     projectObject.completionPercentage = completionPercentage;
-    // Calculate total amount of all tasks as budget
     const totalAmount = activeTasks.reduce(
-      (sum, task) => sum + (task.amount || 0),
+      (sum, task) => sum + (task.amount),
       0
     );
-    projectObject.budget = totalAmount;
+    await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
+    projectObject.amount = totalAmount;
     // Remove budget if user is not admin or finance
     // if (!['admin','manager', 'finance'].includes(req.user.role)) {
     //     delete projectObject.budget;
@@ -360,8 +373,8 @@ exports.createProject = async (req, res, next) => {
     // Add user to req.body
     req.body.createdBy = req.user.id;
     // Remove budget if present in payload
-    if ("budget" in req.body) {
-      delete req.body.budget;
+    if ("amount" in req.body) {
+      delete req.body.amount;
     }
     // Check if client exists
     if (req.body.client) {
@@ -520,7 +533,7 @@ exports.updateProject = async (req, res, next) => {
     try {
       if (changedFields.length > 0) {
         const changesSummary = changedFields
-          .filter((field) => field !== "budget") // Exclude budget from activity log
+          .filter((field) => field !== "amount") // Exclude budget from activity log
           .map((field) => {
             const oldValue = originalProject[field]
               ? originalProject[field].toString()

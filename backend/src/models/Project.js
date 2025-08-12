@@ -43,9 +43,9 @@ const mongoose = require('mongoose');
  *           type: string
  *           format: date
  *           description: Project end date or deadline
- *         budget:
+ *         amount:
  *           type: number
- *           description: Project budget
+ *           description: Project amount
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -103,7 +103,6 @@ const ProjectSchema = new mongoose.Schema(
             enum: ['planning', 'in-progress', 'on-hold', 'completed', 'archived'],
             default: 'planning',
         },
-     
         startDate: {
             type: Date,
         },
@@ -136,13 +135,54 @@ const ProjectSchema = new mongoose.Schema(
             }, 
         ],
         deleted: { type: Boolean, default: false },
-        // Add this field in ProjectSchema
         invoiceStatus: {
             type: String,
             enum: ['Not Created', 'Created'],
             default: 'Not Created'
         },
+        amount: {
+            type: Number,
+            default: 0
+        },
+        receivedAmount: {
+            type: Number,
+            default: 0
+        },
+        balanceAmount: {
+            type: Number,
+            default: 0
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['Not Paid', 'Partially Paid', 'Fully Paid'],
+            default: 'Not Paid'
+        },
+        lastPaymentDate: {
+            type: Date
+        },
+        receipts: {
+          type: String,
+        },
+        paymentHistory: [
+            {
+                amount: { type: Number, required: true },
+                method: { type: String, required: true },
+                reference: String,
+                notes: String,
+                recordedBy: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    required: true
+                },
+                recordedAt: {
+                    type: Date,
+                    default: Date.now
+                }
+            }
+        ],
+        
     },
+   
     {
         timestamps: true,
         toJSON: { virtuals: true },
@@ -153,6 +193,23 @@ const ProjectSchema = new mongoose.Schema(
 // Cascade delete tasks when a project is deleted
 ProjectSchema.pre('remove', async function (next) {
     await this.model('Task').deleteMany({ project: this._id });
+    next();
+});
+
+// Pre-save middleware to update payment status and balance
+ProjectSchema.pre('save', function(next) {
+    // Calculate balance amount
+    this.balanceAmount = (this.amount || 0) - (this.receivedAmount || 0);
+
+    // Update payment status
+    if (this.receivedAmount <= 0) {
+        this.paymentStatus = 'Not Paid';
+    } else if (this.receivedAmount >= this.amount) {
+        this.paymentStatus = 'Fully Paid';
+    } else {
+        this.paymentStatus = 'Partially Paid';
+    }
+
     next();
 });
 
