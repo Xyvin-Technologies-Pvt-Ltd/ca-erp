@@ -232,7 +232,7 @@ export const fetchDashboardData = async (userId) => {
         //   color: "bg-purple-100",
         // },
         revenue: {
-          value: `₹${totalRevenue}`,
+          value: `₹${Math.round(totalRevenue).toLocaleString()}`,
           change: revenueChange,
           iconType: "money",
           color: "bg-yellow-100",
