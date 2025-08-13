@@ -175,7 +175,7 @@ const EditCronJobModal = ({ data, isOpen, onClose, msg, id }) => {
                     >
                       <path
                         strokeLinecap="round"
-                        strokeLinejoin="round"
+                        strokeLinejoin="rou
                         strokeWidth={2}
                         d="M5 13l4 4L19 7"
                       />

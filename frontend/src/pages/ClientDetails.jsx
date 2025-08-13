@@ -1201,7 +1201,7 @@ const ClientDetails = () => {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
+                          strokeWidt
                           d="M5 13l4 4L19 7"
                         />
                       </svg> */}
