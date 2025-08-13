@@ -154,6 +154,7 @@ const InvoiceModal = ({
           }
           
           // Generate PDF from the invoice preview element
+          
           const response = await generateInvoicePDFNew(invoice, invoicePreviewElement);
           toast.success('Invoice downloaded successfully!');
           
