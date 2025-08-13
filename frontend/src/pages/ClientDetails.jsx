@@ -1187,12 +1187,12 @@ const ClientDetails = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
                     />
                   </div>
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 mt-6">
                     <button
                       onClick={handleAddSection}
                       className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
                     >
-                      <svg
+                      {/* <svg
                         className="h-5 w-5 mr-2"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -1204,7 +1204,7 @@ const ClientDetails = () => {
                           strokeWidth={2}
                           d="M5 13l4 4L19 7"
                         />
-                      </svg>
+                      </svg> */}
                       Create Section
                     </button>
                     <button
