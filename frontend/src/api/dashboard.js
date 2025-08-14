@@ -106,9 +106,19 @@ export const fetchDashboardData = async (userId) => {
     
 
     
-    // Calculate total revenue as the sum of task.amount for tasks assigned to the logged-in user
+    // Calculate total revenue as the sum of task.amount
+    // For admin/manager: all tasks; for others: only assigned tasks
     let totalRevenue = 0;
-    if (userId) {
+    let userRole = undefined;
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      userRole = userData?.role;
+    } catch (e) {
+      userRole = undefined;
+    }
+    if (userRole === 'admin' || userRole === 'manager') {
+      totalRevenue = tasksRes.tasks.reduce((acc, task) => acc + (task.amount || 0), 0);
+    } else if (userId) {
       totalRevenue = tasksRes.tasks.reduce((acc, task) => {
         const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
         if (assignedId === userId) {
@@ -117,6 +127,42 @@ export const fetchDashboardData = async (userId) => {
         return acc;
       }, 0);
     }
+
+    // --- Monthly Revenue & Task Count Aggregation ---
+    // For admin/manager: all tasks; for others: only assigned tasks
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleString('default', { month: 'short' }),
+        year: d.getFullYear(),
+        month: d.getMonth(),
+      });
+    }
+    const monthlyMap = {};
+    months.forEach(m => {
+      monthlyMap[m.key] = { month: m.label, revenue: 0, tasks: 0 };
+    });
+    tasksRes.tasks.forEach(task => {
+      // Use dueDate or createdAt for grouping
+      const date = task.dueDate ? new Date(task.dueDate) : (task.createdAt ? new Date(task.createdAt) : null);
+      if (!date || isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      let include = false;
+      if (userRole === 'admin' || userRole === 'manager') {
+        include = true;
+      } else if (userId) {
+        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        include = assignedId === userId;
+      }
+      if (monthlyMap[key] && include) {
+        monthlyMap[key].tasks += 1;
+        monthlyMap[key].revenue += task.amount || 0;
+      }
+    });
+    const monthlyRevenueData = months.map(m => monthlyMap[m.key]);
 
     return {
       stats: {
@@ -360,6 +406,7 @@ export const fetchDashboardData = async (userId) => {
         { status: "Pending", count: 34 },
         { status: "Delayed", count: 12 },
       ],
+      monthlyRevenueData, // <-- add this for frontend chart
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

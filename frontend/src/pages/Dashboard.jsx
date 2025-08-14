@@ -89,10 +89,10 @@ const TaskStatusChart = ({ statusData }) => {
             <p className="text-sm text-gray-500">Distribution of current tasks</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-green-600">
+        {/* <div className="flex items-center gap-2 text-green-600">
           <TrendingUp className="h-4 w-4" />
           <span className="text-sm font-semibold">+12.5%</span>
-        </div>
+        </div> */}
       </div>
 
       <ChartContainer className="mx-auto aspect-square max-h-[280px]">
@@ -148,8 +148,12 @@ const TaskStatusChart = ({ statusData }) => {
 };
 
 // Monthly Revenue Chart Component
-const MonthlyRevenueChart = () => {
+const MonthlyRevenueChart = ({ monthlyRevenueData }) => {
   const [activeBar, setActiveBar] = useState(null);
+  // Calculate averages and totals for summary cards
+  const avgTasks = monthlyRevenueData.length > 0 ? Math.round(monthlyRevenueData.reduce((sum, item) => sum + item.tasks, 0) / monthlyRevenueData.length) : 0;
+  const totalTasks = monthlyRevenueData.reduce((sum, item) => sum + item.tasks, 0);
+  const totalRevenue = monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
     <motion.div
@@ -172,10 +176,10 @@ const MonthlyRevenueChart = () => {
             <p className="text-sm text-gray-500">Revenue trends over 6 months</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-green-600">
+        {/* <div className="flex items-center gap-2 text-green-600">
           <TrendingUp className="h-4 w-4" />
           <span className="text-sm font-semibold">+18.2%</span>
-        </div>
+        </div> */}
       </div>
 
       <ChartContainer className="h-[280px]">
@@ -203,16 +207,20 @@ const MonthlyRevenueChart = () => {
             <ChartTooltip
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
+                  // Find by dataKey for clarity
+                  const revenue = payload.find(p => p.dataKey === 'revenue')?.value;
+                  // const tasks = payload.find(p => p.dataKey === 'tasks')?.value;
+                  const year = new Date().getFullYear();
                   return (
                     <div className="bg-white p-4 border border-gray-200 rounded-xl shadow-lg">
-                      <p className="font-semibold text-gray-900 mb-2">{label} 2024</p>
+                      <p className="font-semibold text-gray-900 mb-2">{label} {year}</p>
                       <div className="space-y-1">
                         <p className="text-sm text-blue-600">
-                          Revenue: ₹{payload[0]?.value?.toLocaleString()}
+                          Revenue: ₹{revenue?.toLocaleString()}
                         </p>
-                        <p className="text-sm text-purple-600">
-                          Projects: {payload[1]?.value}
-                        </p>
+                        {/* <p className="text-sm text-purple-600">
+                          Tasks: {tasks}
+                        </p> */}
                       </div>
                     </div>
                   );
@@ -253,7 +261,7 @@ const MonthlyRevenueChart = () => {
             <span className="text-sm font-medium text-blue-700">Avg Revenue</span>
           </div>
           <p className="text-xl font-bold text-blue-900">
-            ₹{Math.round(monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / monthlyRevenueData.length).toLocaleString()}
+            ₹{Math.round(totalRevenue / monthlyRevenueData.length).toLocaleString()}
           </p>
         </motion.div>
         
@@ -265,10 +273,10 @@ const MonthlyRevenueChart = () => {
         >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 bg-purple-500 rounded-full" />
-            <span className="text-sm font-medium text-purple-700">Total Projects</span>
+            <span className="text-sm font-medium text-purple-700">Total Tasks</span>
           </div>
           <p className="text-xl font-bold text-purple-900">
-            {monthlyRevenueData.reduce((sum, item) => sum + item.projects, 0)}
+            {totalTasks}
           </p>
         </motion.div>
       </div>
@@ -1648,7 +1656,7 @@ const statusColorMap = {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <TaskStatusChart statusData={taskStatusData} />
-        <MonthlyRevenueChart />
+        <MonthlyRevenueChart monthlyRevenueData={data.monthlyRevenueData || []} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
