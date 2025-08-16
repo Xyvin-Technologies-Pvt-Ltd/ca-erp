@@ -10,7 +10,8 @@ const {
   getAttendanceStats,
   updateAttendance,
   getEmployeeAttendance,
-  getAttendanceByEmployeeId
+  getAttendanceByEmployeeId,
+  getSearchedAttendance
 } = require('../controllers/attendance.controller');
 const { protect } = require('../middleware/auth');
 
@@ -18,6 +19,7 @@ router.use(protect);
 
 router.get('/my-attendance', getEmployeeAttendance);
 router.get('/employee/:employeeId',  getAttendanceByEmployeeId);
+router.get('/search',getSearchedAttendance)
 router.post('/bulk',  createBulkAttendance);
 router.get('/stats',  getAttendanceStats);
 router.route('/check-in')

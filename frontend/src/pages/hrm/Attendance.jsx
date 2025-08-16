@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAttendance, getAttendanceStats, deleteAttendance } from "../../api/attendance";
+import {
+  getAttendance,
+  getAttendanceStats,
+  deleteAttendance,
+} from "../../api/attendance";
 import AttendanceModal from "../../components/AttendanceModal";
 import AttendanceEditModal from "../../components/AttendanceEditModal";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 import {
   CalendarIcon,
   ClockIcon,
@@ -91,12 +95,12 @@ const statusColors = {
 };
 
 function getMonthRange(date) {
-  const start = moment(date).startOf('month');
-  const end = moment(date).endOf('month');
-  
+  const start = moment(date).startOf("month");
+  const end = moment(date).endOf("month");
+
   return {
-    startDate: start.format('YYYY-MM-DD'),
-    endDate: end.format('YYYY-MM-DD'),
+    startDate: start.format("YYYY-MM-DD"),
+    endDate: end.format("YYYY-MM-DD"),
   };
 }
 
@@ -108,7 +112,10 @@ const Attendance = () => {
   const [editModal, setEditModal] = useState({ open: false, record: null });
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
   });
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -123,37 +130,41 @@ const Attendance = () => {
     fetchData(1);
   }, [selectedMonth, modalOpen, editModal.open]);
 
-useEffect(() => {
-  setIsSearching(true);
-  setPage(1);
-  fetchData(1).finally(() => setIsSearching(false));
-}, [searchName, selectedDate]);
-
-
+  useEffect(() => {
+    setIsSearching(true);
+    setPage(1);
+    fetchData(1).finally(() => setIsSearching(false));
+  }, [searchName, selectedDate]);
+  // const searchedItem = async (page) => {
+  //   try {
+  //     const res = await getSearchedAttendance(searchName);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const fetchData = async (pageNum = page) => {
     // setLoading(true);
     try {
       const [year, month] = selectedMonth.split("-");
       const range = getMonthRange(new Date(year, month));
-      
-      const queryParams = { 
-        ...range, 
-        page: pageNum, 
-        limit 
+
+      const queryParams = {
+        ...range,
+        page: pageNum,
+        limit,
       };
-      
+
       if (searchName.trim()) {
         queryParams.employeeName = searchName.trim();
       }
-      
+
       if (selectedDate) {
         queryParams.specificDate = selectedDate;
       }
-      
+
       const attRes = await getAttendance(queryParams);
       setAttendance(attRes.data?.attendance || []);
       setTotalPages(attRes.totalPages || 1);
@@ -162,7 +173,11 @@ useEffect(() => {
       setStats(statsRes.data || {});
     } catch (e) {
       toast.error("Failed to fetch attendance data", {
-        style: { background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" },
+        style: {
+          background: "#fef2f2",
+          color: "#b91c1c",
+          border: "1px solid #fecaca",
+        },
       });
     } finally {
       setLoading(false);
@@ -196,16 +211,17 @@ useEffect(() => {
     statusCounts[a.status] = (statusCounts[a.status] || 0) + 1;
   });
 
-  const sortedAttendance = [...attendance].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sortedAttendance = [...attendance].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const currentDate = `${year}-${month}-${day}`;
-     console.log("Current Date: attendnace", currentDate);
-
-     
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const currentDate = `${year}-${month}-${day}`;
+  // console.log("Current Date: attendnace", currentDate);
+  console.log(attendance);
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -217,7 +233,9 @@ useEffect(() => {
       >
         <div className="flex items-center space-x-3">
           <ClockIcon className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Attendance</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Attendance
+          </h1>
         </div>
         <div className="flex gap-2 items-center">
           <div className="relative">
@@ -238,15 +256,23 @@ useEffect(() => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <svg className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg
+              className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
             </svg>
             Add Bulk Attendance
           </motion.button>
         </div>
       </motion.div>
-
-    
 
       {/* Summary Cards */}
       <motion.div
@@ -265,15 +291,25 @@ useEffect(() => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${statusColors[s.key].border} hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
+                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${
+                  statusColors[s.key].border
+                } hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
                 whileHover={{ scale: 1.02 }}
               >
-                <div className={`p-2 rounded-full ${statusColors[s.key].bg} group-hover:scale-110 transition-transform duration-200`}>
+                <div
+                  className={`p-2 rounded-full ${
+                    statusColors[s.key].bg
+                  } group-hover:scale-110 transition-transform duration-200`}
+                >
                   <Icon className={`h-6 w-6 ${statusColors[s.key].text}`} />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">{s.label}</p>
-                  <p className={`text-2xl font-bold ${statusColors[s.key].text} group-hover:text-indigo-600 transition-colors duration-200`}>
+                  <p
+                    className={`text-2xl font-bold ${
+                      statusColors[s.key].text
+                    } group-hover:text-indigo-600 transition-colors duration-200`}
+                  >
                     {statusCounts[s.key] || 0}
                   </p>
                 </div>
@@ -282,13 +318,16 @@ useEffect(() => {
           })}
         </AnimatePresence>
       </motion.div>
-  <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.05 }}
         className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6"
       >
-        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-4 items-end">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="flex flex-col sm:flex-row gap-4 items-end"
+        >
           {/* Name Search */}
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -303,16 +342,25 @@ useEffect(() => {
               <input
                 type="text"
                 value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
+                onChange={(e) => {
+                  console.log(e.target.value);
+                  setSearchName(e.target.value);
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                   }
                 }}
                 placeholder="Enter employee name..."
-                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 ${isSearching ? 'animate-pulse' : ''}`}
+                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 ${
+                  isSearching ? "animate-pulse" : ""
+                }`}
               />
-              <UserIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isSearching ? 'text-indigo-500' : 'text-gray-400'}`} />
+              <UserIcon
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
+                  isSearching ? "text-indigo-500" : "text-gray-400"
+                }`}
+              />
             </div>
           </div>
 
@@ -332,7 +380,7 @@ useEffect(() => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                   }
                 }}
@@ -373,19 +421,36 @@ useEffect(() => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Check In</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Employee
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Department
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Check In
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Check Out
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-base text-gray-600">
+                  <td
+                    colSpan={7}
+                    className="text-center py-4 text-base text-gray-600"
+                  >
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -399,7 +464,10 @@ useEffect(() => {
                 </tr>
               ) : sortedAttendance.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-base text-gray-600">
+                  <td
+                    colSpan={7}
+                    className="text-center py-4 text-base text-gray-600"
+                  >
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -414,6 +482,7 @@ useEffect(() => {
               ) : (
                 <AnimatePresence>
                   {sortedAttendance.map((a, index) => {
+                    console.log(a);
                     const Icon = statusColors[a.status]?.icon;
                     return (
                       <motion.tr
@@ -428,24 +497,36 @@ useEffect(() => {
                           {a.employee?.name || a.employee?.firstName || "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.employee?.department?.name || a.employee?.department || "-"}
+                          {a.employee?.department?.name ||
+                            a.employee?.department ||
+                            "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.date ? moment(a.date).format('DD/MM/YYYY') : "-"}
+                          {a.date ? moment(a.date).format("DD/MM/YYYY") : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.checkIn?.time
-                            ? moment(a.checkIn.time).format('h:mm A')
+                          {a.checkIn?.times[0]
+                            ? moment(a.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.checkOut?.time
-                            ? moment(a.checkOut.time).format('h:mm A')
+                          {a.checkOut?.times[a.totalSign]
+                            ? moment(a.checkOut.times[a.totalSign]).format(
+                                "h:mm A"
+                              )
                             : "-"}
                         </td>
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[a.status]?.tableBg || "bg-gray-50"} ${statusColors[a.status]?.tableText || "text-gray-600"} max-w-max border ${statusColors[a.status]?.border || "border-gray-100"}`}
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${
+                              statusColors[a.status]?.tableBg || "bg-gray-50"
+                            } ${
+                              statusColors[a.status]?.tableText ||
+                              "text-gray-600"
+                            } max-w-max border ${
+                              statusColors[a.status]?.border ||
+                              "border-gray-100"
+                            }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}
@@ -455,7 +536,9 @@ useEffect(() => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-3">
                             <motion.button
-                              onClick={() => setEditModal({ open: true, record: a })}
+                              onClick={() =>
+                                setEditModal({ open: true, record: a })
+                              }
                               className="text-blue-600 hover:text-blue-900 transition-colors duration-200 cursor-pointer"
                               title="Edit"
                               whileHover={{ scale: 1.1 }}
@@ -566,43 +649,54 @@ useEffect(() => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-                <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
-                <span className="font-medium">{total}</span> results
+                Showing{" "}
+                <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                <span className="font-medium">
+                  {Math.min(page * limit, total)}
+                </span>{" "}
+                of <span className="font-medium">{total}</span> results
               </p>
             </div>
             <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${page === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                    }`}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                    page === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                  }`}
                 >
                   <span className="sr-only">First</span>
                   <ChevronLeftIcon className="h-5 w-5" />
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page
-                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                        : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        p === page
+                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                          : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
                       }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${page === totalPages
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                    }`}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                    page === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                  }`}
                 >
                   <span className="sr-only">Next</span>
                   <ChevronRightIcon className="h-5 w-5" />

@@ -94,8 +94,8 @@ function getDaysInMonth(year, month) {
 const EmployeeAttendance = () => {
   const [attendance, setAttendance] = useState([]);
   const [stats, setStats] = useState({});
-  const [lateHours, setlateHours] = useState(0)
-  const [lateMinutes, setlateMinutes] = useState(0)
+  const [lateHours, setlateHours] = useState(0);
+  const [lateMinutes, setlateMinutes] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -117,8 +117,8 @@ const EmployeeAttendance = () => {
       const res = await getMyAttendance({ ...range });
       console.log(res.data);
       setAttendance(res.data?.attendance || []);
-      setlateHours(res.data?.lateHours)
-      setlateMinutes(res.data?.totalMinutes)
+      setlateHours(res.data?.lateHours);
+      setlateMinutes(res.data?.totalMinutes);
       setStats(res.data?.overallStates || {});
     } catch (e) {
       toast.error("Failed to fetch attendance", {
@@ -431,13 +431,17 @@ const EmployeeAttendance = () => {
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkIn?.time
-                            ? moment(att.checkIn.time).format("h:mm A")
+                          {att?.checkIn?.times[0]
+                            ? moment(att.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkOut?.time
-                            ? moment(att.checkOut.time).format("h:mm A")
+                          {att?.checkOut?.times[0]
+                            ? moment(
+                                att.checkOut.times[
+                                  att?.checkOut?.times.length - 1
+                                ]
+                              ).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">

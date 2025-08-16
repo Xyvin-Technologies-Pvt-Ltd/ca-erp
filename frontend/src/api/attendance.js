@@ -1,15 +1,15 @@
-import api from './axios';
+import api from "./axios";
 
 // Get all attendance records
 export const getAttendance = async (params) => {
-  const response = await api.get('/attendance', { params });
-  console.log(response,"resatte");
+  const response = await api.get("/attendance/check-in", { params });
+  console.log(response, "resatte");
   return response.data;
 };
 
 // Get attendance stats
 export const getAttendanceStats = async ({ startDate, endDate }) => {
-  const response = await api.get('/attendance/stats', {
+  const response = await api.get("/attendance/stats", {
     params: { startDate, endDate },
   });
   return response.data;
@@ -17,7 +17,7 @@ export const getAttendanceStats = async ({ startDate, endDate }) => {
 
 // Get my attendance (for logged-in employee)
 export const getMyAttendance = async (params) => {
-  const response = await api.get('/attendance/my-attendance', { params });
+  const response = await api.get("/attendance/my-attendance", { params });
   return response.data;
 };
 
@@ -29,21 +29,21 @@ export const updateAttendance = async (id, data) => {
 
 // Check in
 export const checkIn = async (data) => {
-  console.log(data)
-  const response = await api.post('/attendance/check-in', data);
+  console.log("ahhh");
+  const response = await api.post("/attendance/check-in", data);
   return response.data;
 };
 
 // Check out
 export const checkOut = async () => {
-  console.log("OKK")
+  console.log("OKK");
   const response = await api.post("/attendance/check-out");
   return response.data;
 };
 
 // Create bulk attendance records
 export const createBulkAttendance = async (data) => {
-  const response = await api.post('/attendance/bulk', data);
+  const response = await api.post("/attendance/bulk", data);
   return response.data;
 };
 
@@ -52,4 +52,3 @@ export const deleteAttendance = async (id) => {
   const response = await api.delete(`/attendance/${id}`);
   return response.data;
 };
-
