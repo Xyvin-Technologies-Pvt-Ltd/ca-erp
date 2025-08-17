@@ -2511,59 +2511,8 @@ const Dashboard = () => {
         console.error(error);
       }
     };
-    const markAttendence = () => {
-      //     let now = new Date();
-
-      // // Create a Date for today at 9:00 AM
-      // let nineAM = new Date();
-      // nineAM.setHours(9, 0, 0, 0); // 9 hours, 0 minutes, 0 seconds, 0 ms
-
-      // if (now < nineAM) {
-      //    toast.error("Please Login In 9:00 AM For Attendence...");
-      // } else {
-      //   console.log("It's 9:00 AM or later");
-      // }
-
-      let now = new Date();
-
-      // Today's 9:00 AM
-      let nineAM = new Date();
-      nineAM.setHours(9, 0, 0, 0);
-      console.log(now, nineAM);
-      if (now > nineAM) {
-        let diffMs = now - nineAM; // difference in milliseconds
-        let diffMinutes = Math.floor(diffMs / (1000 * 60)); // convert to minutes
-        console.log(`It's ${diffMinutes} minutes after 9:00 AM`);
-      } else if (now === nineAM) {
-        console.log("It's before 9:00 AM");
-      }
-    };
-    markAttendence();
 
     fetchData();
-    //     let now = new Date();
-
-    // // Today's 9:00 AM
-    // let nineAM = new Date();
-    // nineAM.setHours(9, 0, 0, 0);
-
-    // if (now > nineAM) {
-    //   let diffMs = now - nineAM; // difference in milliseconds
-    //   let diffMinutes = Math.floor(diffMs / (1000 * 60)); // convert to minutes
-    //   console.log(`It's ${diffMinutes} minutes after 9:00 AM`);
-    // } else {
-    //   console.log("It's before 9:00 AM");
-    // }
-
-    // exact 9 am
-
-    // let now = new Date();
-
-    // if (now.getHours() === 9 && now.getMinutes() === 0) {
-    //   console.log("It's exactly 9:00 AM");
-    // } else {
-    //   console.log("It's not exactly 9:00 AM");
-    // }
   }, [userId]);
 
   if (isLoading || dashboardLoading) {
@@ -2648,12 +2597,6 @@ const Dashboard = () => {
       fill: statusColorMap.Review,
     },
   ];
-  // useEffect(() => {
-  //   const markAttendence =() => {
-  //     console.log("ji");
-  //   };
-  //   markAttendence();
-  // }, []);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

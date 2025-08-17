@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import { updateAttendance } from "../api/attendance"
+import { updateAttendance } from "../api/attendance";
 
 const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
-  
   const [formData, setFormData] = useState({
     date: "",
     checkIn: "",
@@ -22,8 +21,8 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     const date = new Date(dateString);
     // Use local date components to avoid timezone conversion
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -31,9 +30,12 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
   const formatTimeForInput = (timeString) => {
     if (!timeString) return "";
     const date = new Date(timeString);
+    const minus5h30 = new Date(date.getTime() - (5 * 60 + 30) * 60 * 1000);
     // Use local time components to avoid timezone conversion
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    // const hours = String(date.getHours()).padStart(2, '0');
+    // const minutes = String(date.getMinutes()).padStart(2, '0');
+    const hours = String(minus5h30.getHours()).padStart(2, "0");
+    const minutes = String(minus5h30.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
 
@@ -41,11 +43,21 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     if (attendance) {
       setFormData({
         date: formatDateForInput(attendance.date),
-        checkIn: attendance.checkIn?.time
-          ? formatTimeForInput(attendance.checkIn.time)
+        // checkIn: attendance.checkIn?.time
+        //   ? formatTimeForInput(attendance.checkIn.time)
+        //   : "",
+        checkIn: attendance.checkIn?.times[0]
+          ? formatTimeForInput(attendance.checkIn.times[0])
           : "",
-        checkOut: attendance.checkOut?.time
-          ? formatTimeForInput(attendance.checkOut.time)
+        // checkOut: attendance.checkOut?.time
+        //   ? formatTimeForInput(attendance.checkOut.time)
+        //   : "",
+        checkOut: attendance.checkOut?.times[
+          attendance.checkOut?.times.length - 1
+        ]
+          ? formatTimeForInput(
+              attendance.checkOut.times[attendance.checkOut?.times.length - 1]
+            )
           : "",
         status: attendance.status || "Present",
         notes: attendance.notes || "",
@@ -145,7 +157,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
       toast.success("Attendance updated successfully");
       onSuccess();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update attendance");
+      toast.error(
+        error.response?.data?.message || "Failed to update attendance"
+      );
     } finally {
       setLoading(false);
     }
@@ -157,8 +171,13 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Edit Attendance</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Edit Attendance
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -187,7 +206,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 required
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
-              {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+              {errors.date && (
+                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -200,7 +221,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
-              {errors.checkIn && <p className="mt-1 text-sm text-red-600">{errors.checkIn}</p>}
+              {errors.checkIn && (
+                <p className="mt-1 text-sm text-red-600">{errors.checkIn}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -213,7 +236,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
-              {errors.checkOut && <p className="mt-1 text-sm text-red-600">{errors.checkOut}</p>}
+              {errors.checkOut && (
+                <p className="mt-1 text-sm text-red-600">{errors.checkOut}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -226,13 +251,17 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 required
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               >
-                {["Present", "Absent", "Half-Day", "Late", "Early-Leave"].map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
+                {["Present", "Absent", "Half-Day", "Late", "Early-Leave"].map(
+                  (opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  )
+                )}
               </select>
-              {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
+              {errors.status && (
+                <p className="mt-1 text-sm text-red-600">{errors.status}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -251,7 +280,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                   </option>
                 ))}
               </select>
-              {errors.shift && <p className="mt-1 text-sm text-red-600">{errors.shift}</p>}
+              {errors.shift && (
+                <p className="mt-1 text-sm text-red-600">{errors.shift}</p>
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -265,7 +296,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 placeholder="Enter notes..."
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
-              {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
+              {errors.notes && (
+                <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">

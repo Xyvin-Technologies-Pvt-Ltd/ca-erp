@@ -1,4 +1,5 @@
 const Attendance = require("../models/Attendance");
+const User = require("../models/User");
 const Employee = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 const { createError } = require("../utils/errors");
@@ -186,10 +187,109 @@ exports.getAttendance = catchAsync(async (req, res) => {
 
 exports.createBulkAttendance = catchAsync(async (req, res) => {
   const attendanceRecords = req.body;
-
+  console.log(req.body);
   if (!Array.isArray(attendanceRecords) || attendanceRecords.length === 0) {
     throw createError(400, "Please provide an array of attendance records");
   }
+  for (const record of attendanceRecords) {
+    console.log(record.checkOut);
+    const userAttendance = await Attendance.findOne({
+      employee: new mongoose.Types.ObjectId(record.employee),
+      date: record.date,
+    });
+    if (userAttendance) {
+      if (record?.checkOut === undefined) {
+        await Attendance.updateOne(
+          {
+            employee: new mongoose.Types.ObjectId(record.employee),
+            date: record.date,
+          }, // filter
+          {
+            $set: {
+              "checkIn.times": [record.checkIn.time],
+              status: record.status,
+              notes: record.notes,
+              shift: record.shift,
+            },
+          }
+        );
+        res.status(201).json({
+          status: "success",
+        });
+      } else {
+        console.log("done");
+        await Attendance.updateOne(
+          {
+            employee: new mongoose.Types.ObjectId(record.employee),
+            date: record.date,
+          }, // filter
+          {
+            $set: {
+              "checkOut.times": [record.checkOut.time],
+              status: record.status,
+              notes: record.notes,
+              shift: record.shift,
+            },
+          }
+        );
+        res.status(201).json({
+          status: "success",
+        });
+      }
+    } else {
+      if (record?.checkOut === undefined) {
+        await Attendance.create({
+          employee: record.employee,
+          date: record.date,
+          totalSign: 0,
+          lateHours: 0,
+          lateMinutes: 0,
+          checkIn: {
+            times: [record.checkIn.time],
+            device: "Web",
+            ipAddress: "OK",
+          },
+          status: record.status,
+          notes: record.notes,
+          shift: record.shift,
+          workHours: 0, // Initialize work hours as 0
+          workMinutes: 0,
+          createdBy: req.user._id,
+          updatedBy: req.user._id,
+        });
+        res.status(201).json({
+          status: "success",
+        });
+      } else {
+        await Attendance.create({
+          employee: record.employee,
+          date: record.date,
+          totalSign: 0,
+          lateHours: 0,
+          lateMinutes: 0,
+          checkIn: {
+            times: [record.checkOut.time],
+            device: "Web",
+            ipAddress: "OK",
+          },
+          status: record.present,
+          notes: record.notes,
+          shift: record.shift,
+          workHours: 0, // Initialize work hours as 0
+          workMinutes: 0,
+          createdBy: req.user._id,
+          updatedBy: req.user._id,
+        });
+        res.status(201).json({
+          status: "success",
+        });
+      }
+    }
+  }
+  res.status(201).json({
+    status: "success",
+  });
+  return;
 
   attendanceRecords.forEach((record, index) => {
     if (!record.employee) {
@@ -426,6 +526,21 @@ exports.createAttendance = catchAsync(async (req, res) => {
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const day = today.getDate();
+  const userData = await User.findOne({
+    _id: new mongoose.Types.ObjectId(req.user._id),
+  });
+  if (day === 1) {
+    if (userData.emp_status === "Permanent") {
+      await User.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(req.user._id) },
+        { $inc: { casual: 1 } },
+        {
+          new: true,
+        }
+      );
+    }
+  }
+
   const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
@@ -512,6 +627,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
       status: "success",
     });
   }
+
   //  let today = new Date();
   // today.setDate(today.getDate() + 1);
   // console.log(req.user._id);
@@ -596,9 +712,22 @@ exports.checkOut = catchAsync(async (req, res) => {
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const day = today.getDate();
-  const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
+    const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
+  const checkInAvailable = await Attendance.findOne(
+    { employee: req.user._id, date: formattedDate } // filte
+  );
+  console.log(checkInAvailable)
+  if(checkInAvailable===null){
+  res.status(201).json({
+    status: "success",
+  });
+  }
+  const userData = await User.findOne({
+    _id: new mongoose.Types.ObjectId(req.user._id),
+  });
+
   const istDate = new Date(today.getTime() + 330 * 60 * 1000);
   // console.log(today, istDate);
   const resul = await Attendance.findOneAndUpdate(
@@ -651,6 +780,7 @@ exports.checkOut = catchAsync(async (req, res) => {
   res.status(201).json({
     status: "success",
   });
+
   return;
   const { id } = req.params;
   const { checkOut } = req.body;
@@ -1015,15 +1145,56 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
 
 exports.updateAttendance = catchAsync(async (req, res) => {
   const { date, checkIn, checkOut, status, notes, shift } = req.body;
-
+  console.log(req.body);
   const attendance = await Attendance.findById(req.params.id);
+  // console.log(attendance);
+  let checkIndate = new Date(req.body.checkIn.time);
+  let checkOutdate = new Date(req.body.checkOut.time);
 
+  checkIndate.setHours(checkIndate.getHours() + 5);
+  checkIndate.setMinutes(checkIndate.getMinutes() + 30);
+
+  checkOutdate.setHours(checkOutdate.getHours() + 5);
+  checkOutdate.setMinutes(checkOutdate.getMinutes() + 30);
+  console.log(checkIndate, checkOutdate);
   if (!attendance) {
     throw createError(404, "No attendance record found with that ID");
   }
 
   // Calculate work hours if both checkIn and checkOut are provided
   let workHours = attendance.workHours;
+  if (checkIndate && checkOutdate) {
+    const checkInTime = new Date(checkIn.time);
+    const checkOutTime = new Date(checkOut.time);
+    workHours = calculateWorkHours(checkInTime, checkOutTime);
+  }
+  // console.log(date, req.params.id);
+  await Attendance.updateOne(
+    {
+      _id: new mongoose.Types.ObjectId(req.params.id),
+      date: date,
+    }, // filter
+    {
+      $set: {
+        "checkIn.times": [checkIndate],
+        "checkOut.times": [checkOutdate],
+        status: status || attendance.status,
+        notes: notes !== undefined ? notes : attendance.notes,
+        shift: shift || attendance.shift,
+        workHours,
+      },
+    }
+  );
+  res.status(200).json({
+    status: "success",
+  });
+  return;
+  if (!attendance) {
+    throw createError(404, "No attendance record found with that ID");
+  }
+
+  // Calculate work hours if both checkIn and checkOut are provided
+  // let workHours = attendance.workHours;
   if (checkIn?.time && checkOut?.time) {
     const checkInTime = new Date(checkIn.time);
     const checkOutTime = new Date(checkOut.time);

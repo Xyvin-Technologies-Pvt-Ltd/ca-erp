@@ -431,13 +431,17 @@ const EmployeeAttendance = () => {
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkIn?.time
-                            ? moment(att.checkIn.time).format("h:mm A")
+                           {att?.checkIn?.times[0]
+                            ? moment(att.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.checkOut?.time
-                            ? moment(att.checkOut.time).format("h:mm A")
+                           {att?.checkOut?.times[0]
+                            ? moment(
+                                att.checkOut.times[
+                                  att?.checkOut?.times.length - 1
+                                ]
+                              ).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">

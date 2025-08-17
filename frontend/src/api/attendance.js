@@ -2,7 +2,7 @@ import api from './axios';
 
 // Get all attendance records
 export const getAttendance = async (params) => {
-  const response = await api.get('/attendance', { params });
+  const response = await api.get('/attendance/check-in', { params });
   console.log(response,"resatte");
   return response.data;
 };
