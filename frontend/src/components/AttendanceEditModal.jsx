@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+
 import { updateAttendance } from "../api/attendance";
 
 const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
@@ -21,6 +22,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     const date = new Date(dateString);
     // Use local date components to avoid timezone conversion
     const year = date.getFullYear();
+
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
@@ -30,6 +32,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
   const formatTimeForInput = (timeString) => {
     if (!timeString) return "";
     const date = new Date(timeString);
+    
     const minus5h30 = new Date(date.getTime() - (5 * 60 + 30) * 60 * 1000);
     // Use local time components to avoid timezone conversion
     const hours = String(minus5h30.getHours()).padStart(2, "0");
@@ -151,6 +154,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
       toast.error(
         error.response?.data?.message || "Failed to update attendance"
       );
+      toast.error(
+        error.response?.data?.message || "Failed to update attendance"
+      );
     } finally {
       setLoading(false);
     }
@@ -162,6 +168,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6">
         <div className="flex justify-between items-center mb-6">
+
           <h2 className="text-2xl font-semibold text-gray-800">
             Edit Attendance
           </h2>
@@ -200,6 +207,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
               {errors.date && (
                 <p className="mt-1 text-sm text-red-600">{errors.date}</p>
               )}
+              {errors.date && (
+                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -215,6 +225,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
               {errors.checkIn && (
                 <p className="mt-1 text-sm text-red-600">{errors.checkIn}</p>
               )}
+              {errors.checkIn && (
+                <p className="mt-1 text-sm text-red-600">{errors.checkIn}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -227,6 +240,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
+              {errors.checkOut && (
+                <p className="mt-1 text-sm text-red-600">{errors.checkOut}</p>
+              )}
               {errors.checkOut && (
                 <p className="mt-1 text-sm text-red-600">{errors.checkOut}</p>
               )}
@@ -249,7 +265,17 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                     </option>
                   )
                 )}
+                {["Present", "Absent", "Half-Day", "Late", "Early-Leave"].map(
+                  (opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  )
+                )}
               </select>
+              {errors.status && (
+                <p className="mt-1 text-sm text-red-600">{errors.status}</p>
+              )}
               {errors.status && (
                 <p className="mt-1 text-sm text-red-600">{errors.status}</p>
               )}
@@ -274,6 +300,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
               {errors.shift && (
                 <p className="mt-1 text-sm text-red-600">{errors.shift}</p>
               )}
+              {errors.shift && (
+                <p className="mt-1 text-sm text-red-600">{errors.shift}</p>
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -287,6 +316,9 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
                 placeholder="Enter notes..."
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring focus:ring-[#1c6ead]"
               />
+              {errors.notes && (
+                <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+              )}
               {errors.notes && (
                 <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
               )}
@@ -315,3 +347,6 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
 };
 
 export default AttendanceEditModal;
+
+
+

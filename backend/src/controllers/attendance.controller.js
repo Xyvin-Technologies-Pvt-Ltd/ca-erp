@@ -190,9 +190,109 @@ exports.getAttendance = catchAsync(async (req, res) => {
 exports.createBulkAttendance = catchAsync(async (req, res) => {
   const attendanceRecords = req.body;
   console.log(req.body);
+  console.log(req.body);
   if (!Array.isArray(attendanceRecords) || attendanceRecords.length === 0) {
     throw createError(400, "Please provide an array of attendance records");
   }
+  for (const record of attendanceRecords) {
+    console.log(record.checkOut);
+    const userAttendance = await Attendance.findOne({
+      employee: new mongoose.Types.ObjectId(record.employee),
+      date: record.date,
+    });
+    if (userAttendance) {
+      if (record?.checkOut === undefined) {
+        await Attendance.updateOne(
+          {
+            employee: new mongoose.Types.ObjectId(record.employee),
+            date: record.date,
+          }, // filter
+          {
+            $set: {
+              "checkIn.times": [record.checkIn.time],
+              status: record.status,
+              notes: record.notes,
+              shift: record.shift,
+            },
+          }
+        );
+        res.status(201).json({
+          status: "success",
+        });
+      } else {
+        console.log("done");
+        await Attendance.updateOne(
+          {
+            employee: new mongoose.Types.ObjectId(record.employee),
+            date: record.date,
+          }, // filter
+          {
+            $set: {
+              "checkOut.times": [record.checkOut.time],
+              status: record.status,
+              notes: record.notes,
+              shift: record.shift,
+            },
+          }
+        );
+        res.status(201).json({
+          status: "success",
+        });
+      }
+    } else {
+      if (record?.checkOut === undefined) {
+        await Attendance.create({
+          employee: record.employee,
+          date: record.date,
+          totalSign: 0,
+          lateHours: 0,
+          lateMinutes: 0,
+          checkIn: {
+            times: [record.checkIn.time],
+            device: "Web",
+            ipAddress: "OK",
+          },
+          status: record.status,
+          notes: record.notes,
+          shift: record.shift,
+          workHours: 0, // Initialize work hours as 0
+          workMinutes: 0,
+          createdBy: req.user._id,
+          updatedBy: req.user._id,
+        });
+        res.status(201).json({
+          status: "success",
+        });
+      } else {
+        await Attendance.create({
+          employee: record.employee,
+          date: record.date,
+          totalSign: 0,
+          lateHours: 0,
+          lateMinutes: 0,
+          checkIn: {
+            times: [record.checkOut.time],
+            device: "Web",
+            ipAddress: "OK",
+          },
+          status: record.present,
+          notes: record.notes,
+          shift: record.shift,
+          workHours: 0, // Initialize work hours as 0
+          workMinutes: 0,
+          createdBy: req.user._id,
+          updatedBy: req.user._id,
+        });
+        res.status(201).json({
+          status: "success",
+        });
+      }
+    }
+  }
+  res.status(201).json({
+    status: "success",
+  });
+  return;
   for (const record of attendanceRecords) {
     console.log(record.checkOut);
     const userAttendance = await Attendance.findOne({
@@ -524,7 +624,39 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
   return Math.max(0, Math.round(diffInHours * 100) / 100); // Round to 2 decimal places, ensure non-negative
 };
 exports.createAttendance = catchAsync(async (req, res) => {
+  function getISTParts(date) {
+    const fmt = new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const parts = fmt.formatToParts(date);
+    return {
+      isthour: Number(parts.find((p) => p.type === "hour").value),
+      istminute: Number(parts.find((p) => p.type === "minute").value),
+    };
+  }
+
+  // usage:
   let today = new Date(req.body.now);
+  const { isthour, istminute } = getISTParts(today);
+  console.log(isthour, istminute);
+  if (isthour > 9 || (isthour === 9 && istminute > 0)) {
+    console.log("Later than 9:00 AM IST");
+  } else {
+    console.log("Before or equal 9:00 AM IST");
+  }
+  // 5 hrs 30 mins in milliseconds
+  const offset530 = (5 * 60 + 30) * 60 * 1000;
+
+  // shift the date
+  const istDate = new Date(today.getTime() + offset530);
+
+  // console.log("Original (UTC/local):", dummy);
+  // console.log("Shifted (+5:30 hrs):", istDate);
+  // const istDate = new Date(today.getTime() + 330 * 60 * 1000);
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const day = today.getDate();
@@ -547,7 +679,6 @@ exports.createAttendance = catchAsync(async (req, res) => {
     day
   ).padStart(2, "0")}`;
   // console.log(formattedDate);
-  const istDate = new Date(today.getTime() + 330 * 60 * 1000);
   today.setDate(today.getDate() + 1);
   today.setHours(0, 0, 0, 0); // hours, minutes, seconds, milliseconds = 0
   let nineAM = new Date();
@@ -558,11 +689,8 @@ exports.createAttendance = catchAsync(async (req, res) => {
     employee: req.user._id,
     date: formattedDate,
   });
-  // console.log(result);
-  if (
-    istDate.getHours() > 9 ||
-    (istDate.getHours() === 9 && istDate.getMinutes() > 0)
-  ) {
+  // console.log("Shifted (+5:30 hrs):", istDate);
+  if (isthour > 9 || (isthour === 9 && istminute > 0)) {
     let diffMs = istDate - nineAM;
     let hours = Math.floor(diffMs / (1000 * 60 * 60));
     let minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
