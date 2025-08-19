@@ -192,6 +192,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   // Get the reason why employee can't be selected
   const getEmployeeSelectionStatus = (employeeId) => {
     const existingRecord = getExistingAttendanceRecord(employeeId);
+    console.log(existingRecord);
     if (formData.type === "checkOut") {
       if (existingRecord === undefined) {
         return { canSelect: false, reason: "No check-in record found" };
@@ -215,7 +216,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     // For working statuses
     if (workingStatuses.includes(currentStatus)) {
       if (currentType === "checkIn") {
-       if (existingRecord.checkIn.times.length > 0) {
+        if (existingRecord.checkIn.times.length > 0) {
           return {
             canSelect: false,
             reason: `Check-in already marked (${existingRecord.status})`,
@@ -228,9 +229,8 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
           };
         }
       }
-
       if (currentType === "checkOut") {
-       if (
+        if (
           existingRecord === undefined ||
           existingRecord.checkIn.times.length === 0
         ) {
@@ -239,7 +239,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             reason: "No check-in record found",
           };
         }
-       if (existingRecord.checkOut.times.length > 0) {
+        if (existingRecord.checkOut.times.length > 0) {
           return {
             canSelect: false,
             reason: "Check-out already marked",
@@ -318,7 +318,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     if (!canSelectEmployee(employeeId)) {
       return;
     }
-
+    console.log(formData);
     const newSelected = checked
       ? [...formData.selectedEmployees, employeeId]
       : formData.selectedEmployees.filter((id) => id !== employeeId);
@@ -632,7 +632,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                     );
                     const canSelect = selectionStatus.canSelect;
                     const reason = selectionStatus.reason;
-
+                    console.log(selectionStatus);
                     return (
                       <div
                         key={employee._id}

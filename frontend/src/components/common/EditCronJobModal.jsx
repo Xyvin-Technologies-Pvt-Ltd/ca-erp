@@ -167,7 +167,7 @@ const EditCronJobModal = ({ data, isOpen, onClose, msg, id }) => {
                     onClick={updateCronJobData}
                     className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
                   >
-                    <svg
+                    {/* <svg
                       className="h-5 w-5 mr-2"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -175,11 +175,11 @@ const EditCronJobModal = ({ data, isOpen, onClose, msg, id }) => {
                     >
                       <path
                         strokeLinecap="round"
-                        strokeLinejoin="round"
+                        strokeLinejoin="rou
                         strokeWidth={2}
                         d="M5 13l4 4L19 7"
                       />
-                    </svg>
+                    </svg> */}
                     Update
                   </button>
                 </div>

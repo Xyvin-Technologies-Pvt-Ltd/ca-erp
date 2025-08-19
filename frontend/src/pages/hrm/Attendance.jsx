@@ -135,11 +135,16 @@ const Attendance = () => {
     setPage(1);
     fetchData(1).finally(() => setIsSearching(false));
   }, [searchName, selectedDate]);
-
+  // const searchedItem = async (page) => {
+  //   try {
+  //     const res = await getSearchedAttendance(searchName);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const fetchData = async (pageNum = page) => {
     // setLoading(true);
     try {
@@ -215,8 +220,8 @@ const Attendance = () => {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   const currentDate = `${year}-${month}-${day}`;
-  console.log("Current Date: attendnace", currentDate);
-
+  // console.log("Current Date: attendnace", currentDate);
+  console.log(attendance);
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -337,7 +342,10 @@ const Attendance = () => {
               <input
                 type="text"
                 value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
+                onChange={(e) => {
+                  console.log(e.target.value);
+                  setSearchName(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -474,6 +482,7 @@ const Attendance = () => {
               ) : (
                 <AnimatePresence>
                   {sortedAttendance.map((a, index) => {
+                    console.log(a);
                     const Icon = statusColors[a.status]?.icon;
                     return (
                       <motion.tr
@@ -496,7 +505,7 @@ const Attendance = () => {
                           {a.date ? moment(a.date).format("DD/MM/YYYY") : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                         {a.checkIn?.times[0]
+                          {a.checkIn?.times[0]
                             ? moment(a.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>

@@ -45,6 +45,7 @@ const Login = () => {
 
       const result = await login(data);
       const res = await checkIn({ now });
+      console.log("Y")
       if (res.beforeNine) {
         toast.error(res.msg);
       }
