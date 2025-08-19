@@ -510,10 +510,10 @@ const Attendance = () => {
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.checkOut?.times[a.totalSign]
-                            ? moment(a.checkOut.times[a.totalSign]).format(
-                                "h:mm A"
-                              )
+                          {a.checkOut?.times[0]
+                            ? moment(
+                                a.checkOut.times[a?.checkOut?.times.length - 1]
+                              ).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4">

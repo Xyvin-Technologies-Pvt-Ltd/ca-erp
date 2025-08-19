@@ -838,6 +838,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
 });
 
 exports.checkOut = catchAsync(async (req, res) => {
+  console.log("Called");
   let today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
@@ -850,8 +851,9 @@ exports.checkOut = catchAsync(async (req, res) => {
   );
   console.log(checkInAvailable);
   if (checkInAvailable === null) {
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
+      success: true,
     });
   }
   const userData = await User.findOne({
@@ -907,8 +909,9 @@ exports.checkOut = catchAsync(async (req, res) => {
     }
   );
   console.log("called");
-  res.status(201).json({
+  res.status(200).json({
     status: "success",
+    success: true,
   });
 
   return;
