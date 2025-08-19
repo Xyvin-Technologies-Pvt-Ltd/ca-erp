@@ -8,7 +8,7 @@ const useNotificationStore = create((set, get) => ({
   error: null,
   hideNotificationDropdown: false,
   manageNotiDrop: (sta) => {
-    set({ hideNotificationDropdown: false });
+    set({ hideNotificationDropdown: Boolean(sta) });
   },
   clearNotification: async () => {
     try {

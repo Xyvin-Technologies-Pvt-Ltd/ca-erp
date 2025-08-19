@@ -37,8 +37,15 @@ export const checkIn = async (data) => {
 // Check out
 export const checkOut = async () => {
   console.log("OKK");
-  const response = await api.post("/attendance/check-out");
-  return response.data;
+  try {
+    const response = await api.post("/attendance/check-out");
+    return response.data;
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      return { success: false, error: "checkout-endpoint-missing" };
+    }
+    throw error;
+  }
 };
 
 // Create bulk attendance records

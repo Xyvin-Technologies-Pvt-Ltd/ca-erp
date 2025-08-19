@@ -20,6 +20,13 @@ export const fetchDashboardData = async (userId) => {
       return Math.round(((current - previous) / previous) * 100);
     };
 
+    const extractAssignedId = (assignedTo) => {
+      if (assignedTo && typeof assignedTo === 'object') {
+        return assignedTo._id;
+      }
+      return assignedTo;
+    };
+
     //projects
     const [projects, tasksRes, usersRes] = await Promise.all([
       projectsApi.getAllProjects({ limit: 100 }),
@@ -44,7 +51,7 @@ export const fetchDashboardData = async (userId) => {
     }));
 
     const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
-      const status = task.status.toLowerCase();
+      const status = (task.status || '').toLowerCase();
       
       let statusKey;
       switch (status) {
@@ -87,7 +94,7 @@ export const fetchDashboardData = async (userId) => {
       cancelled: 0,
     };
     tasksRes.tasks.forEach((task) => {
-      const status = task.status.toLowerCase();
+      const status = (task.status || '').toLowerCase();
       if (status === 'completed') taskCounts.completed++;
       else if (status === 'pending') taskCounts.pending++;
       else if (status === 'in-progress' || status === 'inprogress') taskCounts.inProgress++;
@@ -110,7 +117,7 @@ export const fetchDashboardData = async (userId) => {
       totalRevenue = tasksRes.tasks.reduce((acc, task) => acc + (task.amount || 0), 0);
     } else if (userId) {
       totalRevenue = tasksRes.tasks.reduce((acc, task) => {
-        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        const assignedId = extractAssignedId(task.assignedTo);
         if (assignedId === userId) {
           return acc + (task.amount || 0);
         }
@@ -120,9 +127,9 @@ export const fetchDashboardData = async (userId) => {
 
     let verificationTasksCount = 0;
       verificationTasksCount = tasksRes.tasks.filter(task => 
-        (task.title === 'Project Verification Task' || task.status.toLowerCase() === 'verificationpending' || task.status.toLowerCase() === 'verification-pending') &&
-        task.status.toLowerCase() !== 'completed' &&
-        (typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo) === userId
+        (task?.title === 'Project Verification Task' || (task?.status || '').toLowerCase() === 'verificationpending' || (task?.status || '').toLowerCase() === 'verification-pending') &&
+        (task?.status || '').toLowerCase() !== 'completed' &&
+        extractAssignedId(task.assignedTo) === userId
       ).length;
     
     const now = new Date();
@@ -172,7 +179,7 @@ export const fetchDashboardData = async (userId) => {
       if (userRole === 'admin' || userRole === 'manager') {
         include = true;
       } else if (userId) {
-        const assignedId = typeof task.assignedTo === 'object' ? task.assignedTo._id : task.assignedTo;
+        const assignedId = extractAssignedId(task.assignedTo);
         include = assignedId === userId;
       }
       if (monthlyMap[key] && include) {
