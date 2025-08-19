@@ -120,7 +120,7 @@ const attendanceSchema = new mongoose.Schema(
     },
     leaveType: {
       type: String,
-      enum: ["Annual", "Sick", "Personal", "Maternity", "Paternity", "Unpaid"],
+      enum: ["Other", "Sick", "Casual", "Emergency", "Exam", "Paid"],
       required: function () {
         return this.isLeave === true;
       },

@@ -19,6 +19,7 @@ const validationSchema = Yup.object({
 });
 
 const LeaveModal = ({ leave, onClose, onSuccess }) => {
+  console.log(leave.leaveType)
   const { user } = useAuth();
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -49,6 +50,7 @@ const LeaveModal = ({ leave, onClose, onSuccess }) => {
             await reviewLeave(leave._id, {
               status: values.status,
               reviewNotes: values.reviewNotes,
+              payload
             });
             toast.success(`Leave request ${values.status.toLowerCase()} successfully`);
           } else {
@@ -174,12 +176,11 @@ const handleCancel = () => {
                     {...formik.getFieldProps("leaveType")}
                   >
                     <option value="">Select Leave Type</option>
-                    <option value="Annual">Annual Leave</option>
                     <option value="Sick">Sick Leave</option>
-                    <option value="Personal">Personal Leave</option>
-                    <option value="Maternity">Maternity Leave</option>
-                    <option value="Paternity">Paternity Leave</option>
-                    <option value="Unpaid">Unpaid Leave</option>
+                    <option value="Casual">Casual Leave</option>
+                    <option value="Paid">Paid Leave</option>
+                    <option value="Emergency">Emergency Leave</option>
+                    <option value="Exam">Exam Leave</option>
                     <option value="Other">Other Leave</option>
                   </select>
                   {formik.touched.leaveType && formik.errors.leaveType && (

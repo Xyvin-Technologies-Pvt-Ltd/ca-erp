@@ -485,7 +485,26 @@ exports.deleteLeave = catchAsync(async (req, res) => {
 exports.reviewLeave = catchAsync(async (req, res) => {
   try {
     const { status, reviewNotes } = req.body;
+    const { leaveType, startDate, endDate, employee } = req.body.payload;
+    console.log(req.body);
+    const date1 = new Date(startDate);
+    const date2 = new Date(endDate);
 
+    const diffInMs = date2 - date1; // difference in milliseconds
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    let count = diffInDays + 1;
+    if (status === "Rejected") {
+      if (leaveType === "Casual") {
+        await User.findOneAndUpdate(
+          { _id: new mongoose.Types.ObjectId(employee) },
+          { $inc: { casual: count } },
+          {
+            new: true,
+          }
+        );
+      }
+    }
     // Validate required fields
     if (!status) {
       throw createError(400, "Status is required");
