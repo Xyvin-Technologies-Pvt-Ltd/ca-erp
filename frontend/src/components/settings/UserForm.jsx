@@ -77,14 +77,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         workType: user.workType || "onsite",
         verificationStaff: user.verificationStaff || false,
       });
+      setHandleRole(user.emp_status);
     }
   }, [user, reset, dataLoaded]);
 
   const submitHandler = (data) => {
     if (isEditMode && user && user._id) {
-      onSubmit({ ...data, _id: user._id });
+      onSubmit({ ...data, _id: user._id, emp_status: handleRole });
     } else {
-      onSubmit(data,handleRole);
+      onSubmit(data, handleRole);
     }
   };
 
@@ -361,8 +362,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                   </label>
                   <select
                     id="status"
-                   onChange={(e)=>setHandleRole(e.target.value)}
-                   value={handleRole}
+                    onChange={(e) => setHandleRole(e.target.value)}
+                    value={handleRole}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
                     <option value="">Status</option>

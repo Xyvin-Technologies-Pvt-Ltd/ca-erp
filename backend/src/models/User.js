@@ -82,6 +82,7 @@ const UserSchema = new mongoose.Schema({
   },
   emp_status: {
     type: String,
+    default:"Permanent"
   },
   name: {
     type: String,

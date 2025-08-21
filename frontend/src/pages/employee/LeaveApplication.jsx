@@ -71,7 +71,7 @@ const LeaveApplication = () => {
           return;
         }
         const CasualLeaveTaken = await casualLeaveAvailable();
-        console.log(CasualLeaveTaken?.data?.data?.emp_status);
+        console.log(CasualLeaveTaken?.data?.data?.casual);
         setAvailableCasualLeaves(CasualLeaveTaken?.data?.data?.casual);
         const leaveResponse = await getMyLeaves();
         let leavesData = [];
@@ -244,9 +244,34 @@ const LeaveApplication = () => {
 
       setRecentApplications(sortedApplications);
 
-     if (CasualLeaveTaken?.data?.data?.emp_status === "Probation") {
+      if (CasualLeaveTaken?.data?.data?.emp_status === "Probation") {
+        const balanceCalculation = {
+          sick: { total: 7, used: 0, pending: 0 },
+          paid: { total: 10, used: 0, pending: 0 },
+          Emergency: { total: 14, used: 0, pending: 0 },
+          Exam: { total: 14, used: 0, pending: 0 },
+          others: { total: 0, used: 0, pending: 0 },
+        };
+        sortedApplications.forEach((app) => {
+          const type = app.type.toLowerCase().replace(" leave", "");
+          if (balanceCalculation[type]) {
+            if (app.status === "Approved") {
+              balanceCalculation[type].used +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            } else if (app.status === "Pending") {
+              balanceCalculation[type].pending +=
+                moment(app.to).diff(moment(app.from), "days") + 1;
+            }
+          }
+        });
+
+        setLeaveBalance(balanceCalculation);
+        setIsLoading(false);
+      } else {
+        if (CasualLeaveTaken?.data?.data.casual === 0) {
           const balanceCalculation = {
             sick: { total: 7, used: 0, pending: 0 },
+            casual: { total: 1, used: 0, pending: 0 },
             paid: { total: 10, used: 0, pending: 0 },
             Emergency: { total: 14, used: 0, pending: 0 },
             Exam: { total: 14, used: 0, pending: 0 },
@@ -268,56 +293,31 @@ const LeaveApplication = () => {
           setLeaveBalance(balanceCalculation);
           setIsLoading(false);
         } else {
-          if (CasualLeaveTaken?.data?.data.casual === 0) {
-            const balanceCalculation = {
-              sick: { total: 7, used: 0, pending: 0 },
-              casual: { total: 1, used: 0, pending: 0 },
-              paid: { total: 10, used: 0, pending: 0 },
-              Emergency: { total: 14, used: 0, pending: 0 },
-              Exam: { total: 14, used: 0, pending: 0 },
-              others: { total: 0, used: 0, pending: 0 },
-            };
-            sortedApplications.forEach((app) => {
-              const type = app.type.toLowerCase().replace(" leave", "");
-              if (balanceCalculation[type]) {
-                if (app.status === "Approved") {
-                  balanceCalculation[type].used +=
-                    moment(app.to).diff(moment(app.from), "days") + 1;
-                } else if (app.status === "Pending") {
-                  balanceCalculation[type].pending +=
-                    moment(app.to).diff(moment(app.from), "days") + 1;
-                }
+          // setcasualLeaveIsHidden(false);
+          const balanceCalculation = {
+            sick: { total: 7, used: 0, pending: 0 },
+            casual: { total: 1, used: 0, pending: 0 },
+            paid: { total: 10, used: 0, pending: 0 },
+            Emergency: { total: 14, used: 0, pending: 0 },
+            Exam: { total: 14, used: 0, pending: 0 },
+            others: { total: 0, used: 0, pending: 0 },
+          };
+          sortedApplications.forEach((app) => {
+            const type = app.type.toLowerCase().replace(" leave", "");
+            if (balanceCalculation[type]) {
+              if (app.status === "Approved") {
+                balanceCalculation[type].used +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
+              } else if (app.status === "Pending") {
+                balanceCalculation[type].pending +=
+                  moment(app.to).diff(moment(app.from), "days") + 1;
               }
-            });
-
-            setLeaveBalance(balanceCalculation);
-            setIsLoading(false);
-          } else {
-            // setcasualLeaveIsHidden(false);
-            const balanceCalculation = {
-              sick: { total: 7, used: 0, pending: 0 },
-              casual: { total: 1, used: 0, pending: 0 },
-              paid: { total: 10, used: 0, pending: 0 },
-              Emergency: { total: 14, used: 0, pending: 0 },
-              Exam: { total: 14, used: 0, pending: 0 },
-              others: { total: 0, used: 0, pending: 0 },
-            };
-            sortedApplications.forEach((app) => {
-              const type = app.type.toLowerCase().replace(" leave", "");
-              if (balanceCalculation[type]) {
-                if (app.status === "Approved") {
-                  balanceCalculation[type].used +=
-                    moment(app.to).diff(moment(app.from), "days") + 1;
-                } else if (app.status === "Pending") {
-                  balanceCalculation[type].pending +=
-                    moment(app.to).diff(moment(app.from), "days") + 1;
-                }
-              }
-            });
-            setLeaveBalance(balanceCalculation);
-            setIsLoading(false);
-          }
+            }
+          });
+          setLeaveBalance(balanceCalculation);
+          setIsLoading(false);
         }
+      }
     } catch (error) {
       console.error("Error refreshing leave data:", error);
     }
@@ -661,6 +661,7 @@ const LeaveApplication = () => {
       </div>
     );
   };
+  console.log(availableCasualLeaves+"leaves");
 
   if (isLoading) {
     return (

@@ -238,7 +238,7 @@ exports.createUser = async (req, res, next) => {
       console.log("2");
       userData = {
         ...req.body.userData,
-        emp_status: req.body.status,
+        emp_status: "Permanent",
         department: departmentId,
         position: positionId,
         casual: 1,
@@ -274,28 +274,44 @@ exports.createUser = async (req, res, next) => {
  */
 exports.updateUser = async (req, res, next) => {
   try {
+    console.log(req.body.emp_status);
+    console.log(req.body.userData);
+    const emp_status = req.body.emp_status;
+    const userOldData = await User.findOne({
+      _id: new mongoose.Types.ObjectId(req.body.userData._id),
+    });
+    console.log(userOldData);
+    if (userOldData.emp_status === "Probation" && emp_status === "Permanent") {
+      await User.updateOne(
+        {
+          _id: new mongoose.Types.ObjectId(req.body.userData._id),
+        },
+        { $inc: { casual: 1 } },
+        { $set: { emp_status: "Permanent" } }
+      );
+    }
     const existingUser = await User.findById(req.params.id);
     if (!existingUser) {
       return next(new ErrorResponse("User not found", 404));
     }
 
-    if (req.body.email && req.body.email !== existingUser.email) {
-      const emailExists = await User.findOne({ email: req.body.email });
+    if (req.body.userData.email && req.body.userData.email !== existingUser.email) {
+      const emailExists = await User.findOne({ email: req.body.userData.email });
       if (emailExists) {
         return next(new ErrorResponse("Email already in use", 400));
       }
     }
 
     // Validate required fields
-    if (!req.body.department) {
+    if (!req.body.userData.department) {
       return next(new ErrorResponse("Department is required", 400));
     }
-    if (!req.body.position) {
+    if (!req.body.userData.position) {
       return next(new ErrorResponse("Position is required", 400));
     }
     if (
-      req.body.workType &&
-      !["onsite", "remote"].includes(req.body.workType)
+      req.body.userData.workType &&
+      !["onsite", "remote"].includes(req.body.userData.workType)
     ) {
       return next(
         new ErrorResponse('Work type must be either "onsite" or "remote"', 400)
@@ -311,14 +327,14 @@ exports.updateUser = async (req, res, next) => {
     // }
 
     const updateData = {
-      ...req.body,
-      department: req.body.department,
-      position: req.body.position,
+      ...req.body.userData,
+      department: req.body.userData.department,
+      position: req.body.userData.position,
     };
 
-    if (req.body.password) {
+    if (req.body.userData.password) {
       const salt = await bcrypt.genSalt(10);
-      updateData.password = await bcrypt.hash(req.body.password, salt);
+      updateData.password = await bcrypt.hash(req.body.userData.password, salt);
     }
 
     // First verify that department and position exist
@@ -341,10 +357,10 @@ exports.updateUser = async (req, res, next) => {
     }
 
     if (
-      req.body.verificationStaff !== undefined &&
-      req.body.verificationStaff !== existingUser.verificationStaff
+      req.body.userData.verificationStaff !== undefined &&
+      req.body.userData.verificationStaff !== existingUser.verificationStaff
     ) {
-      const status = req.body.verificationStaff ? "activated" : "deactivated";
+      const status = req.body.userData.verificationStaff ? "activated" : "deactivated";
       logger.info(
         `Verification staff status ${status} for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
       );

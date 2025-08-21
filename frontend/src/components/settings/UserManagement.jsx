@@ -90,7 +90,7 @@ const UserManagement = () => {
 
   const handleEditUser = async (userData) => {
     try {
-      await userApi.updateUser(userData._id, userData);
+      await userApi.updateUser(userData._id, userData,userData.emp_status);
       toast.success("User updated successfully!");
       await loadUsers();
       setShowEditModal(false);

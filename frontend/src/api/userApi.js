@@ -21,8 +21,11 @@ export const userApi = {
     return response.data;
   },
 
-  updateUser: async (id, userData) => {
-    const response = await axiosInstance.put(`/users/${id}`, userData);
+  updateUser: async (id, userData, emp_status) => {
+    const response = await axiosInstance.put(`/users/${id}`, {
+      userData,
+      emp_status,
+    });
     return response.data;
   },
 
