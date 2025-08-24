@@ -261,6 +261,23 @@ exports.executeCronJob = async (req, res, next) => {
             });
         }
 
+        // Prevent execution before the start date
+        const now = new Date();
+        if (now < cronJob.startDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Cannot execute before the start date.'
+            });
+        }
+
+        // Prevent duplicate initial execution
+        if (cronJob.lastRun && new Date(cronJob.lastRun) >= new Date(cronJob.startDate)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Initial project has already been created.'
+            });
+        }
+
         // Create project
         const projectData = {
             name: cronJob.name,
