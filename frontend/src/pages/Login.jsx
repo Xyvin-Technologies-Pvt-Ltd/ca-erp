@@ -108,8 +108,8 @@ const Login = () => {
             <button
               type="button"
               onClick={togglePasswordVisibility}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#1c6ead] transition-colors duration-200"
-              style={{ top: "60%", transform: "translateY(-25%)" }}
+              className="absolute right-0 pr-3 flex items-center text-slate-400 hover:text-[#1c6ead] transition-colors duration-200"
+              style={{ top: "2.24rem" }} // Fixed offset to align with input field
             >
               {showPassword ? (
                 <EyeIcon className="h-5 w-5" aria-hidden="true" />
