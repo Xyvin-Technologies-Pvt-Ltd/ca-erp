@@ -425,7 +425,7 @@ const ClientList = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Client Management
           </h1>
           <p className="text-gray-600 text-lg">

@@ -202,7 +202,7 @@ const EmployeeAttendance = () => {
       >
         <div className="flex items-center space-x-3">
           <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
-          <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Attendance</h1>
         </div>
         <div
           className={
