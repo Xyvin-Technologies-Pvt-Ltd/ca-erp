@@ -203,17 +203,21 @@ class VerificationService {
 
             await verificationTask.save();
 
-            // Create notification for the assigned verification staff
             try {
+                let senderUser = null;
+                try {
+                    senderUser = await User.findById(createdBy).select('name email');
+                } catch (_) {
+                }
+
                 const notification = await Notification.create({
                     user: assignedTo._id,
                     sender: createdBy,
-                    title: 'New Verification Task Assigned',
+                    title: `New Task Assigned: Project Verification Task`,
                     message: `You have been assigned a verification task for project: ${project.name}`,
-                    type: 'VERIFICATION_TASK_ASSIGNED'
+                    type: 'TASK_ASSIGNED'
                 });
 
-                // Send WebSocket notification
                 websocketService.sendToUser(assignedTo._id.toString(), {
                     type: 'notification',
                     data: {
@@ -223,7 +227,13 @@ class VerificationService {
                         type: notification.type,
                         read: notification.read,
                         createdAt: notification.createdAt,
+                        sender: senderUser
+                            ? { _id: createdBy, name: senderUser.name, email: senderUser.email }
+                            : { _id: createdBy },
                         taskId: verificationTask._id,
+                        taskNumber: verificationTask.taskNumber,
+                        priority: verificationTask.priority,
+                        status: verificationTask.status,
                         projectId: projectId
                     }
                 });
