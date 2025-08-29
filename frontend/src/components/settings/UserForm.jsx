@@ -5,7 +5,7 @@ import { userApi } from "../../api/userApi";
 import { getDepartments } from "../../api/department.api";
 import { getPositions } from "../../api/positions.api";
 import { toast } from "react-toastify";
-import { X, UserPlus, UserCog } from "lucide-react";
+import { X, UserPlus, UserCog, Eye, EyeOff } from "lucide-react";
 
 const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [handleRole, setHandleRole] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -254,7 +256,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     {...register("role", { required: "Role is required" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
-                    <option value="">Select a role</option>
+                    <option value="" disabled>
+                      Select a role
+                    </option>
                     <option value={ROLES.ADMIN}>Administrator</option>
                     <option value={ROLES.MANAGER}>Manager</option>
                     <option value={ROLES.FINANCE}>Finance</option>
@@ -281,7 +285,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
-                    <option value="">Select a department</option>
+                    <option value="" disabled>
+                      Select a department
+                    </option>
                     {departments.length > 0 ? (
                       departments.map((dept) => (
                         <option key={dept._id} value={dept._id}>
@@ -313,7 +319,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
-                    <option value="">Select a position</option>
+                    <option value="" disabled>
+                      Select a position
+                    </option>
                     {positions.length > 0 ? (
                       positions.map((pos) => (
                         <option key={pos._id} value={pos._id}>
@@ -366,7 +374,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     value={handleRole}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
                   >
-                    <option value="">Status</option>
+                    <option value="" disabled>
+                      Status
+                    </option>
                     {status.length > 0 ? (
                       status.map((pos, id) => (
                         <option key={id} value={pos}>
@@ -434,18 +444,28 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                         >
                           New Password <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          id="newPassword"
-                          type="password"
-                          {...register("password", {
-                            required: "New password is required",
-                            minLength: {
-                              value: 6,
-                              message: "Password must be at least 6 characters",
-                            },
-                          })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
-                        />
+                        <div className="relative">
+                          <input
+                            id="newPassword"
+                            type={showPassword ? "text" : "password"}
+                            {...register("password", {
+                              required: "New password is required",
+                              minLength: {
+                                value: 6,
+                                message: "Password must be at least 6 characters",
+                              },
+                            })}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
                         {errors.password && (
                           <p className="mt-1 text-sm text-red-600">
                             {errors.password.message}
@@ -461,17 +481,31 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                           Confirm New Password{" "}
                           <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          id="confirmPassword"
-                          type="password"
-                          {...register("confirmPassword", {
-                            required: "Please confirm your new password",
-                            validate: (value) =>
-                              value === watch("password") ||
-                              "Passwords do not match",
-                          })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
-                        />
+                        <div className="relative">
+                          <input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            {...register("confirmPassword", {
+                              required: "Please confirm your new password",
+                              validate: (value) =>
+                                value === watch("password") ||
+                                "Passwords do not match",
+                            })}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword((v) => !v)}
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-5 w-5" />
+                            ) : (
+                              <Eye className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
                         {errors.confirmPassword && (
                           <p className="mt-1 text-sm text-red-600">
                             {errors.confirmPassword.message}
@@ -492,18 +526,28 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     >
                       Password <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="password"
-                      type="password"
-                      {...register("password", {
-                        required: "Password is required",
-                        minLength: {
-                          value: 6,
-                          message: "Password must be at least 6 characters",
-                        },
-                      })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
-                    />
+                    <div className="relative">
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        {...register("password", {
+                          required: "Password is required",
+                          minLength: {
+                            value: 6,
+                            message: "Password must be at least 6 characters",
+                          },
+                        })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.password.message}
@@ -518,17 +562,31 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                     >
                       Confirm Password <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      id="confirmPassword"
-                      type="password"
-                      {...register("confirmPassword", {
-                        required: "Please confirm your password",
-                        validate: (value) =>
-                          value === watch("password") ||
-                          "Passwords do not match",
-                      })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
-                    />
+                    <div className="relative">
+                      <input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        {...register("confirmPassword", {
+                          required: "Please confirm your password",
+                          validate: (value) =>
+                            value === watch("password") ||
+                            "Passwords do not match",
+                        })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                     {errors.confirmPassword && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.confirmPassword.message}
