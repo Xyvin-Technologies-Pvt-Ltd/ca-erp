@@ -84,7 +84,7 @@ const navigation = [
       {
         name: "Leaves",
         to: ROUTES.HRM_LEAVES,
-        icon: Folder,
+        icon: Calendar,
       },
     ],
   },

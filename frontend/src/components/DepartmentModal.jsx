@@ -119,7 +119,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                 </p>
               </div>
             </div>
-            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -139,7 +139,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department Name*</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department Name <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -150,12 +150,11 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="e.g. Human Resources"
                     />
-                    <BuildingOffice2Icon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department Code*</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department Code <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -166,7 +165,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       placeholder="e.g. DEP001"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none"
                     />
-                    <CodeBracketIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
 
@@ -181,7 +179,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                       placeholder="e.g. Building A, Floor 3"
                     />
-                    <MapPinIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
               </div>
@@ -208,7 +205,6 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                     placeholder="Enter department description"
                   ></textarea>
-                  <DocumentTextIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">Department details or notes</p>
@@ -252,7 +248,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:bg-[#1557a0] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:bg-blue-300 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -284,7 +280,7 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
               <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
               <button
                 onClick={cancelDiscard}
-                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-1 transition-all duration-200"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>

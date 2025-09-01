@@ -91,7 +91,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                 </p>
               </div>
             </div>
-            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -181,7 +181,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:bg-[#1557a0] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:bg-blue-300 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">

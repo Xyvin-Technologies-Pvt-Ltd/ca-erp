@@ -147,7 +147,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                 </p>
               </div>
             </div>
-            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -167,7 +167,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Title *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Title <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -178,11 +178,10 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       placeholder="e.g. Software Engineer"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
-                    <BriefcaseIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Code *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Code <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -193,11 +192,10 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       placeholder="e.g. POS001"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none"
                     />
-                    <CodeBracketIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       name="department"
@@ -206,16 +204,15 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     >
-                      <option value="">Select Department</option>
+                      <option value="" disabled>Select Department</option>
                       {departments.map((dept) => (
                         <option key={dept._id} value={dept._id}>{dept.name}</option>
                       ))}
                     </select>
-                    <BuildingOffice2Icon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employment Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Employment Type <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       name="employmentType"
@@ -229,11 +226,10 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       <option value="Contract">Contract</option>
                       <option value="Intern">Intern</option>
                     </select>
-                    <UserGroupIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Level *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Position Level <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -245,11 +241,10 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       placeholder="e.g. 1"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
-                    <AcademicCapIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Positions *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Positions <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       type="text"
@@ -261,7 +256,6 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                       placeholder="e.g. 1"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     />
-                    <UserGroupIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
                 </div>
               </div>
@@ -277,7 +271,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <textarea
                     name="description"
@@ -289,7 +283,6 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                     placeholder="Enter position description..."
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                   ></textarea>
-                  <DocumentTextIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">Position details or overview</p>
@@ -301,7 +294,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Responsibilities *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Responsibilities <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <textarea
                       name="responsibilities"
@@ -322,7 +315,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Requirements *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Requirements <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <textarea
                       name="requirements"
@@ -375,7 +368,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:from-blue-300 disabled:to-blue-400 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:bg-[#1557a0] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:bg-blue-300 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -407,7 +400,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
               <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
               <button
                 onClick={cancelDiscard}
-                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-1 transition-all duration-200"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
