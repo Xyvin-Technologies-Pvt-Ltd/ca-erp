@@ -12,6 +12,7 @@ import {
 import { createBulkAttendance, getAttendance } from "../api/attendance";
 import { userApi } from "../api/userApi";
 import moment from "moment-timezone";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 moment.tz.setDefault("UTC");
 
