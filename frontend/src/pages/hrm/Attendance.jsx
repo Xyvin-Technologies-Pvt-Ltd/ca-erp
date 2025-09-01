@@ -293,7 +293,7 @@ const Attendance = () => {
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${
                   statusColors[s.key].border
-                } hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
+                } hover:shadow-md hover:-translate-y-1 transition-all duration-300 `}
                 whileHover={{ scale: 1.02 }}
               >
                 <div
