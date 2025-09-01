@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  BookmarkIcon as XMarkIcon,
+  X,
   CheckIcon,
   ClockIcon,
   AirplayIcon as PaperAirplaneIcon,
@@ -51,7 +51,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     ),
     "Half-Day": <CalendarDaysIcon className="h-4 w-4 text-blue-800" />,
     "On-Leave": <PaperAirplaneIcon className="h-4 w-4 text-purple-800" />,
-    Absent: <XMarkIcon className="h-4 w-4 text-red-800" />,
+    Absent: <X className="h-4 w-4 text-red-800" />,
     Holiday: <CalendarDaysIcon className="h-4 w-4 text-pink-800" />,
     "Day-Off": <MoonIcon className="h-4 w-4 text-gray-800" />,
   };
@@ -440,7 +440,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             onClick={handleCancel}
             className="text-gray-500 hover:text-gray-700"
           >
-            <XMarkIcon className="h-6 w-6" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 

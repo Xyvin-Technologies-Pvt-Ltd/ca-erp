@@ -352,7 +352,7 @@ const Attendance = () => {
                   }
                 }}
                 placeholder="Enter employee name..."
-                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 ${
+                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead]  transition-all duration-300 ${
                   isSearching ? "animate-pulse" : ""
                 }`}
               />
@@ -384,7 +384,7 @@ const Attendance = () => {
                     e.preventDefault();
                   }
                 }}
-                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 cursor-pointer"
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 cursor-pointer"
               />
               <CalendarDaysIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
