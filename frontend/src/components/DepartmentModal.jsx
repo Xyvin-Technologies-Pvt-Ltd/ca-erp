@@ -161,10 +161,10 @@ const DepartmentModal = ({ isOpen, onClose, onSuccess, department }) => {
                       type="text"
                       name="code"
                       value={formData.code}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                      readOnly
+                      disabled
                       placeholder="e.g. DEP001"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none"
                     />
                     <CodeBracketIcon className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>

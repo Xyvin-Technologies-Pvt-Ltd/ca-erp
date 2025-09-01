@@ -15,12 +15,12 @@ const departmentSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
+        required: false,
         trim: true
     },
     location: {
         type: String,
-        required: true,
+        required: false,
         trim: true
     },
     

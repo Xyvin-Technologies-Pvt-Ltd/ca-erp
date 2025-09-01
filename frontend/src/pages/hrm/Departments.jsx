@@ -181,8 +181,14 @@ const Departments = () => {
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                                     <div className="flex items-center space-x-2">
-                                                        <MapPinIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
-                                                        {department.location}
+                                                        {department.location ? (
+                                                            <>
+                                                                <MapPinIcon className="h-5 w-5 text-[#1c6ead] mr-1" />
+                                                                {department.location}
+                                                            </>
+                                                        ) : (
+                                                            'N/A'
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
