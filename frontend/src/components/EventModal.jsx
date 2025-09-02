@@ -91,7 +91,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
                 </p>
               </div>
             </div>
-            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200">
+            <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200 cursor-pointer">
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
@@ -174,14 +174,14 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:bg-[#1557a0] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:bg-blue-300 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium"
+                className="px-6 py-3 bg-[#1c6ead] text-white rounded-lg hover:bg-[#1557a0] focus:outline-none focus:ring-2 focus:ring-[#1c6ead] disabled:bg-blue-300 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none font-medium cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -216,7 +216,7 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
             <h3 className="text-lg font-semibold text-gray-800">Discard Changes?</h3>
             <button
               onClick={cancelDiscard}
-              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200 cursor-pointer"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -227,13 +227,13 @@ const EventModal = ({ isOpen, onClose, onSuccess, event }) => {
           <div className="flex justify-end space-x-4">
             <button
               onClick={cancelDiscard}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={confirmDiscard}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium cursor-pointer"
             >
               Discard
             </button>
