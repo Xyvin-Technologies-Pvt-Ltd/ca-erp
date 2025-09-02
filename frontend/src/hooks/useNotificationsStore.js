@@ -10,6 +10,13 @@ const useNotificationStore = create((set, get) => ({
   manageNotiDrop: (sta) => {
     set({ hideNotificationDropdown: Boolean(sta) });
   },
+  // alertTaskDueDate: async () => {
+  //   try {
+  //     await notificationsApi.alertTaskDueDate();
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // },
   clearNotification: async () => {
     try {
       await notificationsApi.deleteAllNotification();

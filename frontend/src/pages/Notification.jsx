@@ -33,10 +33,12 @@ const Notification = () => {
     deleteNotification,
     markAllAsRead,
     clearNotification,
+    // alertTaskDueDate
   } = useNotificationStore();
 
   const [filter, setFilter] = useState("all");
   const [tempError, setTempError] = useState(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -91,15 +93,22 @@ const Notification = () => {
       }
     };
   }, [fetchNotifications]);
-  const clearAllNotification = () => {
-    clearNotification();
+//   useEffect(()=>{
+// reminderForTaskDue()
+//   },[])
+//   const reminderForTaskDue=async()=>{
+// await alertTaskDueDate
+//   }
+  const clearAllNotification = async() => {
+    await clearNotification();
+    setOpen(false)
   };
   const filteredNotifications = notifications.filter((notification) => {
     if (filter === "unread") return !notification.read;
     if (filter === "read") return notification.read;
     return true;
   });
-
+// console.log(filteredNotifications)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -168,6 +177,36 @@ const Notification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {open && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+          {/* Modal Box */}
+          <div className="bg-white rounded-2xl shadow-lg w-96 p-6">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Confirm Delete
+            </h2>
+            <p className="text-gray-600 mt-2">
+              Are you sure you want to delete this item? This action cannot be
+              undone.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setOpen(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearAllNotification}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
@@ -295,7 +334,7 @@ const Notification = () => {
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <select
-                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                        className="appearance-none cursor-pointer  bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200 hover:border-gray-300"
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                       >
@@ -324,20 +363,20 @@ const Notification = () => {
                       <>
                         <button
                           onClick={markAllAsRead}
-                          className="inline-flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                          className="inline-flex cursor-pointer  items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700  text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                         >
                           <CheckCheck className="w-4 h-4" />
                           Mark All Read
                         </button>
-                        <button
-                          onClick={clearAllNotification}
-                          className="inline-flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Clear All
-                        </button>
                       </>
                     )}
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="inline-flex items-center cursor-pointer  gap-2 px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700  text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Clear All
+                    </button>
                   </div>
                 </div>
               </div>
@@ -365,15 +404,13 @@ const Notification = () => {
                 filteredNotifications.map((notification) => (
                   <div
                     key={notification._id}
-                    className={`bg-white rounded-2xl shadow-lg border-l-4 ${getNotificationBorderColor(
-                      notification.type
-                    )} overflow-hidden transition-all duration-200 hover:shadow-xl ${
+                    className={`bg-white  border-l-blue-500 hover:border-l-blue-700 rounded-2xl shadow-lg border-l-4  overflow-hidden  transition-all   transform hover:scale-105 duration-200 hover:shadow-xl ${
                       notification.read
                         ? "border-gray-100"
                         : "border-blue-200 bg-gradient-to-r from-blue-50/30 to-white"
                     }`}
                   >
-                    <div className="p-6">
+                    <div className="p-6  cursor-pointer ">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4 flex-1">
                           {/* Enhanced Icon */}

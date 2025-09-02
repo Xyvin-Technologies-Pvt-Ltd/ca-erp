@@ -12,7 +12,17 @@ export const notificationsApi = {
       );
     }
   },
-
+  //alert task due for employees
+  // alertTaskDueDate: async () => {
+  //   try {
+  //     const response = await api.get("/notifications/reminder-task-due");
+  //     return response.data;
+  //   } catch (error) {
+  //     throw new Error(
+  //       error.response?.data?.message || "Failed to fetch due notifications"
+  //     );
+  //   }
+  // },
   //delete all notifications
   deleteAllNotification: async () => {
     try {
