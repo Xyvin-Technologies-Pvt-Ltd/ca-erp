@@ -48,10 +48,12 @@ const attendanceSchema = new mongoose.Schema(
     workHours: {
       type: Number,
       default: 0,
+      set: (v) => (Number.isNaN(v) ? 0 : v), // 👈 replaces NaN with 0 automatically
     },
     workMinutes: {
       type: Number,
       default: 0,
+      set: (v) => (Number.isNaN(v) ? 0 : v), // 👈 replaces NaN with 0 automatically
     },
     lateHours: {
       type: Number,

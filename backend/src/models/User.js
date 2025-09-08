@@ -102,7 +102,7 @@ const UserSchema = new mongoose.Schema({
   },
   casual: {
     type: Number,
-    default: 1,
+    
   },
   incentive: {
     type: Map,

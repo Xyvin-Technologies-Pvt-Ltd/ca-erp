@@ -7,7 +7,7 @@ import { MdDelete } from "react-icons/md";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { TrashIcon } from "@heroicons/react/24/outline";
-
+import {ClipboardList} from "lucide-react";
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
   "in-progress": "bg-blue-100 text-blue-800",
@@ -199,8 +199,9 @@ const goToPrevTaskPage = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {currentTasks.map((task) => (
                 <tr key={task.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Link to={`/tasks/${task.id}`} className="text-blue-600 hover:text-blue-900">
+                  <td className="px-6 py-4 whitespace-nowrap flex gap-2 text-blue-600  hover:text-blue-900">
+                    <ClipboardList/>
+                    <Link to={`/tasks/${task.id}`} className="text-blue-600  hover:text-blue-900">
                       {task.title}
                     </Link>
                     {task.title === 'Project Verification Task' && (

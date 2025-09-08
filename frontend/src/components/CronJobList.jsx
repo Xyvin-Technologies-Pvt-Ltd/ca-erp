@@ -180,8 +180,8 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDeleteJob}
-        title="Delete Cron Job"
-        message={`Are you sure you want to delete the cron job "${deleteModal.cronJobName}"? This action cannot be undone.`}
+        title="Delete Auto Project"
+        message={`Are you sure you want to delete the Auto Project "${deleteModal.cronJobName}"? This action cannot be undone.`}
         itemName={deleteModal.cronJobName}
       />
       {editModal.isOpen && (
@@ -435,7 +435,7 @@ const CronJobList = ({ cronJobs, sections = [], onUpdate }) => {
                           </span>
                         </div>
                         <span className="text-sm font-medium text-gray-900">
-                          {formatDate(cronJob.createdAt)}
+                          {formatDate(cronJob.updatedAt)}
                         </span>
                       </div>
                     </div>

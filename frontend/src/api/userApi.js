@@ -10,6 +10,10 @@ export const userApi = {
       count: response.data.count,
     };
   },
+  lastMonthTotalMembersPersontage:async()=>{
+const res=await axiosInstance.get('/users/lastMonthTotalMembersPersontage')
+return res.data;
+  },
 
   getUserById: async (id) => {
     const response = await axiosInstance.get(`/users/${id}`);
@@ -22,6 +26,7 @@ export const userApi = {
   },
 
   updateUser: async (id, userData, emp_status) => {
+    console.log(userData)
     const response = await axiosInstance.put(`/users/${id}`, {
       userData,
       emp_status,

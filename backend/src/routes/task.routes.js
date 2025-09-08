@@ -1,32 +1,36 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
+const multer = require("multer");
 const {
-    getTasks,
-    getTask,
-    createTask,
-    updateTask,
-    deleteTask,
-    updateTaskStatus,
-    addTaskComment,
-    updateTaskTime,
-    getMyTasks,
-    markTaskAsInvoiced,
-    uploadTagDocument,
-    getTaskTagDocuments,
-    remindClientForDocument
-} = require('../controllers/task.controller');
+  getTasks,
+  getTask,
+  createTask,
+  updateTask,
+  deleteTask,
+  updateTaskStatus,
+  addTaskComment,
+  updateTaskTime,
+  getMyTasks,
+  markTaskAsInvoiced,
+  uploadTagDocument,
+  getTaskTagDocuments,
+  remindClientForDocument,
+  removeDoc,
+} = require("../controllers/task.controller");
 
-const { protect, authorize } = require('../middleware/auth');
-const { validate } = require('../middleware/validator');
-const { taskValidation } = require('../middleware/validator');
-const { uploadTaskFile, uploadTagDocument: uploadTagDocumentMiddleware } = require('../middleware/upload');
+const { protect, authorize } = require("../middleware/auth");
+const { validate } = require("../middleware/validator");
+const { taskValidation } = require("../middleware/validator");
+const {
+  uploadTaskFile,
+  uploadTagDocument: uploadTagDocumentMiddleware,
+} = require("../middleware/upload");
 const ensureFileArray = (req, res, next) => {
-    if (!req.body) req.body = {}; // Ensure body exists
-    req.body.file = req.file ? [req.file.filename] : []; // If file exists, assign filename array; else, empty array
-    next(); // Continue to next middleware (validation)
+  if (!req.body) req.body = {}; // Ensure body exists
+  req.body.file = req.file ? [req.file.filename] : []; // If file exists, assign filename array; else, empty array
+  next(); // Continue to next middleware (validation)
 };
-  
+
 /**
  * @swagger
  * /api/tasks/me:
@@ -71,9 +75,8 @@ const ensureFileArray = (req, res, next) => {
  *       401:
  *         description: Unauthorized
  */
-router.route('/me')
-    .get(protect, getMyTasks);
-
+router.route("/me").get(protect, getMyTasks);
+router.route("/removedoc/:id").put(removeDoc);
 /**
  * @swagger
  * /api/tasks:
@@ -159,42 +162,49 @@ router.route('/me')
  *       401:
  *         description: Unauthorized
  */
-router.route('/')
-    .get(protect, getTasks)
-    /**
-     * @swagger
-     * /api/tasks:
-     *   post:
-     *     summary: Create a new task
-     *     description: Create a new task
-     *     tags: [Tasks]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/TaskInput'
-     *     responses:
-     *       201:
-     *         description: Task created successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/Task'
-     *       400:
-     *         description: Bad request
-     *       401:
-     *         description: Unauthorized
-     */
-    .post(protect, uploadTaskFile.single('file'), ensureFileArray, validate(taskValidation.create), createTask);
-   
+router
+  .route("/")
+  .get(protect, getTasks)
+  /**
+   * @swagger
+   * /api/tasks:
+   *   post:
+   *     summary: Create a new task
+   *     description: Create a new task
+   *     tags: [Tasks]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/TaskInput'
+   *     responses:
+   *       201:
+   *         description: Task created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   $ref: '#/components/schemas/Task'
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   */
+  .post(
+    protect,
+    uploadTaskFile.single("file"),
+    ensureFileArray,
+    validate(taskValidation.create),
+    createTask
+  );
+
 /**
  * @swagger
  * /api/tasks/all:
@@ -223,7 +233,12 @@ router.route('/')
  *       401:
  *         description: Unauthorized
  */
-router.route('/all').get(protect, require('../controllers/task.controller').getAllTasksNoPagination);
+router
+  .route("/all")
+  .get(
+    protect,
+    require("../controllers/task.controller").getAllTasksNoPagination
+  );
 
 /**
  * @swagger
@@ -260,91 +275,92 @@ router.route('/all').get(protect, require('../controllers/task.controller').getA
  *       403:
  *         description: Not authorized to access this task
  */
-router.route('/:id')
-    .get(protect, getTask)
-    /**
-     * @swagger
-     * /api/tasks/{id}:
-     *   put:
-     *     summary: Update a task
-     *     description: Update a task by ID
-     *     tags: [Tasks]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: Task ID
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/TaskUpdateInput'
-     *     responses:
-     *       200:
-     *         description: Task updated successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/Task'
-     *       400:
-     *         description: Bad request
-     *       404:
-     *         description: Task not found
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Not authorized to update this task
-     */
-        .put(protect, uploadTaskFile.single('file'), updateTask)
+router
+  .route("/:id")
+  .get(protect, getTask)
+  /**
+   * @swagger
+   * /api/tasks/{id}:
+   *   put:
+   *     summary: Update a task
+   *     description: Update a task by ID
+   *     tags: [Tasks]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Task ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/TaskUpdateInput'
+   *     responses:
+   *       200:
+   *         description: Task updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   $ref: '#/components/schemas/Task'
+   *       400:
+   *         description: Bad request
+   *       404:
+   *         description: Task not found
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Not authorized to update this task
+   */
+  .put(protect, uploadTaskFile.single("file"), updateTask)
 
-    /**
-     * @swagger
-     * /api/tasks/{id}:
-     *   delete:
-     *     summary: Delete a task
-     *     description: Delete a task by ID (Admin only)
-     *     tags: [Tasks]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: Task ID
-     *     responses:
-     *       200:
-     *         description: Task deleted successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   type: object
-     *                 message:
-     *                   type: string
-     *       404:
-     *         description: Task not found
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Forbidden
-     */
-    .delete(protect, authorize('admin'), deleteTask);
+  /**
+   * @swagger
+   * /api/tasks/{id}:
+   *   delete:
+   *     summary: Delete a task
+   *     description: Delete a task by ID (Admin only)
+   *     tags: [Tasks]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Task ID
+   *     responses:
+   *       200:
+   *         description: Task deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                 message:
+   *                   type: string
+   *       404:
+   *         description: Task not found
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden
+   */
+  .delete(protect, authorize("admin"), deleteTask);
 
 /**
  * @swagger
@@ -394,8 +410,7 @@ router.route('/:id')
  *       403:
  *         description: Not authorized to update this task
  */
-router.route('/:id/status')
-    .put(protect, updateTaskStatus);
+router.route("/:id/status").put(protect, updateTaskStatus);
 
 /**
  * @swagger
@@ -461,8 +476,7 @@ router.route('/:id/status')
  *       401:
  *         description: Unauthorized
  */
-router.route('/:id/comments')
-    .post(protect, addTaskComment);
+router.route("/:id/comments").post(protect, addTaskComment);
 
 /**
  * @swagger
@@ -525,8 +539,7 @@ router.route('/:id/comments')
  *       403:
  *         description: Not authorized to update this task
  */
-router.route('/:id/time')
-    .put(protect, updateTaskTime);
+router.route("/:id/time").put(protect, updateTaskTime);
 
 /**
  * @swagger
@@ -575,8 +588,7 @@ router.route('/:id/time')
  *       403:
  *         description: Forbidden
  */
-router.route('/:id/invoice')
-    .put(protect,  markTaskAsInvoiced);
+router.route("/:id/invoice").put(protect, markTaskAsInvoiced);
 
 /**
  * @swagger
@@ -611,9 +623,10 @@ router.route('/:id/invoice')
  *       401:
  *         description: Unauthorized
  */
-router.route('/:id/tag-documents')
-    .get(protect, getTaskTagDocuments)
-    .post(protect, uploadTagDocumentMiddleware.single('file'), uploadTagDocument);
+router
+  .route("/:id/tag-documents")
+  .get(protect, getTaskTagDocuments)
+  .post(protect, uploadTagDocumentMiddleware.single("file"), uploadTagDocument);
 
 /**
  * @swagger
@@ -689,7 +702,6 @@ router.route('/:id/tag-documents')
  *       401:
  *         description: Unauthorized
  */
-router.route('/:id/remind-client')
-    .post(protect, remindClientForDocument);
+router.route("/:id/remind-client").post(protect, remindClientForDocument);
 
-module.exports = router; 
+module.exports = router;

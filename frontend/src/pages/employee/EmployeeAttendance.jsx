@@ -3,6 +3,7 @@ import { getMyAttendance } from "../../api/attendance";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
+import { Clock } from "lucide-react";
 import {
   CalendarIcon,
   ClockIcon,
@@ -201,7 +202,7 @@ const EmployeeAttendance = () => {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4"
       >
         <div className="flex items-center space-x-3">
-          <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
+          <Clock className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">My Attendance</h1>
         </div>
         <div
@@ -213,12 +214,12 @@ const EmployeeAttendance = () => {
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300"
+            className="border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-300 cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           />
-          <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 cursor-pointer" />
         </div>
       </motion.div>
       {/* Summary Cards */}
@@ -413,6 +414,7 @@ const EmployeeAttendance = () => {
                       "0"
                     )}`;
                     const att = attendanceByDate[dateStr];
+                    console.log(att)
                     const Icon = statusColors[att?.status]?.icon;
                     return (
                       <motion.tr
@@ -445,7 +447,9 @@ const EmployeeAttendance = () => {
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.workHours != null ? att.workHours : "-"}
+                          {att?.workHours != null 
+                            ? att.workHours+":"+att.workMinutes
+                            : "-"}
                         </td>
                         <td className="px-6 py-4">
                           <motion.span

@@ -65,14 +65,13 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const user = await userApi.getUserById(userId);
-        
         // Process the user data to handle nested objects
         const processedData = {
           ...user.data,
           department: user.data.department?.name || user.data.department || "",
           position: user.data.position?.title || user.data.position || "",
         };
-        
+
         setProfileData(processedData);
         if (user.data.avatar) {
           const fullUrl = `${user.data.avatar}`;
@@ -115,14 +114,14 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const user = await userApi.getUserById(userId);
-        
+
         // Process the user data to handle nested objects
         const processedData = {
           ...user.data,
           department: user.data.department?.name || user.data.department || "",
           position: user.data.position?.title || user.data.position || "",
         };
-        
+
         setProfileData(processedData);
       } catch (error) {
         console.error("Failed to fetch user:", error);
@@ -143,8 +142,17 @@ const Profile = () => {
         name: profileData.name,
         email: profileData.email,
         phone: profileData.phone,
-        department: user?.department?._id || user?.department || profileData.department?._id || profileData.department,
-        position: user?.position?._id || user?.position || profileData.position?._id || profileData.position,
+        editProfile: true,
+        department:
+          user?.department?._id ||
+          user?.department ||
+          profileData.department?._id ||
+          profileData.department,
+        position:
+          user?.position?._id ||
+          user?.position ||
+          profileData.position?._id ||
+          profileData.position,
         ...(avatarUrl && { avatar: avatarUrl }),
       };
 
@@ -187,7 +195,8 @@ const Profile = () => {
     return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
   };
 
-  const statusInfo = statusConfig[profileData.status?.toLowerCase()] || statusConfig.inactive;
+  const statusInfo =
+    statusConfig[profileData.status?.toLowerCase()] || statusConfig.inactive;
   const StatusIcon = statusInfo.icon;
 
   return (
@@ -200,29 +209,62 @@ const Profile = () => {
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#1c6ead]/5 via-purple-500/5 to-indigo-500/5"></div>
-        
+
         {/* Header Section with Profile Image */}
         <div className="relative px-8 pt-8 pb-6 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 border-b border-slate-200/50">
           {/* Profile Image - Now inside the card */}
-       <div className="flex justify-center mb-6">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative"
-          >
-            {isEditing ? (
-              <label className="relative cursor-pointer group">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 relative">
-                  {(tempImage?.preview || (profileImage && !imageError)) ? (
+          <div className="flex justify-center mb-6">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative"
+            >
+              {isEditing ? (
+                <label className="relative cursor-pointer group">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 relative">
+                    {tempImage?.preview || (profileImage && !imageError) ? (
+                      <motion.img
+                        src={tempImage?.preview || profileImage}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                        onError={() => setImageError(true)}
+                      />
+                    ) : profileData?.name ? (
+                      <div className="w-full h-full bg-[#1c6ead] flex items-center justify-center">
+                        <span className="text-white font-semibold text-lg sm:text-xl">
+                          {profileData.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-full">
+                      <div className="flex flex-col items-center gap-1">
+                        <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        <span className="text-xs text-white font-medium hidden sm:block">
+                          Change
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              ) : (
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+                  {profileImage && !imageError ? (
                     <motion.img
-                      src={tempImage?.preview || profileImage}
+                      src={profileImage}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       initial={{ opacity: 0 }}
@@ -241,42 +283,10 @@ const Profile = () => {
                       <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-full">
-                    <div className="flex flex-col items-center gap-1">
-                      <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                      <span className="text-xs text-white font-medium hidden sm:block">Change</span>
-                    </div>
-                  </div>
                 </div>
-              </label>
-            ) : (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
-                {(profileImage && !imageError) ? (
-                  <motion.img
-                    src={profileImage}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    onError={() => setImageError(true)}
-                  />
-                ) : profileData?.name ? (
-                  <div className="w-full h-full bg-[#1c6ead] flex items-center justify-center">
-                    <span className="text-white font-semibold text-lg sm:text-xl">
-                      {profileData.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400" />
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        </div>
-
+              )}
+            </motion.div>
+          </div>
 
           {/* Basic Info */}
           <div className="text-center">
@@ -295,9 +305,11 @@ const Profile = () => {
               className="flex items-center justify-center gap-2 text-slate-600 mb-4"
             >
               <Briefcase className="h-4 w-4" />
-              <span className="text-lg font-medium">{profileData.role}</span>
+              <span className="text-lg font-medium">
+                {capitalize(profileData.role)}
+              </span>
             </motion.div>
-            
+
             {/* Status Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -305,8 +317,12 @@ const Profile = () => {
               transition={{ duration: 0.5, delay: 0.5 }}
               className="flex justify-center"
             >
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border}`}>
-                <div className={`w-2 h-2 rounded-full ${statusInfo.dot} animate-pulse`}></div>
+              <div
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border}`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${statusInfo.dot} animate-pulse`}
+                ></div>
                 <StatusIcon className="h-4 w-4" />
                 <span>{capitalize(profileData.status)}</span>
               </div>
@@ -447,7 +463,7 @@ const Profile = () => {
                 >
                   <motion.button
                     onClick={handleCancel}
-                    className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 transition-all duration-300 flex items-center gap-2"
+                    className="px-6 py-3 bg-slate-100 hover:cursor-pointer hover:bg-slate-200 text-slate-700 font-semibold rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 transition-all duration-300 flex items-center gap-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     disabled={isLoading}
@@ -458,7 +474,7 @@ const Profile = () => {
                   <motion.button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="px-6 py-3 bg-[#1c6ead] hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-[#1c6ead] hover:cursor-pointer hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: isLoading ? 1 : 1.04 }}
                     whileTap={{ scale: isLoading ? 1 : 0.98 }}
                   >
@@ -479,7 +495,7 @@ const Profile = () => {
                 <motion.button
                   key="view"
                   onClick={handleEditToggle}
-                  className="px-8 py-3 bg-[#1c6ead] hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2"
+                  className="px-8 py-3 bg-[#1c6ead] hover:cursor-pointer hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2"
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, scale: 0.9 }}

@@ -129,7 +129,7 @@ const Documents = () => {
 
   useEffect(() => {
     fetchInitialData();
-  }, [filters,  currentPage]);
+  }, [filters, currentPage]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -276,7 +276,10 @@ const Documents = () => {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex gap-3">
+                <span className="w-10 h-10 bg-[#1c6ead] rounded-xl flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </span>{" "}
                 Document Library
               </h1>
               <p className="text-gray-600">
@@ -340,7 +343,7 @@ const Documents = () => {
                   value={searchTerm}
                   onChange={handleSearchChange}
                   placeholder="Search documents..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border outline-none border-gray-200 focus:border-[#1c6ead]  rounded-xl focus:ring-2 focus:ring-[#1c6ead]  transition-all duration-200"
                 />
               </div>
               <select
@@ -756,11 +759,11 @@ const Documents = () => {
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Enter document description..."
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent resize-none"
+                      className="w-full px-4 py-3 border border-gray-200 outline-none rounded-xl 
+             focus:border-[#1c6ead] focus:ring-1 focus:ring-[#1c6ead] resize-none"
                       required
                     />
                   </div>
-
                   <div>
                     <label
                       htmlFor="project"
@@ -772,7 +775,7 @@ const Documents = () => {
                       id="project"
                       value={selectedProject}
                       onChange={(e) => setSelectedProject(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1c6ead] outline-none focus:ring-2 focus:ring-[#1c6ead] "
                     >
                       <option value="">Select a project</option>
                       {projects.map((project) => (
@@ -787,13 +790,13 @@ const Documents = () => {
                     <button
                       type="button"
                       onClick={() => setShowUploadModal(false)}
-                      className="px-6 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-gray-300 hover:scale-105 hover:cursor-pointer rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-200 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-[#1c6ead] to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="px-6 py-2 hover:scale-105 hover:cursor-pointer bg-[#1c6ead] to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       Upload Document
                     </button>

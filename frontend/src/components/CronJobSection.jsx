@@ -3,7 +3,10 @@ import { toast } from "react-toastify";
 import { cronJobsApi } from "../api/cronJobs";
 import { sectionsApi } from "../api/sections";
 import { projectsApi } from "../api/projectsApi";
-import { Trash2,Edit } from "lucide-react";
+import { Trash2, Edit} from "lucide-react";
+import { Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 const CronJobSection = ({
   section,
   clientId,
@@ -15,6 +18,8 @@ const CronJobSection = ({
 }) => {
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [projects, setProjects] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [confirmDeleteId, setconfirmDeleteId] = useState("");
   const [newProject, setNewProject] = useState({
     name: "",
     startDate: "",
@@ -74,6 +79,55 @@ const CronJobSection = ({
   );
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
+     {open && (
+  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+    {/* Modal Box */}
+    <div className="relative bg-white rounded-2xl shadow-lg w-96 p-6">
+      {/* ❌ Close Button */}
+      <button
+        onClick={() => setOpen(false)}
+        className="absolute top-4 right-4 hover:cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <h2 className="text-lg font-semibold text-gray-800">Confirm Delete</h2>
+      <p className="text-gray-600 mt-2">
+        Are you sure you want to delete this Section? This action cannot be undone.
+      </p>
+
+      {/* Action Buttons */}
+      <div className="flex justify-center gap-3 mt-6">
+        <button
+          onClick={() => setOpen(false)}
+          className="px-4 py-2 rounded-lg border hover:cursor-pointer border-gray-300 hover:bg-gray-500 transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            handleSectionDelete(confirmDeleteId);
+            setOpen(false);
+          }}
+          className="px-4 py-2 rounded-lg hover:cursor-pointer bg-red-600 text-white hover:bg-red-700 transition-all"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
@@ -85,7 +139,7 @@ const CronJobSection = ({
         <div className="flex gap-3">
           <button
             onClick={() => setIsAddingProject(!isAddingProject)}
-            className="inline-flex items-center px-4 py-2 bg-[#1c6ead] rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+            className="inline-flex items-center px-4 py-2 bg-[#1c6ead] hover:text-blue-700 hover:cursor-pointer hover:bg-blue-50  rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
           >
             {/* <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -94,15 +148,18 @@ const CronJobSection = ({
           </button>
           <button
             onClick={() => handleSectionEdit(true, name, id)}
-            className="p-2  hover:text-emerald-600 text-white bg-emerald-500 hover:bg-emerald-50 rounded-lg transition-all duration-150"
-            title="Delete"
+            className="p-2 hover:cursor-pointer hover:text-emerald-600 text-white bg-emerald-500 hover:bg-emerald-50 rounded-lg transition-all duration-150"
+            title="Rename"
           >
             <Edit className="w-5 h-5" />
           </button>
-          
+
           <button
-             onClick={() => handleSectionDelete(id)}
-            className="p-2  hover:text-red-600 text-white bg-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+            onClick={() => {
+              setconfirmDeleteId(id);
+              setOpen(true);
+            }}
+            className="p-2 hover:cursor-pointer  hover:text-red-600 text-white bg-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
             title="Delete"
           >
             <Trash2 className="w-5 h-5" />
@@ -137,7 +194,7 @@ const CronJobSection = ({
                 onBlur={() => setTimeout(() => setShowDropdown(false), 100)} // delay to allow clicking dropdown item
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm"
                 placeholder="Enter project name"
-              />   
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">

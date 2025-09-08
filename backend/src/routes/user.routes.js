@@ -1,19 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
-    getUsers,
-    getUser,
-    createUser,
-    updateUser,
-    deleteUser,
-    uploadAvatar,
-    Allusers,
-    getVerificationStaff
-} = require('../controllers/user.controller');
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  uploadAvatar,
+  Allusers,
+  getVerificationStaff,
+  lastMonthMembersPer,
+} = require("../controllers/user.controller");
 
-const { protect, authorize } = require('../middleware/auth');
-const { uploadAvatar: uploadAvatarMiddleware } = require('../middleware/upload');
-const { validate, userValidation } = require('../middleware/validator');
+const { protect, authorize } = require("../middleware/auth");
+const {
+  uploadAvatar: uploadAvatarMiddleware,
+} = require("../middleware/upload");
+const { validate, userValidation } = require("../middleware/validator");
 
 /**
  * @swagger
@@ -75,43 +78,44 @@ const { validate, userValidation } = require('../middleware/validator');
  *       403:
  *         description: Forbidden
  */
-router.route('/')
-    .get(protect, authorize('admin','manager'), getUsers)
-    /**
-     * @swagger
-     * /api/users:
-     *   post:
-     *     summary: Create a new user
-     *     description: Create a new user (Admin only)
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/UserInput'
-     *     responses:
-     *       201:
-     *         description: User created successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/User'
-     *       400:
-     *         description: Bad request
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Forbidden
-     */
-    .post(protect, authorize('admin','manager'), createUser);
+router
+  .route("/")
+  .get(protect, authorize("admin", "manager"), getUsers)
+  /**
+   * @swagger
+   * /api/users:
+   *   post:
+   *     summary: Create a new user
+   *     description: Create a new user (Admin only)
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UserInput'
+   *     responses:
+   *       201:
+   *         description: User created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden
+   */
+  .post(protect, authorize("admin", "manager"), createUser);
 
 /**
  * @swagger
@@ -148,94 +152,97 @@ router.route('/')
  *       403:
  *         description: Forbidden
  */
-router.route('/allusers')
-    .get(protect, Allusers)
-router.route('/:id')
-    .get(protect,  getUser)
-    /**
-     * @swagger
-     * /api/users/{id}:
-     *   put:
-     *     summary: Update a user
-     *     description: Update a user by ID (Admin only)
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: User ID
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/UserUpdateInput'
-     *     responses:
-     *       200:
-     *         description: User updated successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/User'
-     *       400:
-     *         description: Bad request
-     *       404:
-     *         description: User not found
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Forbidden
-     */
-    .put(protect,  updateUser)
-    /**
-     * @swagger
-     * /api/users/{id}:
-     *   delete:
-     *     summary: Delete a user
-     *     description: Delete a user by ID (Admin only)
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: User ID
-     *     responses:
-     *       200:
-     *         description: User deleted successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   type: object
-     *                 message:
-     *                   type: string
-     *       400:
-     *         description: Bad request
-     *       404:
-     *         description: User not found
-     *       401:
-     *         description: Unauthorized
-     *       403:
-     *         description: Forbidden
-     */
-    .delete(protect, authorize('admin','manager'), deleteUser);
+router.route("/allusers").get(protect, Allusers);
+router
+  .route("lastMonthTotalMembersPersontage")
+  .get( lastMonthMembersPer);
+router
+  .route("/:id")
+  .get(protect, getUser)
+  /**
+   * @swagger
+   * /api/users/{id}:
+   *   put:
+   *     summary: Update a user
+   *     description: Update a user by ID (Admin only)
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: User ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UserUpdateInput'
+   *     responses:
+   *       200:
+   *         description: User updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Bad request
+   *       404:
+   *         description: User not found
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden
+   */
+  .put(protect, updateUser)
+  /**
+   * @swagger
+   * /api/users/{id}:
+   *   delete:
+   *     summary: Delete a user
+   *     description: Delete a user by ID (Admin only)
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: User ID
+   *     responses:
+   *       200:
+   *         description: User deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Bad request
+   *       404:
+   *         description: User not found
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden
+   */
+  .delete(protect, authorize("admin", "manager"), deleteUser);
 
 /**
  * @swagger
@@ -285,12 +292,9 @@ router.route('/:id')
  *       403:
  *         description: Forbidden
  */
-router.route('/:id/avatar')
-    .put(
-        protect,
-        uploadAvatarMiddleware.single('avatar'),
-        uploadAvatar
-    );
+router
+  .route("/:id/avatar")
+  .put(protect, uploadAvatarMiddleware.single("avatar"), uploadAvatar);
 
 /**
  * @swagger
@@ -322,7 +326,8 @@ router.route('/:id/avatar')
  *       403:
  *         description: Forbidden
  */
-router.route('/verification-staff')
-    .get(protect, authorize('admin','manager'), getVerificationStaff);
+router
+  .route("/verification-staff")
+  .get(protect, authorize("admin", "manager"), getVerificationStaff);
 
-module.exports = router; 
+module.exports = router;

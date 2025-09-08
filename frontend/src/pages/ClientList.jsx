@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import Tippy from '@tippyjs/react';
-import 'tippy.js/dist/tippy.css';
+import Tippy from "@tippyjs/react";
+import "tippy.js/dist/tippy.css";
 import { Link, useLocation } from "react-router-dom";
 import { clientsApi } from "../api/clientsApi";
 import CreateClientModal from "../components/CreateClientModal";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { Users } from "lucide-react";
 // Status badge component with enhanced styling
 const StatusBadge = ({ status }) => {
   const getStatusStyle = () => {
@@ -149,15 +149,22 @@ const ClientCard = ({ client }) => {
                 </div>
               )}
               {/* Online indicator */}
-              <div className={`absolute -top-1 -right-1 w-4 h-4 ${client.status?.toLowerCase() === 'active' ? 'bg-emerald-400' : 'bg-red-400'} rounded-full border-2 border-white shadow-sm`}></div>            </div>
+              <div
+                className={`absolute -top-1 -right-1 w-4 h-4 ${
+                  client.status?.toLowerCase() === "active"
+                    ? "bg-emerald-400"
+                    : "bg-red-400"
+                } rounded-full border-2 border-white shadow-sm`}
+              ></div>{" "}
+            </div>
 
             <div className="ml-5 flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 truncate group-hover:text-blue-600">
                   {client.name}
                 </h3>
-                  {/* <StatusBadge status={client.status} /> */}
-                  <PriorityBadge priority={client.priority} />
+                {/* <StatusBadge status={client.status} /> */}
+                <PriorityBadge priority={client.priority} />
               </div>
               <p className="mt-2 text-sm text-gray-500 font-medium flex items-center">
                 <span className="w-2 h-2 bg-gray-300 rounded-full mr-2"></span>
@@ -304,13 +311,21 @@ const ClientList = () => {
   }, [
     currentPage,
     limit,
-    searchQuery,
     statusFilter,
     industryFilter,
     priorityFilter,
     sortBy,
     sortOrder,
   ]);
+
+  useEffect(() => {
+
+    const delayDebounce = setTimeout(() => {
+      loadClients();
+    }, 2000); // wait 500ms after typing
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
   // Check for success message from redirect
   useEffect(() => {
@@ -425,9 +440,14 @@ const ClientList = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Client Management
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-[#1c6ead] rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              Client Management
+            </h1>
+          </div>
           <p className="text-gray-600 text-lg">
             Manage your clients efficiently with advanced filtering and sorting
           </p>
@@ -615,18 +635,17 @@ const ClientList = () => {
               </Tippy>
             </div>
           </div> */}
-        <div className="mt-6 flex justify-end">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={resetFilters}
-            className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
-          >
-            Reset All Filters
-          </motion.button>
+          <div className="mt-6 flex justify-end">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={resetFilters}
+              className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
+            >
+              Reset All Filters
+            </motion.button>
+          </div>
         </div>
-        </div>
-
       </motion.div>
 
       {/* Enhanced Results Info */}
@@ -669,10 +688,7 @@ const ClientList = () => {
             </div>
             <div className="text-xs text-gray-500">
               <span className="font-semibold text-red-600">
-                {
-                  clientsData.clients.filter((c) => c.priority === "Low")
-                    .length
-                }
+                {clientsData.clients.filter((c) => c.priority === "Low").length}
               </span>{" "}
               Low Priority
             </div>
@@ -733,7 +749,10 @@ const ClientList = () => {
             No clients found
           </h2>
           <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-            {searchQuery || statusFilter !== "all" || industryFilter !== "all" || priorityFilter !== "all"
+            {searchQuery ||
+            statusFilter !== "all" ||
+            industryFilter !== "all" ||
+            priorityFilter !== "all"
               ? "Try adjusting your filters or search query to find what you're looking for."
               : "Get started by adding your first client to begin managing your business relationships."}
           </p>

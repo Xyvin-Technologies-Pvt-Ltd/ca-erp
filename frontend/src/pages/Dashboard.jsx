@@ -2399,6 +2399,22 @@ const IncentiveModal = ({ isOpen, onRequestClose, userIncentive }) => {
   }, [isOpen]);
 
   const handleMonthChange = (e) => {
+    console.log(e.target.value);
+    if (e.target.value === "") {
+      console.log("EMPTY");
+      const now = new Date();
+
+      // get year
+      const year = now.getFullYear();
+
+      // get month (0-based → +1, and pad to 2 digits)
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+
+      // combine
+      const currentMonthYear = `${year}-${month}`;
+      setSelectedMonth(currentMonthYear);
+      return;
+    }
     setSelectedMonth(e.target.value);
   };
 
@@ -2503,6 +2519,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const response = await fetchDashboardData(userId);
+        console.log(response);
         setStats(response.stats);
         setRecentTasks(response.tasks);
         setComplianceTasks(response.complianceTasks);
@@ -2643,9 +2660,11 @@ const Dashboard = () => {
           <StatCard
             title="Monthly Incentive"
             value={(() => {
-              if (!user?.incentive) return '₹0';
+              if (!user?.incentive) return "₹0";
               const now = new Date();
-              const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+              const key = `${now.getFullYear()}-${String(
+                now.getMonth() + 1
+              ).padStart(2, "0")}`;
               const incentiveValue = user.incentive[key] || 0;
               return `₹${Math.round(incentiveValue).toLocaleString()}`;
             })()}

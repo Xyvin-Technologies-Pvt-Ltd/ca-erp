@@ -132,6 +132,14 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
+exports.lastMonthMembersPer = async (req, res, next) => {
+  try {
+    console.log("OK,VInu");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 /**
  * @desc    Get single user
  * @route   GET /api/users/:id
@@ -274,29 +282,46 @@ exports.createUser = async (req, res, next) => {
  */
 exports.updateUser = async (req, res, next) => {
   try {
+    console.log("CALLED");
     console.log(req.body.emp_status);
     console.log(req.body.userData);
+    // return
     const emp_status = req.body.emp_status;
     const userOldData = await User.findOne({
       _id: new mongoose.Types.ObjectId(req.body.userData._id),
     });
     console.log(userOldData);
-    if (userOldData.emp_status === "Probation" && emp_status === "Permanent") {
-      await User.updateOne(
-        {
-          _id: new mongoose.Types.ObjectId(req.body.userData._id),
-        },
-        { $inc: { casual: 1 } },
-        { $set: { emp_status: "Permanent" } }
-      );
+    if (
+      req?.body?.userData?.editProfile === false ||
+      req?.body?.userData?.editProfile === "" ||
+      req?.body?.userData?.editProfile === undefined
+    ) {
+      if (
+        userOldData.emp_status === "Probation" &&
+        req.body.emp_status === "Permanent"
+      ) {
+        await User.updateOne(
+          {
+            _id: new mongoose.Types.ObjectId(req.body.userData._id),
+          },
+          { $inc: { casual: 1 } },
+          { $set: { emp_status: "Permanent" } }
+        );
+      }
     }
+
     const existingUser = await User.findById(req.params.id);
     if (!existingUser) {
       return next(new ErrorResponse("User not found", 404));
     }
 
-    if (req.body.userData.email && req.body.userData.email !== existingUser.email) {
-      const emailExists = await User.findOne({ email: req.body.userData.email });
+    if (
+      req.body.userData.email &&
+      req.body.userData.email !== existingUser.email
+    ) {
+      const emailExists = await User.findOne({
+        email: req.body.userData.email,
+      });
       if (emailExists) {
         return next(new ErrorResponse("Email already in use", 400));
       }
@@ -343,9 +368,9 @@ exports.updateUser = async (req, res, next) => {
       mongoose.model("Position").findById(updateData.position),
     ]);
 
-    if (!departmentExists || !positionExists) {
-      return next(new ErrorResponse("Department or Position not found", 404));
-    }
+    // if (!departmentExists || !positionExists) {
+    //   return next(new ErrorResponse("Department or Position not found", 404));
+    // }
 
     const user = await User.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
@@ -360,7 +385,9 @@ exports.updateUser = async (req, res, next) => {
       req.body.userData.verificationStaff !== undefined &&
       req.body.userData.verificationStaff !== existingUser.verificationStaff
     ) {
-      const status = req.body.userData.verificationStaff ? "activated" : "deactivated";
+      const status = req.body.userData.verificationStaff
+        ? "activated"
+        : "deactivated";
       logger.info(
         `Verification staff status ${status} for user: ${user.email} (${user._id}) by ${req.user.name} (${req.user._id})`
       );
@@ -460,10 +487,54 @@ exports.Allusers = async (req, res, next) => {
       .populate("department")
       .populate("position")
       .sort({ createdAt: -1 });
+    const now = new Date();
+    // Add 5:30 hrs (19800000 ms) to shift UTC → IST
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+
+    const firstDayLastMonth = new Date(
+      new Date(now.getFullYear(), now.getMonth(), 1).getTime() + IST_OFFSET
+    );
+
+    const lastDayLastMonth = new Date(
+      new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      ).getTime() + IST_OFFSET
+    );
+    console.log(firstDayLastMonth, lastDayLastMonth);
+    // Count new members in last month
+    const newMembers = await User.find({
+      createdAt: { $gte: firstDayLastMonth, $lte: lastDayLastMonth },
+    });
+
+    // Total members before last month
+    const totalBefore = await User.find({
+      createdAt: { $lt: firstDayLastMonth },
+    });
+
+    // Growth percentage
+    const growthPercentage =
+  totalBefore.length + newMembers.length > 0
+    ? Number(((newMembers.length / (totalBefore.length + newMembers.length)) * 100).toFixed(2))
+    : 0;
+    console.log(growthPercentage);
+    console.log(
+      "ok,vinu",
+      newMembers.length,
+      totalBefore.length,
+      growthPercentage
+    );
+   
     res.status(200).json({
       success: true,
       count: users.length,
       data: users,
+      persontageLastMonth: growthPercentage,
     });
   } catch (error) {
     console.error("Error in Allusers:", error);

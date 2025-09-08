@@ -190,7 +190,6 @@ exports.getAttendance = catchAsync(async (req, res) => {
 exports.createBulkAttendance = catchAsync(async (req, res) => {
   const attendanceRecords = req.body;
   console.log(req.body);
-  console.log(req.body);
   if (!Array.isArray(attendanceRecords) || attendanceRecords.length === 0) {
     throw createError(400, "Please provide an array of attendance records");
   }
@@ -200,8 +199,46 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       employee: new mongoose.Types.ObjectId(record.employee),
       date: record.date,
     });
+    console.log(userAttendance);
     if (userAttendance) {
       if (record?.checkOut === undefined) {
+        console.log("HIII");
+        console.log(new Date(record.checkIn.time));
+        console.log(
+          userAttendance?.checkOut.times[
+            userAttendance?.checkOut.times.length - 1
+          ]
+        );
+
+        const calculateWorkHours = (checkInTime, checkOutTime) => {
+          if (!checkInTime || !checkOutTime) return "0h 0m";
+
+          const checkIn = new Date(checkInTime);
+          const checkOut = new Date(checkOutTime);
+
+          if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()))
+            return "0h 0m";
+          if (checkOut <= checkIn) return "0h 0m";
+
+          const diffInMs = checkOut - checkIn;
+          const hours = Math.floor(diffInMs / (1000 * 60 * 60));
+          const minutes = Math.floor(
+            (diffInMs % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const time = {
+            hour: hours,
+            minute: minutes,
+          };
+          return time;
+        };
+        const workHours = calculateWorkHours(
+          record.checkIn.time,
+          userAttendance?.checkOut.times[
+            userAttendance?.checkOut.times.length - 1
+          ]
+        );
+
+        console.log(workHours);
         await Attendance.updateOne(
           {
             employee: new mongoose.Types.ObjectId(record.employee),
@@ -221,6 +258,34 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         });
       } else {
         console.log("done");
+        console.log(new Date(record.checkOut.time));
+        console.log(userAttendance?.checkIn.times[0]);
+        const calculateWorkHours = (checkInTime, checkOutTime) => {
+          if (!checkInTime || !checkOutTime) return "0h 0m";
+
+          const checkIn = new Date(checkInTime);
+          const checkOut = new Date(checkOutTime);
+
+          if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()))
+            return "0h 0m";
+          if (checkOut <= checkIn) return "0h 0m";
+
+          const diffInMs = checkOut - checkIn;
+          const hours = Math.floor(diffInMs / (1000 * 60 * 60));
+          const minutes = Math.floor(
+            (diffInMs % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const time = {
+            hour: hours,
+            minute: minutes,
+          };
+          return time;
+        };
+        const workHours = calculateWorkHours(
+          userAttendance?.checkIn.times[0],
+          new Date(record.checkOut.time)
+        );
+        console.log(workHours);
         await Attendance.updateOne(
           {
             employee: new mongoose.Types.ObjectId(record.employee),
@@ -231,6 +296,8 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
               "checkOut.times": [record.checkOut.time],
               status: record.status,
               notes: record.notes,
+              workHours: workHours.hour,
+              workMinutes: workHours.minute,
               shift: record.shift,
             },
           }
@@ -606,22 +673,40 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
   });
 });
 
+// const calculateWorkHours = (checkInTime, checkOutTime) => {
+//   if (!checkInTime || !checkOutTime) return 0;
+
+//   const checkIn = new Date(checkInTime);
+//   const checkOut = new Date(checkOutTime);
+
+//   if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
+//     return 0;
+//   }
+
+//   if (checkOut <= checkIn) {
+//     return 0;
+//   }
+
+//   const diffInHours = (checkOut - checkIn) / (1000 * 60 * 60); // Convert milliseconds to hours
+//   return Math.max(0, Math.round(diffInHours * 100) / 100); // Round to 2 decimal places, ensure non-negative
+// };
 const calculateWorkHours = (checkInTime, checkOutTime) => {
-  if (!checkInTime || !checkOutTime) return 0;
+  if (!checkInTime || !checkOutTime) return "0h 0m";
 
   const checkIn = new Date(checkInTime);
   const checkOut = new Date(checkOutTime);
 
-  if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
-    return 0;
-  }
+  if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) return "0h 0m";
+  if (checkOut <= checkIn) return "0h 0m";
 
-  if (checkOut <= checkIn) {
-    return 0;
-  }
-
-  const diffInHours = (checkOut - checkIn) / (1000 * 60 * 60); // Convert milliseconds to hours
-  return Math.max(0, Math.round(diffInHours * 100) / 100); // Round to 2 decimal places, ensure non-negative
+  const diffInMs = checkOut - checkIn;
+  const hours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffInMs % (1000 * 60 * 60)) / (1000 * 60));
+  const time = {
+    hour: hours,
+    minute: minutes,
+  };
+  return time;
 };
 exports.createAttendance = catchAsync(async (req, res) => {
   function getISTParts(date) {
@@ -660,21 +745,21 @@ exports.createAttendance = catchAsync(async (req, res) => {
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const day = today.getDate();
-  const userData = await User.findOne({
+  const userDetails = await User.findOne({
     _id: new mongoose.Types.ObjectId(req.user._id),
   });
-  if (day === 1) {
-    if (userData.emp_status === "Permanent") {
-      await User.findOneAndUpdate(
+  console.log("Vinyan", userDetails.casual);
+  if (userDetails.emp_status === "Permanent") {
+    if (userDetails.casual === undefined) {
+      await User.updateOne(
         { _id: new mongoose.Types.ObjectId(req.user._id) },
-        { $inc: { casual: 1 } },
         {
-          new: true,
+          $set: { casual: 1 },
         }
       );
     }
   }
-
+  return;
   const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
@@ -1282,14 +1367,19 @@ exports.updateAttendance = catchAsync(async (req, res) => {
   const attendance = await Attendance.findById(req.params.id);
   // console.log(attendance);
   let checkIndate = new Date(req.body.checkIn.time);
-  let checkOutdate = new Date(req.body.checkOut.time);
+  let checkOutdate;
+  console.log(req.body.checkOut);
+  if (req.body.checkOut !== undefined) {
+    checkOutdate = new Date(req.body.checkOut.time);
+  }
 
   checkIndate.setHours(checkIndate.getHours() + 5);
   checkIndate.setMinutes(checkIndate.getMinutes() + 30);
-
-  checkOutdate.setHours(checkOutdate.getHours() + 5);
-  checkOutdate.setMinutes(checkOutdate.getMinutes() + 30);
-  console.log(checkIndate, checkOutdate);
+  if (req.body.checkOut !== undefined) {
+    checkOutdate.setHours(checkOutdate.getHours() + 5);
+    checkOutdate.setMinutes(checkOutdate.getMinutes() + 30);
+    console.log(checkIndate, checkOutdate);
+  }
   if (!attendance) {
     throw createError(404, "No attendance record found with that ID");
   }
@@ -1300,8 +1390,8 @@ exports.updateAttendance = catchAsync(async (req, res) => {
     const checkInTime = new Date(checkIn.time);
     const checkOutTime = new Date(checkOut.time);
     workHours = calculateWorkHours(checkInTime, checkOutTime);
+    console.log(workHours);
   }
-  // console.log(date, req.params.id);
   await Attendance.updateOne(
     {
       _id: new mongoose.Types.ObjectId(req.params.id),
@@ -1314,10 +1404,12 @@ exports.updateAttendance = catchAsync(async (req, res) => {
         status: status || attendance.status,
         notes: notes !== undefined ? notes : attendance.notes,
         shift: shift || attendance.shift,
-        workHours,
+        workHours: workHours.hour,
+        workMinutes: workHours.minute,
       },
     }
   );
+
   res.status(200).json({
     status: "success",
   });

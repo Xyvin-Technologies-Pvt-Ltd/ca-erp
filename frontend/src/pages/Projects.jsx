@@ -12,7 +12,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-
+import {Briefcase} from "lucide-react";
 const statusColors = {
   completed: "bg-green-100 text-green-700 border-green-200",
   "in-progress": "bg-blue-100 text-[#1c6ead] border-blue-200",
@@ -298,8 +298,8 @@ const Projects = () => {
         className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div className="flex items-center space-x-3">
-          <CalendarIcon className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
+          <Briefcase className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Projects</h1>
         </div>
         <div className="flex space-x-4">
           {role !== "staff" && (
@@ -461,7 +461,7 @@ const Projects = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col flex-1">
                         <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
-                          {project.name}
+                          {project.name.toUpperCase()}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500">
                           Client: {project.client?.name}
@@ -472,7 +472,7 @@ const Projects = () => {
                         whileHover={{ scale: 1.05 }}
                       >
                         <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status]?.split(' ')[0]}`}></span>
-                        {project.status}
+                        {project.status.charAt(0).toUpperCase() + project.status.slice(1).toLowerCase()}
                       </motion.span>
                     </div>
                   </div>
@@ -580,7 +580,7 @@ const Projects = () => {
                         <span
                           className={`h-2 w-2 rounded-full mr-1 ${(priorityColors[project.priority] || "bg-gray-100").split(" ")[0]}`}
                         ></span>
-                        {project.priority}
+                        {project.priority && project.priority[0].toUpperCase() + project.priority.slice(1).toLowerCase()}
                       </motion.span>
                     </div>
                   </div>

@@ -1,4 +1,8 @@
-import { fetchCompletedTasksForInvoicing, fetchTasks, fetchAllTasks } from "./tasks";
+import {
+  fetchCompletedTasksForInvoicing,
+  fetchTasks,
+  fetchAllTasks,
+} from "./tasks";
 import { userApi } from "./userApi";
 import { projectsApi } from "./projectsApi";
 
@@ -21,7 +25,7 @@ export const fetchDashboardData = async (userId) => {
     };
 
     const extractAssignedId = (assignedTo) => {
-      if (assignedTo && typeof assignedTo === 'object') {
+      if (assignedTo && typeof assignedTo === "object") {
         return assignedTo._id;
       }
       return assignedTo;
@@ -33,8 +37,12 @@ export const fetchDashboardData = async (userId) => {
       fetchAllTasks(),
       userApi.Allusers(),
     ]);
-
-    const completedProjects = projects.data.filter((project) => project.status === "completed");
+    // const lastMonthPersontageForMembers =
+    //   await userApi.lastMonthTotalMembersPersontage();
+    // console.log(lastMonthPersontageForMembers);
+    const completedProjects = projects.data.filter(
+      (project) => project.status === "completed"
+    );
     // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
 
     const currentProjects = projects.count;
@@ -47,29 +55,30 @@ export const fetchDashboardData = async (userId) => {
       client: pro.client?.name || "—",
       progress: pro.progress,
       completionPercentage: pro.completionPercentage,
-      dueDate: new Date(pro.dueDate).toLocaleDateString('en-GB'),
+      dueDate: new Date(pro.dueDate).toLocaleDateString("en-GB"),
     }));
 
     const tasksByStatus = tasksRes.tasks.reduce((acc, task) => {
-      const status = (task.status || '').toLowerCase();
-      
+      const status = (task.status || "").toLowerCase();
+
       let statusKey;
       switch (status) {
-        case 'completed':
-          statusKey = 'Completed';
+        case "completed":
+          statusKey = "Completed";
           break;
-        case 'in-progress':
-        case 'inprogress':
-          statusKey = 'In Progress';
+        case "in-progress":
+        case "inprogress":
+          statusKey = "In Progress";
           break;
-        case 'pending':
-          statusKey = 'Pending';
+        case "pending":
+          statusKey = "Pending";
           break;
-        case 'delayed':
-          statusKey = 'Delayed';
+        case "delayed":
+          statusKey = "Delayed";
           break;
         default:
-          statusKey = task.status.charAt(0).toUpperCase() + task.status.slice(1);
+          statusKey =
+            task.status.charAt(0).toUpperCase() + task.status.slice(1);
       }
 
       if (!acc[statusKey]) {
@@ -80,10 +89,12 @@ export const fetchDashboardData = async (userId) => {
     }, {});
 
     // Convert to array format for the dashboard
-    const taskSummary = Object.entries(tasksByStatus).map(([status, count]) => ({
-      status,
-      count
-    }));
+    const taskSummary = Object.entries(tasksByStatus).map(
+      ([status, count]) => ({
+        status,
+        count,
+      })
+    );
 
     // Calculate task counts by status
     const taskCounts = {
@@ -94,27 +105,34 @@ export const fetchDashboardData = async (userId) => {
       cancelled: 0,
     };
     tasksRes.tasks.forEach((task) => {
-      const status = (task.status || '').toLowerCase();
-      if (status === 'completed') taskCounts.completed++;
-      else if (status === 'pending') taskCounts.pending++;
-      else if (status === 'in-progress' || status === 'inprogress') taskCounts.inProgress++;
-      else if (status === 'review') taskCounts.review++;
-      else if (status === 'cancelled') taskCounts.cancelled++;
+      const status = (task.status || "").toLowerCase();
+      if (status === "completed") taskCounts.completed++;
+      else if (status === "pending") taskCounts.pending++;
+      else if (status === "in-progress" || status === "inprogress")
+        taskCounts.inProgress++;
+      else if (status === "review") taskCounts.review++;
+      else if (status === "cancelled") taskCounts.cancelled++;
     });
 
     // team members
+    console.log(usersRes);
+
     const currentMember = usersRes.data.data.count;
+    const currentMonthPersontage = usersRes.data.data.persontageLastMonth;
 
     let totalRevenue = 0;
     let userRole = undefined;
     try {
-      const userData = JSON.parse(localStorage.getItem('userData'));
+      const userData = JSON.parse(localStorage.getItem("userData"));
       userRole = userData?.role;
     } catch (e) {
       userRole = undefined;
     }
-    if (userRole === 'admin' || userRole === 'manager') {
-      totalRevenue = tasksRes.tasks.reduce((acc, task) => acc + (task.amount || 0), 0);
+    if (userRole === "admin" || userRole === "manager") {
+      totalRevenue = tasksRes.tasks.reduce(
+        (acc, task) => acc + (task.amount || 0),
+        0
+      );
     } else if (userId) {
       totalRevenue = tasksRes.tasks.reduce((acc, task) => {
         const assignedId = extractAssignedId(task.assignedTo);
@@ -126,57 +144,82 @@ export const fetchDashboardData = async (userId) => {
     }
 
     let verificationTasksCount = 0;
-      verificationTasksCount = tasksRes.tasks.filter(task => 
-        (task?.title === 'Project Verification Task' || (task?.status || '').toLowerCase() === 'verificationpending' || (task?.status || '').toLowerCase() === 'verification-pending') &&
-        (task?.status || '').toLowerCase() !== 'completed' &&
+    verificationTasksCount = tasksRes.tasks.filter(
+      (task) =>
+        (task?.title === "Project Verification Task" ||
+          (task?.status || "").toLowerCase() === "verificationpending" ||
+          (task?.status || "").toLowerCase() === "verification-pending") &&
+        (task?.status || "").toLowerCase() !== "completed" &&
         extractAssignedId(task.assignedTo) === userId
-      ).length;
-    
+    ).length;
+
     const now = new Date();
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({
-        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-        label: d.toLocaleString('default', { month: 'short' }),
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        label: d.toLocaleString("default", { month: "short" }),
         year: d.getFullYear(),
         month: d.getMonth(),
       });
     }
     const monthlyMap = {};
-    months.forEach(m => {
-      monthlyMap[m.key] = { month: m.label, revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
+    months.forEach((m) => {
+      monthlyMap[m.key] = {
+        month: m.label,
+        revenue: 0,
+        tasks: 0,
+        projects: 0,
+        teamMembers: 0,
+      };
     });
     // Count projects per month (by createdAt or dueDate)
-    projects.data.forEach(project => {
-      const date = project.createdAt ? new Date(project.createdAt) : (project.dueDate ? new Date(project.dueDate) : null);
+    projects.data.forEach((project) => {
+      const date = project.createdAt
+        ? new Date(project.createdAt)
+        : project.dueDate
+        ? new Date(project.dueDate)
+        : null;
       if (!date || isNaN(date.getTime())) return;
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       if (monthlyMap[key]) {
         monthlyMap[key].projects += 1;
       }
     });
 
     // console.log(usersRes.data,"^^^^^^^^^^^^^^^^^^^^$$$$$$$$$^^^^^^^^^^^");
-    
+
     if (usersRes.data && Array.isArray(usersRes.data.data.users)) {
-      usersRes.data.data.users.forEach(user => {
+      usersRes.data.data.users.forEach((user) => {
         const date = user.createdAt ? new Date(user.createdAt) : null;
         if (!date || isNaN(date.getTime())) return;
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const key = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}`;
         if (monthlyMap[key]) {
           monthlyMap[key].teamMembers += 1;
         }
-        console.log(monthlyMap[key].teamMembers, 'teamMembers');
+        console.log(monthlyMap[key].teamMembers, "teamMembers");
       });
     }
 
-    tasksRes.tasks.forEach(task => {
-      const date = task.dueDate ? new Date(task.dueDate) : (task.createdAt ? new Date(task.createdAt) : null);
+    tasksRes.tasks.forEach((task) => {
+      const date = task.dueDate
+        ? new Date(task.dueDate)
+        : task.createdAt
+        ? new Date(task.createdAt)
+        : null;
       if (!date || isNaN(date.getTime())) return;
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       let include = false;
-      if (userRole === 'admin' || userRole === 'manager') {
+      if (userRole === "admin" || userRole === "manager") {
         include = true;
       } else if (userId) {
         const assignedId = extractAssignedId(task.assignedTo);
@@ -187,7 +230,7 @@ export const fetchDashboardData = async (userId) => {
         monthlyMap[key].revenue += task.amount || 0;
       }
     });
-    const monthlyRevenueData = months.map(m => monthlyMap[m.key]);
+    const monthlyRevenueData = months.map((m) => monthlyMap[m.key]);
 
     // Calculate dynamic changes for the latest month vs previous month
     const getChangePercent = (current, previous) => {
@@ -199,11 +242,19 @@ export const fetchDashboardData = async (userId) => {
     };
     const len = monthlyRevenueData.length;
     const latest = monthlyRevenueData[len - 1];
-    const prev = monthlyRevenueData[len - 2] || { revenue: 0, tasks: 0, projects: 0, teamMembers: 0 };
+    const prev = monthlyRevenueData[len - 2] || {
+      revenue: 0,
+      tasks: 0,
+      projects: 0,
+      teamMembers: 0,
+    };
     const revenueChange = getChangePercent(latest.revenue, prev.revenue);
     const tasksChange = getChangePercent(latest.tasks, prev.tasks);
     const projectsChange = getChangePercent(latest.projects, prev.projects);
-    const teamMembersChange = getChangePercent(latest.teamMembers, prev.teamMembers);
+    const teamMembersChange = getChangePercent(
+      latest.teamMembers,
+      prev.teamMembers
+    );
 
     return {
       stats: {
@@ -221,14 +272,14 @@ export const fetchDashboardData = async (userId) => {
         },
         verificationTasks: {
           value: verificationTasksCount,
-          change:null,
+          change: null,
           iconType: "verification",
           color: "bg-violet-100",
-          showOnlyFor: "verificationStaff"
+          showOnlyFor: "verificationStaff",
         },
         teamMembers: {
           value: currentMember,
-          change: teamMembersChange,
+          change: currentMonthPersontage,
           iconType: "team",
           color: "bg-purple-100",
         },
@@ -294,9 +345,9 @@ export const fetchDashboardData = async (userId) => {
           assignedTo: "Sarah Wilson",
         },
       ],
-      
+
       projects: projectList,
-      
+
       tasks: taskSummary,
       activities: [
         {

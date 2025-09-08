@@ -166,6 +166,11 @@ const CompanySettings = () => {
 
       // Re-fetch settings to ensure UI is in sync
       await loadCompanySettings();
+      // window.location.reload();
+      window.scrollTo({
+  top: 0,
+  behavior: "smooth", // smooth scrolling
+});
     } catch (error) {
       console.error("Submission error:", error.message);
       setErrorMessage(error.message || "Failed to update settings or upload logo.");

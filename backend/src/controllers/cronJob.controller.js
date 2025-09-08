@@ -176,6 +176,7 @@ exports.updateCronJob = async (req, res, next) => {
         // Update next run date if start date is changed
         if (req.body.startDate) {
             req.body.nextRun = new Date(req.body.startDate);
+            req.body.lastRun=""
         }
 
         cronJob = await CronJob.findByIdAndUpdate(req.params.id, req.body, {
@@ -188,7 +189,10 @@ exports.updateCronJob = async (req, res, next) => {
             path: 'createdBy',
             select: 'name email'
         });
-
+ const now = new Date();
+            if (cronJob.startDate && new Date(cronJob.startDate) <= now && !cronJob.lastRun) {
+                await cronService.executeCronJob(cronJob);
+            }
         // Update in cron service
         await cronService.updateCronJob(cronJob);
 

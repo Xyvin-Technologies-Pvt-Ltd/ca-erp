@@ -114,7 +114,7 @@ const clientValidation = {
             website: Joi.string().allow("").optional(),
             industry: Joi.string().max(50).allow("").optional(),
             notes: Joi.string().allow("").optional(),
-            directors: Joi.array().items(Joi.string().max(50)).optional(),
+            directors: Joi.array().optional(),
             status: Joi.string().valid("active", "inactive").allow("").optional(),
             priority: Joi.string(),
         }),
@@ -122,7 +122,7 @@ const clientValidation = {
 
     update: Joi.object({
         params: Joi.object({
-            id: Joi.string().required(),
+            id: Joi.string().optional(),
         }),
         body: Joi.object({
             name: Joi.string().max(100).optional(),
@@ -140,7 +140,6 @@ const clientValidation = {
             website: Joi.string().allow("").optional(),
             industry: Joi.string().max(50).allow("").optional(),
             notes: Joi.string().allow("").optional(),
-            directors: Joi.array().items(Joi.string().max(50)).min(2).optional(),
             status: Joi.string().valid('active', 'inactive').allow("").optional(),
                         priority: Joi.string(),
         }),

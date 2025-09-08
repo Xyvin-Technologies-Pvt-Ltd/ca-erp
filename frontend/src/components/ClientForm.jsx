@@ -194,6 +194,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
 
       let result;
       if (isEditMode) {
+        console.log(client._id, finalFormData)
         result = await clientsApi.updateClient(client._id, finalFormData);
         toast.success(`Client "${finalFormData.name}" updated successfully!`, {
           position: "top-right",

@@ -55,7 +55,7 @@ const LeaveApplication = () => {
     paid: { total: 10, used: 0, pending: 0 },
     Emergency: { total: 14, used: 0, pending: 0 },
     Exam: { total: 14, used: 0, pending: 0 },
-    others: { total: 10, used: 0, pending: 0 },
+    other: { total: 10, used: 0, pending: 0 },
   });
   const [availableCasualLeaves, setAvailableCasualLeaves] = useState(0);
   const now = new Date();
@@ -113,7 +113,7 @@ const LeaveApplication = () => {
             paid: { total: 10, used: 0, pending: 0 },
             Emergency: { total: 14, used: 0, pending: 0 },
             Exam: { total: 14, used: 0, pending: 0 },
-            others: { total: 0, used: 0, pending: 0 },
+            other: { total: 0, used: 0, pending: 0 },
           };
           sortedApplications.forEach((app) => {
             const type = app.type.toLowerCase().replace(" leave", "");
@@ -134,11 +134,11 @@ const LeaveApplication = () => {
           if (CasualLeaveTaken?.data?.data.casual === 0) {
             const balanceCalculation = {
               sick: { total: 7, used: 0, pending: 0 },
-              casual: { total: 1, used: 0, pending: 0 },
+              casual: { total: 0, used: 0, pending: 0 },
               paid: { total: 10, used: 0, pending: 0 },
               Emergency: { total: 14, used: 0, pending: 0 },
               Exam: { total: 14, used: 0, pending: 0 },
-              others: { total: 0, used: 0, pending: 0 },
+              other: { total: 0, used: 0, pending: 0 },
             };
             sortedApplications.forEach((app) => {
               const type = app.type.toLowerCase().replace(" leave", "");
@@ -159,11 +159,15 @@ const LeaveApplication = () => {
             // setcasualLeaveIsHidden(false);
             const balanceCalculation = {
               sick: { total: 7, used: 0, pending: 0 },
-              casual: { total: 1, used: 0, pending: 0 },
+              casual: {
+                total: CasualLeaveTaken?.data?.data.casual,
+                used: 0,
+                pending: 0,
+              },
               paid: { total: 10, used: 0, pending: 0 },
               Emergency: { total: 14, used: 0, pending: 0 },
               Exam: { total: 14, used: 0, pending: 0 },
-              others: { total: 0, used: 0, pending: 0 },
+              other: { total: 0, used: 0, pending: 0 },
             };
             sortedApplications.forEach((app) => {
               const type = app.type.toLowerCase().replace(" leave", "");
@@ -192,6 +196,12 @@ const LeaveApplication = () => {
   }, []);
   useEffect(() => {
     if (leaveType === "emergency") {
+      setDateRange((prev) => ({
+        ...prev,
+        from: moment().add(1, "days").startOf("day").toDate(),
+        to: moment().add(1, "days").startOf("day").toDate(),
+      }));
+    } else if (leaveType === "sick") {
       setDateRange((prev) => ({
         ...prev,
         from: moment().add(1, "days").startOf("day").toDate(),
@@ -250,7 +260,7 @@ const LeaveApplication = () => {
           paid: { total: 10, used: 0, pending: 0 },
           Emergency: { total: 14, used: 0, pending: 0 },
           Exam: { total: 14, used: 0, pending: 0 },
-          others: { total: 0, used: 0, pending: 0 },
+          other: { total: 0, used: 0, pending: 0 },
         };
         sortedApplications.forEach((app) => {
           const type = app.type.toLowerCase().replace(" leave", "");
@@ -271,11 +281,11 @@ const LeaveApplication = () => {
         if (CasualLeaveTaken?.data?.data.casual === 0) {
           const balanceCalculation = {
             sick: { total: 7, used: 0, pending: 0 },
-            casual: { total: 1, used: 0, pending: 0 },
+            casual: { total: 0, used: 0, pending: 0 },
             paid: { total: 10, used: 0, pending: 0 },
             Emergency: { total: 14, used: 0, pending: 0 },
             Exam: { total: 14, used: 0, pending: 0 },
-            others: { total: 0, used: 0, pending: 0 },
+            other: { total: 0, used: 0, pending: 0 },
           };
           sortedApplications.forEach((app) => {
             const type = app.type.toLowerCase().replace(" leave", "");
@@ -296,11 +306,15 @@ const LeaveApplication = () => {
           // setcasualLeaveIsHidden(false);
           const balanceCalculation = {
             sick: { total: 7, used: 0, pending: 0 },
-            casual: { total: 1, used: 0, pending: 0 },
+            casual: {
+              total: CasualLeaveTaken?.data?.data.casual,
+              used: 0,
+              pending: 0,
+            },
             paid: { total: 10, used: 0, pending: 0 },
             Emergency: { total: 14, used: 0, pending: 0 },
             Exam: { total: 14, used: 0, pending: 0 },
-            others: { total: 0, used: 0, pending: 0 },
+            other: { total: 0, used: 0, pending: 0 },
           };
           sortedApplications.forEach((app) => {
             const type = app.type.toLowerCase().replace(" leave", "");
@@ -516,6 +530,8 @@ const LeaveApplication = () => {
     if (!date) return true;
     if (leaveType === "emergency") {
       return moment(date).isBefore(moment().add(1, "days").startOf("day"));
+    } else if (leaveType === "sick") {
+      return moment(date).isBefore(moment().add(1, "days").startOf("day"));
     } else {
       return moment(date).isBefore(moment().add(8, "days").startOf("day"));
     }
@@ -661,7 +677,7 @@ const LeaveApplication = () => {
       </div>
     );
   };
-  console.log(availableCasualLeaves+"leaves");
+  console.log(availableCasualLeaves + "leaves");
 
   if (isLoading) {
     return (
@@ -710,16 +726,20 @@ const LeaveApplication = () => {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                    Leave Type
+                    Leave Type <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <Select value={leaveType} onValueChange={setLeaveType}>
-                    <SelectTrigger className="w-full bg-white border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 cursor-pointer">
+                  <Select
+                    className=""
+                    value={leaveType}
+                    onValueChange={setLeaveType}
+                  >
+                    <SelectTrigger className="w-full  border-indigo-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-300 cursor-pointer">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-indigo-100 shadow-lg rounded-lg cursor-pointer">
                       <SelectItem
                         value="sick"
-                        className="hover:bg-indigo-50 cursor-pointer"
+                        className="hover:bg-indigo-50  cursor-pointer"
                       >
                         Sick Leave
                       </SelectItem>
@@ -756,7 +776,7 @@ const LeaveApplication = () => {
                         value="others"
                         className="hover:bg-indigo-50 cursor-pointer"
                       >
-                        Others Leave
+                        Other Leaves
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -765,10 +785,10 @@ const LeaveApplication = () => {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <ClockIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                    Duration
+                    Duration<span className="text-red-500 ml-1">*</span>
                   </label>
                   <motion.div
-                    className="text-sm bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="text-sm bg-white border border-indigo-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300"
                     whileHover={{ scale: 1.02 }}
                   >
                     {getFormattedDateRange()}
@@ -779,7 +799,7 @@ const LeaveApplication = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <SunIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                  Date Range
+                  Date Range <span className="text-red-500 ml-1">*</span>
                 </label>
                 <div className="rounded-lg border border-indigo-100 p-4 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
                   <div className="flex flex-col items-center">
@@ -792,8 +812,15 @@ const LeaveApplication = () => {
                       >
                         <ChevronLeftIcon className="h-4 w-4 text-[#1c6ead]" />
                       </Button>
-                      <div className="text-sm font-semibold text-gray-700">
-                        {moment(currentMonth).format("MMMM YYYY")}
+                      <div className="flex gap-14">
+                        <div className="text-sm font-semibold text-gray-700">
+                          {moment(currentMonth).format("MMMM YYYY")}
+                        </div>
+                        <div className="text-sm font-semibold text-gray-700">
+                          {moment(currentMonth)
+                            .add(1, "month")
+                            .format("MMMM YYYY")}
+                        </div>
                       </div>
                       <Button
                         variant="outline"
@@ -817,7 +844,7 @@ const LeaveApplication = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
                   <UserIcon className="h-5 w-5 text-[#1c6ead] mr-2" />
-                  Reason
+                  Reason <span className="text-red-500 ml-1">*</span>
                 </label>
                 <Textarea
                   value={reason}
@@ -885,7 +912,8 @@ const LeaveApplication = () => {
                             {application.type}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {application.from} to {application.to}
+                            {moment(application.from).format("DD-MM-YYYY")} to{" "}
+                            {moment(application.to).format("DD-MM-YYYY")}
                           </p>
                         </div>
                       </div>
@@ -920,63 +948,77 @@ const LeaveApplication = () => {
           </h2>
           <div className="space-y-6">
             <AnimatePresence>
-              {Object.entries(leaveBalance).map(([type, balance], index) => (
-                <motion.div
-                  key={type}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="space-y-2 group relative"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="capitalize text-gray-700 font-semibold flex items-center">
-                      <UserIcon className="h-4 w-4 text-[#1c6ead] mr-2" />
-                      {type} Leave
-                    </span>
-                    <motion.span
-                      className="font-semibold text-[#1c6ead]"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      {balance.total - balance.used} days
-                    </motion.span>
-                  </div>
-                  <div
-                    className="w-full bg-gray-200 rounded-full h-3 overflow-hidden relative"
-                    title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
-                  >
+              {Object.entries(leaveBalance).map(([type, balance], index) => {
+                console.log(type, balance);
+                return (
+                  <>
                     <motion.div
-                      className="h-3 rounded-full bg-[#1c6ead]"
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${
-                          type === "unpaid" || type === "other"
-                            ? balance.used > 0 || balance.pending > 0
-                              ? 100
-                              : 0
-                            : balance.total > 0
-                            ? ((balance.used + balance.pending) /
-                                balance.total) *
-                              100
-                            : 0
-                        }%`,
-                      }}
-                      transition={{ duration: 0.5, ease: "easeOut" }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Used: {balance.used} days</span>
-                    <span>Pending: {balance.pending} days</span>
-                  </div>
-                  <motion.div
-                    className="absolute hidden group-hover:block bg-[#1c6ead] text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    Used: {balance.used} days, Pending: {balance.pending} days
-                  </motion.div>
-                </motion.div>
-              ))}
+                      key={type}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="space-y-2 group relative"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="capitalize text-gray-700 font-semibold flex items-center">
+                          <UserIcon className="h-4 w-4 text-[#1c6ead] mr-2" />
+                          {type} Leaves
+                        </span>
+                        <motion.span
+                          className="font-semibold text-[#1c6ead]"
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          {type === "casual"
+                            ? balance.total
+                            : balance.total - balance.used}{" "}
+                          {type === "casual" && balance.total <= 1
+                            ? " day"
+                            : type === "casual" && balance.total > 1
+                            ? "days"
+                            : balance.total - balance.used>1?" days":"day"}
+                          
+                        </motion.span>
+                      </div>
+                      <div
+                        className="w-full bg-gray-200 rounded-full h-3 overflow-hidden relative"
+                        title={`Used: ${balance.used} days, Pending: ${balance.pending} days`}
+                      >
+                        <motion.div
+                          className="h-3 rounded-full bg-[#1c6ead]"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${
+                              type === "unpaid" || type === "other"
+                                ? balance.used > 0 || balance.pending > 0
+                                  ? 100
+                                  : 0
+                                : balance.total > 0
+                                ? ((balance.used + balance.pending) /
+                                    balance.total) *
+                                  100
+                                : 0
+                            }%`,
+                          }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Used: {balance.used} days</span>
+                        <span>Pending: {balance.pending} days</span>
+                      </div>
+                      <motion.div
+                        className="absolute hidden group-hover:block bg-[#1c6ead] text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Used: {balance.used} days, Pending: {balance.pending}{" "}
+                        days
+                      </motion.div>
+                    </motion.div>
+                  </>
+                );
+              })}
             </AnimatePresence>
           </div>
         </Card>

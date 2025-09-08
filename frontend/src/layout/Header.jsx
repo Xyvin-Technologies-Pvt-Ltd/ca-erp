@@ -321,6 +321,9 @@ const Header = ({ onOpenSidebar }) => {
                     onClick={() => {
                       profileDropDownClicked;
                     }}
+                    style={{
+                      zIndex: 99999,
+                    }}
                     className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-40"
                   >
                     <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
@@ -382,6 +385,7 @@ const Header = ({ onOpenSidebar }) => {
                       </div>
                     </div>
                   </div>
+                  
                 )}
               </div>
             </div>

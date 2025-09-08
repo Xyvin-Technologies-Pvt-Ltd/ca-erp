@@ -564,7 +564,7 @@ const ProjectDetail = () => {
               <button
                 key={tab.name}
                 onClick={() => handleTabChange(tab.name)}
-                className={`flex items-center px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
+                className={`flex items-center hover:cursor-pointer px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
                   activeTab === tab.name
                     ? "border-[#1c6ead] text-blue-600 bg-blue-50"
                     : "border-transparent text-gray-600 hover:text-[#1c6ead] hover:bg-gray-50"
