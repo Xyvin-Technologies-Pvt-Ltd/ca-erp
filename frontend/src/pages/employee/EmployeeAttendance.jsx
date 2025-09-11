@@ -116,7 +116,7 @@ const EmployeeAttendance = () => {
       const [year, month] = selectedMonth.split("-");
       const range = getMonthRange(new Date(year, month));
       const res = await getMyAttendance({ ...range });
-      console.log(res.data);
+      console.log(res.data?.attendance);
       setAttendance(res.data?.attendance || []);
       setlateHours(res.data?.lateHours);
       setlateMinutes(res.data?.totalMinutes);
@@ -148,6 +148,7 @@ const EmployeeAttendance = () => {
   const statusCounts = {};
   attendance.forEach((a) => {
     statusCounts[a.status] = (statusCounts[a.status] || 0) + 1;
+    console.log(statusCounts[a.status])
   });
 
   const attendanceByDate = {};

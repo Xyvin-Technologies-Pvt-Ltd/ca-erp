@@ -194,7 +194,7 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
     throw createError(400, "Please provide an array of attendance records");
   }
   for (const record of attendanceRecords) {
-    console.log("RUN")
+    console.log("RUN");
     console.log(record.checkOut);
     const userAttendance = await Attendance.findOne({
       employee: new mongoose.Types.ObjectId(record.employee),
@@ -710,7 +710,7 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
   return time;
 };
 exports.createAttendance = catchAsync(async (req, res) => {
-  console.log("OKKK")
+  console.log("OKKK");
   function getISTParts(date) {
     const fmt = new Intl.DateTimeFormat("en-IN", {
       timeZone: "Asia/Kolkata",
@@ -1486,6 +1486,7 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
     const updatedDoc = await Attendance.find({
       employee: new mongoose.Types.ObjectId(req.user._id),
       date: { $gte: startDate, $lt: endDate },
+      isDeleted: { $ne: true },
     });
     console.log(updatedDoc);
     let lateHours = 0;
