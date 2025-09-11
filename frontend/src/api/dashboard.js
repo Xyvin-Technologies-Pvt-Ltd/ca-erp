@@ -44,7 +44,7 @@ export const fetchDashboardData = async (userId) => {
       (project) => project.status === "completed"
     );
     // const totalRevenue = completedProjects.reduce((acc, project) => acc + project.budget, 0);
-const completedCount = completedProjects.length; // total length
+    const completedCount = completedProjects.length; // total length
     const currentProjects = projects.count;
     const previousProject = 8;
     const changeProjects = calculateChange(completedCount, previousProject);
@@ -234,14 +234,15 @@ const completedCount = completedProjects.length; // total length
 
     // Calculate dynamic changes for the latest month vs previous month
     const getChangePercent = (current, previous) => {
-      console.log(current,previous)
+      console.log(current, previous);
       if (previous === 0) {
         if (current === 0) return 0;
         return 100;
       }
-      return Math.round(((current - previous) / previous) * 100);
+      const change = Math.round(((current - previous) / previous) * 100);
+      return Math.min(change, 100);
     };
-    console.log(monthlyRevenueData)
+    console.log(monthlyRevenueData);
     const len = monthlyRevenueData.length;
     const latest = monthlyRevenueData[len - 1];
     const prev = monthlyRevenueData[len - 2] || {
@@ -250,7 +251,7 @@ const completedCount = completedProjects.length; // total length
       projects: 0,
       teamMembers: 0,
     };
-    const revenueChange = getChangePercent(latest.revenue, prev.revenue);
+    const revenueChange = getChangePercent(latest.revenue, 20000);
     const tasksChange = getChangePercent(latest.tasks, prev.tasks);
     const projectsChange = getChangePercent(completedCount, prev.projects);
     const teamMembersChange = getChangePercent(
