@@ -77,9 +77,9 @@ exports.remindDuetask = cron.schedule("0 2 * * *", async () => {
       console.log(123);
       const notification = await Notification.create({
         user: dueTask.assignedTo,
-        sender: "67f54137ca7f2422c0e39cdb",
+        sender: dueTask.createdBy,
         title: `Reminder for Due Task`,
-        message: `Reminder for Due Task ${dueTask.title}`,
+        message: `Reminder for Due Task - ${dueTask.title}`,
         type: "Due_Task",
       });
       console.log(notification);

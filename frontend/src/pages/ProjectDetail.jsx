@@ -317,7 +317,7 @@ const ProjectDetail = () => {
 
   if (!project) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+      <div className="max-w-4xl  mx-auto px-4 py-8 animate-fade-in">
         <div className="bg-amber-50 p-4 sm:p-6 rounded-xl shadow-lg">
           <p className="text-amber-700 font-medium text-sm sm:text-base">
             Project not found.
@@ -437,7 +437,7 @@ const ProjectDetail = () => {
         `}
       </style>
       {/* Header with back button and actions */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+      <div className="mb-8 flex   flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <button
           onClick={() => navigate("/projects")}
           className="flex items-center text-[#1c6ead] hover:text-blue-700 transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base"
@@ -459,17 +459,17 @@ const ProjectDetail = () => {
           Back to Projects
         </button>
         {role !== "staff" && (
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="flex  flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-5 py-2.5 bg-[#1c6ead] text-white rounded-lg hover:from-[#1c6ead] hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-[#1c6ead] text-white rounded-lg hover:from-[#1c6ead] hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md  cursor-pointer"
             >
               <CiEdit className="w-5 h-5 mr-2 text-white" />
               Edit Project
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex items-center px-5 py-2.5 bg-red-500 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center px-5 py-2.5 bg-red-500 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all duration-200 shadow-sm hover:shadow-md  cursor-pointer"
             >
               <TrashIcon className="h-5 w-5" />
               Delete
@@ -479,12 +479,12 @@ const ProjectDetail = () => {
       </div>
 
       {/* Project header */}
-      <div className="border border-blue-100 bg-white rounded-2xl mb-8 transform transition-all duration-500 ease-in-out">
+      <div className="border border-blue-100 bg-white rounded-2xl mb-8 transfor transition-all duration-500 ease-in-out">
         <div className="px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                <MdFolder className="w-7 h-7 mr-2 text-[#1c6ead]" />
+              <h1 className="text-2xl capitalize sm:text-3xl font-bold text-gray-800 flex items-center">
+                <MdFolder className="w-7h-7 mr-2 text-[#1c6ead]" />
                 {project.name}
               </h1>
               <div className="flex items-center space-x-3 mt-3">
