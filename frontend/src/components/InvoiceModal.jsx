@@ -121,6 +121,36 @@ const InvoiceModal = ({
     }
   };
 
+const handleCopyLink = (invoice) => {
+  const link = `/invoice-preview?invoice=${encodeURIComponent(
+    JSON.stringify({
+      id: invoice?.id || invoice?._id,
+      invoiceNumber: invoice?.invoiceNumber,
+      amount: invoice?.amount || invoice?.cost,
+      client: invoice?.client,
+      project: invoice?.project,
+      issueDate: invoice?.issueDate || invoice?.invoiceDate,
+      dueDate: invoice?.dueDate,
+      status: invoice?.status || invoice?.invoiceStatus,
+      paidAmount: invoice?.paidAmount || invoice?.receivedAmount,
+      total: invoice?.total || invoice?.amount || invoice?.cost,
+      name: invoice?.name,
+      description: invoice?.description,
+      notes: invoice?.notes,
+      currency: invoice?.currency || "INR",
+    })
+  )}`;
+
+  navigator.clipboard
+    .writeText(window.location.origin + link)
+    .then(() => {
+      alert("Link copied to clipboard ✅");
+    })
+    .catch((err) => {
+      console.error("Failed to copy link:", err);
+    });
+};
+
   const handlePrint = async () => {
     try {
       await printInvoice(invoice);
@@ -214,8 +244,15 @@ const InvoiceModal = ({
                 <Eye className="w-4 h-4" />
                 View
               </button>
-              
-              <a
+              <button
+  onClick={() => handleCopyLink(invoice)}
+  className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors duration-200"
+  title="Click to copy link"
+>
+  <Share2 className="w-4 h-4" />
+  Copy Link
+</button>
+              {/* <a
                 href={`/invoice-preview?invoice=${encodeURIComponent(JSON.stringify({
                   id: invoice?.id || invoice?._id,
                   invoiceNumber: invoice?.invoiceNumber,
@@ -239,7 +276,7 @@ const InvoiceModal = ({
               >
                 <Share2 className="w-4 h-4" />
                 Link
-              </a>
+              </a> */}
               
              
               

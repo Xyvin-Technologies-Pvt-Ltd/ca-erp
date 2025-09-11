@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 // Import the ProjectForm component
 import ProjectForm from "./ProjectForm"; // Adjust the import path as needed
 
-const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTaskUpdate }) => {
+const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const tagOptions = [
@@ -53,7 +53,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
   const [assignedTo, setAssignedTo] = useState(task?.assignedTo?._id || "");
   const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.split("T")[0] : "");
   const [description, setDescription] = useState(task?.description || "");
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const [selectedTags, setSelectedTags] = useState(task?.tags?.map(tag => ({ id: tag, text: tag })) || []);
   const [projectId, setProjectId] = useState(task?.project?._id || projectIds);
   const [users, setUsers] = useState([]);
@@ -78,10 +78,10 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setIsFormDirty(true);
-  };
+const handleFileChange = (e) => {
+  const selectedFiles = Array.from(e.target.files); // convert FileList → array
+  setFile(selectedFiles);
+};
 
   // Update form dirty status on input changes
   useEffect(() => {
@@ -257,7 +257,12 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       taskPayload.append("amount", amount !== undefined ? amount : 0);
       taskPayload.append("dueDate", dueDate);
       taskPayload.append("description", description);
-      if (file) taskPayload.append("file", file);
+      // if (file) taskPayload.append("file", file);
+      if (file.length > 0) {
+  file.forEach((fil) => {
+    taskPayload.append("files", fil); // backend must accept array of files
+  });
+}
       tagList.forEach(tag => taskPayload.append("tags[]", tag));
       
       if (user?.role === 'admin') {
@@ -303,6 +308,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
       }
 
       onSuccess(response.data);
+      onSucces()
     } catch (err) {
       console.error("Failed to create/update task", err);
       toast.error(err.response?.data?.message || "Failed to create/update task");
@@ -436,7 +442,7 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
             </div>
             <button 
               onClick={handleCancel} 
-              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              className="text-gray-500 hover:text-gray-700 hover:cursor-pointer transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -534,56 +540,34 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
                 </div>
 
                 {/* Assigned To */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    value={users.find((user) => user._id === assignedTo)}
-                    onChange={(selectedOption) => { setAssignedTo(selectedOption?._id); setIsFormDirty(true); }}
-                    getOptionLabel={(e) => e.name || e.email}
-                    getOptionValue={(e) => e._id}
-                    isLoading={loadingUsers}
-                    options={users}
-                    placeholder="Select a user"
-                    className="mt-1"
-                    classNamePrefix="react-select"
-                    required
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        borderColor: '#d1d5db',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          borderColor: '#3b82f6',
-                        },
-                        borderRadius: '0.5rem',
-                        padding: '0.25rem',
-                        backgroundColor: '#fff',
-                        cursor: 'pointer',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 20,
-                        backgroundColor: '#fff',
-                        borderRadius: '0.5rem',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      }),
-                      option: (base, { isFocused }) => ({
-                        ...base,
-                        backgroundColor: isFocused ? '#e0f2fe' : '#fff',
-                        color: '#1f2937',
-                        cursor: 'pointer',
-                      }),
-                    }}
-                  />
-                  {userError && (
-                    <div className="text-red-500 text-sm mt-1 flex items-center">
-                      <span className="text-red-500 mr-1">⚠</span>
-                      {userError}
-                    </div>
-                  )}
-                </div>
+               <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Assigned To <span className="text-red-500">*</span>
+  </label>
+  <select
+    value={assignedTo}
+    onChange={(e) => {
+      setAssignedTo(e.target.value);
+      setIsFormDirty(true);
+    }}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
+    required
+  >
+    <option value="">Select a user</option>
+    {users.map((user) => (
+      <option key={user._id} value={user._id}>
+        {user.name || user.email}
+      </option>
+    ))}
+  </select>
+  {userError && (
+    <div className="text-red-500 text-sm mt-1 flex items-center">
+      <span className="text-red-500 mr-1">⚠</span>
+      {userError}
+    </div>
+  )}
+</div>
+
 
                 {/* Due Date */}
                 <div>
@@ -695,28 +679,44 @@ const TaskForm = ({ projectIds, onClose, onSuccess, onCancel, task = null, onTas
               </div>
 
               {/* Attachment */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attachment
-                </label>
-                <div className="flex items-center space-x-3">
-                  <label
-                    htmlFor="file"
-                    className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
-                  >
-                    Upload File
-                  </label>
-                  <span className="text-sm text-gray-600 truncate max-w-xs">
-                    {file ? file.name : "No file selected"}
-                  </span>
-                </div>
-                <input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
+            <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Attachments
+  </label>
+
+  <div className="flex items-center space-x-3">
+    <label
+      htmlFor="file"
+      className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
+    >
+      Upload Files
+    </label>
+    <span className="text-sm text-gray-600 truncate max-w-xs">
+      {file.length > 0 ? `${file.length} file(s) selected` : "No files selected"}
+    </span>
+  </div>
+
+  <input
+    id="file"
+    type="file"
+    multiple   // ✅ allow multiple files
+    onChange={handleFileChange}
+    className="hidden"
+  />
+
+  {/* List of selected files */}
+  {file.length > 0 && (
+    <ul className="mt-3 space-y-1 text-sm text-gray-700">
+      {file.map((fil, index) => (
+        <li key={index} className="flex items-center space-x-2">
+          <span className="truncate max-w-xs">{fil.name}</span>
+          <span className="text-gray-500 text-xs">({(fil.size / 1024).toFixed(1)} KB)</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
               {/* Tags */}
               <div>

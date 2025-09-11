@@ -172,7 +172,8 @@ const handleCancel = () => {
                   </label>
                   <select
                     name="leaveType"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                    disabled
+                    className="w-full px-4 py-3 border bg-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                     {...formik.getFieldProps("leaveType")}
                   >
                     <option value="">Select Leave Type</option>
@@ -226,10 +227,11 @@ const handleCancel = () => {
                   <div className="relative">
                     <input
                       ref={startDateRef}
+                      disabled
                       onClick={() => openDatePicker(startDateRef)}
                       type="date"
                       name="startDate"
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 bg-gray-200 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                       {...formik.getFieldProps("startDate")}
                     />
                   
@@ -252,9 +254,10 @@ const handleCancel = () => {
                       ref={endDateRef}
                       type="date"
                       name="endDate"
+                      disabled
                       onClick={() => openDatePicker(endDateRef)}
                       min={formik.values.startDate}
-                      className="w-full px-4 py-3 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
+                      className="w-full px-4 py-3 bg-gray-200 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                       {...formik.getFieldProps("endDate")}
                     />
                     {/* <button
@@ -282,9 +285,10 @@ const handleCancel = () => {
                 <textarea
                   name="reason"
                   rows={4}
+                  disabled
                   maxLength={500}
                   placeholder="Please provide a detailed reason for your leave request..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
+                  className="w-full bg-gray-200 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                   {...formik.getFieldProps("reason")}
                 />
                 <div className="flex justify-end items-center mt-2">

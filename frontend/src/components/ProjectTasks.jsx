@@ -28,7 +28,7 @@ const priorityColors = {
   low: "bg-green-100 text-green-800",
 };
 
-const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated, onTaskDeleted }) => {
+const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated, onTaskDeleted ,onSuccess}) => {
   const [tasks, setTasks] = useState(initialTasks || []);
   const [loading, setLoading] = useState(!initialTasks);
   const [error, setError] = useState(null);
@@ -363,6 +363,7 @@ const goToPrevTaskPage = () => {
 
       <CreateTaskModal
         isOpen={isModalOpen}
+        onSucces={onSuccess}
         onClose={() => setIsModalOpen(false)}
         onTaskCreated={handleTaskCreated}
         projectId={projectId}

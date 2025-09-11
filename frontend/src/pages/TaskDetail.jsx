@@ -204,7 +204,7 @@ const TaskDetail = () => {
       setLoading(true);
       await deleteTask(id);
       setLoading(false);
-      navigate("/tasks", { state: { message: "Task deleted successfully" } });
+      navigate(-1)
     } catch (err) {
       console.error("Failed to delete task:", err);
       setError("Failed to delete task. Please try again later.");
@@ -297,7 +297,7 @@ const TaskDetail = () => {
     try {
       setAddingAttachment(true);
       const formData = new FormData();
-      formData.append("file", newAttachment.file);
+      formData.append("files", newAttachment.file);
       formData.append("name", newAttachment.name);
       formData.append("description", newAttachment.description || "");
 
@@ -647,7 +647,7 @@ const TaskDetail = () => {
         </div>
 
         {/* Task Header Card */}
-        <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl mb-8 border border-white/20 overflow-hidden">
+        <div className="bg-white/70  backdrop-blur-s shadow-xl rounded-2xl mb-8  border border-white/20 overflow-hidden">
           <div className="px-8 py-6">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
@@ -1101,10 +1101,11 @@ const TaskDetail = () => {
                 </div>
               ) : task.tags.length > 0 ? (
                 <div className="space-y-6">
-                  {task.tags.map((tag) => (
+                  {task.tags.map((tag,id) => (
                     <TagDocumentUpload
                       key={tag}
                       tag={tag}
+                      id={id}
                       onUpload={handleTagDocUpload}
                       onRemindClient={handleRemindClient}
                       existingDocuments={tagDocuments}
@@ -1141,20 +1142,7 @@ const TaskDetail = () => {
             </button>
           </div>
           <div className="p-6">
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Estimated: {calculateEstimatedHours()} hours</span>
-                <span>Actual: {calculateActualHours()} hours</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-[#1c6ead] to-cyan-500 h-3 rounded-full transition-all duration-500 ease-out"
-                  style={{
-                    width: `${calculateProgressPercentage()}%`,
-                  }}
-                ></div>
-              </div>
-            </div>
+           
 
             {task?.timeTracking?.entries?.length > 0 ? (
               <ul className="space-y-3">
@@ -1195,6 +1183,20 @@ const TaskDetail = () => {
                 </p>
               </div>
             )}
+             <div className="mt-6">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Estimated: {calculateEstimatedHours()} hours</span>
+                <span>Actual: {calculateActualHours()} hours</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-[#1c6ead] to-cyan-500 h-3 rounded-full transition-all duration-500 ease-out"
+                  style={{
+                    width: `${calculateProgressPercentage()}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
 

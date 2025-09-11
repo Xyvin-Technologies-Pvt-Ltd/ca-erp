@@ -135,7 +135,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-[#1c6ead] text-white p-3 rounded-lg shadow-sm">
+              <div className="bg-[#1c6ead] text-white  p-3 rounded-lg shadow-sm">
                 <BriefcaseIcon className="h-6 w-6" />
               </div>
               <div>
@@ -148,7 +148,7 @@ const PositionModal = ({ isOpen, onClose, onSuccess, position }) => {
               </div>
             </div>
             <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200">
-              <XMarkIcon className="h-6 w-6" />
+              <XMarkIcon className="h-6 w-6 hover:cursor-pointer" />
             </button>
           </div>
         </div>

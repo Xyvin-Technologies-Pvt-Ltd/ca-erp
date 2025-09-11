@@ -9,6 +9,7 @@ import { fetchTasks } from "../api/tasks";
 import { projectsApi } from "../api/projectsApi";
 import { clientsApi } from "../api/clientsApi";
 import useHeaderStore from "../stores/useHeaderStore";
+import { createPortal } from "react-dom";
 import { checkOut } from "../api/attendance";
 const AvatarWithFallback = ({ name, src, size }) => {
   const [imageError, setImageError] = useState(false);
@@ -324,7 +325,7 @@ const Header = ({ onOpenSidebar }) => {
                     style={{
                       zIndex: 99999,
                     }}
-                    className="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-40"
+                    className="origin-top-right  fixed right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-40"
                   >
                     <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                       <div className="flex items-center gap-3">

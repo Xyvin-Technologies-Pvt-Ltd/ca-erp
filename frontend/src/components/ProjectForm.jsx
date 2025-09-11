@@ -280,7 +280,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     {...register("status", { required: "Status is required", validate: value => value !== "" || "Please select a valid status" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
-                    <option value="">Select status</option>
+                    <option disabled value="">Select status</option>
                     <option value="planning">Planning</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
@@ -303,7 +303,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     {...register("priority", { required: "Priority is required", validate: value => value !== "" || "Please select a valid priority" })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                   >
-                    <option value="">Select priority</option>
+                    <option disabled value="">Select priority</option>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>

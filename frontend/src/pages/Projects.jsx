@@ -12,7 +12,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import {Briefcase} from "lucide-react";
+import { Briefcase } from "lucide-react";
 const statusColors = {
   completed: "bg-green-100 text-green-700 border-green-200",
   "in-progress": "bg-blue-100 text-[#1c6ead] border-blue-200",
@@ -39,6 +39,7 @@ const Projects = () => {
     status: "",
     priority: "",
     client: "",
+    projectName: "",
   });
   const [paginations, setPaginations] = useState({
     page: 1,
@@ -50,7 +51,7 @@ const Projects = () => {
   const [totalPage, setTotalPage] = useState(0);
   const [pages, setPages] = useState([]);
   const [clients, setClients] = useState([]);
-
+  const [projectNames, setProjectNames] = useState([]);
   const loadProjects = async () => {
     try {
       setLoading(true);
@@ -60,8 +61,10 @@ const Projects = () => {
         status: filters.status,
         priority: filters.priority,
         client: filters.client,
+        project: filters.projectName,
       });
-
+      console.log(data);
+      console.log(filters);
       if (!data?.data || !Array.isArray(data.data)) {
         throw new Error("Invalid API response format");
       }
@@ -90,15 +93,32 @@ const Projects = () => {
       setPages(pageNumbers);
 
       // Fetch unique clients for the filter dropdown
-      const uniqueClients = [...new Set(data.data.map((project) => project.client?._id))];
+      const uniqueClients = [
+        ...new Set(data.data.map((project) => project.client?._id)),
+      ];
+      const projectNameDropdown = data.data.map((project) => ({
+        _id: project._id,
+        name: project.name,
+      }));
+      const clientDropdown = data.clients.map((client) => ({
+        _id: client._id,
+        name: client.name,
+      }));
+      console.log(clientDropdown);
       const clientData = data.data
         .filter((project) => project.client)
         .map((project) => ({
           _id: project.client._id,
           name: project.client.name,
         }));
-      setClients([...new Set(clientData.map(JSON.stringify))].map(JSON.parse));
-
+      console.log(clientData);
+      setClients(
+        [...new Set(clientDropdown.map(JSON.stringify))].map(JSON.parse)
+      );
+      setProjectNames(
+        [...new Set(projectNameDropdown.map(JSON.stringify))].map(JSON.parse)
+      );
+      // setClients([...new Set(clientData.map(JSON.stringify))].map(JSON.parse));
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch projects:", err);
@@ -116,13 +136,17 @@ const Projects = () => {
           status: filters.status,
           priority: filters.priority,
           client: filters.client,
+          project: filters.projectName,
         }),
       ]);
-
       const taskList = Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
-      const taskProjectIds = new Set(taskList.map((task) => task.project?._id).filter(Boolean));
+      const taskProjectIds = new Set(
+        taskList.map((task) => task.project?._id).filter(Boolean)
+      );
 
-      const allProjects = Array.isArray(projectsData.data) ? projectsData.data : [];
+      const allProjects = Array.isArray(projectsData.data)
+        ? projectsData.data
+        : [];
 
       const filteredProjects = allProjects
         .filter((project) => taskProjectIds.has(project._id))
@@ -141,7 +165,9 @@ const Projects = () => {
         limit: tasksData.pagination?.next?.limit || 10,
       });
 
-      const uniqueClients = [...new Set(allProjects.map((project) => project.client?._id))];
+      const uniqueClients = [
+        ...new Set(allProjects.map((project) => project.client?._id)),
+      ];
       const clientData = allProjects
         .filter((project) => project.client)
         .map((project) => ({
@@ -160,11 +186,12 @@ const Projects = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
+    console.log(name, value);
     setFilters((prev) => ({
       ...prev,
       [name]: value,
     }));
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const resetFilters = () => {
@@ -173,7 +200,7 @@ const Projects = () => {
       priority: "",
       client: "",
     });
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handlePageChanges = (newPage) => {
@@ -214,6 +241,7 @@ const Projects = () => {
   const handleProjectCreated = (newProject) => {
     setProjects((prevProjects) => [...prevProjects, newProject]);
     setSuccessMessage("Project created successfully");
+    loadProjects();
     const timer = setTimeout(() => {
       setSuccessMessage("");
     }, 5000);
@@ -299,7 +327,9 @@ const Projects = () => {
       >
         <div className="flex items-center space-x-3">
           <Briefcase className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Projects</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Projects
+          </h1>
         </div>
         <div className="flex space-x-4">
           {role !== "staff" && (
@@ -337,7 +367,7 @@ const Projects = () => {
           </motion.button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label
               htmlFor="status"
@@ -413,6 +443,31 @@ const Projects = () => {
               ))}
             </motion.select>
           </div>
+          <div>
+            <label
+              htmlFor="client"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
+              Project Name
+            </label>
+            <motion.select
+              id="projectName"
+              name="projectName"
+              value={filters.projectName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-300 transition-all duration-300 cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <option value="">All Projects</option>
+              {projectNames.map((project) => (
+                <option key={project._id} value={project._id}>
+                  {project.name}
+                </option>
+              ))}
+            </motion.select>
+          </div>
         </div>
       </motion.div>
 
@@ -460,19 +515,26 @@ const Projects = () => {
                   <div className="px-6 py-5 border-b border-gray-200 h-35 flex flex-col">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col flex-1">
-                        <h2 className="text-lg font-medium text-gray-900 line-clamp-2">
-                          {project.name.toUpperCase()}
+                        <h2 className="text-lg font-medium capitalize text-gray-900 line-clamp-2">
+                          {project.name}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500">
                           Client: {project.client?.name}
                         </p>
                       </div>
                       <motion.span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-100"}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          statusColors[project.status] || "bg-gray-100"
+                        }`}
                         whileHover={{ scale: 1.05 }}
                       >
-                        <span className={`h-2 w-2 rounded-full mr-1 ${statusColors[project.status]?.split(' ')[0]}`}></span>
-                        {project.status.charAt(0).toUpperCase() + project.status.slice(1).toLowerCase()}
+                        <span
+                          className={`h-2 w-2 rounded-full mr-1 ${
+                            statusColors[project.status]?.split(" ")[0]
+                          }`}
+                        ></span>
+                        {project.status.charAt(0).toUpperCase() +
+                          project.status.slice(1).toLowerCase()}
                       </motion.span>
                     </div>
                   </div>
@@ -485,19 +547,25 @@ const Projects = () => {
                       </p>
                       <p className="text-sm font-medium text-gray-900 mt-1">
                         {project.startDate
-                          ? new Date(project.startDate).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
+                          ? new Date(project.startDate).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
                           : "No start date"}{" "}
                         -{" "}
                         {project.dueDate
-                          ? new Date(project.dueDate).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
+                          ? new Date(project.dueDate).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
                           : "No due date"}
                       </p>
                     </div>
@@ -506,11 +574,13 @@ const Projects = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-blue-600">
                           {project.totalTasks && project.totalTasks > 0
-                            ? Math.round((project.completionPercentage ))
-                            : 0}% Complete
+                            ? Math.round(project.completionPercentage)
+                            : 0}
+                          % Complete
                         </span>
                         <span className="text-xs font-medium text-gray-500">
-                          {project.completedTasks || 0} / {project.totalTasks || 0} Tasks
+                          {project.completedTasks || 0} /{" "}
+                          {project.totalTasks || 0} Tasks
                         </span>
                       </div>
                       <div className="mt-1 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -518,9 +588,11 @@ const Projects = () => {
                           className="h-2 rounded-full bg-[#1c6ead]"
                           initial={{ width: 0 }}
                           animate={{
-                            width: `${project.totalTasks && project.totalTasks > 0
-                              ? Math.round((project.completionPercentage ))
-                              : 0}%`,
+                            width: `${
+                              project.totalTasks && project.totalTasks > 0
+                                ? Math.round(project.completionPercentage)
+                                : 0
+                            }%`,
                           }}
                           transition={{ duration: 0.5, ease: "easeOut" }}
                         />
@@ -562,7 +634,9 @@ const Projects = () => {
                           >
                             {project.team.map((member, index) => (
                               <div key={member._id || member.id || index}>
-                                {member.name || member.email || "Unknown Member"}
+                                {member.name ||
+                                  member.email ||
+                                  "Unknown Member"}
                               </div>
                             ))}
                           </motion.div>
@@ -574,13 +648,21 @@ const Projects = () => {
                         </div>
                       )}
                       <motion.span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[project.priority] || "bg-gray-100"}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          priorityColors[project.priority] || "bg-gray-100"
+                        }`}
                         whileHover={{ scale: 1.05 }}
                       >
                         <span
-                          className={`h-2 w-2 rounded-full mr-1 ${(priorityColors[project.priority] || "bg-gray-100").split(" ")[0]}`}
+                          className={`h-2 w-2 rounded-full mr-1 ${
+                            (
+                              priorityColors[project.priority] || "bg-gray-100"
+                            ).split(" ")[0]
+                          }`}
                         ></span>
-                        {project.priority && project.priority[0].toUpperCase() + project.priority.slice(1).toLowerCase()}
+                        {project.priority &&
+                          project.priority[0].toUpperCase() +
+                            project.priority.slice(1).toLowerCase()}
                       </motion.span>
                     </div>
                   </div>

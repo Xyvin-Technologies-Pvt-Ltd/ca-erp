@@ -15,6 +15,7 @@ import {
   GlobeAltIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
+import {  Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const UserManagement = () => {
@@ -289,19 +290,24 @@ const UserManagement = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300"
           >
+           
+            
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    {/* Sticky Name Column */}
                     <th
                       scope="col"
-                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                      className="sticky left-0 top-0 z-30 bg-gray-50 px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider min-w-[220px]"
                     >
                       <div className="flex items-center space-x-2">
                         <UserIcon className="h-4 w-4 text-indigo-600" />
                         <span>Name</span>
                       </div>
                     </th>
+
+                    {/* Other header columns */}
                     <th
                       scope="col"
                       className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
@@ -334,7 +340,7 @@ const UserManagement = () => {
                       className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
                     >
                       <div className="flex items-center space-x-2">
-                        <BuildingOfficeIcon className="h-4 w-4 text-indigo-600" />
+                        <Briefcase className="h-4 w-4 text-indigo-600" />
                         <span>Position</span>
                       </div>
                     </th>
@@ -356,12 +362,6 @@ const UserManagement = () => {
                         <span>Work</span>
                       </div>
                     </th>
-                    {/* <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        <ShieldExclamationIcon className="h-4 w-4 text-indigo-600" />
-                        <span>Verification</span>
-                      </div>
-                    </th> */}
                     <th
                       scope="col"
                       className="px-4 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
@@ -385,6 +385,7 @@ const UserManagement = () => {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="bg-white divide-y divide-gray-200">
                   <AnimatePresence>
                     {users.map((user, index) => (
@@ -396,24 +397,21 @@ const UserManagement = () => {
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        {/* Sticky Name Column */}
+                        <td className="sticky left-0 z-20 bg-white px-4 sm:px-6 py-4 whitespace-nowrap min-w-[220px]">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               {user.avatar ? (
                                 <img
                                   className="h-10 w-10 rounded-full transition-transform duration-200 hover:scale-110"
-                                  src={`${user.avatar}`}
+                                  src={user.avatar}
                                   onError={(e) => {
                                     e.target.outerHTML = `
-                                      <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
-                                        <span class="text-white font-medium text-sm">
-                                          ${
-                                            user.name
-                                              ?.charAt(0)
-                                              .toUpperCase() || ""
-                                          }
-                                        </span>
-                                      </div>`;
+                            <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
+                              <span class="text-white font-medium text-sm">
+                                ${user.name?.charAt(0).toUpperCase() || ""}
+                              </span>
+                            </div>`;
                                   }}
                                   alt={`${user.name}'s avatar`}
                                 />
@@ -443,6 +441,8 @@ const UserManagement = () => {
                             </div>
                           </div>
                         </td>
+
+                        {/* Other cells... */}
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
                             {user.email}
@@ -494,28 +494,6 @@ const UserManagement = () => {
                             {user.workType === "onsite" ? "On-site" : "Remote"}
                           </motion.span>
                         </td>
-                        {/* <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                          <motion.span
-                            className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-medium ${
-                              user.verificationStaff
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            {user.verificationStaff ? (
-                              <>
-                                <CheckCircleIcon className="h-5 w-5 mr-1 text-green-600" />
-                                Active
-                              </>
-                            ) : (
-                              <>
-                                <XCircleIcon className="h-5 w-5 mr-1 text-gray-600" />
-                                Inactive
-                              </>
-                            )}
-                          </motion.span>
-                        </td> */}
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2 sm:space-x-3">
                             <motion.button
@@ -542,6 +520,7 @@ const UserManagement = () => {
                 </tbody>
               </table>
             </div>
+          
 
             {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-200">

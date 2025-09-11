@@ -204,15 +204,18 @@ exports.createTask = async (req, res, next) => {
     req.body.createdBy = req.user.id;
     let project;
 
-    if (req.file) {
-      const file = {
-        name: req.file.originalname,
-        size: req.file.size,
-        fileUrl: req.file.path.replace(/\\/g, "/"), // Normalize for web use
-        fileType: req.file.mimetype,
-      };
-      req.body.attachments = [file]; // Store file in the attachments array
+    // Handle multiple file uploads
+    if (req.files && req.files.length > 0) {
+      const files = req.files.map(file => ({
+        name: file.originalname,
+        size: file.size,
+        fileUrl: file.path.replace(/\\/g, "/"), // Normalize for web use
+        fileType: file.mimetype,
+      }));
+
+      req.body.attachments = files; // Store all files in attachments array
     }
+
     // Validate project if provided
     if (req.body.project) {
       project = await Project.findById(req.body.project);
@@ -225,6 +228,7 @@ exports.createTask = async (req, res, next) => {
         );
       }
     }
+
     // Ensure amount is a number and always present
     if ("amount" in req.body) {
       req.body.amount = parseFloat(req.body.amount);
@@ -281,6 +285,7 @@ exports.createTask = async (req, res, next) => {
       }
       req.body.taskNumber = `TSK-${year}${month}-${sequence}`;
     }
+
     // Create task
     const task = await Task.create(req.body);
     logger.info(
@@ -331,6 +336,7 @@ exports.createTask = async (req, res, next) => {
         // Note: We don't fail the task creation if notification fails
       }
     }
+
     try {
       await ActivityTracker.trackTaskCreated(task, req.user._id);
       logger.info(`Activity tracked for project creation ${task._id}`);
@@ -349,6 +355,7 @@ exports.createTask = async (req, res, next) => {
     next(error);
   }
 };
+
 
 /**
  * @desc    Update task
@@ -444,21 +451,21 @@ exports.updateTask = async (req, res, next) => {
     }
 
     // --- Begin: Handle file upload and attachments accumulation ---
-    if (req.file) {
-      const file = {
-        name: req.file.originalname,
-        size: req.file.size,
-        fileUrl: req.file.path.replace(/\\/g, "/"),
-        fileType: req.file.mimetype,
-        uploadedAt: new Date(),
-      };
-      // Always merge with existing attachments
-      let currentAttachments = Array.isArray(task.attachments)
-        ? [...task.attachments]
-        : [];
-      currentAttachments.push(file);
-      req.body.attachments = currentAttachments;
-    }
+   if (req.files && req.files.length > 0) {
+  const uploadedFiles = req.files.map((file) => ({
+    name: file.originalname,
+    size: file.size,
+    fileUrl: file.path.replace(/\\/g, "/"),
+    fileType: file.mimetype,
+    uploadedAt: new Date(),
+  }));
+
+  let currentAttachments = Array.isArray(task.attachments)
+    ? [...task.attachments]
+    : [];
+
+  req.body.attachments = [...currentAttachments, ...uploadedFiles];
+}
     // If attachments is a string (e.g., "[]"), convert to array
     if (typeof req.body.attachments === "string") {
       try {
@@ -1443,20 +1450,20 @@ exports.remindClientForDocument = async (req, res, next) => {
     );
 
     // Track activity
-    await ActivityTracker.trackActivity(
-      "reminder_sent",
-      "Document Reminder Sent",
-      `Reminder sent to ${client.name} for ${documentName}`,
-      req.user.id,
-      {
-        taskId: task._id,
-        projectId: task.project._id,
-        clientId: client._id,
-        documentName,
-        documentType,
-        tag,
-      }
-    );
+  await ActivityTracker.track({
+  type: "reminder_sent",
+  title: "Document Reminder Sent",
+  description: `Reminder sent to ${client.name} for ${documentName}`,
+  userId: req.user.id,
+  entityType: "task", // or "document" if you prefer
+  entityId: task._id,
+  project: task.project._id,
+  clientId: client._id, // extra field won’t hurt, but your schema should allow
+  documentName,
+  documentType,
+  tag,
+});
+
 
     res.status(200).json({
       success: true,

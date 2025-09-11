@@ -312,38 +312,52 @@ const Departments = () => {
                     </motion.div>
                 )}
                 {showDeleteConfirm && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center"
-                    >
-                        <div className="bg-white rounded-lg p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow border border-gray-200 hover:shadow-lg transition-all duration-300">
-                            <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Department</h3>
-                            <p className="text-sm sm:text-base text-gray-500 mb-4">
-                                Are you sure you want to delete this department? This action cannot be undone.
-                            </p>
-                            <div className="flex justify-end space-x-3">
-                                <motion.button
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    Cancel
-                                </motion.button>
-                                <motion.button
-                                    onClick={confirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    Delete
-                                </motion.button>
-                            </div>
-                        </div>
-                    </motion.div>
+                  <motion.div
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  exit={{ opacity: 0 }}
+  transition={{ duration: 0.3 }}
+  className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+>
+  <div className="relative bg-white rounded-lg p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow border border-gray-200 hover:shadow-lg transition-all duration-300">
+    
+    {/* Close Button (X) */}
+    <button
+      onClick={() => setShowDeleteConfirm(false)}
+      className="absolute top-10 right-8 hover:cursor-pointer text-gray-500 hover:text-gray-800 focus:outline-none"
+    >
+      ✕
+    </button>
+
+    <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">
+      Delete Department
+    </h3>
+
+    <p className="text-sm sm:text-base text-gray-500 mb-4">
+      Are you sure you want to delete this department? This action cannot be undone.
+    </p>
+
+    <div className="flex justify-end space-x-3">
+      <motion.button
+        onClick={() => setShowDeleteConfirm(false)}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        Cancel
+      </motion.button>
+      <motion.button
+        onClick={confirmDelete}
+        className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        Delete
+      </motion.button>
+    </div>
+  </div>
+</motion.div>
+
                 )}
             </AnimatePresence>
         </motion.div>

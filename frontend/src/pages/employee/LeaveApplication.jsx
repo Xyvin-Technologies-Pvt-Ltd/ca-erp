@@ -351,7 +351,7 @@ const LeaveApplication = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+   
     if (!leaveType) {
       toast.error("Please select a leave type");
       return;
@@ -386,7 +386,41 @@ const LeaveApplication = () => {
           console.log("error");
           return;
         }
+      }else if(leaveType==="sick"){
+        if(leaveBalance.sick.total<a){
+          toast.error(
+            `Only ${leaveBalance.sick.total} sick leave available...`
+          );
+          console.log("error");
+          return;
+        }
+      }else if(leaveType==="paid"){
+        if(leaveBalance.paid.total<a){
+          toast.error(
+            `Only ${leaveBalance.paid.total} paid leave available...`
+          );
+          console.log("error");
+          return;
+        }
+      }else if(leaveType==="emergency"){
+        if(leaveBalance.Emergency.total<a){
+          toast.error(
+            `Only ${leaveBalance.Emergency.total} Emergency leave available...`
+          );
+          console.log("error");
+          return;
+        }
       }
+      else if(leaveType==="exam"){
+        if(leaveBalance.Exam.total<a){
+          toast.error(
+            `Only ${leaveBalance.Exam.total} Exam leave available...`
+          );
+          console.log("error");
+          return;
+        }
+      }
+     
       let leaveRequest = {};
       if (leaveType === "casual") {
         leaveRequest = {
@@ -484,28 +518,35 @@ const LeaveApplication = () => {
     }
   };
 
-  const handleDateClick = (date) => {
-    if (
-      !date ||
-      moment(date).isBefore(moment().add(6, "days").startOf("day"))
-    ) {
-      return; // Don't allow selection of disabled dates
-    }
+ const handleDateClick = (date) => {
+  if (!date) return;
 
-    const localDate = moment(date).startOf("day").toDate();
+  const tomorrow = moment().add(1, "day").startOf("day");
+  const isTomorrow = moment(date).isSame(tomorrow, "day");
 
-    if (!dateRange.from || (dateRange.from && dateRange.to)) {
-      // Start new selection
-      setDateRange({ from: localDate, to: null });
-    } else if (dateRange.from && !dateRange.to) {
-      // Complete the range
-      if (moment(localDate).isBefore(moment(dateRange.from))) {
-        setDateRange({ from: localDate, to: dateRange.from });
-      } else {
-        setDateRange({ from: dateRange.from, to: localDate });
-      }
+  // Block past dates except tomorrow for emergency/sick leave
+  if (
+    moment(date).isBefore(moment().startOf("day")) && // before today
+    !(isTomorrow && (leaveType === "emergency" || leaveType === "sick"))
+  ) {
+    return; // Don't allow selection
+  }
+
+  const localDate = moment(date).startOf("day").toDate();
+
+  if (!dateRange.from || (dateRange.from && dateRange.to)) {
+    // Start new selection
+    setDateRange({ from: localDate, to: null });
+  } else if (dateRange.from && !dateRange.to) {
+    // Complete the range
+    if (moment(localDate).isBefore(moment(dateRange.from))) {
+      setDateRange({ from: localDate, to: dateRange.from });
+    } else {
+      setDateRange({ from: dateRange.from, to: localDate });
     }
-  };
+  }
+};
+
 
   const isDateInRange = (date) => {
     if (!dateRange.from || !dateRange.to || !date) return false;
@@ -646,7 +687,7 @@ const LeaveApplication = () => {
               "h-10 w-10 flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ";
 
             if (disabled) {
-              dayClasses += "text-gray-400 cursor-not-allowed opacity-50 ";
+              dayClasses += "text-gray-400   cursor-not-allowed opacity-50 ";
             } else if (selected) {
               dayClasses +=
                 "bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-600 text-white font-semibold shadow-lg transform scale-105 ring-2 ring-indigo-300 ring-offset-1 ";
@@ -805,6 +846,7 @@ const LeaveApplication = () => {
                   <div className="flex flex-col items-center">
                     <div className="flex justify-between items-center gap-4 mb-4 pb-2 border-b border-indigo-100 w-full">
                       <Button
+                      type="button"
                         variant="outline"
                         size="icon"
                         onClick={handlePreviousMonth}
@@ -825,6 +867,7 @@ const LeaveApplication = () => {
                       <Button
                         variant="outline"
                         size="icon"
+                        type="button"
                         onClick={handleNextMonth}
                         className="h-8 w-8 hover:bg-indigo-50 border-indigo-200 rounded-full transition-all duration-300"
                       >

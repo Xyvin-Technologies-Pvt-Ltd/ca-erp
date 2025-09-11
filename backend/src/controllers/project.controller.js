@@ -6,27 +6,32 @@ const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 const ActivityTracker = require("../utils/activityTracker");
 
-
 const updateProjectTeamFromTasks = async (projectId) => {
   try {
     const tasks = await Task.find({
       project: projectId,
-      deleted: { $ne: true }
-    }).populate('assignedTo', '_id name email');
+      deleted: { $ne: true },
+    }).populate("assignedTo", "_id name email");
 
-    const assigneeIds = [...new Set(
-      tasks
-        .filter(task => task.assignedTo && task.assignedTo._id)
-        .map(task => task.assignedTo._id.toString())
-    )];
+    const assigneeIds = [
+      ...new Set(
+        tasks
+          .filter((task) => task.assignedTo && task.assignedTo._id)
+          .map((task) => task.assignedTo._id.toString())
+      ),
+    ];
 
     await Project.findByIdAndUpdate(projectId, {
-      team: assigneeIds
+      team: assigneeIds,
     });
 
-    logger.info(`Updated project team for project ${projectId} with ${assigneeIds.length} members`);
+    logger.info(
+      `Updated project team for project ${projectId} with ${assigneeIds.length} members`
+    );
   } catch (error) {
-    logger.error(`Error updating project team for project ${projectId}: ${error.message}`);
+    logger.error(
+      `Error updating project team for project ${projectId}: ${error.message}`
+    );
     throw error;
   }
 };
@@ -38,6 +43,7 @@ const updateProjectTeamFromTasks = async (projectId) => {
  */
 exports.getProjects = async (req, res, next) => {
   try {
+    console.log("OK<VINU",req.query)
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -57,8 +63,14 @@ exports.getProjects = async (req, res, next) => {
     if (req.query.priority) {
       filter.priority = req.query.priority;
     }
-    const total = await Project.countDocuments(filter);
+    if(req.query.project){
+      filter._id=req.query.project
+    }
 
+    const total = await Project.countDocuments(filter);
+    console.log(total)
+    console.log(filter)
+    const clients = await Client.find({});
     // If user is not admin, only show projects they are assigned to
     // if (req.user.role !== 'admin' && req.user.role !== 'finance' && req.user.role !== 'manager' ) {
     //     filter.assignedTo = req.user.id;
@@ -114,7 +126,6 @@ exports.getProjects = async (req, res, next) => {
           select: "name email",
         },
       });
-
     // Apply pagination only if limit is specified
     if (shouldLimit) {
       query = query.skip(startIndex).limit(limit);
@@ -160,7 +171,7 @@ exports.getProjects = async (req, res, next) => {
             (sum, task) => sum + (task.amount || 0),
             0
           );
-              await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
+          await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
 
           projectObj.amount = totalAmount;
 
@@ -204,8 +215,8 @@ exports.getProjects = async (req, res, next) => {
 
         const totalTasks = activeTasks.length;
 
-        let completedTasks = 0
-        
+        let completedTasks = 0;
+
         if (totalTasks > 0) {
           completedTasks = activeTasks.filter(
             (task) => task.status === "completed"
@@ -214,10 +225,14 @@ exports.getProjects = async (req, res, next) => {
 
         let completionPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-        
-        if (completionPercentage == 100 && 
-            (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
-             !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+
+        if (
+          completionPercentage == 100 &&
+          (!project.invoiceStatus ||
+            project.invoiceStatus !== "Created" ||
+            !project.paymentStatus ||
+            project.paymentStatus !== "Fully Paid")
+        ) {
           completionPercentage = 99;
         }
 
@@ -225,7 +240,7 @@ exports.getProjects = async (req, res, next) => {
         projectObj.totalTasks = totalTasks;
         projectObj.completedTasks = completedTasks;
         projectObj.completionPercentage = completionPercentage;
-        
+
         return projectObj;
       })
     );
@@ -252,6 +267,7 @@ exports.getProjects = async (req, res, next) => {
       count: projects.length,
       pagination,
       total,
+      clients,
       data: projectsWithStats,
     });
   } catch (error) {
@@ -334,19 +350,20 @@ exports.getProject = async (req, res, next) => {
     let completionPercentage =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    if (completionPercentage === 100 && 
-        (!project.invoiceStatus || project.invoiceStatus !== "Created" || 
-         !project.paymentStatus || project.paymentStatus !== "Fully Paid")) {
+    if (
+      completionPercentage === 100 &&
+      (!project.invoiceStatus ||
+        project.invoiceStatus !== "Created" ||
+        !project.paymentStatus ||
+        project.paymentStatus !== "Fully Paid")
+    ) {
       completionPercentage = 99;
     }
 
     projectObject.totalTasks = totalTasks;
     projectObject.completedTasks = completedTasks;
     projectObject.completionPercentage = completionPercentage;
-    const totalAmount = activeTasks.reduce(
-      (sum, task) => sum + (task.amount),
-      0
-    );
+    const totalAmount = activeTasks.reduce((sum, task) => sum + task.amount, 0);
     await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
     projectObject.amount = totalAmount;
     // Remove budget if user is not admin or finance

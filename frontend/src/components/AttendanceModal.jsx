@@ -455,7 +455,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
               <span className="text-blue-600">
                 {loadingExisting
                   ? "Checking..."
-                  : ` ${availableEmployeesCount} records available for ${formData.type}`}
+                  : ` ${availableEmployeesCount} records available for ${formData.type ==="checkIn"?"Check In":"Check Out"}`}
               </span>
             </div>
           </div>

@@ -25,12 +25,24 @@ const {
   uploadTaskFile,
   uploadTagDocument: uploadTagDocumentMiddleware,
 } = require("../middleware/upload");
+// const ensureFileArray = (req, res, next) => {
+//   if (!req.body) req.body = {}; // Ensure body exists
+//   req.body.file = req.file ? [req.file.filename] : []; // If file exists, assign filename array; else, empty array
+//   next(); // Continue to next middleware (validation)
+// };
 const ensureFileArray = (req, res, next) => {
-  if (!req.body) req.body = {}; // Ensure body exists
-  req.body.file = req.file ? [req.file.filename] : []; // If file exists, assign filename array; else, empty array
-  next(); // Continue to next middleware (validation)
-};
+  console.log("HELLO VINU",req.files)
+  if (!req.body) req.body = {};
 
+  if (req.files && req.files.length > 0) {
+    // If multiple files uploaded, store array of filenames
+    req.body.files = req.files.map(file => file.filename);
+  } else {
+    req.body.files = [];
+  }
+
+  next();
+};
 /**
  * @swagger
  * /api/tasks/me:
@@ -199,7 +211,7 @@ router
    */
   .post(
     protect,
-    uploadTaskFile.single("file"),
+    uploadTaskFile.array("files",10),
     ensureFileArray,
     validate(taskValidation.create),
     createTask
@@ -321,7 +333,7 @@ router
    *       403:
    *         description: Not authorized to update this task
    */
-  .put(protect, uploadTaskFile.single("file"), updateTask)
+  .put(protect,  uploadTaskFile.array("files",10), updateTask)
 
   /**
    * @swagger

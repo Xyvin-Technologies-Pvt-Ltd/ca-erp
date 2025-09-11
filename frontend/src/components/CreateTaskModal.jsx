@@ -4,6 +4,7 @@ import TaskForm from "./TaskForm";
 const CreateTaskModal = ({
   isOpen,
   onClose,
+  onSucces,
   onTaskCreated,
   projectId,
   task,
@@ -41,6 +42,7 @@ const CreateTaskModal = ({
         <TaskForm
           projectIds={projectId}
           task={task}
+          onSucces={onSucces}
           onSuccess={(task) => {
             onTaskCreated(task);
             onClose();

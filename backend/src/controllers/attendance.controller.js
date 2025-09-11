@@ -194,6 +194,7 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
     throw createError(400, "Please provide an array of attendance records");
   }
   for (const record of attendanceRecords) {
+    console.log("RUN")
     console.log(record.checkOut);
     const userAttendance = await Attendance.findOne({
       employee: new mongoose.Types.ObjectId(record.employee),
@@ -253,9 +254,9 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
             },
           }
         );
-        res.status(201).json({
-          status: "success",
-        });
+        // res.status(201).json({
+        //   status: "success",
+        // });
       } else {
         console.log("done");
         console.log(new Date(record.checkOut.time));
@@ -302,9 +303,9 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
             },
           }
         );
-        res.status(201).json({
-          status: "success",
-        });
+        // res.status(201).json({
+        //   status: "success",
+        // });
       }
     } else {
       if (record?.checkOut === undefined) {
@@ -327,9 +328,9 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
           createdBy: req.user._id,
           updatedBy: req.user._id,
         });
-        res.status(201).json({
-          status: "success",
-        });
+        // res.status(201).json({
+        //   status: "success",
+        // });
       } else {
         await Attendance.create({
           employee: record.employee,
@@ -350,9 +351,9 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
           createdBy: req.user._id,
           updatedBy: req.user._id,
         });
-        res.status(201).json({
-          status: "success",
-        });
+        // res.status(201).json({
+        //   status: "success",
+        // });
       }
     }
   }
@@ -709,6 +710,7 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
   return time;
 };
 exports.createAttendance = catchAsync(async (req, res) => {
+  console.log("OKKK")
   function getISTParts(date) {
     const fmt = new Intl.DateTimeFormat("en-IN", {
       timeZone: "Asia/Kolkata",
@@ -759,7 +761,6 @@ exports.createAttendance = catchAsync(async (req, res) => {
       );
     }
   }
-  return;
   const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;

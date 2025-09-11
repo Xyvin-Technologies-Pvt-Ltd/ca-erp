@@ -200,18 +200,18 @@ const Profile = () => {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 flex items-center justify-center p-4">
+    <div className="min-h-screen  bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-white/80 backdrop-blur-md w-full max-w-2xl rounded-3xl shadow-2xl border border-white/50 relative overflow-hidden"
+        className="bg-white/80 backdrop-blur-none w-full max-w-2xl rounded-3xl shadow-2xl border border-white/50 relativ overflow-hidden"
       >
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1c6ead]/5 via-purple-500/5 to-indigo-500/5"></div>
+        <div className="absolut inset- bg-gradient-to-br from-[#1c6ead]/5 via-purple-500/5 to-indigo-500/5"></div>
 
         {/* Header Section with Profile Image */}
-        <div className="relative px-8 pt-8 pb-6 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 border-b border-slate-200/50">
+        <div className="relativ px-8 pt-8 pb-6 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-indigo-600/10 border-b border-slate-200/50">
           {/* Profile Image - Now inside the card */}
           <div className="flex justify-center mb-6">
             <motion.div

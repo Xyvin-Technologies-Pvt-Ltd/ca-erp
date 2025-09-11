@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { logger } = require("../utils/logger");
-const { autoAbsent, updateCasualLeaveCount } = require("./cronJobs");
+const { autoAbsent, updateCasualLeaveCount, remindDuetask } = require("./cronJobs");
 require("dotenv").config();
 
 const connectDB = async () => {
@@ -11,6 +11,7 @@ const connectDB = async () => {
     });
     autoAbsent.start();
     updateCasualLeaveCount.start();
+    remindDuetask.start()
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

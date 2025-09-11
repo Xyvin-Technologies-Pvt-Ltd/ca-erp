@@ -37,9 +37,9 @@ const statusColors = {
     tableText: "text-green-600",
   },
   Absent: {
-    bg: "bg-rose-100",
-    text: "text-rose-700",
-    border: "border-rose-200",
+    bg: "bg-red-100",
+    text: "text-red-700",
+    border: "border-red-200",
     icon: XCircleIcon,
     tableBg: "bg-red-50",
     tableText: "text-red-600",

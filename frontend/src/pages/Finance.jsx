@@ -1819,7 +1819,8 @@ const Finance = () => {
           )}
 
           {/* Enhanced Pagination Controls */}
-          {projects.length > 0 && (
+          {projects.length > 0 && 
+          (
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="flex-1 flex justify-between sm:hidden">
@@ -1853,17 +1854,17 @@ const Finance = () => {
                     <p className="text-sm text-gray-700">
                       Showing{" "}
                       <span className="font-medium">
-                        {(currentPage - 1) * paginations.limit + 1}
+                        {filteredProjects.length<=5?1:(currentPage - 1) * paginations.limit + 1}
                       </span>{" "}
                       to{" "}
                       <span className="font-medium">
-                        {Math.min(
+                        {filteredProjects.length<=5?filteredProjects.length:Math.min(
                           currentPage * paginations.limit,
                           paginations.total
                         )}
                       </span>{" "}
                       of{" "}
-                      <span className="font-medium">{paginations.total}</span>{" "}
+                      <span className="font-medium">{filteredProjects.length<=5?filteredProjects.length:paginations.total}</span>{" "}
                       results
                     </p>
                   </div>
