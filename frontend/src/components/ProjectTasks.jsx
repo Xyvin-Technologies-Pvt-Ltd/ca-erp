@@ -149,7 +149,7 @@ const goToPrevTaskPage = () => {
         `}
       </style>
       <div className="flex justify-between items-center p-6 border-b">
-        <h2 className="text-xl font-semibold">Project Tasks</h2>
+        <h2 className="text-xl flex gap-3 text-blue-700 items-center font-semibold"> <ClipboardList/> Project Tasks</h2>
         {tasks.length > 0 && role !== "staff" ? (
           <button
             onClick={() => setIsModalOpen(true)}

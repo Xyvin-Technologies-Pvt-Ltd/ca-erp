@@ -165,7 +165,7 @@ const TaskDetail = () => {
         setLoading(true);
         const data = await fetchTaskById(id);
         setTask(data);
-
+setRefresh(false)
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch task:", err);
