@@ -240,6 +240,25 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         );
 
         console.log(workHours);
+        const computeArrivalFromDate = (d) => {
+          try {
+            const fmt = new Intl.DateTimeFormat("en-IN", {
+              timeZone: "Asia/Kolkata",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+            const parts = fmt.formatToParts(new Date(d));
+            const h = Number(parts.find((p) => p.type === "hour").value);
+            const m = Number(parts.find((p) => p.type === "minute").value);
+            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
+            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
+            return "On-Time";
+          } catch (_) {
+            return undefined;
+          }
+        };
+        const arrivalStatus = computeArrivalFromDate(record.checkIn.time);
         await Attendance.updateOne(
           {
             employee: new mongoose.Types.ObjectId(record.employee),
@@ -251,6 +270,7 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
               status: record.status,
               notes: record.notes,
               shift: record.shift,
+              ...(arrivalStatus ? { arrivalStatus } : {}),
             },
           }
         );
@@ -309,6 +329,25 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       }
     } else {
       if (record?.checkOut === undefined) {
+        const computeArrivalFromDate = (d) => {
+          try {
+            const fmt = new Intl.DateTimeFormat("en-IN", {
+              timeZone: "Asia/Kolkata",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+            const parts = fmt.formatToParts(new Date(d));
+            const h = Number(parts.find((p) => p.type === "hour").value);
+            const m = Number(parts.find((p) => p.type === "minute").value);
+            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
+            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
+            return "On-Time";
+          } catch (_) {
+            return undefined;
+          }
+        };
+        const arrivalStatus = computeArrivalFromDate(record.checkIn.time);
         await Attendance.create({
           employee: record.employee,
           date: record.date,
@@ -325,6 +364,7 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
           shift: record.shift,
           workHours: 0, // Initialize work hours as 0
           workMinutes: 0,
+          ...(arrivalStatus ? { arrivalStatus } : {}),
           createdBy: req.user._id,
           updatedBy: req.user._id,
         });
@@ -730,6 +770,19 @@ exports.createAttendance = catchAsync(async (req, res) => {
   let today = new Date(req.body.now);
   const { isthour, istminute } = getISTParts(today);
   console.log(isthour, istminute);
+  // Determine arrival status based on IST check-in time
+  // Early-Logged: before 9:00
+  // On-Time: 9:00 to 9:15 inclusive
+  // Late-Logged: after 9:15
+  let arrivalStatus = "On-Time";
+  if (isthour < 9 || (isthour === 9 && istminute === 0)) {
+    arrivalStatus = "Early-Logged";
+  } else if (isthour > 9 || (isthour === 9 && istminute > 15)) {
+    arrivalStatus = "Late-Logged";
+  } else {
+    arrivalStatus = "On-Time";
+  }
+
   if (isthour > 9 || (isthour === 9 && istminute > 0)) {
     console.log("Later than 9:00 AM IST");
   } else {
@@ -789,6 +842,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
           $push: { "checkIn.times": istDate },
           $set: {
             totalSign: result?.totalSign + 1,
+            arrivalStatus,
           },
         }
       );
@@ -808,6 +862,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
         notes: "s",
         shift: "Morning",
         workHours: 0, // Initialize work hours as 0
+        arrivalStatus,
         createdBy: req.user._id,
         updatedBy: req.user._id,
       });
@@ -836,6 +891,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
 
       shift: "Morning",
       workHours: 0, // Initialize work hours as 0
+      arrivalStatus,
       createdBy: req.user._id,
       updatedBy: req.user._id,
     });
@@ -1407,6 +1463,26 @@ exports.updateAttendance = catchAsync(async (req, res) => {
         shift: shift || attendance.shift,
         workHours: workHours.hour,
         workMinutes: workHours.minute,
+        // Recompute arrivalStatus from check-in in IST for updates too
+        arrivalStatus: (() => {
+          try {
+            if (!checkIndate) return attendance.arrivalStatus;
+            const fmt = new Intl.DateTimeFormat("en-IN", {
+              timeZone: "Asia/Kolkata",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+            const parts = fmt.formatToParts(checkIndate);
+            const h = Number(parts.find((p) => p.type === "hour").value);
+            const m = Number(parts.find((p) => p.type === "minute").value);
+            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
+            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
+            return "On-Time";
+          } catch (_) {
+            return attendance.arrivalStatus;
+          }
+        })(),
       },
     }
   );

@@ -437,6 +437,9 @@ const Attendance = () => {
                   Check Out
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Arrival Status
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -515,6 +518,9 @@ const Attendance = () => {
                                 a.checkOut.times[a?.checkOut?.times.length - 1]
                               ).format("h:mm A")
                             : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {a.arrivalStatus || "-"}
                         </td>
                         <td className="px-6 py-4">
                           <motion.span

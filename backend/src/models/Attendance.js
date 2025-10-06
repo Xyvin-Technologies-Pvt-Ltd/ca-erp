@@ -45,6 +45,10 @@ const attendanceSchema = new mongoose.Schema(
       ],
       required: true,
     },
+    arrivalStatus: {
+      type: String,
+      enum: ["Early-Logged", "On-Time", "Late-Logged"],
+    },
     workHours: {
       type: Number,
       default: 0,

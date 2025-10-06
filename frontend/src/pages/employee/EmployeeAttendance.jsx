@@ -383,6 +383,9 @@ const EmployeeAttendance = () => {
                   Work Hours
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Arrival Status
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
@@ -451,6 +454,9 @@ const EmployeeAttendance = () => {
                           {att?.workHours != null 
                             ? att.workHours+":"+att.workMinutes
                             : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.arrivalStatus || "-"}
                         </td>
                         <td className="px-6 py-4">
                           <motion.span

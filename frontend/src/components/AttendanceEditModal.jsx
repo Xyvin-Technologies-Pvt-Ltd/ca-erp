@@ -10,6 +10,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     checkIn: "",
     checkOut: "",
     status: "Present",
+    arrivalStatus: "",
     notes: "",
     shift: "Morning",
   });
@@ -55,6 +56,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
             )
           : "",
         status: attendance.status || "Present",
+        arrivalStatus: attendance.arrivalStatus || "",
         notes: attendance.notes || "",
         shift: attendance.shift || "Morning",
       });
@@ -146,6 +148,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
         notes: formData.notes,
         shift: formData.shift,
         workHours,
+        arrivalStatus: formData.arrivalStatus || undefined,
       });
 
       toast.success("Attendance updated successfully");
