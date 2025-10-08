@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { userApi } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import PasswordChangeModal from "../components/PasswordChangeModal";
 import {
   Upload,
   User,
@@ -18,6 +19,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  Lock,
 } from "lucide-react";
 
 const statusConfig = {
@@ -58,6 +60,7 @@ const Profile = () => {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -492,24 +495,43 @@ const Profile = () => {
                   </motion.button>
                 </motion.div>
               ) : (
-                <motion.button
+                <motion.div
                   key="view"
-                  onClick={handleEditToggle}
-                  className="px-8 py-3 bg-[#1c6ead] hover:cursor-pointer hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2"
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex gap-3"
                 >
-                  <Edit3 className="h-4 w-4" />
-                  Edit Profile
-                </motion.button>
+                  <motion.button
+                    onClick={handleEditToggle}
+                    className="px-8 py-3 bg-[#1c6ead] hover:cursor-pointer hover:bg-[#1c6ead] text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-300 flex items-center gap-2"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    Edit Profile
+                  </motion.button>
+                  <motion.button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="px-6 py-3 bg-emerald-600 hover:cursor-pointer hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-300 flex items-center gap-2"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Lock className="h-4 w-4" />
+                    Change Password
+                  </motion.button>
+                </motion.div>
               )}
             </AnimatePresence>
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Password Change Modal */}
+      <PasswordChangeModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </div>
   );
 };

@@ -26,4 +26,9 @@ export const authApi = {
         const response = await api.post('/auth/refresh-token');
         return response.data;
     },
+
+    updatePassword: async (passwordData) => {
+        const response = await api.put('/auth/updatepassword', passwordData);
+        return response.data;
+    },
 }; 
