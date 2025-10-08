@@ -26,10 +26,10 @@ const Login = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      email: "admin@ca-erp.com",
-      password: "Admin@123",
-    },
+    // defaultValues: {
+    //   email: "admin@ca-erp.com",
+    //   password: "Admin@123",
+    // },
   });
 
   // Clear auth errors when unmounting
