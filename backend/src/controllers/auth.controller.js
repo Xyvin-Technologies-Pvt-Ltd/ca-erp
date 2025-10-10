@@ -46,70 +46,81 @@ exports.register = async (req, res, next) => {
  * @route   POST /api/auth/login
  * @access  Public
  */
+// In authController.js
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body
-    // const { loggedTime } = req.body;
-    // console.log(loggedTime);
-    // let now = new Date(loggedTime);
-    // const istDate = new Date(now.getTime() + 330 * 60 * 1000);
-    // console.log(istDate);
-    // return;
+    const { email, password } = req.body;
     if (!email || !password) {
-      logger.warn("Login attempt with missing credentials");
-      return next(
-        new ErrorResponse("Please provide an email and password", 400)
-      );
+      return next(new ErrorResponse("Please provide an email and password", 400));
     }
 
-    // Check for superadmin first
-    let superadmin = await SuperAdmin.findOne({ email }).select("+password");
-    if (superadmin) {
-      const isMatch = await superadmin.matchPassword(password);
-      if (!isMatch) {
-        logger.warn(
-          `Superadmin login attempt with incorrect password: ${email}`
-        );
+    // Check superadmin first
+    let user = await SuperAdmin.findOne({ email }).select("+password");
+    let isSuperadmin = false;
+
+    if (!user) {
+      user = await User.findOne({ email }).select("+password");
+      if (!user) {
         return next(new ErrorResponse("Invalid credentials", 401));
       }
-      logger.info(
-        `Superadmin login successful: ${superadmin.email} (${superadmin._id})`
-      );
-      const token = superadmin.getSignedJwtToken();
-      return res.status(200).json({
-        success: true,
-        token,
-        data: { email: superadmin.email, superadmin: true },
-      });
+    } else {
+      isSuperadmin = true;
     }
 
-    // Fallback to normal user login
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      logger.warn(`Login attempt with non-existent email: ${email}`);
-      return next(new ErrorResponse("Invalid credentials", 401));
-    }
-    if (user.status === "inactive") {
-      logger.warn(`Login attempt for inactive user: ${email}`);
-      return next(
-        new ErrorResponse(
-          "This account has been deactivated. Please contact an administrator.",
-          401
-        )
-      );
-    }
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      logger.warn(`Login attempt with incorrect password for user: ${email}`);
       return next(new ErrorResponse("Invalid credentials", 401));
     }
-    logger.info(`User login successful: ${user.email} (${user._id})`);
-    sendTokenResponse(user, 200, res);
+
+    // ✅ Determine expiration based on login time
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    let expiresIn;
+
+    if (hours < 13) {
+      const expiry = new Date();
+      expiry.setHours(13, 0, 0, 0); // Expire at 1:00 PM
+      const secondsToExpire = Math.max(1, Math.floor((expiry - now) / 1000));
+      expiresIn = `${secondsToExpire}s`;
+
+    } else if (hours === 13 && minutes === 0) {
+      expiresIn = "1s"; // Exact 1 PM → expire immediately
+
+    } else if (hours < 17 || (hours === 17 && minutes <= 30)) {
+      const expiry = new Date();
+      expiry.setHours(17, 30, 0, 0); // Expire at 5:30 PM
+      const secondsToExpire = Math.max(1, Math.floor((expiry - now) / 1000));
+      expiresIn = `${secondsToExpire}s`;
+
+    } else {
+      const expiry = new Date();
+      expiry.setHours(23, 59, 59, 999); // Expire at end of day
+      const secondsToExpire = Math.max(1, Math.floor((expiry - now) / 1000));
+      expiresIn = `${secondsToExpire}s`;
+    }
+
+    // Generate token with session-based expiry
+    const token = user.getSignedJwtToken(expiresIn);
+
+    res.status(200).json({
+      success: true,
+      token,
+      expiresIn,
+      data: {
+        email: user.email,
+        role: user.role,
+        superadmin: isSuperadmin || false,
+      },
+    });
+
   } catch (error) {
-    logger.error("Login error:", error);
     next(error);
   }
 };
+
+
 
 /**
  * @desc    Get current logged in user
