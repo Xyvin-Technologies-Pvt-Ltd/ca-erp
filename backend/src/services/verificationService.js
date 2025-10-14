@@ -5,6 +5,7 @@ const { logger } = require('../utils/logger');
 const Notification = require('../models/Notification');
 const websocketService = require('../utils/websocket');
 const Incentive = require('../models/Incentive');
+const mongoose = require('mongoose');
 
 class VerificationService {
     constructor() {
@@ -27,7 +28,8 @@ class VerificationService {
     async getVerificationStaff() {
         try {
             const staff = await User.find({ verificationStaff: true, status: 'active' })
-                .select('_id name email role')
+                .populate('department', 'name')
+                .select('_id name email role department')
                 .sort('name');
             
             this.verificationStaff = staff;
@@ -44,80 +46,115 @@ class VerificationService {
     
     async getNextVerificationStaff(projectId = null) {
         try {
-            if (!this.lastUpdate || Date.now() - this.lastUpdate > 300000) {
-                await this.getVerificationStaff();
-            }
-
-            if (this.verificationStaff.length === 0) {
-                logger.warn('No verification staff members found');
-                return null;
-            }
-
-            let projectAssignedUsers = [];
-            if (projectId) {
-                try {
-                    const projectTasks = await Task.find({ 
-                        project: projectId, 
-                        deleted: { $ne: true },
-                        assignedTo: { $exists: true, $ne: null }
-                    }).select('assignedTo');
-
-                    projectAssignedUsers = [...new Set(projectTasks.map(task => task.assignedTo.toString()))];
-                    logger.info(`Project ${projectId}: ${projectAssignedUsers.length} users already assigned to project tasks`);
-                } catch (error) {
-                    logger.error('Error getting project assigned users:', error);
-                }
-            }
-
-            const availableStaff = this.verificationStaff.filter(staff => 
-                !projectAssignedUsers.includes(staff._id.toString())
-            );
-
-            if (availableStaff.length === 0) {
-                logger.warn(`No available verification staff for project ${projectId} - all staff members were already assigned to project tasks`);
-                return null;
-            }
-
-            const lastAssignedUserId = this.projectAssignmentHistory.get(projectId);
+            // Get project details to find department
+            const project = await Project.findById(projectId)
+                .populate('team', 'department position')
+                .populate('department', 'name');
             
-            let selectedStaff = null;
-            let attempts = 0;
-            const maxAttempts = availableStaff.length * 2; // Allow multiple rounds
-
-            while (!selectedStaff && attempts < maxAttempts) {
-                const nextStaff = this.verificationStaff[this.currentIndex];
-                this.currentIndex = (this.currentIndex + 1) % this.verificationStaff.length;
-
-                const isAvailable = availableStaff.some(staff => 
-                    staff._id.toString() === nextStaff._id.toString()
-                );
-
-                if (isAvailable && (lastAssignedUserId !== nextStaff._id.toString() || availableStaff.length === 1)) {
-                    selectedStaff = nextStaff;
-                }
-
-                attempts++;
+            if (!project) {
+                logger.error(`Project not found: ${projectId}`);
+                return null;
             }
 
-            if (!selectedStaff && availableStaff.length > 0) {
-                selectedStaff = availableStaff[0];
-                logger.info(`No staff found in rotation, using first available: ${selectedStaff.name}`);
-            }
+            // Get all users already assigned to this project's tasks
+            const projectTasks = await Task.find({ 
+                project: projectId, 
+                deleted: { $ne: true },
+                assignedTo: { $exists: true, $ne: null }
+            }).select('assignedTo');
 
-            if (selectedStaff) {
-                this.projectAssignmentHistory.set(projectId, selectedStaff._id.toString());
-                
-                logger.info(`Assigned verification task to: ${selectedStaff.name} (${selectedStaff._id}) for project ${projectId}`);
-                logger.info(`Available staff for project ${projectId}: ${availableStaff.map(s => s.name).join(', ')}`);
+            const projectAssignedUsers = [...new Set(projectTasks.map(task => task.assignedTo.toString()))];
+            logger.info(`Project ${projectId}: ${projectAssignedUsers.length} users already assigned to project tasks`);
+
+            // Get project department from project itself or team members
+            const projectDepartmentId = project.department ? project.department._id.toString() : null;
+            
+            // If project doesn't have department, get departments from team members
+            let projectDepartmentIds = [];
+            if (projectDepartmentId) {
+                projectDepartmentIds = [projectDepartmentId];
             } else {
-                logger.warn(`No available verification staff found after ${attempts} attempts for project ${projectId}`);
+                const projectTeamMembers = await User.find({ 
+                    _id: { $in: project.team } 
+                }).select('department');
+                
+                projectDepartmentIds = [...new Set(projectTeamMembers
+                    .map(member => member.department ? member.department.toString() : null)
+                    .filter(Boolean)
+                )];
             }
 
-            return selectedStaff;
+            logger.info(`Project ${projectId} department IDs: ${projectDepartmentIds.join(', ')}`);
+
+            // Get ALL active staff for department filtering
+            const allActiveStaff = await User.find({ status: 'active' })
+                .populate('department', 'name')
+                .select('_id name email department role workType verificationStaff')
+                .limit(200);
+
+            // PRIORITY 1: Same Department + Verification Enabled + Not involved in project
+            const priority1Staff = allActiveStaff.filter(staff => {
+                const staffDeptId = staff.department ? staff.department._id.toString() : null;
+                const isSameDepartment = projectDepartmentIds.includes(staffDeptId);
+                const isVerificationEnabled = staff.verificationStaff === true;
+                const notInProject = !projectAssignedUsers.includes(staff._id.toString());
+                return isSameDepartment && isVerificationEnabled && notInProject;
+            });
+
+            if (priority1Staff.length > 0) {
+                const selected = this.selectFromAvailableStaff(priority1Staff, projectId);
+                logger.info(`PRIORITY 1: Assigned to same department + verification enabled staff: ${selected.name}`);
+                return selected;
+            }
+
+            // PRIORITY 2: Same Department + Any Staff + Not involved in project (verification status doesn't matter)
+            const priority2Staff = allActiveStaff.filter(staff => {
+                const staffDeptId = staff.department ? staff.department._id.toString() : null;
+                const isSameDepartment = projectDepartmentIds.includes(staffDeptId);
+                const notInProject = !projectAssignedUsers.includes(staff._id.toString());
+                return isSameDepartment && notInProject;
+            });
+
+            if (priority2Staff.length > 0) {
+                const selected = this.selectFromAvailableStaff(priority2Staff, projectId);
+                logger.info(`PRIORITY 2: Assigned to same department staff: ${selected.name}`);
+                return selected;
+            }
+
+            // If no same department staff available, return null (cannot assign to other departments)
+            logger.warn(`No same department staff available for verification task in project ${projectId}`);
+            return null;
+
         } catch (error) {
             logger.error('Error getting next verification staff:', error);
             throw error;
         }
+    }
+
+    // Helper method for staff selection with rotation
+    selectFromAvailableStaff(availableStaff, projectId) {
+        if (availableStaff.length === 0) return null;
+
+        const lastAssignedUserId = this.projectAssignmentHistory.get(projectId);
+        
+        // Try to assign to someone different than last time
+        if (lastAssignedUserId && availableStaff.length > 1) {
+            const differentStaff = availableStaff.find(staff => 
+                staff._id.toString() !== lastAssignedUserId
+            );
+            if (differentStaff) {
+                this.projectAssignmentHistory.set(projectId, differentStaff._id.toString());
+                return differentStaff;
+            }
+        }
+
+        // Round-robin selection
+        const selectedIndex = this.currentIndex % availableStaff.length;
+        const selectedStaff = availableStaff[selectedIndex];
+        this.currentIndex = (this.currentIndex + 1) % availableStaff.length;
+        
+        this.projectAssignmentHistory.set(projectId, selectedStaff._id.toString());
+        return selectedStaff;
     }
 
    
@@ -182,10 +219,10 @@ class VerificationService {
                 return null;
             }
 
-            // Get next verification staff member, excluding those already assigned to this project
+            // Get next verification staff member (only from same department)
             const assignedTo = await this.getNextVerificationStaff(projectId);
             if (!assignedTo) {
-                logger.error('No verification staff available for assignment');
+                logger.error('No same department staff available for verification assignment');
                 return null;
             }
 
@@ -327,4 +364,4 @@ class VerificationService {
     }
 }
 
-module.exports = new VerificationService(); 
+module.exports = new VerificationService();

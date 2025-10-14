@@ -5,6 +5,7 @@ const Invoice = require("../models/Invoice"); // Add this import
 const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 const ActivityTracker = require("../utils/activityTracker");
+const Department = require("../models/department.model");
 
 const updateProjectTeamFromTasks = async (projectId) => {
   try {
@@ -406,6 +407,18 @@ exports.createProject = async (req, res, next) => {
       }
     }
 
+      if (req.body.department) {
+      const department = await Department.findById(req.body.department);
+      if (!department) {
+        return next(
+          new ErrorResponse(
+            `Department not found with id of ${req.body.department}`,
+            404
+          )
+        );
+      }
+    }
+
     // Generate project number if not provided
     if (!req.body.projectNumber) {
       const date = new Date();
@@ -493,6 +506,18 @@ exports.updateProject = async (req, res, next) => {
         return next(
           new ErrorResponse(
             `Client not found with id of ${req.body.client}`,
+            404
+          )
+        );
+      }
+    }
+
+        if (req.body.department) {
+      const department = await Department.findById(req.body.department);
+      if (!department) {
+        return next(
+          new ErrorResponse(
+            `Department not found with id of ${req.body.department}`,
             404
           )
         );

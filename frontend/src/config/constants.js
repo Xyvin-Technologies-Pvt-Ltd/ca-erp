@@ -1,10 +1,14 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-ca-erp.xyvin.com/api/';
 
 export const ROLES = {
-    ADMIN: 'admin',
-    MANAGER: 'manager',
-    STAFF: 'staff',
-    FINANCE: 'finance',
+  ADMIN: "admin",
+  DIRECTOR: "director",
+  SENIOR_MANAGER: "senior_manager",
+  MANAGER: "manager",
+  EXECUTIVE: "executive",
+  ASSOCIATIVE: "associative",
+  FINANCE: "finance",
+  STAFF: "staff",
 };
 
 export const TASK_STATUS = {

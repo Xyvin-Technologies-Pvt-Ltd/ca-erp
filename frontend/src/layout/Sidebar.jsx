@@ -148,33 +148,45 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
     }
   }, [location.pathname]);
 
-  const getVisibleNavigation = (role, isSuperadminUser) => {
-    return navigation.filter((item) => {
-      // Superadmin can only see Settings
-      if (isSuperadminUser) {
-        return item.name === "Settings";
-      }
+ const getVisibleNavigation = (role, isSuperadminUser) => {
+  return navigation.filter((item) => {
+    // Superadmin can only see Settings
+    if (isSuperadminUser) {
+      return item.name === "Settings";
+    }
 
-      // For non-superadmin users, check role-based access
-      switch (item.name) {
-        case "Dashboard":
-          return true;
-        case "Clients":
-        case "Documents":
-          return role === "admin" || role === "manager";
-        case "Finance":
-          return ["admin", "manager", "finance"].includes(role);
-        case "Employee":
-           return true;
-        case "HRM":
-          return ["admin", "manager"].includes(role);
-        case "Settings":
-          return item.superadminOnly ? isSuperadminUser : (item.roles ? item.roles.includes(role) : true);
-        default:
-          return false;
-      }
-    });
-  };
+    // For non-superadmin users, check role-based access
+    switch (role) {
+      case "admin":
+      case "director":
+        // Administrator & Director - All Access (except Settings)
+        return item.name !== "Settings";
+      
+      case "senior_manager":
+        // Senior Manager - HRM, Project & Client Access, No Finance
+        if (item.name === "Finance") return false;
+        return item.name !== "Settings";
+      
+      case "manager":
+        // Manager - No HRM, No finance, Only project assigning and client accessing
+        if (item.name === "HRM" || item.name === "Finance") return false;
+        return item.name !== "Settings";
+      
+      case "staff":
+      case "executive":
+      case "associative":
+        // Staff, Executive, Associative - Dashboard, Employee only
+        return (item.name === "Dashboard" || item.name === "Employee");
+      
+      case "finance":
+        // Finance role - Only Finance section
+        return (item.name === "Dashboard" || item.name === "Finance");
+      
+      default:
+        return false;
+    }
+  });
+};
 
   const filteredNavigation = getVisibleNavigation(user?.role || "staff", isSuperadmin());
 

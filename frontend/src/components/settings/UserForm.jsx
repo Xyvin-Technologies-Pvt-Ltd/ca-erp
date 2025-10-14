@@ -262,7 +262,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       Select a role
                     </option>
                     <option value={ROLES.ADMIN}>Administrator</option>
+                    <option value={ROLES.DIRECTOR}>Director</option>
+                    <option value={ROLES.SENIOR_MANAGER}>Senior Manager</option>
                     <option value={ROLES.MANAGER}>Manager</option>
+                    <option value={ROLES.EXECUTIVE}>Executive</option>
+                    <option value={ROLES.ASSOCIATIVE}>Associative</option>
                     <option value={ROLES.FINANCE}>Finance</option>
                     <option value={ROLES.STAFF}>Staff</option>
                   </select>
