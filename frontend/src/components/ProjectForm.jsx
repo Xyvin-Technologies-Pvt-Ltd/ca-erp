@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { projectsApi } from "../api";
 import { clientsApi } from "../api/clientsApi";
 import { useAuth } from "../context/AuthContext";
+import { getDepartments } from "../api/department.api";
 import {
   DocumentTextIcon,
   UserIcon,
@@ -16,6 +17,7 @@ import {
 const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false); 
   const isEditMode = !!project;
@@ -35,6 +37,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     defaultValues: {
       name: "",
       client: { id: "" },
+      department: { id: "" },
       description: "",
       status: "", 
       priority: "",
@@ -51,12 +54,14 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   useEffect(() => {
     const loadClientsAndProjects = async () => {
       try {
-        const [clientsResponse, projectsResponse] = await Promise.all([
+        const [clientsResponse, projectsResponse, departmentsResponse] = await Promise.all([
           clientsApi.getAllClients(),
           projectsApi.getAllProjects({ limit: 1000 }),
+          getDepartments({ limit: 1000 }),
         ]);
         setClients(clientsResponse.data);
         setProjects(projectsResponse.data || []);
+        setDepartments(departmentsResponse.data || []);
       } catch (error) {
         console.error("Error loading clients or projects:", error);
       }
@@ -64,6 +69,9 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
     loadClientsAndProjects();
   }, []);
+
+  console.log("departments", departments);
+  
 
   useEffect(() => {
     if (project && clients.length > 0) {
@@ -114,6 +122,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     try {
       const projectData = {
         client: data.client.id,
+        department: data.department.id,
         status: data.status ? data.status.toLowerCase() : "planning",
         budget: data.budget ? Number(data.budget) : undefined,
         priority: data.priority ? data.priority.toLowerCase() : "medium",
@@ -270,6 +279,31 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     </div>
                   )}
                 </div>
+
+                {/* Department */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    {...register("department.id", { required: "Department is required" })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
+                  >
+                    <option value="">Select a department</option>
+                    {departments.map((dept) => (
+                      <option key={dept._id} value={String(dept._id)}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.department?.id && (
+                    <div className="text-red-500 text-sm mt-1 flex items-center">
+                      <span className="text-red-500 mr-1">⚠</span>
+                      {errors.department.id.message}
+                    </div>
+                  )}
+                </div>
+
 
                 {/* Status */}
                 <div>

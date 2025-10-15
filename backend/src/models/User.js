@@ -119,7 +119,7 @@ const UserSchema = new mongoose.Schema({
   ],
   role: {
     type: String,
-    enum: ["admin", "staff", "manager", "finance"],
+    enum: ["admin", "staff", "manager", "finance", "director", "senior_manager", "executive", "associative"],
     default: "staff",
   },
   password: {
@@ -179,9 +179,9 @@ UserSchema.pre("save", async function (next) {
 });
 
 // Sign JWT and return
-UserSchema.methods.getSignedJwtToken = function () {
+UserSchema.methods.getSignedJwtToken = function (expiresIn) {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+    expiresIn: expiresIn || process.env.JWT_EXPIRE,
   });
 };
 

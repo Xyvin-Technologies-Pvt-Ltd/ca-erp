@@ -106,7 +106,9 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 min-h-screen overflow-hidden"
-      onClick={onCancel}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setShowConfirmModal(true);
+      }}
     >
       <style>
         {`
@@ -260,7 +262,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                       Select a role
                     </option>
                     <option value={ROLES.ADMIN}>Administrator</option>
+                    <option value={ROLES.DIRECTOR}>Director</option>
+                    <option value={ROLES.SENIOR_MANAGER}>Senior Manager</option>
                     <option value={ROLES.MANAGER}>Manager</option>
+                    <option value={ROLES.EXECUTIVE}>Executive</option>
+                    <option value={ROLES.ASSOCIATIVE}>Associative</option>
                     <option value={ROLES.FINANCE}>Finance</option>
                     <option value={ROLES.STAFF}>Staff</option>
                   </select>
@@ -452,7 +458,8 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                               required: "New password is required",
                               minLength: {
                                 value: 6,
-                                message: "Password must be at least 6 characters",
+                                message:
+                                  "Password must be at least 6 characters",
                               },
                             })}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
@@ -461,9 +468,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                             type="button"
                             onClick={() => setShowPassword((v) => !v)}
                             className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
                           >
-                            {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                            {showPassword ? (
+                              <Eye className="h-5 w-5" />
+                            ) : (
+                              <EyeOff className="h-5 w-5" />
+                            )}
                           </button>
                         </div>
                         {errors.password && (
@@ -497,7 +510,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                             type="button"
                             onClick={() => setShowConfirmPassword((v) => !v)}
                             className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                            aria-label={
+                              showConfirmPassword
+                                ? "Hide password"
+                                : "Show password"
+                            }
                           >
                             {showConfirmPassword ? (
                               <Eye className="h-5 w-5" />
@@ -543,9 +560,15 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
                         className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
                       >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                     {errors.password && (
@@ -578,7 +601,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                         type="button"
                         onClick={() => setShowConfirmPassword((v) => !v)}
                         className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-5 w-5" />

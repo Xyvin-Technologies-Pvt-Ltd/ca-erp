@@ -78,9 +78,8 @@ const { validate, userValidation } = require("../middleware/validator");
  *       403:
  *         description: Forbidden
  */
-router
-  .route("/")
-  .get(protect, authorize("admin", "manager"), getUsers)
+router.route("/")
+  .get(protect, authorize("admin", "director", "senior_manager", "manager"), getUsers)
   /**
    * @swagger
    * /api/users:
