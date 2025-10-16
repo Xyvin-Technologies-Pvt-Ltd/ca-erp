@@ -314,6 +314,7 @@ const Header = ({ onOpenSidebar }) => {
                       {user?.role?.charAt(0).toUpperCase() +
                         user?.role?.slice(1) || "Role"}
                     </p>
+                    
                   </div>
                 </button>
 
@@ -382,7 +383,11 @@ const Header = ({ onOpenSidebar }) => {
                             <LogOut className="w-4 h-4" />
                           </div>
                           <span className="font-medium">Sign out</span>
+                         
                         </button>
+                        <p className="text-[13px] text-slate-400 text-center py-1 font-medium">
+                          Developed by Xyvin
+                        </p>
                       </div>
                     </div>
                   </div>
