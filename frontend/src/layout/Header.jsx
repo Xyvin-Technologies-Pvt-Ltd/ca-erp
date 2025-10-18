@@ -326,7 +326,7 @@ const Header = ({ onOpenSidebar }) => {
                     style={{
                       zIndex: 99999,
                     }}
-                    className="origin-top-right  fixed right-0 mt-2 w-64 rounded-xl shadow-xl bg-white/95 backdrop-blur-md border border-slate-200/50 overflow-hidden z-40"
+                    className="origin-top-right  fixed right-0 mt-2 w-64 rounded-xl shadow-xl bg-white  border border-slate-200/50 overflow-hidden z-40"
                   >
                     <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                       <div className="flex items-center gap-3">
@@ -385,8 +385,16 @@ const Header = ({ onOpenSidebar }) => {
                           <span className="font-medium">Sign out</span>
                          
                         </button>
-                        <p className="text-[13px] text-slate-400 text-center py-1 font-medium">
-                          Developed by Xyvin
+                       <p className="text-[13px] text-slate-400 text-center py-1 font-medium">
+                          Developed by{" "}
+                          <a
+                            href="https://xyvin.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[13px] text-slate-400 font-medium hover:underline"
+                          >
+                            Xyvin
+                          </a>
                         </p>
                       </div>
                     </div>
