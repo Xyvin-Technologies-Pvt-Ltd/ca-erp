@@ -1,4 +1,4 @@
-name: Deploy CA-ERP-Backend to AWS Lightsail
+name: Deploy TEST-ERP-Backend to AWS Lightsail
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "backend/**"
       - ".github/workflows/backend.yml"
     branches:
-      - main
+      - testing
   workflow_dispatch:
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: ca-erp
+      ECR_REPOSITORY: test-erp
       IMAGE_TAG: latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
         id: build-and-push-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ca-erp
+          ECR_REPOSITORY: test-erp
           IMAGE_TAG: latest
 
         run: |
@@ -55,14 +55,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ca-erp
+          ECR_REPOSITORY: test-erp
           IMAGE_TAG: latest
           LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_HOST }}
           SSH_KEY: ${{ secrets.LIGHTSAIL_KEY }}
           USERNAME: ${{ secrets.LIGHTSAIL_USER }}
-          PORT: 5001
-          CONTAINER_NAME: CA_ERP_BACKEND
-          ENV_FILE_PATH: /home/ubuntu/ca-erp/.env/.env.production
+          PORT: 5544
+          CONTAINER_NAME: TEST_ERP_BACKEND
+          ENV_FILE_PATH: /home/ubuntu/test-erp/.env/.env.production
 
         uses: appleboy/ssh-action@master
         with:
