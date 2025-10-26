@@ -107,7 +107,7 @@ const mongoose = require('mongoose');
  *         taskIncentivePercentage: 4
  *         verificationIncentivePercentage: 1
  */
-
+ 
 const TaskSchema = new mongoose.Schema(
     {
         title: {

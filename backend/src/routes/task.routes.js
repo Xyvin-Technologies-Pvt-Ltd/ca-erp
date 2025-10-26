@@ -617,15 +617,16 @@ router.route("/:id/time").put(protect, updateTaskTime);
  *       400:
  *         description: Bad request (missing rating or invalid task type)
  *        
- *       404:
+ *       404: 
  *         description: Task not found
- *       401:
+ *       401: 
  *         description: Unauthorized (no token provided)
- *       500:
+ *       500: 
  *         description: Internal server error
  */
 
 router.route("/:id/rating").post(protect, addTaskRating);
+
 
 /**
  * @swagger

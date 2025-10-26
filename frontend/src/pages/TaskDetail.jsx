@@ -919,6 +919,8 @@ const handleRatingSubmit = async () => {
             </div>
           </div>
 
+
+
           {/* Right column - Sidebar */}
           <div className="space-y-8">
             {/* Status Change */}
@@ -1029,6 +1031,9 @@ const handleRatingSubmit = async () => {
             </div>
           </div>
         )}
+
+
+        
             {/* Task Details */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
