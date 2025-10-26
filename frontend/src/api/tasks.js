@@ -132,7 +132,7 @@ export const updateTask = async (id, taskData, token) => {
     const isFormData = taskData instanceof FormData;
 
     const response = await api.put(`/tasks/${id}`, taskData, {
-      headers: {
+      headers: { 
         Authorization: `Bearer ${token}`,
         ...(isFormData
           ? { "Content-Type": "multipart/form-data" }
@@ -336,6 +336,37 @@ export const remindClientForDocument = async (taskId, reminderData, token) => {
     return response.data;
   } catch (error) {
     console.error(`Error sending reminder for task ${taskId}:`, error);
+    throw error;
+  }
+};
+
+// Add Task Rating
+/**
+ * Add rating to a task (marks task as completed if it's a verification task)
+ * @param {string} id - Task ID
+ * @param {number} rating - Rating value (0-10)
+ * @param {string} token - Auth token
+ * @returns {Promise} Promise object containing the updated task
+ */
+export const addTaskRating = async (id, rating, token) => {
+  try {
+    const response = await api.post(
+      `/tasks/${id}/rating`,
+      { rating },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data; // the updated task
+  } catch (error) {
+    console.error(
+      `Error adding rating to task ${id}:`,
+      error.response?.data || error.message
+    );
     throw error;
   }
 };

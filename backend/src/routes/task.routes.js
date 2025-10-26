@@ -15,6 +15,7 @@ const {
   uploadTagDocument,
   getTaskTagDocuments,
   remindClientForDocument,
+  addTaskRating,
   removeDoc,
 } = require("../controllers/task.controller");
 
@@ -53,7 +54,7 @@ const ensureFileArray = (req, res, next) => {
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: query 
  *         name: status
  *         schema:
  *           type: string
@@ -552,6 +553,79 @@ router.route("/:id/comments").post(protect, addTaskComment);
  *         description: Not authorized to update this task
  */
 router.route("/:id/time").put(protect, updateTaskTime);
+
+/**
+ * @swagger
+ * /api/tasks/{id}/rating:
+ *   post:
+ *     summary: Add rating for a task
+ *     description: Adds a rating to a task. Only applicable for the "Project Verification Task". Marks the task as completed and saves the rating.
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the task to be rated
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 10
+ *                 example: 8.5
+ *                 description: Rating score for the task (0–10)
+ *     responses:
+ *       200:
+ *         description: Task completed and rating saved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Task completed and rating saved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 60d0fe4f5311236168a109ca
+ *                     title:
+ *                       type: string
+ *                       example: Project Verification Task
+ *                     status:
+ *                       type: string
+ *                       example: completed
+ *                     rating:
+ *                       type: number
+ *                       example: 8.5
+ *       400:
+ *         description: Bad request (missing rating or invalid task type)
+ *        
+ *       404:
+ *         description: Task not found
+ *       401:
+ *         description: Unauthorized (no token provided)
+ *       500:
+ *         description: Internal server error
+ */
+
+router.route("/:id/rating").post(protect, addTaskRating);
 
 /**
  * @swagger

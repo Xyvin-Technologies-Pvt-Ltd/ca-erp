@@ -955,6 +955,65 @@ exports.updateTaskStatus = async (req, res, next) => {
 };
 
 /**
+ * @desc    Add rating to task
+ * @route   POST /tasks/:id/rating
+ * @access  Private
+ */
+
+exports.addTaskRating = async (req, res, next) => {
+  try {
+    const taskId = req.params.id;
+    const { rating } = req.body;
+
+    if (rating === undefined || rating === null) {
+      return next(new ErrorResponse("Please provide a rating", 400));
+    }
+
+    let task = await Task.findById(taskId);
+
+    if (!task) {
+      return next(new ErrorResponse(`Task not found with id ${taskId}`, 404));
+    }
+
+    // Only allow rating if task is "Project Verification Task"
+    if (task.title !== "Project Verification Task") {
+      return next(
+        new ErrorResponse("Rating can only be added for verification tasks", 400)
+      );
+    }
+
+    // Mark task as completed and store rating
+    task.status = "completed";
+    task.rating = Number(rating);
+
+    task.updatedBy = req.user._id;
+
+    await task.save();
+
+    //trigger verification completion logic
+    const verificationResult = await verificationService.handleVerificationTaskCompletion(
+      task._id,
+      task.assignedTo
+    );
+    if (verificationResult) {
+      logger.info(
+        `Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      data: task,
+      message: "Task completed and rating saved successfully",
+    });
+  } catch (error) {
+    logger.error("Error adding task rating:", error);
+    next(error);
+  }
+};
+
+
+/**
  * @desc    Add comment to task
  * @route   POST /api/tasks/:id/comments
  * @access  Private

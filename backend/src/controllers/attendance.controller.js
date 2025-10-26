@@ -774,14 +774,29 @@ exports.createAttendance = catchAsync(async (req, res) => {
   // Early-Logged: before 9:00
   // On-Time: 9:00 to 9:15 inclusive
   // Late-Logged: after 9:15
-  let arrivalStatus = "On-Time";
-  if (isthour < 9 || (isthour === 9 && istminute === 0)) {
-    arrivalStatus = "Early-Logged";
-  } else if (isthour > 9 || (isthour === 9 && istminute > 15)) {
-    arrivalStatus = "Late-Logged";
-  } else {
-    arrivalStatus = "On-Time";
-  }
+let arrivalStatus = "On-Time";
+let attendanceStatus = "Present";
+
+if (isthour < 9 || (isthour === 9 && istminute === 0)) {
+  arrivalStatus = "Early-Logged";
+  attendanceStatus = "Present";
+} else if (
+  (isthour === 9 && istminute > 0 && istminute <= 15)
+) {
+  arrivalStatus = "Late-Logged";
+  attendanceStatus = "Late";
+} else if (
+  (isthour === 9 && istminute > 15) || (isthour === 10 && istminute === 0)
+) {
+  arrivalStatus = "Late-Logged";
+  attendanceStatus = "Half-Day";
+} else if (isthour > 10 || (isthour === 10 && istminute > 0)) {
+  arrivalStatus = "Late-Logged";
+  attendanceStatus = "Absent";
+} else {
+  arrivalStatus = "On-Time";
+  attendanceStatus = "Present";
+}
 
   if (isthour > 9 || (isthour === 9 && istminute > 0)) {
     console.log("Later than 9:00 AM IST");
@@ -858,7 +873,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
           device: "Web",
           ipAddress: "OK",
         },
-        status: "Present",
+        status: attendanceStatus,
         notes: "s",
         shift: "Morning",
         workHours: 0, // Initialize work hours as 0

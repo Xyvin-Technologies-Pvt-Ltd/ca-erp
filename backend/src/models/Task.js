@@ -9,84 +9,103 @@ const mongoose = require('mongoose');
  *       required:
  *         - title
  *         - project
+ *         - createdBy
  *       properties:
  *         id:
  *           type: string
- *           description: Auto-generated ID of the task
  *         title:
  *           type: string
- *           description: Title of the task
  *         description:
  *           type: string
- *           description: Detailed description of the task
  *         project:
  *           type: string
- *           description: Project ID the task belongs to
  *         assignedTo:
  *           type: string
- *           description: User ID of the person assigned to the task
+ *         createdBy:
+ *           type: string
  *         status:
  *           type: string
- *           enum: [to-do, in-progress, under-review, completed, invoiceable, invoiced]
- *           description: Current status of the task
+ *           enum: [pending, in-progress, under-review, completed, invoiceable, invoiced, cancelled, review]
+ *         rating:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 10
  *         priority:
  *           type: string
  *           enum: [low, medium, high, urgent]
- *           description: Priority level of the task
+ *         amount:
+ *           type: number
+ *         taskIncentivePercentage:
+ *           type: number
+ *         verificationIncentivePercentage:
+ *           type: number
  *         dueDate:
  *           type: string
  *           format: date
- *           description: Due date for the task
- *         estimatedHours:
- *           type: number
- *           description: Estimated hours to complete the task
- *         parent:
- *           type: string
- *           description: Parent task ID if this is a subtask
- *         subtasks:
- *           type: array
- *           items:
- *             type: string
- *           description: List of subtask IDs
- *         timeEntries:
+ *         attachments:
  *           type: array
  *           items:
  *             type: object
  *             properties:
- *               date:
- *                 type: string
- *                 format: date
- *               hours:
- *                 type: number
- *               description:
- *                 type: string
+ *               name: { type: string }
+ *               size: { type: number }
+ *               fileUrl: { type: string }
+ *               fileType: { type: string }
+ *               uploadedAt: { type: string, format: date-time }
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *         comments:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id: { type: string }
+ *               text: { type: string }
  *               user:
- *                 type: string
- *           description: Time entries for the task
- *         invoiceDetails:
+ *                 type: object
+ *                 properties:
+ *                   id: { type: string }
+ *                   name: { type: string }
+ *                   avatar: { type: string }
+ *               timestamp: { type: string, format: date-time }
+ *         team:
+ *           type: array
+ *           items:
+ *             type: string
+ *         deleted:
+ *           type: boolean
+ *         incentiveAwarded:
+ *           type: boolean
+ *         tagDocuments:
  *           type: object
- *           properties:
- *             invoiced:
- *               type: boolean
- *             invoiceDate:
- *               type: string
- *               format: date
- *             invoiceNumber:
- *               type: string
- *           description: Invoice details if the task has been invoiced
+ *           additionalProperties:
+ *             type: object
+ *             properties:
+ *               fileName: { type: string }
+ *               filePath: { type: string }
+ *               documentType: { type: string }
+ *               tag: { type: string }
+ *               uploadedAt: { type: string, format: date-time }
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Date and time when the task was created
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  *       example:
- *         title: Prepare Financial Statements
- *         description: Prepare Q1 financial statements for client review
+ *         title: Project Verification Task
  *         project: 60d0fe4f5311236168a109ca
  *         assignedTo: 60d0fe4f5311236168a109cb
- *         status: in-progress
+ *         createdBy: 60d0fe4f5311236168a109cc
+ *         status: completed
+ *         rating: 8.5
  *         priority: high
  *         dueDate: 2023-04-15
- *         estimatedHours: 8
+ *         amount: 1500
+ *         taskIncentivePercentage: 4
+ *         verificationIncentivePercentage: 1
  */
 
 const TaskSchema = new mongoose.Schema(
@@ -114,6 +133,12 @@ const TaskSchema = new mongoose.Schema(
             type: String,
             enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'],
             default: 'pending',
+        },
+        rating: {
+            type: Number,
+            default: 0,
+            min:0,
+            max:10,
         },
         priority: {
             type: String,

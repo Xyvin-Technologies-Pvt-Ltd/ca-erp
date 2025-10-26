@@ -7,6 +7,7 @@ import {
   deleteTask,
   updateTaskTime,
   fetchTasks,
+  addTaskRating,
 } from "../api/tasks";
 import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
@@ -42,6 +43,7 @@ import {
   getTaskTagDocuments,
   remindClientForDocument,
 } from "../api/tasks";
+import axios from "axios";
 
 const statusColors = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -65,6 +67,14 @@ const statusIcons = {
   cancelled: XCircle,
 };
 
+const getColor = (val) => {
+  if (val < 2.5) return "#ff4d4d"; // red
+  if (val < 5) return "#ffa500"; // orange
+  if (val < 7.5) return "#ffeb3b"; // yellow
+  return "#4caf50"; // green
+};
+
+
 const TaskDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -80,6 +90,9 @@ const TaskDetail = () => {
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [addingAttachment, setAddingAttachment] = useState(false);
   const [addingTimeEntry, setAddingTimeEntry] = useState(false);
+  const [showRatingPopup, setShowRatingPopup] = useState(false);
+  const [rating, setRating] = useState(0);
+
   const { role } = useAuth();
 
   const token = localStorage.getItem("auth_token");
@@ -165,7 +178,7 @@ const TaskDetail = () => {
         setLoading(true);
         const data = await fetchTaskById(id);
         setTask(data);
-setRefresh(false)
+        setRefresh(false)
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch task:", err);
@@ -177,22 +190,45 @@ setRefresh(false)
     loadTask();
   }, [id, refresh]);
 
-  const handleStatusChange = async (newStatus) => {
-    try {
-      setLoading(true);
-      const updatedTask = await updateTask(id, { ...task, status: newStatus });
+ const handleStatusChange = async (newStatus) => {
+  if (
+    newStatus === "completed" &&
+    task.title ==="Project Verification Task"
+  ) {
+    setShowRatingPopup(true);
+    return; 
+  }
 
-      setTask((prevTask) => ({
-        ...prevTask,
-        ...updatedTask,
-      }));
-      setRefresh((prev) => !prev);
-    } catch (err) {
-      console.error("Failed to update task status:", err);
-      setError("Failed to update task status. Please try again later.");
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const updatedTask = await updateTask(id, { ...task, status: newStatus });
+
+    setTask((prevTask) => ({
+      ...prevTask,
+      ...updatedTask,
+    }));
+    setRefresh((prev) => !prev);
+  } catch (err) {
+    console.error("Failed to update task status:", err);
+    setError("Failed to update task status. Please try again later.");
+    setLoading(false);
+  }
+};
+
+const handleRatingSubmit = async () => {
+  try {
+    setLoading(true);
+    const updatedTask = await addTaskRating(id, rating, token); // <-- use new API
+    setTask(updatedTask); // update local state
+    setShowRatingPopup(false);
+    setRefresh((prev) => !prev);
+  } catch (err) {
+    console.error("Failed to submit rating:", err);
+    setError("Failed to submit rating. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleTaskUpdate = async (updatedTask) => {
     setTask(updatedTask);
@@ -895,33 +931,104 @@ setRefresh(false)
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                  {[
-                    "pending",
-                    "in-progress",
-                    "review",
-                    "completed",
-                    "cancelled",
-                  ].map((status) => {
+                {["pending", "in-progress", "review", "completed", "cancelled"].map(
+                  (status) => {
                     const StatusIcon = statusIcons[status] || AlertCircle;
                     return (
-                      <button
-                        key={status}
+                      <div key={status}>
+                        <button
                         onClick={() => handleStatusChange(status)}
                         className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${
-                          task.status === status
-                            ? `${statusColors[status]} shadow-lg`
-                            : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                        task.status === status
+                        ? `${statusColors[status]} shadow-lg`
+                        : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
                         }`}
-                      >
+                        >
                         <StatusIcon className="w-4 h-4 mr-2" />
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </button>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </button>
+
+                        {/* Show rating only if status is completed */}
+                        {status === "completed" && task.title === "Project Verification Task" &&
+                        task.status === "completed" &&
+                        typeof task.rating === "number" && (
+                        <span className="flex items-baseline gap-1 text-gray-800">
+                          Rating{" "}
+                          <span className="font-semibold text-base">{task.rating}</span>
+                          <span className="text-xs text-gray-500">/10</span>
+                        </span>
+                        )}
+                      </div>
                     );
-                  })}
-                </div>
+                  }
+                )}
               </div>
             </div>
+          </div>
+            
+          {showRatingPopup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md animate-fadeIn relative">
+            {/* Close Button */}
+              <button
+              onClick={() => setShowRatingPopup(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors"
+              >
+              ✕
+              </button>
 
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Rate Before Completing
+              </h3>
+
+              {/* Rating Section */}
+              <div className="flex flex-col items-center mb-4">
+                <p className="text-gray-600 mb-2 font-medium">
+                  Rating:{" "}
+                  <span style={{ color: getColor(rating) }}>{rating}/10</span>
+                </p>
+                <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                className="w-4/5 h-3 rounded-lg appearance-none cursor-pointer mb-4 transition-all duration-500"
+                style={{
+                background: `linear-gradient(to right, 
+                #ff4d4d 0%, 
+                #ffa500 33%, 
+                #ffeb3b 66%, 
+                #4caf50 100%)`,
+                accentColor: getColor(rating),
+                }}
+                />
+                </div>
+
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-3 mt-5">
+                <button
+                onClick={() => setShowRatingPopup(false)}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                onClick={handleRatingSubmit}
+                className="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                style={{
+                backgroundColor: "#6366F1",
+                transition: "background-color 0.4s ease",
+                }}
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
             {/* Task Details */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
