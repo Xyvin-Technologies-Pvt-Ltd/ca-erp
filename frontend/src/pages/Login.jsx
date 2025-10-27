@@ -41,34 +41,62 @@ const Login = () => {
 
 const onSubmit = async (data) => {
   try {
-    let now = new Date();
+    const now = new Date();
 
     // Get user's location
     let location = null;
     try {
-      // GPS-based location
-      location = await new Promise((resolve, reject) => {
+      location = await new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            resolve({
-              lat: pos.coords.latitude,
-              lon: pos.coords.longitude,
-              source: "gps",
-            });
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+
+            try {
+              // Reverse geocode using OpenStreetMap
+              const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+              );
+              const geoData = await response.json();
+
+              resolve({
+                latitude: lat,
+                longitude: lon,
+                city:
+                  geoData.address.city ||
+                  geoData.address.town ||
+                  geoData.address.village,
+                state: geoData.address.state,
+                country: geoData.address.country,
+                source: "gps",
+              });
+            } catch (geoErr) {
+              console.warn("Reverse geocoding failed:", geoErr);
+              resolve({
+                latitude: lat,
+                longitude: lon,
+                source: "gps",
+              });
+            }
           },
           async (err) => {
             console.warn("GPS location failed:", err.message);
-            // Fallback: IP-based lookup
-            const res = await fetch("https://ipapi.co/json/");
-            const data = await res.json();
-            resolve({
-              lat: data.latitude,
-              lon: data.longitude,
-              city: data.city,
-              region: data.region,
-              country: data.country_name,
-              source: "ip",
-            });
+            try {
+              // Fallback: IP-based lookup
+              const res = await fetch("https://ipapi.co/json/");
+              const data = await res.json();
+              resolve({
+                latitude: data.latitude,
+                longitude: data.longitude,
+                city: data.city,
+                state: data.region,
+                country: data.country_name,
+                source: "ip",
+              });
+            } catch (ipErr) {
+              console.error("IP-based location failed:", ipErr);
+              resolve(null);
+            }
           },
           { timeout: 5000 }
         );
@@ -77,7 +105,9 @@ const onSubmit = async (data) => {
       console.error("Location error:", error);
     }
 
-    // Login
+    console.log("User location:", location);
+
+    // Login user
     const result = await login(data);
 
     // Send location & time to backend
@@ -88,7 +118,7 @@ const onSubmit = async (data) => {
       toast.error(res.msg);
     }
 
-    // Redirect
+    // Redirect after login
     if (result?.user?.superadmin) {
       navigate(ROUTES.SETTINGS);
     } else {
