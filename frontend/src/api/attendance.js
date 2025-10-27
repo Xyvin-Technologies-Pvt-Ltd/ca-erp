@@ -5,7 +5,7 @@ export const getAttendance = async (params) => {
   const response = await api.get("/attendance/check-in", { params });
   console.log(response, "resatte");
   return response.data;
-};
+}; 
 
 // Get attendance stats
 export const getAttendanceStats = async ({ startDate, endDate }) => {

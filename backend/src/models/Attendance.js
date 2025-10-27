@@ -16,13 +16,21 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
     checkIn: {
-      times: [Date],
-      device: {
-        type: String,
-        enum: ["Web", "Mobile", "Biometric"],
-      },
-      // ipAddress: String
-    },
+  times: [Date],
+  device: {
+    type: String,
+    enum: ["Web", "Mobile", "Biometric"],
+  },
+  ipAddress: String,
+  location: {
+    lat: { type: Number },
+    lon: { type: Number },
+    city: { type: String },
+    region: { type: String },
+    country: { type: String },
+    source: { type: String, enum: ["gps", "ip"], default: "ip" },
+  },
+},
     checkOut: {
       times: [Date],
       device: {

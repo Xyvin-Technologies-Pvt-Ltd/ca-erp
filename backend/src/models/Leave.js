@@ -60,7 +60,7 @@ const leaveSchema = new mongoose.Schema({
             ref: 'User'
         },
         status: {
-            type: String,
+            type: String, 
             enum: ['Pending', 'Approved', 'Rejected'],
             default: 'Pending'
         },

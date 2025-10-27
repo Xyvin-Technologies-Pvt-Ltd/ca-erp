@@ -157,7 +157,7 @@ exports.getAllMyLeaves = catchAsync(async (req, res) => {
   };
 
   // Status filter
-  if (status) {
+  if (status) { 
     query.status = status;
   }
 

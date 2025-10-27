@@ -750,7 +750,10 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
   return time;
 };
 exports.createAttendance = catchAsync(async (req, res) => {
-  console.log("OKKK");
+  const { now, location } = req.body;
+  console.log("User location at check-in:", location);
+
+  // Convert to IST
   function getISTParts(date) {
     const fmt = new Intl.DateTimeFormat("en-IN", {
       timeZone: "Asia/Kolkata",
@@ -758,7 +761,6 @@ exports.createAttendance = catchAsync(async (req, res) => {
       minute: "2-digit",
       hour12: false,
     });
-
     const parts = fmt.formatToParts(date);
     return {
       isthour: Number(parts.find((p) => p.type === "hour").value),
@@ -766,231 +768,87 @@ exports.createAttendance = catchAsync(async (req, res) => {
     };
   }
 
-  // usage:
-  let today = new Date(req.body.now);
+  const today = new Date(now);
   const { isthour, istminute } = getISTParts(today);
-  console.log(isthour, istminute);
-  // Determine arrival status based on IST check-in time
-  // Early-Logged: before 9:00
-  // On-Time: 9:00 to 9:15 inclusive
-  // Late-Logged: after 9:15
-let arrivalStatus = "On-Time";
-let attendanceStatus = "Present";
 
-if (isthour < 9 || (isthour === 9 && istminute === 0)) {
-  arrivalStatus = "Early-Logged";
-  attendanceStatus = "Present";
-} else if (
-  (isthour === 9 && istminute > 0 && istminute <= 15)
-) {
-  arrivalStatus = "Late-Logged";
-  attendanceStatus = "Late";
-} else if (
-  (isthour === 9 && istminute > 15) || (isthour === 10 && istminute === 0)
-) {
-  arrivalStatus = "Late-Logged";
-  attendanceStatus = "Half-Day";
-} else if (isthour > 10 || (isthour === 10 && istminute > 0)) {
-  arrivalStatus = "Late-Logged";
-  attendanceStatus = "Absent";
-} else {
-  arrivalStatus = "On-Time";
-  attendanceStatus = "Present";
-}
+  // Determine arrival status
+  let arrivalStatus = "On-Time";
+  let attendanceStatus = "Present";
 
-  if (isthour > 9 || (isthour === 9 && istminute > 0)) {
-    console.log("Later than 9:00 AM IST");
-  } else {
-    console.log("Before or equal 9:00 AM IST");
+  if (isthour < 9 || (isthour === 9 && istminute === 0)) {
+    arrivalStatus = "Early-Logged";
+    attendanceStatus = "Present";
+  } else if (isthour === 9 && istminute > 0 && istminute <= 15) {
+    arrivalStatus = "Late-Logged";
+    attendanceStatus = "Late";
+  } else if (
+    (isthour === 9 && istminute > 15) ||
+    (isthour === 10 && istminute === 0)
+  ) {
+    arrivalStatus = "Late-Logged";
+    attendanceStatus = "Half-Day";
+  } else if (isthour > 10 || (isthour === 10 && istminute > 0)) {
+    arrivalStatus = "Late-Logged";
+    attendanceStatus = "Absent";
   }
-  // 5 hrs 30 mins in milliseconds
-  const offset530 = (5 * 60 + 30) * 60 * 1000;
 
-  // shift the date
+  // Convert UTC to IST (+5:30)
+  const offset530 = (5 * 60 + 30) * 60 * 1000;
   const istDate = new Date(today.getTime() + offset530);
 
-  // console.log("Original (UTC/local):", dummy);
-  // console.log("Shifted (+5:30 hrs):", istDate);
-  // const istDate = new Date(today.getTime() + 330 * 60 * 1000);
+  // Format date as YYYY-MM-DD
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const day = today.getDate();
-  const userDetails = await User.findOne({
-    _id: new mongoose.Types.ObjectId(req.user._id),
-  });
-  console.log("Vinyan", userDetails.casual);
-  if (userDetails.emp_status === "Permanent") {
-    if (userDetails.casual === undefined) {
-      await User.updateOne(
-        { _id: new mongoose.Types.ObjectId(req.user._id) },
-        {
-          $set: { casual: 1 },
-        }
-      );
-    }
-  }
   const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
-  // console.log(formattedDate);
-  today.setDate(today.getDate() + 1);
-  today.setHours(0, 0, 0, 0); // hours, minutes, seconds, milliseconds = 0
-  let nineAM = new Date();
-  nineAM.setHours(9, 0, 0, 0);
-  nineAM = new Date(nineAM.getTime() + 330 * 60 * 1000);
-  // console.log(formattedDate, istDate, nineAM);
-  const result = await Attendance.findOne({
+
+  // Check if attendance already exists
+  const existing = await Attendance.findOne({
     employee: req.user._id,
     date: formattedDate,
   });
-  // console.log("Shifted (+5:30 hrs):", istDate);
-  if (isthour > 9 || (isthour === 9 && istminute > 0)) {
-    let diffMs = istDate - nineAM;
-    let hours = Math.floor(diffMs / (1000 * 60 * 60));
-    let minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    console.log(hours);
-    console.log(minutes);
-    if (result) {
-      await Attendance.updateOne(
-        { employee: req.user._id, date: formattedDate }, // filter
-        {
-          $push: { "checkIn.times": istDate },
-          $set: {
-            totalSign: result?.totalSign + 1,
-            arrivalStatus,
-          },
-        }
-      );
-    } else {
-      await Attendance.create({
-        employee: req.user._id,
-        date: formattedDate,
-        totalSign: 0,
-        lateHours: hours,
-        lateMinutes: minutes,
-        checkIn: {
-          times: [istDate],
-          device: "Web",
-          ipAddress: "OK",
-        },
-        status: attendanceStatus,
-        notes: "s",
-        shift: "Morning",
-        workHours: 0, // Initialize work hours as 0
-        arrivalStatus,
-        createdBy: req.user._id,
-        updatedBy: req.user._id,
-      });
-    }
 
-    res.status(201).json({
-      status: "success",
-    });
-  } else if (istDate.getHours() < 9) {
-    res.status(201).json({
-      status: "success",
-      beforeNine: true,
-      msg: "Please Login In 9:00 AM For Attendence...",
-    });
+  if (existing) {
+    // Add new check-in time + update arrival
+    await Attendance.updateOne(
+      { employee: req.user._id, date: formattedDate },
+      {
+        $push: { "checkIn.times": istDate },
+        $set: {
+          totalSign: (existing?.totalSign || 0) + 1,
+          arrivalStatus,
+        },
+      }
+    );
   } else {
-    await Attendance.create({
+    // Create new attendance 
+    const attendanceData = {
       employee: req.user._id,
       date: formattedDate,
+      totalSign: 1,
       checkIn: {
         times: [istDate],
         device: "Web",
-        ipAddress: "OK",
+        ipAddress: req.ip,
+        location,
       },
-      status: "Present",
-      notes: "s",
-
-      shift: "Morning",
-      workHours: 0, // Initialize work hours as 0
+      status: attendanceStatus,
       arrivalStatus,
+      shift: "Morning",
+      workHours: 0,
+      notes: "",
       createdBy: req.user._id,
       updatedBy: req.user._id,
-    });
-    res.status(201).json({
-      status: "success",
-    });
+    };
+
+    await Attendance.create(attendanceData);
   }
-
-  //  let today = new Date();
-  // today.setDate(today.getDate() + 1);
-  // console.log(req.user._id);
-  // let now = new Date(req.body.now);
-  // const istDate = new Date(now.getTime() + 330 * 60 * 1000);
-  // today.setHours(0, 0, 0, 0); // hours, minutes, seconds, milliseconds = 0
-  // console.log(istDate, today);
-  // await Attendance.create({
-  //   employee: req.user._id,
-  //   date: today,
-  //   checkIn: {
-  //     times: [istDate],
-  //     device: "Web",
-  //     ipAddress: "OK",
-  //   },
-  //   status: "Present",
-  //   notes: "s",
-  //   shift: "Morning",
-  //   workHours: 0, // Initialize work hours as 0
-  //   createdBy: req.user._id,
-  //   updatedBy: req.user._id,
-  // });
-  // res.status(201).json({
-  //   status: "success",
-  // });
-  return;
-  return;
-  const {
-    employee,
-    date,
-    checkIn,
-    status,
-    notes,
-    shift = "Morning",
-  } = req.body;
-
-  // Use moment to parse date in UTC
-  const attendanceDate = moment.tz(date, "UTC").startOf("day").toDate();
-
-  const existingAttendance = await Attendance.findOne({
-    employee,
-    date: attendanceDate,
-  });
-
-  if (existingAttendance) {
-    throw createError(400, "Attendance record already exists for this date");
-  }
-
-  const attendance = await Attendance.create({
-    employee: req.user._id,
-    date: today,
-    checkIn: {
-      times: [istDate],
-      device: checkIn?.device || "Web",
-      ipAddress: checkIn?.ipAddress,
-    },
-    status: "Present",
-    notes: "s",
-    shift: "Morning",
-    workHours: 0, // Initialize work hours as 0
-  });
-
-  const populatedAttendance = await Attendance.findById(
-    attendance._id
-  ).populate({
-    path: "employee",
-    select: "firstName lastName department position",
-    populate: [
-      { path: "department", select: "name" },
-      { path: "position", select: "title" },
-    ],
-  });
 
   res.status(201).json({
     status: "success",
-    data: { attendance: populatedAttendance },
+    location,
   });
 });
 

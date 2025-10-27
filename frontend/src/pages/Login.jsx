@@ -39,29 +39,65 @@ const Login = () => {
     };
   }, [error, clearError]);
 
-  const onSubmit = async (data) => {
+const onSubmit = async (data) => {
+  try {
+    let now = new Date();
+
+    // Get user's location
+    let location = null;
     try {
-      let now = new Date();
-
-      const result = await login(data);
-      const res = await checkIn({ now });
-      console.log("Y")
-      if (res.beforeNine) {
-        toast.error(res.msg);
-      }
-      console.log(res.beforeNine);
-      // Check if user is superadmin and redirect immediately
-      if (result?.user?.superadmin) {
-        navigate(ROUTES.SETTINGS);
-      } else {
-        navigate(ROUTES.DASHBOARD);
-      }
+      // GPS-based location
+      location = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve({
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              source: "gps",
+            });
+          },
+          async (err) => {
+            console.warn("GPS location failed:", err.message);
+            // Fallback: IP-based lookup
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+            resolve({
+              lat: data.latitude,
+              lon: data.longitude,
+              city: data.city,
+              region: data.region,
+              country: data.country_name,
+              source: "ip",
+            });
+          },
+          { timeout: 5000 }
+        );
+      });
     } catch (error) {
-      // Error is handled by the auth store
-      console.error("Login failed:", error);
+      console.error("Location error:", error);
     }
-  };
 
+    // Login
+    const result = await login(data);
+
+    // Send location & time to backend
+    const res = await checkIn({ now, location });
+    console.log("Check-in response:", res);
+
+    if (res.beforeNine) {
+      toast.error(res.msg);
+    }
+
+    // Redirect
+    if (result?.user?.superadmin) {
+      navigate(ROUTES.SETTINGS);
+    } else {
+      navigate(ROUTES.DASHBOARD);
+    }
+  } catch (error) {
+    console.error("Login failed:", error);
+  }
+};
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
