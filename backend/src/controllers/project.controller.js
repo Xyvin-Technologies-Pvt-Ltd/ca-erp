@@ -428,13 +428,13 @@ exports.createProject = async (req, res, next) => {
 
     const project = await Project.create(req.body);
 
-    //Check for task presets based on projectType
+    //  Check for task presets based on projectType
     if (req.body.name) {
       const preset = taskPresets.find(p => p.projectType === req.body.name);
-      if (preset) {
+      if (preset) { 
         const createdTasks = await Promise.all(
-          preset.tasks.map(async (t) => {
-            const task = await Task.create({
+          preset.tasks.map(async (t) => { 
+            const task = await Task.create({ 
               title: t.title,
               project: project._id,
               priority: t.priority || 'medium',
