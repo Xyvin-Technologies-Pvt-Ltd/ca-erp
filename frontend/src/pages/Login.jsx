@@ -39,95 +39,95 @@ const Login = () => {
     };
   }, [error, clearError]);
 
-const onSubmit = async (data) => {
-  try {
-    const now = new Date();
-
-    // Get user's location
-    let location = null;
+  const onSubmit = async (data) => {
     try {
-      location = await new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
+      const now = new Date();
 
-            try {
-              // Reverse geocode using OpenStreetMap
-              const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-              );
-              const geoData = await response.json();
+      // Get user's location
+      let location = null;
+      try {
+        location = await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
 
-              resolve({
-                latitude: lat,
-                longitude: lon,
-                city:
-                  geoData.address.city ||
-                  geoData.address.town ||
-                  geoData.address.village,
-                state: geoData.address.state,
-                country: geoData.address.country,
-                source: "gps",
-              });
-            } catch (geoErr) {
-              console.warn("Reverse geocoding failed:", geoErr);
-              resolve({
-                latitude: lat,
-                longitude: lon,
-                source: "gps",
-              });
-            }
-          },
-          async (err) => {
-            console.warn("GPS location failed:", err.message);
-            try {
-              // Fallback: IP-based lookup
-              const res = await fetch("https://ipapi.co/json/");
-              const data = await res.json();
-              resolve({
-                latitude: data.latitude,
-                longitude: data.longitude,
-                city: data.city,
-                state: data.region,
-                country: data.country_name,
-                source: "ip",
-              });
-            } catch (ipErr) {
-              console.error("IP-based location failed:", ipErr);
-              resolve(null);
-            }
-          },
-          { timeout: 5000 }
-        );
-      });
+              try {
+                // Reverse geocode using OpenStreetMap
+                const response = await fetch(
+                  `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+                );
+                const geoData = await response.json();
+
+                resolve({
+                  latitude: lat,
+                  longitude: lon,
+                  city:
+                    geoData.address.city ||
+                    geoData.address.town ||
+                    geoData.address.village,
+                  state: geoData.address.state,
+                  country: geoData.address.country,
+                  source: "gps",
+                });
+              } catch (geoErr) {
+                console.warn("Reverse geocoding failed:", geoErr);
+                resolve({
+                  latitude: lat,
+                  longitude: lon,
+                  source: "gps",
+                });
+              }
+            },
+            async (err) => {
+              console.warn("GPS location failed:", err.message);
+              try {
+                // Fallback: IP-based lookup
+                const res = await fetch("https://ipapi.co/json/");
+                const data = await res.json();
+                resolve({
+                  latitude: data.latitude,
+                  longitude: data.longitude,
+                  city: data.city,
+                  state: data.region,
+                  country: data.country_name,
+                  source: "ip",
+                });
+              } catch (ipErr) {
+                console.error("IP-based location failed:", ipErr);
+                resolve(null);
+              }
+            },
+            { timeout: 5000 }
+          );
+        });
+      } catch (error) {
+        console.error("Location error:", error);
+      }
+
+      console.log("User location:", location);
+
+      // Login user
+      const result = await login(data);
+
+      // Send location & time to backend
+      const res = await checkIn({ now, location });
+      console.log("Check-in response:", res);
+
+      if (res.beforeNine) {
+        toast.error(res.msg);
+      }
+
+      // Redirect after login
+      if (result?.user?.superadmin) {
+        navigate(ROUTES.SETTINGS);
+      } else {
+        navigate(ROUTES.DASHBOARD);
+      }
     } catch (error) {
-      console.error("Location error:", error);
+      console.error("Login failed:", error);
     }
-
-    console.log("User location:", location);
-
-    // Login user
-    const result = await login(data);
-
-    // Send location & time to backend
-    const res = await checkIn({ now, location });
-    console.log("Check-in response:", res);
-
-    if (res.beforeNine) {
-      toast.error(res.msg);
-    }
-
-    // Redirect after login
-    if (result?.user?.superadmin) {
-      navigate(ROUTES.SETTINGS);
-    } else {
-      navigate(ROUTES.DASHBOARD);
-    }
-  } catch (error) {
-    console.error("Login failed:", error);
-  }
-};
+  };
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };

@@ -564,3 +564,14 @@ exports.getVerificationStaff = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.getUsersByDepartment = async (req, res, next) => {
+  try {
+    const { department } = req.params;
+    const users = await User.find({ department });
+    res.status(200).json({ success: true, data: users });
+  } catch (err) {
+    next(err);
+  }
+};

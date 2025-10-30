@@ -8,7 +8,7 @@ const {
     deleteProject,
     getProjectTasks,
     updateProjectStatus,
-    updateProjectInvoiceStatus
+    updateProjectInvoiceStatus,
 } = require('../controllers/project.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -349,6 +349,9 @@ router.route('/:id/tasks')
 router.route('/:id/status')
     .put(protect, updateProjectStatus);
 
-// Add this new route
+    
 router.put('/:id/invoice', protect, updateProjectInvoiceStatus);
+
+
+
 module.exports = router;

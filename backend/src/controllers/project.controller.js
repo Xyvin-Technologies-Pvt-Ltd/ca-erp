@@ -1,10 +1,11 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
 const Client = require("../models/Client");
-const Invoice = require("../models/Invoice"); // Add this import
+const Invoice = require("../models/Invoice"); 
 const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 const ActivityTracker = require("../utils/activityTracker");
+const taskPresets = require("../config/taskPresets");
 
 const updateProjectTeamFromTasks = async (projectId) => {
   try {
@@ -43,7 +44,7 @@ const updateProjectTeamFromTasks = async (projectId) => {
  */
 exports.getProjects = async (req, res, next) => {
   try {
-    console.log("OK<VINU",req.query)
+    console.log("OK<VINU", req.query)
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -63,8 +64,8 @@ exports.getProjects = async (req, res, next) => {
     if (req.query.priority) {
       filter.priority = req.query.priority;
     }
-    if(req.query.project){
-      filter._id=req.query.project
+    if (req.query.project) {
+      filter._id = req.query.project
     }
 
     const total = await Project.countDocuments(filter);
@@ -427,6 +428,28 @@ exports.createProject = async (req, res, next) => {
 
     const project = await Project.create(req.body);
 
+    //Check for task presets based on projectType
+    if (req.body.name) {
+      const preset = taskPresets.find(p => p.projectType === req.body.name);
+      if (preset) {
+        const createdTasks = await Promise.all(
+          preset.tasks.map(async (t) => {
+            const task = await Task.create({
+              title: t.title,
+              project: project._id,
+              priority: t.priority || 'medium',
+              department: t.department,
+              createdBy: req.user._id
+            });
+            return task._id;
+          })
+        );
+
+        // Attach created tasks to project
+        project.tasks = createdTasks;
+        await project.save();
+      }
+    }
     // Log the project creation
     logger.info(
       `Project created: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`

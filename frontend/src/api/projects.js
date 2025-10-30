@@ -129,3 +129,22 @@ export const markProjectAsInvoiced = async (id, invoiceData) => {
     throw error;
   }
 };
+
+
+/**
+ * Fetch all tasks for a specific project
+ * @param {string} projectId - ID of the project
+ * @returns {Promise} Promise object containing tasks data
+ */
+export const fetchTasksByProjectId = async (projectId) => {
+  try {
+    const response = await api.get(`/projects/${projectId}/tasks`);
+    return response.data.data; // return only task array
+  } catch (error) {
+    console.error(
+      `Error fetching tasks for project ${projectId}:`,
+      error.response ? error.response.data : error
+    );
+    throw error;
+  }
+};

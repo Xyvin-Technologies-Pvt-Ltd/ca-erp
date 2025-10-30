@@ -76,4 +76,9 @@ return res.data;
     const response = await axiosInstance.get("/users/verification-staff");
     return response.data.data || [];
   },
+
+  getUsersByDepartment: async (department) => {
+  const response = await axiosInstance.get(`/users/department/${department}`);
+  return response.data.data; 
+},
 };
