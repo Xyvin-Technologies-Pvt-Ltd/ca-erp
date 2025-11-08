@@ -65,7 +65,7 @@ const storage = {
 
     // Update tag documents storage
     tagDocuments: multer.diskStorage({
-        destination: function(req, file, cb) {
+        destination: function (req, file, cb) {
             try {
                 const taskId = req.params.id;
                 const uploadPath = createUploadDir(`/tagDocuments/${taskId}`);
@@ -75,7 +75,7 @@ const storage = {
                 cb(error);
             }
         },
-        filename: function(req, file, cb) {
+        filename: function (req, file, cb) {
             try {
                 const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
                 const ext = path.extname(file.originalname);
@@ -96,7 +96,18 @@ const storage = {
             // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             // const ext = path.extname(file.originalname);
             // cb(null, `receipt-${uniqueSuffix}${ext}`);
-          cb(null, file.originalname);
+            cb(null, file.originalname);
+        },
+    }),
+    digitalSignatures: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const uploadPath = createUploadDir('/digitalSignatures');
+            cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = path.extname(file.originalname);
+            cb(null, `signature-${uniqueSuffix}${ext}`);
         },
     }),
 };
@@ -140,7 +151,8 @@ const fileFilter = (req, file, cb) => {
                 'application/x-zip-compressed',
                 'image/jpeg',
                 'image/png'
-            ]
+            ],
+            digitalSignatures: ['image/png', 'image/jpeg'],
         };
 
         // Determine upload type based on route
@@ -151,9 +163,11 @@ const fileFilter = (req, file, cb) => {
             uploadType = 'logos';
         } else if (req.originalUrl.includes('tag-documents')) {
             uploadType = 'tagDocuments';
-        }else if (req.originalUrl.includes('upload-receipt')) {
-    uploadType = 'receipts';
-}
+        } else if (req.originalUrl.includes('upload-receipt')) {
+            uploadType = 'receipts';
+        } else if (req.originalUrl.includes('digital-signature')) {
+            uploadType = 'digitalSignatures';
+        }
 
 
         // Check if the file type is allowed
@@ -195,5 +209,6 @@ module.exports = {
     uploadLogo: upload('logos'),
     uploadTaskFile: upload('taskFiles'),
     uploadTagDocument: upload('tagDocuments'),
-    uploadReceipt:upload('receipts')
+    uploadReceipt: upload('receipts'),
+    uploadDigitalSignature: upload('digitalSignatures'),
 }; 

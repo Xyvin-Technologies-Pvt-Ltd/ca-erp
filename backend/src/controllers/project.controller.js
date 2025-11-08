@@ -426,6 +426,15 @@ exports.createProject = async (req, res, next) => {
       req.body.projectNumber = `PRJ-${year}${month}-${sequence}`;
     }
 
+    if (req.file) {
+      req.body.digitalSignature = {
+        name: req.file.originalname,
+        size: req.file.size,
+        fileUrl: req.file.path.replace(/\\/g, "/"),
+        fileType: req.file.mimetype,
+      };
+    }
+
     const project = await Project.create(req.body);
 
     //  Check for task presets based on projectType
@@ -549,7 +558,14 @@ exports.updateProject = async (req, res, next) => {
         changedFields
       )}, req.body: ${JSON.stringify(req.body)}`
     );
-
+    if (req.file) {
+  req.body.digitalSignature = {
+    name: req.file.originalname,
+    size: req.file.size,
+    fileUrl: req.file.path.replace(/\\/g, "/"),
+    fileType: req.file.mimetype,
+  };
+}
     // Update project
     project = await Project.findByIdAndUpdate(req.params.id, req.body, {
       new: true,

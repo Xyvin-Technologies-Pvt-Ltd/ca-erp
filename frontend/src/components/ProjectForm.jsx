@@ -17,7 +17,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const isEditMode = !!project;
   const { user, role } = useAuth();
   const startDateRef = useRef(null);
@@ -36,7 +36,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       name: "",
       client: { id: "" },
       description: "",
-      status: "", 
+      status: "",
       priority: "",
       startDate: "",
       dueDate: "",
@@ -141,11 +141,23 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       }
 
       let result;
-      if (isEditMode && project?.id) {
-        result = await projectsApi.updateProject(project.id, filteredProjectData);
-      } else {
-        result = await projectsApi.createProject(filteredProjectData);
-      }
+const formData = new FormData();
+
+// Append basic fields
+Object.entries(filteredProjectData).forEach(([key, value]) => {
+  formData.append(key, value);
+});
+
+// Append file if present
+if (data.digitalSignature && data.digitalSignature[0]) {
+  formData.append("digitalSignature", data.digitalSignature[0]);
+}
+
+if (isEditMode && project?.id) {
+  result = await projectsApi.updateProject(project.id, formData);
+} else {
+  result = await projectsApi.createProject(formData);
+}
 
       setLoading(true);
       reset();
@@ -164,7 +176,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
   const handleCancel = () => {
     if (isDirty) {
-      setShowConfirmModal(true); 
+      setShowConfirmModal(true);
     } else {
       onCancel();
     }
@@ -206,8 +218,8 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={handleCancel} 
+            <button
+              onClick={handleCancel}
               className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -400,6 +412,54 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                 )}
               </div>
             </div>
+
+            
+            {/* Digital Signature Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Digital Signature <span className="text-red-500">*</span>
+              </label>
+
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  {...register("digitalSignature", {
+                    required: "Digital signature is required",
+                    validate: {
+                      fileType: (files) =>
+                        files[0]?.type.startsWith("image/") || "Only image files are allowed",
+                      fileSize: (files) =>
+                        files[0]?.size <= 2 * 1024 * 1024 || "File must be smaller than 2MB",
+                    },
+                  })}
+                  className="block w-full text-sm text-gray-700
+      file:mr-4 file:py-2 file:px-4
+      file:rounded-lg file:border-0
+      file:text-sm file:font-semibold
+      file:bg-[#1c6ead] file:text-white
+      hover:file:bg-[#155b8d]
+      cursor-pointer"
+                />
+
+                {/* Preview section */}
+                {watch("digitalSignature") && watch("digitalSignature").length > 0 && (
+                  <img
+                    src={URL.createObjectURL(watch("digitalSignature")[0])}
+                    alt="Signature Preview"
+                    className="h-16 border border-gray-300 rounded-lg shadow-sm"
+                  />
+                )}
+              </div>
+
+              {errors.digitalSignature && (
+                <div className="text-red-500 text-sm mt-1 flex items-center">
+                  <span className="text-red-500 mr-1">⚠</span>
+                  {errors.digitalSignature.message}
+                </div>
+              )}
+            </div>
+
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

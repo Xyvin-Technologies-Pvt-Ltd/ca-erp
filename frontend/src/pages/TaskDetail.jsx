@@ -218,7 +218,7 @@ const TaskDetail = () => {
 const handleRatingSubmit = async () => {
   try {
     setLoading(true);
-    const updatedTask = await addTaskRating(id, rating, token); // <-- use new API
+    const updatedTask = await addTaskRating(id, rating, token); 
     setTask(updatedTask); // update local state
     setShowRatingPopup(false);
     setRefresh((prev) => !prev);

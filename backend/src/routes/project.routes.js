@@ -14,6 +14,7 @@ const {
 const { protect, authorize } = require('../middleware/auth');
 const { validate } = require('../middleware/validator');
 const { projectValidation } = require('../middleware/validator');
+const { uploadDigitalSignature } = require('../middleware/upload');
 
 /**
  * @swagger
@@ -117,8 +118,11 @@ router.route('/')
      *       401:
      *         description: Unauthorized
      */
-    .post(protect, validate(projectValidation.create), createProject);
-
+    .post(
+    protect,
+    uploadDigitalSignature.single("digitalSignature"), 
+    validate(projectValidation.create),
+    createProject)
 /**
  * @swagger
  * /api/projects/{id}:
@@ -199,7 +203,11 @@ router.route('/:id')
      *       403:
      *         description: Not authorized to update this project
      */
-    .put(protect, validate(projectValidation.update), updateProject)
+    .put(
+    protect,
+    uploadDigitalSignature.single("digitalSignature"),
+    validate(projectValidation.update),
+    updateProject)
     /**
      * @swagger
      * /api/projects/{id}:

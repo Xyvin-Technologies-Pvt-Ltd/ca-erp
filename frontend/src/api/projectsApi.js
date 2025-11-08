@@ -22,9 +22,14 @@ export const projectsApi = {
         }
     },
 
-    createProject: async (projectData) => {
+    createProject: async (formData) => {
         try {
-            const response = await api.post('/projects', projectData);
+            const response = await api.post("/projects", formData, {
+                headers: {
+                    
+                    "Content-Type": "multipart/form-data",
+                },
+            });
             return response.data;
         } catch (error) {
             console.error("Error creating project:", error);
@@ -33,13 +38,16 @@ export const projectsApi = {
     },
 
     // Update project status
-    updateProject: async (projectId, status) => {
+    updateProject: async (projectId, formData) => {
         try {
-            const response = await api.put(`/projects/${projectId}`,  status );
+            const response = await api.put(`/projects/${projectId}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
             return response.data;
-            
         } catch (error) {
-            console.error(`Error updating project status for ID (${projectId}):`, error);
+            console.error("Error updating project:", error);
             throw error;
         }
     },
