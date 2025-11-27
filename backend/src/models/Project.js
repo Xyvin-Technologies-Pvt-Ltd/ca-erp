@@ -91,9 +91,9 @@ const ProjectSchema = new mongoose.Schema(
         ],
         assignedTo: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User', 
+            ref: 'User',
         },
-        createdBy:{
+        createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true
@@ -102,6 +102,11 @@ const ProjectSchema = new mongoose.Schema(
             type: String,
             enum: ['planning', 'in-progress', 'on-hold', 'completed', 'archived'],
             default: 'planning',
+        },
+        department: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+            required: [true, "Please assign a department"],
         },
         startDate: {
             type: Date,
@@ -126,13 +131,14 @@ const ProjectSchema = new mongoose.Schema(
         ],
         notes: [
             {
-                content: { type: String},
+                content: { type: String },
                 author: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User', },
+                    ref: 'User',
+                },
                 createdAt: { type: Date, default: Date.now },
                 deleted: { type: Boolean, default: false },
-            }, 
+            },
         ],
         deleted: { type: Boolean, default: false },
         invoiceStatus: {
@@ -161,7 +167,7 @@ const ProjectSchema = new mongoose.Schema(
             type: Date
         },
         receipts: {
-          type: String,
+            type: String,
         },
         paymentHistory: [
             {
@@ -180,9 +186,9 @@ const ProjectSchema = new mongoose.Schema(
                 }
             }
         ],
-        
+
     },
-   
+
     {
         timestamps: true,
         toJSON: { virtuals: true },
@@ -197,7 +203,7 @@ ProjectSchema.pre('remove', async function (next) {
 });
 
 // Pre-save middleware to update payment status and balance
-ProjectSchema.pre('save', function(next) {
+ProjectSchema.pre('save', function (next) {
     // Calculate balance amount
     this.balanceAmount = (this.amount || 0) - (this.receivedAmount || 0);
 

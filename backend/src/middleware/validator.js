@@ -141,7 +141,7 @@ const clientValidation = {
             industry: Joi.string().max(50).allow("").optional(),
             notes: Joi.string().allow("").optional(),
             status: Joi.string().valid('active', 'inactive').allow("").optional(),
-                        priority: Joi.string(),
+            priority: Joi.string(),
         }),
     }),
 };
@@ -161,6 +161,8 @@ const projectValidation = {
             dueDate: Joi.date().allow(null),
             amount: Joi.number().min(0),
             receipts: Joi.string().allow(""),
+            department: Joi.string().required(),
+
         }),
     }),
 
@@ -176,6 +178,7 @@ const projectValidation = {
             team: Joi.array().items(Joi.string()),
             status: Joi.string().valid('planning', 'in-progress', 'on-hold', 'completed', 'archived'),
             priority: Joi.string().valid('low', 'medium', 'high'),
+            department: Joi.string(),
             startDate: Joi.date().allow(null),
             dueDate: Joi.date().allow(null),
             budget: Joi.number().min(0),

@@ -1,6 +1,7 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
 const Client = require("../models/Client");
+const Department = require("../models/department.model")
 const Invoice = require("../models/Invoice"); // Add this import
 const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
@@ -43,7 +44,7 @@ const updateProjectTeamFromTasks = async (projectId) => {
  */
 exports.getProjects = async (req, res, next) => {
   try {
-    console.log("OK<VINU",req.query)
+    console.log("OK<VINU", req.query)
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -63,8 +64,8 @@ exports.getProjects = async (req, res, next) => {
     if (req.query.priority) {
       filter.priority = req.query.priority;
     }
-    if(req.query.project){
-      filter._id=req.query.project
+    if (req.query.project) {
+      filter._id = req.query.project
     }
 
     const total = await Project.countDocuments(filter);
@@ -405,7 +406,20 @@ exports.createProject = async (req, res, next) => {
         );
       }
     }
+    
 
+    // Check if department exists
+    if (req.body.department) {
+      const department = await Department.findById(req.body.department);
+      if (!department) {
+        return next(
+          new ErrorResponse(
+            `Department not found with id of ${req.body.department}`,
+            404
+          )
+        );
+      }
+    }
     // Generate project number if not provided
     if (!req.body.projectNumber) {
       const date = new Date();
@@ -424,7 +438,7 @@ exports.createProject = async (req, res, next) => {
 
       req.body.projectNumber = `PRJ-${year}${month}-${sequence}`;
     }
-
+    console.log("REQ BODY:", req.body);
     const project = await Project.create(req.body);
 
     // Log the project creation
@@ -498,6 +512,19 @@ exports.updateProject = async (req, res, next) => {
         );
       }
     }
+
+    // Check if department exists
+if (req.body.department) {
+  const department = await Department.findById(req.body.department);
+  if (!department) {
+    return next(
+      new ErrorResponse(
+        `Department not found with id of ${req.body.department}`,
+        404
+      )
+    );
+  }}
+  
 
     // Handle notes if provided
     if (req.body.notes && Array.isArray(req.body.notes)) {

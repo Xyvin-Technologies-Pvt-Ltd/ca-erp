@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { projectsApi } from "../api";
 import { clientsApi } from "../api/clientsApi";
 import { useAuth } from "../context/AuthContext";
+import { getDepartments } from "../api/department.api";
 import {
   DocumentTextIcon,
   UserIcon,
@@ -13,10 +14,12 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+
 const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false); 
   const isEditMode = !!project;
   const { user, role } = useAuth();
@@ -41,6 +44,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       startDate: "",
       dueDate: "",
       amount: "",
+      department: "",  
     },
   });
 
@@ -51,12 +55,14 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   useEffect(() => {
     const loadClientsAndProjects = async () => {
       try {
-        const [clientsResponse, projectsResponse] = await Promise.all([
+        const [clientsResponse, projectsResponse, departmentsResponse] = await Promise.all([
           clientsApi.getAllClients(),
           projectsApi.getAllProjects({ limit: 1000 }),
+          getDepartments({limit:1000})
         ]);
         setClients(clientsResponse.data);
         setProjects(projectsResponse.data || []);
+        setDepartments(departmentsResponse.data || []);
       } catch (error) {
         console.error("Error loading clients or projects:", error);
       }
@@ -68,20 +74,21 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   useEffect(() => {
     if (project && clients.length > 0) {
       const formattedProject = {
-        ...project,
-        startDate: project.startDate
-          ? new Date(project.startDate).toISOString().split("T")[0]
-          : "",
-        dueDate: project.dueDate
-          ? new Date(project.dueDate).toISOString().split("T")[0]
-          : "",
-        client: {
-          id: String(project.client?._id || project.client?.id || ""),
-          name: project.client?.name || "",
-        },
-        priority: project.priority?.toLowerCase() || "",
-        status: project.status?.toLowerCase() || "",
-      };
+  ...project,
+  startDate: project.startDate
+    ? new Date(project.startDate).toISOString().split("T")[0]
+    : "",
+  dueDate: project.dueDate
+    ? new Date(project.dueDate).toISOString().split("T")[0]
+    : "",
+  client: {
+    id: String(project.client?._id || project.client?.id || ""),
+    name: project.client?.name || "",
+  },
+  priority: project.priority?.toLowerCase() || "",
+  status: project.status?.toLowerCase() || "",
+  department: project.department?._id || project.department || "",
+};
       reset(formattedProject);
     }
   }, [project, clients, reset]);
@@ -114,6 +121,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     try {
       const projectData = {
         client: data.client.id,
+        department: data.department,
         status: data.status ? data.status.toLowerCase() : "planning",
         budget: data.budget ? Number(data.budget) : undefined,
         priority: data.priority ? data.priority.toLowerCase() : "medium",
@@ -129,11 +137,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         projectData.dueDate = data.dueDate;
       }
 
+
       // Filter out undefined values
       const filteredProjectData = Object.fromEntries(
         Object.entries(projectData).filter(([key, value]) => value !== undefined)
       );
-
+  
 
       if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
         console.error(`Invalid status: ${filteredProjectData.status}`);
@@ -146,7 +155,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       } else {
         result = await projectsApi.createProject(filteredProjectData);
       }
-
+      
       setLoading(true);
       reset();
       if (onSuccess) onSuccess(result.data);
@@ -159,6 +168,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         });
       }
       setLoading(false);
+      console.log("Final form data being submitted:", data);
     }
   };
 
@@ -374,6 +384,31 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   )}
                 </div>
               </div>
+
+              {/* Department */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Department <span className="text-red-500">*</span>
+  </label>
+
+  <select
+  {...register("department", { required: "Department is required" })}
+  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+>
+  <option value="">Select a department</option>
+  {departments.map((dept) => (
+    <option key={dept._id} value={dept._id}>
+      {dept.name}
+    </option>
+  ))}
+</select>
+
+{errors.department && (
+  <div className="text-red-500 text-sm mt-1">
+    ⚠ {errors.department.message}
+  </div>
+)}
+</div>
 
               {/* Description */}
               <div>
