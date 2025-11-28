@@ -310,7 +310,7 @@ TaskSchema.post('save', async function () {
     await this.model('Project').findByIdAndUpdate(
         this.project,
         { $addToSet: { tasks: this._id } },
-        { new: true }
+        { new: true, runValidators: false }
     );
 });
 

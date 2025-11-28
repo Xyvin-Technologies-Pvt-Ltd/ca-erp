@@ -69,7 +69,7 @@ const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = nu
   const [clientInfo, setClientInfo] = useState(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [amount, setAmount] = useState(task?.amount);
-  const [taskIncentivePercentage, setTaskIncentivePercentage] = useState(task?.taskIncentivePercentage || 4);
+  const [taskIncentivePercentage, setTaskIncentivePercentage] = useState(task?.taskIncentivePercentage || 0);
   const [verificationIncentivePercentage, setVerificationIncentivePercentage] = useState(task?.verificationIncentivePercentage || 1);
   const dueDateRef = useRef(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
@@ -96,7 +96,7 @@ const handleFileChange = (e) => {
       JSON.stringify(selectedTags) !== JSON.stringify(task?.tags?.map(tag => ({ id: tag, text: tag })) || []) ||
       projectId !== (task?.project?._id || projectIds) ||
       amount !== (task?.amount || undefined) ||
-      taskIncentivePercentage !== (task?.taskIncentivePercentage || 4) ||
+      taskIncentivePercentage !== (task?.taskIncentivePercentage || 0) ||
       verificationIncentivePercentage !== (task?.verificationIncentivePercentage || 1) ||
       Object.keys(tagDocuments).length > 0;
     setIsFormDirty(isDirty);
@@ -203,117 +203,147 @@ const handleFileChange = (e) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!token) {
-      toast.error("Unauthorized: No token found");
-      return;
-    }
+  if (!token) {
+    toast.error("Unauthorized: No token found");
+    return;
+  }
 
-    if (!projectId) {
-      toast.error("Please select a project.");
-      return;
-    }
+  if (!projectId) {
+    toast.error("Please select a project.");
+    return;
+  }
 
-    // Check if project has due date
-    let selectedProject;
-    if (projectIds) {
-      // Single project context - fetch project details
-      try {
-        const response = await projectsApi.getProjectById(projectId);
-        selectedProject = response.data;
-      } catch (error) {
-        console.error("Error fetching project details:", error);
-        toast.error("Error fetching project details");
-        return;
-      }
-    } else {
-      // Multiple projects context - find from projects array
-      selectedProject = projects.find(p => p._id === projectId);
-    }
+  // Validate project due date
 
-    if (selectedProject && !selectedProject.dueDate) {
-      setProjectDueDateError({
-        projectId: selectedProject._id,
-        projectName: selectedProject.name
-      });
-      setSelectedProject(selectedProject); // Store the project to edit
-      return;
-    } else {
-      setProjectDueDateError(null);
-    }
+  let selectedProject;
 
+  if (projectIds) {
     try {
-      let taskPayload;
-      const tagList = selectedTags.map(tag => tag.text);
-
-      taskPayload = new FormData();
-      taskPayload.append("title", title);
-      taskPayload.append("project", projectId);
-      taskPayload.append("status", status);
-      taskPayload.append("priority", priority.toLowerCase());
-      taskPayload.append("assignedTo", assignedTo);
-      taskPayload.append("amount", amount !== undefined ? amount : 0);
-      taskPayload.append("dueDate", dueDate);
-      taskPayload.append("description", description);
-      // if (file) taskPayload.append("file", file);
-      if (file.length > 0) {
-  file.forEach((fil) => {
-    taskPayload.append("files", fil); // backend must accept array of files
-  });
-}
-      tagList.forEach(tag => taskPayload.append("tags[]", tag));
-      
-      if (user?.role === 'admin') {
-        taskPayload.append("taskIncentivePercentage", taskIncentivePercentage);
-        taskPayload.append("verificationIncentivePercentage", verificationIncentivePercentage);
-      }
-
-      let response;
-      if (task) {
-        response = await updateTask(task._id, taskPayload, token);
-        toast.success("Task updated successfully");
-      } else {
-        response = await createTask(taskPayload, token);
-        toast.success("Task created successfully");
-
-        const tempDocs = Object.entries(tagDocuments).filter(([_, doc]) => doc.isTemp);
-        for (const [key, doc] of tempDocs) {
-          const formData = new FormData();
-          formData.append('file', doc.file);
-          formData.append('tag', doc.tag);
-          formData.append('documentType', doc.documentType);
-
-          await uploadTagDocument(response.data.data._id, formData, token);
-        }
-
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({
-            type: "notification",
-            message: `New task "${title}" has been created`,
-            timestamp: new Date(),
-            taskId: response.data.data._id,
-            action: "create_task",
-            data: {
-              title,
-              projectId,
-              assignedTo,
-              priority: priority.toLowerCase(),
-              status,
-              amount
-            }
-          }));
-        }
-      }
-
-      onSuccess(response.data);
-      onSucces()
-    } catch (err) {
-      console.error("Failed to create/update task", err);
-      toast.error(err.response?.data?.message || "Failed to create/update task");
+      const response = await projectsApi.getProjectById(projectId);
+      selectedProject = response.data;
+    } catch (error) {
+      console.error("Error fetching project details:", error);
+      toast.error("Error fetching project details");
+      return;
     }
-  };
+  } else {
+    selectedProject = projects.find((p) => p._id === projectId);
+  }
+
+  if (selectedProject && !selectedProject.dueDate) {
+    setProjectDueDateError({
+      projectId: selectedProject._id,
+      projectName: selectedProject.name,
+    });
+    setSelectedProject(selectedProject);
+    return;
+  } else {
+    setProjectDueDateError(null);
+  }
+
+
+  // Build FormData
+
+  const tagList = selectedTags.map((tag) => tag.text);
+  const taskPayload = new FormData();
+
+  taskPayload.append("title", title);
+  taskPayload.append("project", projectId);
+  taskPayload.append("status", status);
+  taskPayload.append("priority", priority.toLowerCase());
+  taskPayload.append("assignedTo", assignedTo);
+  taskPayload.append("amount", amount !== undefined ? amount : 0);
+  taskPayload.append("dueDate", dueDate);
+  taskPayload.append("description", description);
+
+  if (file.length > 0) {
+    file.forEach((f) => taskPayload.append("files", f));
+  }
+
+  tagList.forEach((t) => taskPayload.append("tags[]", t));
+
+  if (user?.role === "admin") {
+    taskPayload.append("taskIncentivePercentage", taskIncentivePercentage);
+    taskPayload.append(
+      "verificationIncentivePercentage",
+      verificationIncentivePercentage
+    );
+  }
+
+  //TASK CREATION
+
+  let response;
+
+  try {
+    if (task) {
+      response = await updateTask(task._id, taskPayload, token);
+      toast.success("Task updated successfully");
+    } else {
+      response = await createTask(taskPayload, token);
+      toast.success("Task created successfully");
+    }
+  } catch (err) {
+    console.error("Task creation failed", err);
+    toast.error(err.response?.data?.message || "Failed to create/update task");
+    return; 
+  }
+
+  // Upload tag documents
+  if (!task) {
+    try {
+      const tempDocs = Object.entries(tagDocuments).filter(
+        ([_, doc]) => doc.isTemp
+      );
+
+      for (const [key, doc] of tempDocs) {
+        const formData = new FormData();
+        formData.append("file", doc.file);
+        formData.append("tag", doc.tag);
+        formData.append("documentType", doc.documentType);
+
+        await uploadTagDocument(response.data.data._id, formData, token);
+      }
+    } catch (docErr) {
+      console.error("Document upload failed:", docErr);
+
+    }
+  }
+
+
+  try {
+    if (!task && socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+        JSON.stringify({
+          type: "notification",
+          message: `New task "${title}" has been created`,
+          timestamp: new Date(),
+          taskId: response.data.data._id,
+          action: "create_task",
+          data: {
+            title,
+            projectId,
+            assignedTo,
+            priority: priority.toLowerCase(),
+            status,
+            amount,
+          },
+        })
+      );
+    }
+  } catch (sockErr) {
+    console.error("Socket notification failed:", sockErr);
+  }
+
+  try {
+    onSuccess?.(response.data);
+    onSucces?.();
+  } catch (callbackErr) {
+    console.error("Callback error:", callbackErr);
+  }
+};
 
   const handleTagToggle = (tag) => {
     setSelectedTags((prev) => {
@@ -347,7 +377,7 @@ const handleFileChange = (e) => {
 
   useEffect(() => {
     if (task) {
-      setTaskIncentivePercentage(task.taskIncentivePercentage || 4);
+      setTaskIncentivePercentage(task.taskIncentivePercentage || 0);
       setVerificationIncentivePercentage(task.verificationIncentivePercentage || 1);
     }
   }, [task]);
@@ -604,7 +634,7 @@ const handleFileChange = (e) => {
                 </div>
 
                 {/* Task Incentive % */}
-                {user?.role === 'admin' && (
+                {/* {user?.role === 'admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Task Incentive % 
@@ -654,7 +684,7 @@ const handleFileChange = (e) => {
                       step="0.1"
                     />
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Description */}

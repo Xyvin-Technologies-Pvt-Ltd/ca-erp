@@ -106,7 +106,9 @@ const ProjectSchema = new mongoose.Schema(
         department: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Department",
-            required: [true, "Please assign a department"],
+            required: function() {
+                return this.isNew;  
+            },
         },
         startDate: {
             type: Date,
