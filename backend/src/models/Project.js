@@ -89,10 +89,7 @@ const ProjectSchema = new mongoose.Schema(
                 ref: 'User',
             },
         ],
-        assignedTo: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
+
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -103,13 +100,49 @@ const ProjectSchema = new mongoose.Schema(
             enum: ['planning', 'in-progress', 'on-hold', 'completed', 'archived'],
             default: 'planning',
         },
-        department: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Department",
-            required: function() {
-                return this.isNew;  
-            },
+        departments: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Department",
+                required: true
+            }
+        ],
+
+        assignedTo: [
+            {
+                department: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Department",
+                    required: true
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "User",
+                    required: true
+                },
+                levelIndex: {
+                    type: Number,
+                    required: true
+                }
+            }
+        ],
+        currentLevelIndex: {
+            type: Number,
+            default: 0
         },
+        // currentStage: {
+        //     type: String,
+        //     enum: ["tasking", "verification", "completed", "invoice"],
+        //     default: "tasking"
+        // },
+        // currentDepartment: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Department"
+        // },
+        // currentAssignee: { 
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "User"
+        // },
         startDate: {
             type: Date,
         },

@@ -77,13 +77,17 @@ const Projects = () => {
       });
 
       setProjects(sortedProjects);
+
+      const totalProjects = data.total || 0;
+      const totalPages = Math.ceil(totalProjects / paginations.limit); 
+
       setPaginations({
         page: currentPage,
-        total: data.total || 0,
-        limit: 9,
+        total: totalProjects,
+        limit: paginations.limit,
       });
 
-      const totalPages = Math.ceil(data.total / paginations.limit);
+      
       setTotalPage(totalPages);
 
       const pageNumbers = [];
@@ -133,6 +137,8 @@ const Projects = () => {
       const [tasksData, projectsData] = await Promise.all([
         fetchTasks({ ...filters, page: currentPage, limit: 9 }),
         projectsApi.getAllProjects({
+          page: currentPage, 
+          limit: paginations.limit,
           status: filters.status,
           priority: filters.priority,
           client: filters.client,
@@ -149,7 +155,7 @@ const Projects = () => {
         : [];
 
       const filteredProjects = allProjects
-        .filter((project) => taskProjectIds.has(project._id))
+        
         .sort((a, b) => {
           if (!a.dueDate && !b.dueDate) return 0;
           if (!a.dueDate) return 1;
@@ -161,8 +167,8 @@ const Projects = () => {
 
       setPaginations({
         page: currentPage,
-        total: tasksData.total,
-        limit: tasksData.pagination?.next?.limit || 10,
+        total: filteredProjects.length,
+        limit: paginations.limit || 10,
       });
 
       const uniqueClients = [

@@ -161,7 +161,20 @@ const projectValidation = {
             dueDate: Joi.date().allow(null),
             amount: Joi.number().min(0),
             receipts: Joi.string().allow(""),
-            department: Joi.string().required(),
+            departments: Joi.array()
+                .items(Joi.string()) // array of department IDs
+                .min(1)
+                .required(),
+
+            assignedTo: Joi.array()
+                .items(
+                    Joi.object({
+                        department: Joi.string().required(),
+                        user: Joi.string().required(),
+                    })
+                )
+                .min(1)
+                .required(),
 
         }),
     }),
@@ -178,7 +191,13 @@ const projectValidation = {
             team: Joi.array().items(Joi.string()),
             status: Joi.string().valid('planning', 'in-progress', 'on-hold', 'completed', 'archived'),
             priority: Joi.string().valid('low', 'medium', 'high'),
-            department: Joi.string(),
+            departments: Joi.array().items(Joi.string()),
+            assignedTo: Joi.array().items(
+                Joi.object({
+                    department: Joi.string(),
+                    user: Joi.string(),
+                })
+            ),
             startDate: Joi.date().allow(null),
             dueDate: Joi.date().allow(null),
             budget: Joi.number().min(0),

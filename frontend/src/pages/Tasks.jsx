@@ -42,7 +42,7 @@ const Tasks = () => {
     total: 0,
   });
 
-  const { role } = useAuth();
+const { role, user } = useAuth();
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -53,6 +53,7 @@ const Tasks = () => {
   });
 
   const [teamMembers, setTeamMembers] = useState([]);
+  const [staffProjects, setStaffProjects] = useState([]);
 
   const loadTasksAndProjects = async () => {
     try {
@@ -65,6 +66,14 @@ const Tasks = () => {
 
       setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
       setProjects(Array.isArray(projectsData.data) ? projectsData.data : []);
+
+// If logged-in user is staff → filter assigned projects
+if (role === "staff") {
+  const assigned = projectsData.data.filter((p) =>
+  p.assignedTo?.some((a) => a.user?._id === user._id)
+);
+  setStaffProjects(assigned);
+}
 
       setTeamMembers(
         Array.isArray(tasksData.tasks)
@@ -139,6 +148,16 @@ const Tasks = () => {
     .join(" ");
 };
 
+// Staff create-task permission check
+const canStaffCreateTask =
+  role === "staff" &&
+  staffProjects.some((project) =>
+    project.assignedTo.some(
+      (a) =>
+        a.user?._id === user._id &&  // FIX: use a.user._id
+        a.levelIndex === project.currentLevelIndex
+    )
+  );
   if (loading) {
     return (
       <motion.div
@@ -197,7 +216,7 @@ const Tasks = () => {
           <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
-        {role !== "staff" && (
+        {(role === "admin" || role === "manager" || canStaffCreateTask) && (
           <motion.button
             onClick={() => setIsModalOpen(true)}
             className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { projectsApi } from "../api";
+import { projectsApi, userApi } from "../api";
 import { clientsApi } from "../api/clientsApi";
 import { useAuth } from "../context/AuthContext";
 import { getDepartments } from "../api/department.api";
@@ -20,7 +20,11 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [levels, setLevels] = useState([
+    { department: "", user: "" }
+  ]);
   const isEditMode = !!project;
   const { user, role } = useAuth();
   const startDateRef = useRef(null);
@@ -39,12 +43,12 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       name: "",
       client: { id: "" },
       description: "",
-      status: "", 
+      status: "",
       priority: "",
       startDate: "",
       dueDate: "",
       amount: "",
-      department: "",  
+      department: "",
     },
   });
 
@@ -53,43 +57,64 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const projectName = watch("name");
 
   useEffect(() => {
-    const loadClientsAndProjects = async () => {
+    const loadData = async () => {
       try {
-        const [clientsResponse, projectsResponse, departmentsResponse] = await Promise.all([
+        const [clientsResponse, projectsResponse, departmentsResponse, usersResponse] = await Promise.all([
           clientsApi.getAllClients(),
           projectsApi.getAllProjects({ limit: 1000 }),
-          getDepartments({limit:1000})
+          getDepartments({ limit: 1000 }),
+          userApi.getUsersDepartmentProject()
         ]);
         setClients(clientsResponse.data);
         setProjects(projectsResponse.data || []);
         setDepartments(departmentsResponse.data || []);
+        setUsers(usersResponse.data || []);
       } catch (error) {
         console.error("Error loading clients or projects:", error);
       }
     };
 
-    loadClientsAndProjects();
+    loadData();
   }, []);
 
   useEffect(() => {
     if (project && clients.length > 0) {
       const formattedProject = {
-  ...project,
-  startDate: project.startDate
-    ? new Date(project.startDate).toISOString().split("T")[0]
-    : "",
-  dueDate: project.dueDate
-    ? new Date(project.dueDate).toISOString().split("T")[0]
-    : "",
-  client: {
-    id: String(project.client?._id || project.client?.id || ""),
-    name: project.client?.name || "",
-  },
-  priority: project.priority?.toLowerCase() || "",
-  status: project.status?.toLowerCase() || "",
-  department: project.department?._id || project.department || "",
-};
+        ...project,
+
+        startDate: project.startDate
+          ? new Date(project.startDate).toISOString().split("T")[0]
+          : "",
+
+        dueDate: project.dueDate
+          ? new Date(project.dueDate).toISOString().split("T")[0]
+          : "",
+
+        client: {
+          id: String(project.client?._id || project.client?.id || ""),
+          name: project.client?.name || "",
+        },
+
+        priority: project.priority?.toLowerCase() || "",
+
+        status: project.status?.toLowerCase() || "",
+
+        departments: Array.isArray(project.departments)
+          ? project.departments.map((d) => d?._id || d)
+          : [],
+
+        assignedTo: Array.isArray(project.assignedTo)
+          ? project.assignedTo.map((a) => ({
+            department: a.department?._id || a.department,
+            user: a.user?._id || a.user,
+          }))
+          : [],
+      };
       reset(formattedProject);
+      setLevels(formattedProject.assignedTo.length > 0
+        ? formattedProject.assignedTo
+        : [{ department: "", user: "" }]
+      );
     }
   }, [project, clients, reset]);
 
@@ -121,12 +146,16 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
     try {
       const projectData = {
         client: data.client.id,
-        department: data.department,
         status: data.status ? data.status.toLowerCase() : "planning",
         budget: data.budget ? Number(data.budget) : undefined,
         priority: data.priority ? data.priority.toLowerCase() : "medium",
         description: data.description || "No description provided",
         name: data.name,
+        departments: levels.map(l => l.department),
+        assignedTo: levels.map(l => ({
+          department: l.department,
+          user: l.user
+        }))
       };
 
       // Only add date fields if they have values
@@ -142,7 +171,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       const filteredProjectData = Object.fromEntries(
         Object.entries(projectData).filter(([key, value]) => value !== undefined)
       );
-  
+
 
       if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
         console.error(`Invalid status: ${filteredProjectData.status}`);
@@ -155,7 +184,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
       } else {
         result = await projectsApi.createProject(filteredProjectData);
       }
-      
+
       setLoading(true);
       reset();
       if (onSuccess) onSuccess(result.data);
@@ -174,7 +203,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
   const handleCancel = () => {
     if (isDirty) {
-      setShowConfirmModal(true); 
+      setShowConfirmModal(true);
     } else {
       onCancel();
     }
@@ -216,8 +245,8 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={handleCancel} 
+            <button
+              onClick={handleCancel}
               className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -383,32 +412,80 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                     </div>
                   )}
                 </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department Levels <span className="text-red-500">*</span>
+                  </label>
+
+                  {levels.map((level, index) => (
+                    <div key={index} className="flex gap-3 mb-3">
+
+                      {/* Department Dropdown */}
+                      <select
+                        value={level.department}
+                        onChange={(e) => {
+                          const updated = [...levels];
+                          updated[index].department = e.target.value;
+                          updated[index].user = "";
+                          setLevels(updated);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                      >
+                        <option value="">Select department</option>
+                        {departments.map((dept) => (
+                          <option key={dept._id} value={dept._id}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Users Dropdown — Enhanced */}
+                      <select
+                        value={level.user}
+                        onChange={(e) => {
+                          const updated = [...levels];
+                          updated[index].user = e.target.value;
+                          setLevels(updated);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                      >
+                        <option value="">Assign user</option>
+
+                        {users
+                          .filter((u) => u.department?._id === level.department)   // 🔥 show matching users only
+                          .map((u) => (
+                            <option key={u._id} value={u._id}>
+                              {u.name} — {u.department?.name}
+                            </option>
+                          ))}
+                      </select>
+
+                      {/* Remove Row (except first row) */}
+                      {index !== 0 && (
+                        <button
+                          type="button"
+                          className="text-red-600 font-bold"
+                          onClick={() => {
+                            const updated = levels.filter((_, i) => i !== index);
+                            setLevels(updated);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add New Level */}
+                  <button
+                    type="button"
+                    onClick={() => setLevels([...levels, { department: "", user: "" }])}
+                    className="text-[#1c6ead] hover:text-[#104670] font-semibold"
+                  >
+                    + Add Level
+                  </button>
+                </div>
               </div>
-
-              {/* Department */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Department <span className="text-red-500">*</span>
-  </label>
-
-  <select
-  {...register("department", { required: "Department is required" })}
-  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
->
-  <option value="">Select a department</option>
-  {departments.map((dept) => (
-    <option key={dept._id} value={dept._id}>
-      {dept.name}
-    </option>
-  ))}
-</select>
-
-{errors.department && (
-  <div className="text-red-500 text-sm mt-1">
-    ⚠ {errors.department.message}
-  </div>
-)}
-</div>
 
               {/* Description */}
               <div>

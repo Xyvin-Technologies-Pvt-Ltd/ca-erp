@@ -110,6 +110,16 @@ const TaskSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
+        levelIndex: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        department: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+            required: true
+        },
         status: {
             type: String,
             enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'],
