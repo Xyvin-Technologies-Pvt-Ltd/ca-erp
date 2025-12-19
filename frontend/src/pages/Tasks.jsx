@@ -21,6 +21,7 @@ const statusColors = {
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-gray-100 text-gray-800",
   verification: "bg-indigo-100 text-indigo-800",
+  overdue: "bg-red-100 text-red-800",
 };
 
 const priorityColors = {

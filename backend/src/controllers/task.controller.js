@@ -482,40 +482,46 @@ exports.updateTask = async (req, res, next) => {
 
     // Fetch project because level logic depends on project
     const project = await Project.findById(task.project);
+    const isAdmin = req.user.role === "admin";
+    const isManager = req.user.role === "manager";
 
     if (!project) {
       return next(new ErrorResponse("Parent project not found", 404));
     }
 
-    const currentLevel = project.currentLevelIndex;
-    const currentLevelInfo = project.assignedTo[currentLevel];
+    if (!isAdmin && !isManager) {
+      const currentLevel = project.currentLevelIndex;
+      const currentLevelInfo = project.assignedTo?.[currentLevel];
 
-    // Task belongs to a previous level
-    if (task.levelIndex < currentLevel) {
-      return next(
-        new ErrorResponse(
-          "This task belongs to a completed department level and cannot be modified.",
-          403
-        )
-      );
+      if (!currentLevelInfo) {
+        return next(
+          new ErrorResponse(
+            "Project level configuration missing. Please contact admin.",
+            400
+          )
+        );
+      }
+
+      // Task belongs to a previous level
+      if (task.levelIndex < currentLevel) {
+        return next(
+          new ErrorResponse(
+            "This task belongs to a completed department level and cannot be modified.",
+            403
+          )
+        );
+      }
+
+      // Task belongs to a future level
+      if (task.levelIndex > currentLevel) {
+        return next(
+          new ErrorResponse(
+            "This task belongs to a future department level. You cannot modify it yet.",
+            403
+          )
+        );
+      }
     }
-
-    // Task belongs to a future level 
-    if (task.levelIndex > currentLevel) {
-      return next(
-        new ErrorResponse(
-          "This task belongs to a future department level. You cannot modify it yet.",
-          403
-        )
-      );
-    }
-
-    // Now we know task.levelIndex === project.currentLevelIndex
-    // Only the current level’s assigned user can modify tasks
-    const currentLevelUser = currentLevelInfo.user?.toString();
-    const isAdmin = req.user.role === "admin";
-    const isManager = req.user.role === "manager";
-
 
 
     // --- Begin: Handle file upload and attachments accumulation ---
@@ -750,82 +756,82 @@ exports.updateTask = async (req, res, next) => {
     }
 
     if (
-  req.body.status === "completed" &&
-  originalTaskObj.status !== "completed"
-) {
-  try {
-    console.log("TASK COMPLETED → checking level completion");
+      req.body.status === "completed" &&
+      originalTaskObj.status !== "completed"
+    ) {
+      try {
+        console.log("TASK COMPLETED → checking level completion");
 
-    // 🔁 CASE 1: Verification task itself completed
-    if (task.title === "Project Verification Task") {
-      const verificationResult =
-        await verificationService.handleVerificationTaskCompletion(
-          task._id,
-          task.assignedTo
-        );
+        // 🔁 CASE 1: Verification task itself completed
+        if (task.title === "Project Verification Task") {
+          const verificationResult =
+            await verificationService.handleVerificationTaskCompletion(
+              task._id,
+              task.assignedTo
+            );
 
-      if (verificationResult) {
-        logger.info(
-          `Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} for ${verificationResult.tasksProcessed} tasks`
-        );
-      }
+          if (verificationResult) {
+            logger.info(
+              `Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} for ${verificationResult.tasksProcessed} tasks`
+            );
+          }
 
-    } else {
-      // 🔁 CASE 2: Normal task completed → incentive
-      if (
-        task.amount &&
-        task.amount > 0 &&
-        task.assignedTo &&
-        !task.incentiveAwarded
-      ) {
-        const taskIncentivePercentage = task.taskIncentivePercentage || 4;
-        const taskCompleterIncentive =
-          task.amount * (taskIncentivePercentage / 100);
+        } else {
+          // 🔁 CASE 2: Normal task completed → incentive
+          if (
+            task.amount &&
+            task.amount > 0 &&
+            task.assignedTo &&
+            !task.incentiveAwarded
+          ) {
+            const taskIncentivePercentage = task.taskIncentivePercentage || 4;
+            const taskCompleterIncentive =
+              task.amount * (taskIncentivePercentage / 100);
 
-        const now = new Date();
-        const monthKey = `${now.getFullYear()}-${String(
-          now.getMonth() + 1
-        ).padStart(2, "0")}`;
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${String(
+              now.getMonth() + 1
+            ).padStart(2, "0")}`;
 
-        await User.findByIdAndUpdate(task.assignedTo, {
-          $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive },
-        });
+            await User.findByIdAndUpdate(task.assignedTo, {
+              $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive },
+            });
 
-        await Incentive.create({
-          userId: task.assignedTo,
-          taskId: task._id,
-          projectId: task.project,
-          taskAmount: task.amount,
-          incentiveAmount: taskCompleterIncentive,
-          date: now,
-          incentiveType: "Task",
-        });
+            await Incentive.create({
+              userId: task.assignedTo,
+              taskId: task._id,
+              projectId: task.project,
+              taskAmount: task.amount,
+              incentiveAmount: taskCompleterIncentive,
+              date: now,
+              incentiveType: "Task",
+            });
 
-        await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
+            await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
 
-        logger.info(
-          `Incentive distributed: ${taskCompleterIncentive} to ${task.assignedTo}`
-        );
-      }
+            logger.info(
+              `Incentive distributed: ${taskCompleterIncentive} to ${task.assignedTo}`
+            );
+          }
 
-      // Check level completion & create verification task
-      const verificationTask =
-        await verificationService.handleTaskCompletion(
-          task._id,
-          task.project,
-          req.user.id
-        );
+          // Check level completion & create verification task
+          const verificationTask =
+            await verificationService.handleTaskCompletion(
+              task._id,
+              task.project,
+              req.user.id
+            );
 
-      if (verificationTask) {
-        logger.info(
-          `Verification task created for project ${task.project} at level ${project.currentLevelIndex}`
-        );
+          if (verificationTask) {
+            logger.info(
+              `Verification task created for project ${task.project} at level ${project.currentLevelIndex}`
+            );
+          }
+        }
+      } catch (error) {
+        logger.error("Error handling completion logic:", error);
       }
     }
-  } catch (error) {
-    logger.error("Error handling completion logic:", error);
-  }
-}
     //     try {
     //   // Skip verification task itself
     //   if (task.title !== "Project Verification Task") {

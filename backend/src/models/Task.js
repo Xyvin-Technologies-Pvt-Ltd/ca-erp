@@ -122,8 +122,12 @@ const TaskSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'],
+            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review', 'overdue'],
             default: 'pending',
+        },
+        wasOverdue: {
+            type: Boolean,
+            default: false,
         },
         priority: {
             type: String,

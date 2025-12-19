@@ -55,38 +55,34 @@ const PriorityBadge = ({ priority }) => {
 };
 
 // Due date formatter
-const DueDate = ({ date }) => {
+const DueDate = ({ date, wasOverdue }) => {
   if (!date) return null;
 
   const formattedDate = new Date(date).toLocaleDateString();
-  const today = new Date();
-  const dueDate = new Date(date);
-  const diffTime = dueDate - today;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  let dateClassName = "text-gray-600";
-  let dateText = formattedDate;
-
-  if (diffDays < 0) {
-    dateClassName = "text-red-600";
-    dateText = `${formattedDate} (Overdue)`;
-  } else if (diffDays === 0) {
-    dateClassName = "text-yellow-600";
-    dateText = `${formattedDate} (Today)`;
-  } else if (diffDays <= 2) {
-    dateClassName = "text-orange-600";
-    dateText = `${formattedDate} (Soon)`;
+  if (wasOverdue) {
+    return (
+      <span className="text-red-700 font-semibold">
+        {formattedDate} (Overdue)
+      </span>
+    );
   }
 
-  return <span className={dateClassName}>{dateText}</span>;
+  return <span className="text-gray-600">{formattedDate}</span>;
 };
 
 const TaskCard = ({ task, showProject = true, showAssignee = true }) => {
   return (
-    <Link
-      to={`${ROUTES.TASKS}/${task.id}`}
-      className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
-    >
+   <Link
+  to={`${ROUTES.TASKS}/${task.id}`}
+  className={`block rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200
+    ${
+      task.wasOverdue
+        ? "bg-red-50 border border-red-200"
+        : "bg-white"
+    }
+  `}
+>
       <div className="p-5">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-medium text-gray-900 line-clamp-1">
@@ -132,7 +128,10 @@ const TaskCard = ({ task, showProject = true, showAssignee = true }) => {
           {task.dueDate && (
             <div className="text-sm">
               <span className="text-gray-500 mr-1">Due:</span>
-              <DueDate date={task.dueDate} />
+              <DueDate
+                date={task.dueDate}
+                wasOverdue={task.wasOverdue}
+              />
             </div>
           )}
         </div>

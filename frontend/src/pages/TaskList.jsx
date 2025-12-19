@@ -158,7 +158,7 @@ const TaskList = () => {
   const statuses = tasksData?.statuses || [];
   const priorities = tasksData?.priorities || [];
   const team = tasksData?.team || [];
-
+  const isOverdue = (task) => task?.wasOverdue === true;
   // Filter tasks
   const filteredTasks =
     tasksData?.tasks.filter((task) => {
@@ -315,11 +315,10 @@ const TaskList = () => {
             <div className="flex justify-center rounded-md shadow-sm">
               <button
                 type="button"
-                className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
-                  viewMode === "board"
+                className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${viewMode === "board"
                     ? "bg-blue-50 text-blue-700 z-10 border-[#1c6ead]"
                     : "bg-white text-gray-700"
-                }`}
+                  }`}
                 onClick={() => setViewMode("board")}
               >
                 <svg
@@ -340,11 +339,10 @@ const TaskList = () => {
               </button>
               <button
                 type="button"
-                className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
-                  viewMode === "list"
+                className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${viewMode === "list"
                     ? "bg-blue-50 text-blue-700 z-10 border-[#1c6ead]"
                     : "bg-white text-gray-700"
-                }`}
+                  }`}
                 onClick={() => setViewMode("list")}
               >
                 <svg
@@ -542,6 +540,7 @@ const TaskList = () => {
                     <TaskCard
                       key={task.id}
                       task={task}
+                      isOverdue={isOverdue(task)}
                       showProject={true}
                       showAssignee={true}
                     />
@@ -582,9 +581,17 @@ const TaskList = () => {
                       <p className="flex items-center text-sm text-gray-500">
                         {task.assignedTo.name}
                       </p>
-                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                      <p
+                        className={`mt-2 flex items-center text-sm sm:mt-0 sm:ml-6 px-2 py-1 rounded
+                          ${isOverdue(task)
+                          ? "bg-red-50 text-red-700 border border-red-200 font-medium"
+                          : "text-gray-500"
+                          }
+                          `}
+                        >
                         <svg
-                          className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+                          className={`flex-shrink-0 mr-1.5 h-5 w-5 ${isOverdue(task) ? "text-red-600" : "text-gray-400"
+                            }`}
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
                           fill="currentColor"
