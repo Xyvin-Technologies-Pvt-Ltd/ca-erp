@@ -9,19 +9,6 @@ moment.tz.setDefault("UTC");
 
 
 
-const clampToWorkingBand = (date) => {
-  const d = new Date(date);
-
-  const start = new Date(d);
-  start.setHours(8, 30, 0, 0); // 8:30 AM
-
-  const end = new Date(d);
-  end.setHours(18, 0, 0, 0); // 6:00 PM
-
-  if (d < start) return start;
-  if (d > end) return end;
-  return d;
-};
 
 const calculateWorkHours = (checkInTime, checkOutTime) => {
   if (!checkInTime || !checkOutTime) return { hour: 0, minute: 0 };
@@ -31,15 +18,12 @@ const calculateWorkHours = (checkInTime, checkOutTime) => {
 
   if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) return { hour: 0, minute: 0 };
 
-  const validStart = clampToWorkingBand(checkIn);
-  const validEnd = clampToWorkingBand(checkOut);
+  if (checkOut <= checkIn) return { hour: 0, minute: 0 };
 
-  if (validEnd <= validStart) return { hour: 0, minute: 0 };
-
-  let durationMs = validEnd - validStart;
+  let durationMs = checkOut - checkIn;
   let totalMinutes = Math.floor(durationMs / (1000 * 60));
 
-  // Deduct 45 minutes mandatory break if working
+  // Deduct 45 minutes mandatory break if working > 0 mins set by user previously
   if (totalMinutes > 0) {
     totalMinutes -= 45;
   }
@@ -708,15 +692,24 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
 // };
 
 exports.createAttendance = catchAsync(async (req, res) => {
-  const now = new Date(
+  // istSimulatedDate is used ONLY to determine the "Current Day" in IST
+  // This ensures that if it's 1 AM IST (but previous day UTC), we still log it under the new day.
+  const istSimulatedDate = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
   );
 
-  const startOfDay = new Date(now);
+  const startOfDay = new Date(istSimulatedDate);
   startOfDay.setHours(0, 0, 0, 0);
 
   const endOfDay = new Date(startOfDay);
   endOfDay.setHours(23, 59, 59, 999);
+
+  // Real UTC timestamp for the actual event time
+  const now = new Date();
+
+  // User requested to STORE the IST time as the UTC value.
+  // Shift by +5 hours 30 minutes
+  const timestamp = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
 
   let attendance = await Attendance.findOne({
     employee: req.user._id,
@@ -726,7 +719,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
 
   // If already exists → push check-in
   if (attendance) {
-    attendance.checkIn.times.push(now);
+    attendance.checkIn.times.push(timestamp);
     attendance.status = "Present";
     attendance.updatedBy = req.user._id;
     await attendance.save();
@@ -742,7 +735,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
     employee: req.user._id,
     date: startOfDay,
     checkIn: {
-      times: [now],
+      times: [timestamp],
       device: "Web",
     },
     checkOut: {
@@ -764,15 +757,23 @@ exports.createAttendance = catchAsync(async (req, res) => {
 });
 
 exports.checkOut = catchAsync(async (req, res) => {
-  const now = new Date(
+  // istSimulatedDate is used ONLY to identify the correct "Day" record
+  const istSimulatedDate = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
   );
 
-  const startOfDay = new Date(now);
+  const startOfDay = new Date(istSimulatedDate);
   startOfDay.setHours(0, 0, 0, 0);
 
   const endOfDay = new Date(startOfDay);
   endOfDay.setHours(23, 59, 59, 999);
+
+  // Real UTC timestamp for the event
+  const now = new Date();
+
+  // User requested to STORE the IST time as the UTC value.
+  // Shift by +5 hours 30 minutes
+  const timestamp = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
 
   const attendance = await Attendance.findOne({
     employee: req.user._id,
@@ -787,7 +788,7 @@ exports.checkOut = catchAsync(async (req, res) => {
     });
   }
 
-  attendance.checkOut.times.push(now);
+  attendance.checkOut.times.push(timestamp);
   attendance.updatedBy = req.user._id;
 
   await attendance.save(); // Model hook handles calculations and status
@@ -1284,145 +1285,6 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
       },
     });
     return;
-    // Get employee ID from user object
-    let employeeId;
-
-    // If user has department, they are an Employee model instance
-    if (req.user.department) {
-      employeeId = req.user._id;
-    } else {
-      // Try to find associated employee by email
-      const employee = await Employee.findOne({ email: req.user.email });
-      if (!employee) {
-        return next(createError(404, "No employee record found for this user"));
-      }
-      employeeId = employee._id;
-    }
-
-    let query = {
-      employee: employeeId,
-      isDeleted: false,
-    };
-
-    // Add date range filter if provided
-    if (startDate && endDate) {
-      // Create dates in local timezone to avoid timezone conversion issues
-      const startDateTime = moment.tz(startDate + "T00:00:00", "UTC").toDate();
-      const endDateTime = moment.tz(endDate + "T23:59:59", "UTC").toDate();
-
-      // Set hours to ensure the full day is covered in the local timezone
-      startDateTime.setHours(0, 0, 0, 0);
-      endDateTime.setHours(23, 59, 59, 999);
-
-      query.date = {
-        $gte: startDateTime,
-        $lte: endDateTime,
-      };
-    }
-
-    const attendance = await Attendance.find(query)
-      .populate({
-        path: "employee",
-        select: "firstName lastName department position email",
-        populate: [
-          { path: "department", select: "name" },
-          { path: "position", select: "title" },
-        ],
-      })
-      .sort("-date")
-      .lean();
-
-    // Get employee details
-    const employeeDetails = attendance[0]?.employee || null;
-
-    // Calculate overall statistics
-    const overallStats = {
-      total: attendance.length,
-      present: attendance.filter((a) => a.status === "Present").length,
-      absent: attendance.filter((a) => a.status === "Absent").length,
-      late: attendance.filter((a) => a.status === "Late").length,
-      halfDay: attendance.filter((a) => a.status === "Half-Day").length,
-      earlyLeave: attendance.filter((a) => a.status === "Early-Leave").length,
-      onLeave: attendance.filter((a) => a.status === "On-Leave").length,
-      totalWorkHours: Number(
-        attendance
-          .reduce((sum, record) => sum + (record.workHours || 0), 0)
-          .toFixed(2)
-      ),
-      averageWorkHours: Number(
-        (
-          attendance.reduce((sum, record) => sum + (record.workHours || 0), 0) /
-          (attendance.length || 1)
-        ).toFixed(2)
-      ),
-    };
-
-    // Format attendance records with proper date strings
-    const formattedAttendance = attendance.map((record) => ({
-      ...record,
-      date: moment.tz(record.date, "UTC").toISOString(),
-      checkIn: record.checkIn
-        ? {
-          ...record.checkIn,
-          time: record.checkIn.time
-            ? moment.tz(record.checkIn.time, "UTC").toISOString()
-            : null,
-        }
-        : null,
-      checkOut: record.checkOut
-        ? {
-          ...record.checkOut,
-          time: record.checkOut.time
-            ? moment.tz(record.checkOut.time, "UTC").toISOString()
-            : null,
-        }
-        : null,
-      monthYear: moment
-        .tz(record.date, "UTC")
-        .toLocaleString("default", { month: "long", year: "numeric" }),
-    }));
-
-    // Group by month for statistics
-    const monthlyStats = formattedAttendance.reduce((acc, record) => {
-      const monthYear = record.monthYear;
-      if (!acc[monthYear]) {
-        acc[monthYear] = {
-          total: 0,
-          present: 0,
-          absent: 0,
-          late: 0,
-          halfDay: 0,
-          earlyLeave: 0,
-          onLeave: 0,
-          totalWorkHours: 0,
-          averageWorkHours: 0,
-        };
-      }
-
-      acc[monthYear].total++;
-      acc[monthYear][record.status.toLowerCase()] =
-        (acc[monthYear][record.status.toLowerCase()] || 0) + 1;
-      acc[monthYear].totalWorkHours += record.workHours || 0;
-      acc[monthYear].averageWorkHours = Number(
-        (acc[monthYear].totalWorkHours / acc[monthYear].total).toFixed(2)
-      );
-
-      return acc;
-    }, {});
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        employee: employeeDetails,
-        attendance: formattedAttendance,
-        monthlyStats,
-        overallStats,
-        dateRange: {
-          startDate,
-          endDate,
-        },
-      },
-    });
   } catch (error) {
     console.error("Error in getEmployeeAttendance:", error);
     return next(createError(500, "Error retrieving attendance records"));

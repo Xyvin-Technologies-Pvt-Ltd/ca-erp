@@ -219,24 +219,8 @@ attendanceSchema.pre("save", function (next) {
 
     let durationMs = 0;
 
-    // Helper to clamp time to 8:30 AM - 6:00 PM
-    const clampToBand = (date) => {
-      const d = new Date(date);
-      const start = new Date(d);
-      start.setHours(8, 30, 0, 0);
-      const end = new Date(d);
-      end.setHours(18, 0, 0, 0);
-
-      if (d < start) return start;
-      if (d > end) return end;
-      return d;
-    };
-
-    const validStart = clampToBand(checkInTime);
-    const validEnd = clampToBand(checkOutTime);
-
-    if (validEnd > validStart) {
-      durationMs = validEnd - validStart;
+    if (checkOutTime > checkInTime) {
+      durationMs = checkOutTime - checkInTime;
     }
 
     // Convert to minutes

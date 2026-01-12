@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendance } from "../../api/attendance";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import moment from "moment";
+import moment from "moment-timezone";
 import { Clock } from "lucide-react";
 import {
   CalendarIcon,
@@ -16,8 +16,6 @@ import {
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import useHeaderStore from "../../stores/useHeaderStore";
-
-// moment.tz.setDefault('UTC');
 
 const statusColors = {
   Present: {
@@ -154,10 +152,10 @@ const EmployeeAttendance = () => {
   const attendanceByDate = {};
   attendance.forEach((a) => {
     if (a.date) {
-      const dateStr = moment(a.date).local().format("YYYY-MM-DD");
+      const dateStr = moment(a.date).format("YYYY-MM-DD");
       attendanceByDate[dateStr] = a;
     } else if (a.checkIn?.time) {
-      const dateStr = moment(a.checkIn.time).local().format("YYYY-MM-DD");
+      const dateStr = moment(a.checkIn.time).format("YYYY-MM-DD");
       attendanceByDate[dateStr] = a;
     }
   });
@@ -288,10 +286,7 @@ const EmployeeAttendance = () => {
             {days.map((day, index) => {
               // Create a proper date string in YYYY-MM-DD format
               const dateStr = moment(day).format("YYYY-MM-DD");
-              const today = new Date();
-              const todayStr = `${today.getFullYear()}-${String(
-                today.getMonth() + 1
-              ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+              const todayStr = moment().format("YYYY-MM-DD");
               const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
@@ -396,7 +391,7 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = moment(day).format("YYYY-MM-DD");
+                    const dateStr = moment.utc(day).format("YYYY-MM-DD");
                     const att = attendanceByDate[dateStr];
                     console.log(att)
                     const Icon = statusColors[att?.status]?.icon;
@@ -414,7 +409,7 @@ const EmployeeAttendance = () => {
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.times[0]
-                            ? moment(att.checkIn.times[0]).local().format("h:mm A")
+                            ? moment(att.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
@@ -423,7 +418,7 @@ const EmployeeAttendance = () => {
                               att.checkOut.times[
                               att?.checkOut?.times.length - 1
                               ]
-                            ).local().format("h:mm A")
+                            ).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
