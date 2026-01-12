@@ -19,7 +19,6 @@ const ApplyPresetWizard = ({ presetId, onClose }) => {
 
     const [loading, setLoading] = useState(true);
 
-    /* ================= LOAD PRESET ================= */
 
     useEffect(() => {
         const loadPreset = async () => {
@@ -37,14 +36,12 @@ const ApplyPresetWizard = ({ presetId, onClose }) => {
 
     const handleProjectSubmit = (projectData) => {
         // Auto-assign tasks based on selected users in departments
-        const autoAssignedTasks = preset.tasks.map(task => { // Use preset.tasks which has the templates
-            // Find the user assigned to the department at this task's level index
-            // projectData.assignedTo indexes match the preset.levels indexes because we locked the departments
+        const autoAssignedTasks = preset.tasks.map(task => {
             const assignment = projectData.assignedTo[task.levelIndex];
 
             return {
                 ...task,
-                assignedTo: assignment?.user, // This ID comes from the form selection
+                assignedTo: assignment?.user,
                 department: assignment?.department,
             };
         });
@@ -56,17 +53,7 @@ const ApplyPresetWizard = ({ presetId, onClose }) => {
         try {
             const res = await presetProjectsApi.applyToProject(presetId, {
                 projectData: cleanProjectData,
-                tasks: tasks, // Send as 'tasks' not 'taskOverrides' to match controller if needed, but controller expects 'tasks' in body for creation? 
-                // Wait, checking controller: 
-                // exports.applyPresetToProject = async (req, res) => {
-                //   const { projectData, tasks } = req.body;
-
-                // My previous read of ApplyPresetWizard had:
-                // taskOverrides: tasks
-                // But the controller I read in step 26 has:
-                // const { projectData, tasks } = req.body;
-
-                // So I should send `tasks`.
+                tasks: tasks,
             });
 
             navigate(`/projects/${res.projectId}`);

@@ -46,12 +46,12 @@ const attendanceSchema = new mongoose.Schema(
     workHours: {
       type: Number,
       default: 0,
-      set: (v) => (Number.isNaN(v) ? 0 : v), // 👈 replaces NaN with 0 automatically
+      set: (v) => (Number.isNaN(v) ? 0 : v),
     },
     workMinutes: {
       type: Number,
       default: 0,
-      set: (v) => (Number.isNaN(v) ? 0 : v), // 👈 replaces NaN with 0 automatically
+      set: (v) => (Number.isNaN(v) ? 0 : v),
     },
     overtime: {
       hours: {
@@ -243,7 +243,6 @@ attendanceSchema.pre("save", function (next) {
     let totalMinutes = Math.floor(durationMs / (1000 * 60));
 
     // DEDUCT 45 MINUTES MANDATORY BREAK OONLY IF HOURS > 0
-    // If duration is 0 (e.g. checked in after 6pm), don't subtract to negative
     if (totalMinutes > 0) {
       totalMinutes -= 45;
     }

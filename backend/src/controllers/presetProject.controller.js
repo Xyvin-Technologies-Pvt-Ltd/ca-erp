@@ -33,6 +33,7 @@ exports.createPresetProject = async (req, res) => {
     res.status(201).json({
       success: true,
       data: preset,
+      message: "Preset project created successfully",
     });
   } catch (error) {
     console.error("Create Preset Error:", error);
@@ -108,7 +109,6 @@ exports.applyPresetToProject = async (req, res) => {
       });
     }
 
-    /* ============ CREATE PROJECT ============ */
 
     const [project] = await Project.create(
       [
@@ -121,7 +121,6 @@ exports.applyPresetToProject = async (req, res) => {
       { session }
     );
 
-    /* ============ CREATE TASKS ============ */
 
     const tasksToCreate = tasks.map((task) => ({
       title: task.title,
@@ -141,7 +140,7 @@ exports.applyPresetToProject = async (req, res) => {
 
     await Task.insertMany(tasksToCreate, { session });
 
-    /* ============ COMMIT ============ */
+
 
     await session.commitTransaction();
     session.endSession();
