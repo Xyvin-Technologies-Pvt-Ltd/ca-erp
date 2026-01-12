@@ -106,7 +106,7 @@ const ProjectCard = ({ project }) => {
 
   return (
     <Link
-      to={`${ROUTES.PROJECTS}/${project._id}`}
+      to={`${ROUTES.PROJECTS}/${project.id}`}
       className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
     >
       <div className="p-5">
@@ -271,9 +271,9 @@ const ProjectList = () => {
       ],
     },
   });
-const projectList = projectsData?.data || [];
+
   // Filter and sort projects
-  const filteredProjects = projectList.filter((project) => {
+  const filteredProjects = projectsData?.projects.filter((project) => {
     return (
       (statusFilter === "all" || project.status.toLowerCase() === statusFilter) &&
       (clientFilter === "all" || project.client.name.toLowerCase().includes(clientFilter)) &&
@@ -346,7 +346,7 @@ const projectList = projectsData?.data || [];
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {sortedProjects?.map((project) => (
-          <ProjectCard key={project._id} project={project} />
+          <ProjectCard key={project.id} project={project} />
         ))}
       </div>
     </div>

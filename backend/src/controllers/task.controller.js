@@ -33,8 +33,6 @@ exports.getTasks = async (req, res, next) => {
       filter.priority = req.query.priority;
     }
     filter.deleted = { $ne: true };
-    // Hide pending preset tasks from sidebar
-    filter.isPresetPending = { $ne: true };
 
     // Add project filter to only get tasks with non-deleted projects
     const validProjects = await Project.find({ deleted: { $ne: true } }, "_id");
@@ -206,187 +204,158 @@ exports.createTask = async (req, res, next) => {
     req.body.createdBy = req.user.id;
     let project;
 
-
-    //HANDLE MULTIPLE FILE UPLOADS
-
+    // Handle multiple file uploads
     if (req.files && req.files.length > 0) {
-      req.body.attachments = req.files.map(file => ({
+      const files = req.files.map(file => ({
         name: file.originalname,
         size: file.size,
-        fileUrl: file.path.replace(/\\/g, "/"),
+        fileUrl: file.path.replace(/\\/g, "/"), // Normalize for web use
         fileType: file.mimetype,
       }));
+
+      req.body.attachments = files; // Store all files in attachments array
     }
 
-    //VALIDATE PROJECT
-
-    if (!req.body.project) {
-      return next(new ErrorResponse("Project is required", 400));
-    }
-
-    project = await Project.findById(req.body.project);
-
-    if (!project) {
-      return next(new ErrorResponse("Project not found", 404));
-    }
-
-    // Reference values
-    const currentLevel = project.currentLevelIndex;
-    const currentLevelInfo = project.assignedTo[currentLevel];
-
-    if (!currentLevelInfo) {
-      return next(new ErrorResponse("Invalid project level configuration", 400));
-    }
-
-
-    //STAFF PERMISSION CHECK
-    if (req.user.role === "staff") {
-      const assignmentIndex = project.assignedTo.findIndex(
-        (a) => a.user.toString() === req.user._id.toString()
-      );
-
-      if (assignmentIndex === -1) {
-        return next(
-          new ErrorResponse("You are not assigned to this project", 403)
-        );
-      }
-
-      if (assignmentIndex !== currentLevel) {
+    // Validate project if provided
+    if (req.body.project) {
+      project = await Project.findById(req.body.project);
+      if (!project) {
         return next(
           new ErrorResponse(
-            "You can only create tasks when the project is at your department level.",
-            403
+            `Project not found with id of ${req.body.project}`,
+            404
           )
         );
       }
-
-      // FORCE staff task level + department
-      req.body.levelIndex = assignmentIndex;
-      req.body.department = project.assignedTo[assignmentIndex].department;
     }
 
-
-    //ADMIN/MANAGER LOGIC
-    if (req.user.role !== "staff") {
-      req.body.levelIndex = currentLevel;
-      req.body.department = currentLevelInfo.department;
-      req.body.createdBy = req.user._id;
-    }
-
-
-    // VALIDATE assignedTo USER 
-    if (req.body.assignedTo) {
-      const assignedUser = await User.findById(req.body.assignedTo);
-
-      if (!assignedUser) {
-        return next(new ErrorResponse("Assigned user not found", 404));
-      }
-
-      // Must belong to the level's department
-      // if (req.user.role === "staff") {
-      //   // staff must assign only within THEIR level, not current project level
-      //   const staffLevel = project.assignedTo.find(
-      //     a => a.user.toString() === req.user._id.toString()
-      //   );
-
-      //   if (
-      //     assignedUser.department?.toString() !==
-      //     staffLevel.department.toString()
-      //   ) {
-      //     return next(
-      //       new ErrorResponse(
-      //         "Assigned user does not belong to your department level",
-      //         400
-      //       )
-      //     );
-      //   }
-      // }
-    }
-
-
-
-    //VALIDATE & SANITIZE AMOUNT
+    // Ensure amount is a number and always present
     if ("amount" in req.body) {
       req.body.amount = parseFloat(req.body.amount);
       if (isNaN(req.body.amount) || req.body.amount < 0) {
-        return next(new ErrorResponse("Amount must be a valid number", 400));
+        console.error("Invalid amount received:", req.body.amount);
+        return next(
+          new ErrorResponse("Amount must be a non-negative number", 400)
+        );
       }
     } else {
-      req.body.amount = 0;
+      req.body.amount = 0; // Explicitly set default if not provided
+      console.warn("No amount provided, defaulting to 0");
     }
 
+    // Validate assigned user
+    if (req.body.assignedTo) {
+      const user = await User.findById(req.body.assignedTo);
+      if (!user) {
+        return next(
+          new ErrorResponse(
+            `User not found with id of ${req.body.assignedTo}`,
+            404
+          )
+        );
+      }
+    }
 
-    //ADD ASSIGNED USER TO PROJECT TEAM
+    // Add assigned user to project team if not already included
     if (
+      project &&
       req.body.assignedTo &&
-      !project.team.includes(req.body.assignedTo)
+      Array.isArray(project.team) &&
+      !project.team.some(
+        (memberId) => memberId.toString() === req.body.assignedTo.toString()
+      )
     ) {
       project.team.push(req.body.assignedTo);
       await project.save();
     }
 
-
-    //AUTO-GENERATE TASK NUMBER
+    // Generate task number if not provided
     if (!req.body.taskNumber) {
       const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear().toString().substr(-2);
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
 
-      const lastTask = await Task.findOne().sort({ createdAt: -1 });
+      const lastTask = await Task.findOne({}).sort({ createdAt: -1 });
       let sequence = "001";
-
-      if (lastTask?.taskNumber) {
-        const lastSeq = lastTask.taskNumber.split("-")[2];
-        sequence = String(parseInt(lastSeq) + 1).padStart(3, "0");
+      if (lastTask && lastTask.taskNumber) {
+        const lastNumber = lastTask.taskNumber.split("-")[2];
+        if (lastNumber) {
+          sequence = (parseInt(lastNumber) + 1).toString().padStart(3, "0");
+        }
       }
-
       req.body.taskNumber = `TSK-${year}${month}-${sequence}`;
     }
 
-    //CREATE TASK
+    // Create task
     const task = await Task.create(req.body);
-    logger.info(`Task created: ${task.title} (${task._id})`);
+    logger.info(
+      `Task created: ${task.title} (${task._id}) by ${req.user.name} (${req.user._id})`
+    );
 
-
-    //CREATE NOTIFICATION
+    // Create notification for assigned user
     if (task.assignedTo) {
       try {
         const notification = await Notification.create({
           user: task.assignedTo,
           sender: req.user.id,
-          title: `New Task Assigned`,
-          message: `You have been assigned task "${task.title}"`,
+          title: `New Task Assigned: ${task.title}`,
+          message: `You have been assigned a new task "${task.title}"`,
           type: "TASK_ASSIGNED",
         });
 
+        logger.info(
+          `Notification created for user ${task.assignedTo} for task ${task._id}`
+        );
+
+        // Send WebSocket notification
         websocketService.sendToUser(task.assignedTo.toString(), {
           type: "notification",
-          data: notification,
+          data: {
+            _id: notification._id,
+            title: notification.title,
+            message: notification.message,
+            type: notification.type,
+            read: notification.read,
+            createdAt: notification.createdAt,
+            sender: {
+              _id: req.user._id,
+              name: req.user.name,
+              email: req.user.email,
+            },
+            taskId: task._id,
+            taskNumber: task.taskNumber,
+            priority: task.priority,
+            status: task.status,
+            projectId: task.project?._id,
+          },
         });
-      } catch (e) {
-        logger.error("Notification error:", e.message);
+      } catch (notificationError) {
+        logger.error(
+          `Failed to create notification for task ${task._id}: ${notificationError.message}`
+        );
+        // Note: We don't fail the task creation if notification fails
       }
     }
 
-
-    // ACTIVITY LOG
     try {
       await ActivityTracker.trackTaskCreated(task, req.user._id);
-    } catch (e) {
-      logger.error("Activity log failed:", e.message);
+      logger.info(`Activity tracked for project creation ${task._id}`);
+    } catch (activityError) {
+      logger.error(
+        `Failed to track activity for project creation ${task._id}: ${activityError.message}`
+      );
     }
 
-
-    // RESPONSE
     res.status(201).json({
       success: true,
       data: task,
     });
   } catch (error) {
-    logger.error("Task creation failed:", error);
+    logger.error("Task creation error:", error);
     next(error);
   }
 };
+
 
 /**
  * @desc    Update task
@@ -481,67 +450,22 @@ exports.updateTask = async (req, res, next) => {
       );
     }
 
-
-    // Fetch project because level logic depends on project
-    const project = await Project.findById(task.project);
-    const isAdmin = req.user.role === "admin";
-    const isManager = req.user.role === "manager";
-
-    if (!project) {
-      return next(new ErrorResponse("Parent project not found", 404));
-    }
-
-    if (!isAdmin && !isManager) {
-      const currentLevel = project.currentLevelIndex;
-      const currentLevelInfo = project.assignedTo?.[currentLevel];
-
-      if (!currentLevelInfo) {
-        return next(
-          new ErrorResponse(
-            "Project level configuration missing. Please contact admin.",
-            400
-          )
-        );
-      }
-
-      // Task belongs to a previous level
-      if (task.levelIndex < currentLevel) {
-        return next(
-          new ErrorResponse(
-            "This task belongs to a completed department level and cannot be modified.",
-            403
-          )
-        );
-      }
-
-      // Task belongs to a future level
-      if (task.levelIndex > currentLevel) {
-        return next(
-          new ErrorResponse(
-            "This task belongs to a future department level. You cannot modify it yet.",
-            403
-          )
-        );
-      }
-    }
-
-
     // --- Begin: Handle file upload and attachments accumulation ---
-    if (req.files && req.files.length > 0) {
-      const uploadedFiles = req.files.map((file) => ({
-        name: file.originalname,
-        size: file.size,
-        fileUrl: file.path.replace(/\\/g, "/"),
-        fileType: file.mimetype,
-        uploadedAt: new Date(),
-      }));
+   if (req.files && req.files.length > 0) {
+  const uploadedFiles = req.files.map((file) => ({
+    name: file.originalname,
+    size: file.size,
+    fileUrl: file.path.replace(/\\/g, "/"),
+    fileType: file.mimetype,
+    uploadedAt: new Date(),
+  }));
 
-      let currentAttachments = Array.isArray(task.attachments)
-        ? [...task.attachments]
-        : [];
+  let currentAttachments = Array.isArray(task.attachments)
+    ? [...task.attachments]
+    : [];
 
-      req.body.attachments = [...currentAttachments, ...uploadedFiles];
-    }
+  req.body.attachments = [...currentAttachments, ...uploadedFiles];
+}
     // If attachments is a string (e.g., "[]"), convert to array
     if (typeof req.body.attachments === "string") {
       try {
@@ -597,7 +521,8 @@ exports.updateTask = async (req, res, next) => {
           const added = newArr.slice(oldArr.length);
           for (const comment of added) {
             changesSummaryArr.push(
-              `comment added: "${comment.text || comment.content || "[no text]"
+              `comment added: "${
+                comment.text || comment.content || "[no text]"
               }"`
             );
             commentAdded = true;
@@ -620,7 +545,8 @@ exports.updateTask = async (req, res, next) => {
           const added = newArr.slice(oldArr.length);
           for (const subtask of added) {
             changesSummaryArr.push(
-              `subtask added: "${subtask.title || subtask.name || subtask.id || "[no title]"
+              `subtask added: "${
+                subtask.title || subtask.name || subtask.id || "[no title]"
               }"`
             );
             subtaskAdded = true;
@@ -643,14 +569,16 @@ exports.updateTask = async (req, res, next) => {
           const added = newArr.slice(oldArr.length);
           for (const attachment of added) {
             changesSummaryArr.push(
-              `attachment added: "${attachment.name || attachment.fileName || "[no name]"
+              `attachment added: "${
+                attachment.name || attachment.fileName || "[no name]"
               }"`
             );
             attachmentAdded = true;
           }
         } else if (newArr.length < oldArr.length) {
           changesSummaryArr.push(
-            `attachments: ${oldArr.length - newArr.length
+            `attachments: ${
+              oldArr.length - newArr.length
             } attachment(s) removed`
           );
           attachmentAdded = true;
@@ -762,24 +690,18 @@ exports.updateTask = async (req, res, next) => {
       originalTaskObj.status !== "completed"
     ) {
       try {
-        console.log("TASK COMPLETED → checking level completion");
-
-        // 🔁 CASE 1: Verification task itself completed
         if (task.title === "Project Verification Task") {
           const verificationResult =
             await verificationService.handleVerificationTaskCompletion(
               task._id,
               task.assignedTo
             );
-
           if (verificationResult) {
             logger.info(
-              `Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} for ${verificationResult.tasksProcessed} tasks`
+              `Verification task completed and incentives distributed: ${verificationResult.totalVerificationIncentive} to verification staff for ${verificationResult.tasksProcessed} tasks`
             );
           }
-
         } else {
-          // 🔁 CASE 2: Normal task completed → incentive
           if (
             task.amount &&
             task.amount > 0 &&
@@ -789,16 +711,13 @@ exports.updateTask = async (req, res, next) => {
             const taskIncentivePercentage = task.taskIncentivePercentage || 4;
             const taskCompleterIncentive =
               task.amount * (taskIncentivePercentage / 100);
-
             const now = new Date();
             const monthKey = `${now.getFullYear()}-${String(
               now.getMonth() + 1
             ).padStart(2, "0")}`;
-
             await User.findByIdAndUpdate(task.assignedTo, {
               $inc: { [`incentive.${monthKey}`]: taskCompleterIncentive },
             });
-
             await Incentive.create({
               userId: task.assignedTo,
               taskId: task._id,
@@ -808,51 +727,32 @@ exports.updateTask = async (req, res, next) => {
               date: now,
               incentiveType: "Task",
             });
-
             await Task.findByIdAndUpdate(task._id, { incentiveAwarded: true });
-
             logger.info(
-              `Incentive distributed: ${taskCompleterIncentive} to ${task.assignedTo}`
+              `Incentive distributed: ${taskCompleterIncentive} (${taskIncentivePercentage}%) to task assignee ${task.assignedTo} for task ${task._id}`
             );
           }
-
-          // Check level completion & create verification task
           const verificationTask =
             await verificationService.handleTaskCompletion(
               task._id,
               task.project,
               req.user.id
             );
-
           if (verificationTask) {
             logger.info(
-              `Verification task created for project ${task.project} at level ${project.currentLevelIndex}`
+              `Verification task created for project ${task.project} after task completion via update`
             );
           }
         }
-      } catch (error) {
-        logger.error("Error handling completion logic:", error);
+      } catch (verificationError) {
+        logger.error(
+          "Error handling verification task creation:",
+          verificationError
+        );
+        // Don't fail the main request if verification fails
       }
     }
-    //     try {
-    //   // Skip verification task itself
-    //   if (task.title !== "Project Verification Task") {
-    //     const verificationTask =
-    //       await verificationService.handleTaskCompletion(
-    //         task._id,
-    //         task.project,
-    //         req.user.id
-    //       );
 
-    //     if (verificationTask) {
-    //       logger.info(
-    //         `Verification task auto-created for project ${task.project} after completing level ${project.currentLevelIndex}`
-    //       );
-    //     }
-    //   }
-    // } catch (err) {
-    //   logger.error("Level completion verification check failed:", err);
-    // }
     res.status(200).json({ success: true, data: task });
   } catch (error) {
     logger.error(`Task update error: ${error.message}`);
@@ -1235,7 +1135,7 @@ exports.updateTaskTime = async (req, res, next) => {
     // Get the newly added time entry
     const newEntry =
       populatedTask.timeTracking.entries[
-      populatedTask.timeTracking.entries.length - 1
+        populatedTask.timeTracking.entries.length - 1
       ];
 
     // Log the time entry addition
@@ -1611,19 +1511,19 @@ exports.remindClientForDocument = async (req, res, next) => {
     );
 
     // Track activity
-    await ActivityTracker.track({
-      type: "reminder_sent",
-      title: "Document Reminder Sent",
-      description: `Reminder sent to ${client.name} for ${documentName}`,
-      userId: req.user.id,
-      entityType: "task", // or "document" if you prefer
-      entityId: task._id,
-      project: task.project._id,
-      clientId: client._id, // extra field won’t hurt, but your schema should allow
-      documentName,
-      documentType,
-      tag,
-    });
+  await ActivityTracker.track({
+  type: "reminder_sent",
+  title: "Document Reminder Sent",
+  description: `Reminder sent to ${client.name} for ${documentName}`,
+  userId: req.user.id,
+  entityType: "task", // or "document" if you prefer
+  entityId: task._id,
+  project: task.project._id,
+  clientId: client._id, // extra field won’t hurt, but your schema should allow
+  documentName,
+  documentType,
+  tag,
+});
 
 
     res.status(200).json({

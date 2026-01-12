@@ -32,12 +32,12 @@ const statusColors = {
     border: "border-red-200",
     icon: XCircleIcon,
   },
-  // Late: {
-  //   bg: "bg-amber-100",
-  //   text: "text-amber-700",
-  //   border: "border-amber-200",
-  //   icon: ClockIcon,
-  // },
+  Late: {
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    icon: ClockIcon,
+  },
   "Half-Day": {
     bg: "bg-blue-100",
     text: "text-[#1c6ead]",
@@ -137,7 +137,7 @@ const EmployeeAttendance = () => {
   const statusList = [
     { key: "Present", label: "Present" },
     { key: "On-Leave", label: "On Leave" },
-    // { key: "Late", label: "Late" },
+    { key: "Late", label: "Late" },
     { key: "Half-Day", label: "Half Day" },
     { key: "Early-Leave", label: "Early Leave" },
     { key: "Absent", label: "Absent" },
@@ -154,10 +154,10 @@ const EmployeeAttendance = () => {
   const attendanceByDate = {};
   attendance.forEach((a) => {
     if (a.date) {
-      const dateStr = moment(a.date).local().format("YYYY-MM-DD");
-      attendanceByDate[dateStr] = a;
-    } else if (a.checkIn?.time) {
-      const dateStr = moment(a.checkIn.time).local().format("YYYY-MM-DD");
+      const date = new Date(a.date);
+      const dateStr = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       attendanceByDate[dateStr] = a;
     }
   });
@@ -175,7 +175,10 @@ const EmployeeAttendance = () => {
   const days = getDaysInMonth(year, month - 1);
   const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
   const attendanceDays = days.filter((day) => {
-    const dateStr = moment(day).format("YYYY-MM-DD");
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(day.getDate()).padStart(2, "0")}`;
     return attendanceByDate[dateStr];
   });
 
@@ -237,21 +240,24 @@ const EmployeeAttendance = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${statusColors[s.key].border
-                  } hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
+                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${
+                  statusColors[s.key].border
+                } hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
                 whileHover={{ scale: 1.02 }}
               >
                 <div
-                  className={`p-2 rounded-full ${statusColors[s.key].bg
-                    } group-hover:scale-110 transition-transform duration-200`}
+                  className={`p-2 rounded-full ${
+                    statusColors[s.key].bg
+                  } group-hover:scale-110 transition-transform duration-200`}
                 >
                   <Icon className={`h-6 w-6 ${statusColors[s.key].text}`} />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">{s.label}</p>
                   <p
-                    className={`text-2xl font-bold ${statusColors[s.key].text
-                      } group-hover:text-[#1c6ead] transition-colors duration-200`}
+                    className={`text-2xl font-bold ${
+                      statusColors[s.key].text
+                    } group-hover:text-[#1c6ead] transition-colors duration-200`}
                   >
                     {statusCounts[s.key] || 0}
                   </p>
@@ -287,7 +293,9 @@ const EmployeeAttendance = () => {
           <AnimatePresence>
             {days.map((day, index) => {
               // Create a proper date string in YYYY-MM-DD format
-              const dateStr = moment(day).format("YYYY-MM-DD");
+              const dateStr = `${day.getFullYear()}-${String(
+                day.getMonth() + 1
+              ).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
               const today = new Date();
               const todayStr = `${today.getFullYear()}-${String(
                 today.getMonth() + 1
@@ -302,19 +310,23 @@ const EmployeeAttendance = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${isToday
-                    ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50"
-                    : att
-                      ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border
-                      }`
+                  className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${
+                    isToday
+                      ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50"
+                      : att
+                      ? `${statusColors[att.status]?.bg} ${
+                          statusColors[att.status]?.border
+                        }`
                       : "bg-gray-50 border-gray-100"
-                    } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isToday ? "shadow-lg" : ""
-                    }`}
+                  } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                    isToday ? "shadow-lg" : ""
+                  }`}
                   whileHover={{ scale: 1.02 }}
                 >
                   <span
-                    className={`font-bold text-sm ${isToday ? "text-indigo-900" : "text-gray-900"
-                      }`}
+                    className={`font-bold text-sm ${
+                      isToday ? "text-indigo-900" : "text-gray-900"
+                    }`}
                   >
                     {day.getDate()}
                   </span>
@@ -325,12 +337,13 @@ const EmployeeAttendance = () => {
                       />
                     )}
                     <motion.span
-                      className={`text-xs ${isToday
-                        ? "text-indigo-700 font-semibold"
-                        : att
+                      className={`text-xs ${
+                        isToday
+                          ? "text-indigo-700 font-semibold"
+                          : att
                           ? statusColors[att.status]?.text
                           : "text-gray-400"
-                        }`}
+                      }`}
                       whileHover={{ scale: 1.05 }}
                     >
                       {isToday && !att ? "Today" : att ? att.status : "-"}
@@ -369,7 +382,9 @@ const EmployeeAttendance = () => {
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Work Hours
                 </th>
-
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Arrival Status
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -396,7 +411,12 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = moment(day).format("YYYY-MM-DD");
+                    const dateStr = `${day.getFullYear()}-${String(
+                      day.getMonth() + 1
+                    ).padStart(2, "0")}-${String(day.getDate()).padStart(
+                      2,
+                      "0"
+                    )}`;
                     const att = attendanceByDate[dateStr];
                     console.log(att)
                     const Icon = statusColors[att?.status]?.icon;
@@ -410,35 +430,44 @@ const EmployeeAttendance = () => {
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {moment(day).format("DD/MM/YYYY")}
+                          {att?.date
+                            ? moment(att.date).format("DD/MM/YYYY")
+                            : att?.checkIn?.time
+                            ? moment(att.checkIn.time).format("DD/MM/YYYY")
+                            : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.times[0]
-                            ? moment(att.checkIn.times[0]).local().format("h:mm A")
+                            ? moment(att.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkOut?.times[0]
                             ? moment(
-                              att.checkOut.times[
-                              att?.checkOut?.times.length - 1
-                              ]
-                            ).local().format("h:mm A")
+                                att.checkOut.times[
+                                  att?.checkOut?.times.length - 1
+                                ]
+                              ).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {att?.workHours != null
-                            ? att.workHours + ":" + String(att.workMinutes || 0).padStart(2, '0')
+                          {att?.workHours != null 
+                            ? att.workHours+":"+att.workMinutes
                             : "-"}
                         </td>
-
+                        <td className="px-6 py-4 text-base text-gray-900">
+                          {att?.arrivalStatus || "-"}
+                        </td>
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[att?.status]?.bg || "bg-gray-50"
-                              } ${statusColors[att?.status]?.text || "text-gray-600"
-                              } max-w-max border ${statusColors[att?.status]?.border ||
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${
+                              statusColors[att?.status]?.bg || "bg-gray-50"
+                            } ${
+                              statusColors[att?.status]?.text || "text-gray-600"
+                            } max-w-max border ${
+                              statusColors[att?.status]?.border ||
                               "border-gray-100"
-                              }`}
+                            }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}

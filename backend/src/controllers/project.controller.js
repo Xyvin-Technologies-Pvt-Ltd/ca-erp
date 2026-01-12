@@ -1,21 +1,11 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
 const Client = require("../models/Client");
-<<<<<<< HEAD
 const Invoice = require("../models/Invoice"); 
 const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 const ActivityTracker = require("../utils/activityTracker");
 const taskPresets = require("../config/taskPresets");
-=======
-const User = require("../models/User")
-const Department = require("../models/department.model")
-const Invoice = require("../models/Invoice");
-const { ErrorResponse } = require("../middleware/errorHandler");
-const { logger } = require("../utils/logger");
-const ActivityTracker = require("../utils/activityTracker");
-const mongoose = require('mongoose');
->>>>>>> testing
 
 const updateProjectTeamFromTasks = async (projectId) => {
   try {
@@ -35,7 +25,6 @@ const updateProjectTeamFromTasks = async (projectId) => {
     await Project.findByIdAndUpdate(projectId, {
       team: assigneeIds,
     });
-
 
     logger.info(
       `Updated project team for project ${projectId} with ${assigneeIds.length} members`
@@ -78,14 +67,7 @@ exports.getProjects = async (req, res, next) => {
     if (req.query.project) {
       filter._id = req.query.project
     }
-    if (req.user.role === "staff") {
-      const userId = new mongoose.Types.ObjectId(req.user._id);
 
-      filter.$or = [
-        { "assignedTo.user": userId }, // Matches user inside assignedTo array of objects
-        { team: userId }               // Matches user inside team array
-      ];
-    }
     const total = await Project.countDocuments(filter);
     console.log(total)
     console.log(filter)
@@ -118,9 +100,6 @@ exports.getProjects = async (req, res, next) => {
       sort.createdAt = -1;
     }
 
-    const raw = await Project.find(filter);
-    console.log("RAW PROJECTS:", raw.map(p => ({ id: p._id, assignedTo: p.assignedTo })));
-
     // Query with filters and sort
     let query = Project.find(filter)
       .sort(sort)
@@ -133,12 +112,8 @@ exports.getProjects = async (req, res, next) => {
         select: "name email role department avatar",
       })
       .populate({
-        path: "assignedTo.user",
+        path: "assignedTo",
         select: "name email avatar",
-      })
-      .populate({
-        path: "assignedTo.department",
-        select: "name",
       })
       .populate({
         path: "createdBy",
@@ -313,21 +288,17 @@ exports.getProject = async (req, res, next) => {
         path: "client",
       })
       .populate({
-        path: "team",
-        model: "User",
-        select: "name email role department avatar",
-      })
-      .populate({
-        path: "assignedTo.user",
+        path: "assignedTo",
         select: "name email avatar",
-      })
-      .populate({
-        path: "assignedTo.department",
-        select: "name",
       })
       .populate({
         path: "createdBy",
         select: "name email avatar",
+      })
+      .populate({
+        path: "team",
+        model: "User",
+        select: "name email role department avatar",
       })
       .populate({
         path: "documents",
@@ -340,38 +311,52 @@ exports.getProject = async (req, res, next) => {
       })
       .populate({
         path: "notes.author",
-        select: "name email role avatar",
+        select: "name email role avatar", // or whichever fields you want
       });
 
-    if (!project || project.deleted) {
+    if (!project) {
       return next(
         new ErrorResponse(`Project not found with id of ${req.params.id}`, 404)
       );
     }
+    if (project.deleted) {
+      return next(
+        new ErrorResponse(`Project not found with id of ${req.params.id}`, 404)
+      );
+    }
+    // // Check access - only admin and assigned users can view
+    // if (req.user.role !== 'admin' && project.assignedTo.toString() !== req.user.id.toString()) {
+    //     return next(new ErrorResponse(`User not authorized to access this project`, 403));
+    // }
 
-    // Update team from tasks
     await updateProjectTeamFromTasks(project._id);
 
-    const projectObject = project.toObject();
-    const taskIds = project.tasks;
+    const projectObject = project.toObject(); // Convert Mongoose doc to plain object
+    const taskIds = project.tasks; // array of ObjectId
 
     const activeTasks = await Task.find({
       _id: { $in: taskIds },
       deleted: { $ne: true },
     });
-    console.log("ASSIGNED TO =>", project.assignedTo);
+
     const totalTasks = activeTasks.length;
-    const completedTasks = activeTasks.filter(
-      (t) => t.status === "completed"
-    ).length;
+
+    let completedTasks = 0;
+    if (totalTasks > 0) {
+      completedTasks = activeTasks.filter(
+        (task) => task.status === "completed"
+      ).length;
+    }
 
     let completionPercentage =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     if (
       completionPercentage === 100 &&
-      project.invoiceStatus !== "Created" &&
-      project.paymentStatus !== "Fully Paid"
+      (!project.invoiceStatus ||
+        project.invoiceStatus !== "Created" ||
+        !project.paymentStatus ||
+        project.paymentStatus !== "Fully Paid")
     ) {
       completionPercentage = 99;
     }
@@ -379,11 +364,13 @@ exports.getProject = async (req, res, next) => {
     projectObject.totalTasks = totalTasks;
     projectObject.completedTasks = completedTasks;
     projectObject.completionPercentage = completionPercentage;
-
-    const totalAmount = activeTasks.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalAmount = activeTasks.reduce((sum, task) => sum + task.amount, 0);
     await Project.findByIdAndUpdate(project._id, { amount: totalAmount });
-
     projectObject.amount = totalAmount;
+    // Remove budget if user is not admin or finance
+    // if (!['admin','manager', 'finance'].includes(req.user.role)) {
+    //     delete projectObject.budget;
+    // }
 
     res.status(200).json({
       success: true,
@@ -420,28 +407,6 @@ exports.createProject = async (req, res, next) => {
       }
     }
 
-    // Validate assignedTo mapping (levels)
-    if (!Array.isArray(req.body.assignedTo) || req.body.assignedTo.length === 0) {
-      return next(new ErrorResponse("At least one assignment level required", 400));
-    }
-
-    req.body.assignedTo = req.body.assignedTo.map((pair, index) => ({
-      ...pair,
-      levelIndex: index,
-    }));
-
-    // Validate assignedTo pairs
-    for (const pair of req.body.assignedTo) {
-      const dept = await Department.findById(pair.department);
-      if (!dept)
-        return next(new ErrorResponse(`Department not found: ${pair.department}`, 404));
-
-      const usr = await User.findById(pair.user);
-      if (!usr)
-        return next(new ErrorResponse(`User not found: ${pair.user}`, 404));
-    }
-
-
     // Generate project number if not provided
     if (!req.body.projectNumber) {
       const date = new Date();
@@ -461,26 +426,7 @@ exports.createProject = async (req, res, next) => {
       req.body.projectNumber = `PRJ-${year}${month}-${sequence}`;
     }
 
-    // Force starting department level to 0
-    req.body.currentLevelIndex = 0;
-
-    // Ensure assignedTo is used 
-    const { assignedTo, ...rest } = req.body;
-
-    // Collect all assigned users and add to team
-    const assignedUserIds = assignedTo.map(a => a.user);
-    // Merge with existing team
-    const initialTeam = req.body.team || [];
-    // Combine and deduplicate
-    const team = [...new Set([...initialTeam, ...assignedUserIds, req.user.id])];
-
-
-    const project = await Project.create({
-      ...rest,
-      assignedTo,
-      team,
-      currentLevelIndex: 0,
-    });
+    const project = await Project.create(req.body);
 
     //  Check for task presets based on projectType
     if (req.body.name) {
@@ -537,6 +483,7 @@ exports.updateProject = async (req, res, next) => {
     logger.info(
       `Starting project update for ID: ${req.params.id} by user: ${req.user.name} (${req.user._id})`
     );
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
 
     let project = await Project.findById(req.params.id);
     if (!project) {
@@ -545,56 +492,24 @@ exports.updateProject = async (req, res, next) => {
       );
     }
 
-    const currentLevelIndex = project.currentLevelIndex;
-    const currentLevel = project.assignedTo[currentLevelIndex];
-
+    // Check access - only admin and assigned users can update
     const isAdmin = req.user.role === "admin";
     const isManager = req.user.role === "manager";
-    const isCurrentLevelUser =
-      currentLevel?.user?.toString() === req.user._id.toString();
+    const isTeamMember =
+      project.team &&
+      Array.isArray(project.team) &&
+      project.team.some(
+        (teamMember) =>
+          teamMember && teamMember.toString() === req.user.id.toString()
+      );
 
-    if (!isAdmin && !isManager && !isCurrentLevelUser) {
+    if (!isAdmin && !isTeamMember && !isManager) {
       return next(
-        new ErrorResponse(
-          "You are not allowed to update this project at this stage.",
-          403
-        )
+        new ErrorResponse("User not authorized to access this project", 403)
       );
     }
 
-    if ("currentLevelIndex" in req.body) {
-      delete req.body.currentLevelIndex;
-    }
-
-    if (isCurrentLevelUser && !isAdmin && !isManager) {
-      // They can update description, status (inside dept), notes, etc.
-      const forbidden = ["assignedTo", "departments", "client", "budget", "priority"];
-
-      forbidden.forEach((field) => {
-        if (field in req.body) delete req.body[field];
-      });
-    }
-
-    // Validate assignedTo 
-    if (req.body.assignedTo) {
-      if (!Array.isArray(req.body.assignedTo)) {
-        return next(new ErrorResponse("assignedTo must be an array", 400));
-      }
-
-      req.body.assignedTo = req.body.assignedTo.map((pair, index) => ({
-        ...pair,
-        levelIndex: index,
-      }));
-
-      // Validate departments & users
-      for (const pair of req.body.assignedTo) {
-        const deptExists = await Department.findById(pair.department);
-        const userExists = await User.findById(pair.user);
-      }
-    }
-
-    // Existing logic for validation (client, notes, etc.)
-
+    // Check if client exists
     if (req.body.client) {
       const client = await Client.findById(req.body.client);
       if (!client) {
@@ -607,6 +522,7 @@ exports.updateProject = async (req, res, next) => {
       }
     }
 
+    // Handle notes if provided
     if (req.body.notes && Array.isArray(req.body.notes)) {
       req.body.notes = req.body.notes.map((note) => ({
         ...note,
@@ -615,9 +531,26 @@ exports.updateProject = async (req, res, next) => {
       }));
     }
 
-    // Save changes
+    // Check for changed fields
     const originalProject = project.toObject();
+    const changedFields = Object.keys(req.body).filter((key) => {
+      if (key === "notes") return false; // Skip notes for comparison
+      if (
+        typeof originalProject[key] === "object" &&
+        originalProject[key] &&
+        req.body[key]
+      ) {
+        return originalProject[key].toString() !== req.body[key].toString();
+      }
+      return originalProject[key] !== req.body[key];
+    });
+    logger.debug(
+      `Changed fields: ${JSON.stringify(
+        changedFields
+      )}, req.body: ${JSON.stringify(req.body)}`
+    );
 
+    // Update project
     project = await Project.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -627,38 +560,56 @@ exports.updateProject = async (req, res, next) => {
         select: "name contactName contactEmail contactPhone",
       })
       .populate({
-        path: "assignedTo.user",
+        path: "assignedTo",
         select: "name email avatar",
-      })
-      .populate({
-        path: "assignedTo.department",
-        select: "name",
       });
 
+    // Log the project update
     logger.info(
       `Project updated: ${project.name} (${project._id}) by ${req.user.name} (${req.user._id})`
     );
 
-    // Track activity
-    const changedFields = Object.keys(req.body);
-    if (changedFields.length > 0) {
-      const changesSummary = changedFields
-        .map((field) => {
-          const oldValue = JSON.stringify(originalProject[field]);
-          const newValue = JSON.stringify(req.body[field]);
-          return `${field}: ${oldValue} → ${newValue}`;
-        })
-        .join(", ");
-
-      await ActivityTracker.track({
-        type: "project_updated",
-        title: "Project Updated",
-        description: `Project "${project.name}" updated: ${changesSummary}`,
-        entityType: "project",
-        entityId: project._id,
-        userId: req.user._id,
-        link: `/projects/${project._id}`,
-      });
+    // Track activity for project update
+    try {
+      if (changedFields.length > 0) {
+        const changesSummary = changedFields
+          .filter((field) => field !== "amount") // Exclude budget from activity log
+          .map((field) => {
+            const oldValue = originalProject[field]
+              ? originalProject[field].toString()
+              : "none";
+            const newValue = req.body[field]
+              ? req.body[field].toString()
+              : "none";
+            return `${field}: ${oldValue} → ${newValue}`;
+          })
+          .filter(Boolean)
+          .join(", ");
+        if (changesSummary) {
+          await ActivityTracker.track({
+            type: "project_updated",
+            title: "Project Updated",
+            description: `Project "${project.name}" was updated. Changes: ${changesSummary}`,
+            entityType: "project",
+            entityId: project._id,
+            userId: req.user._id,
+            link: `/projects/${project._id}`,
+          });
+          logger.info(`Activity tracked for project update ${project._id}`);
+        } else {
+          logger.debug(
+            `No activity tracked for project ${project._id}: No significant changes detected`
+          );
+        }
+      } else {
+        logger.debug(
+          `No activity tracked for project ${project._id}: No significant changes detected`
+        );
+      }
+    } catch (activityError) {
+      logger.error(
+        `Failed to track activity for project update ${project._id}: ${activityError.message}`
+      );
     }
 
     res.status(200).json({
@@ -728,60 +679,81 @@ exports.getProjectTasks = async (req, res, next) => {
         new ErrorResponse(`Project not found with id of ${req.params.id}`, 404)
       );
     }
+    // const page = parseInt(req.query.page, 10) || 1;
+    // const limit = parseInt(req.query.limit, 10) || 10;
+    // const startIndex = (page - 1) * limit;
+    // const endIndex = page * limit;
 
-    const currentLevel = project.currentLevelIndex;
-    const currentLevelInfo = project.assignedTo[currentLevel];
+    // Check access - only admin and assigned users can view
+    // if (req.user.role !== 'admin' && project.assignedTo.toString() !== req.user.id.toString()) {
+    //     return next(new ErrorResponse(User not authorized to access this project, 403));
+    // }
 
     const isAdmin = req.user.role === "admin";
     const isManager = req.user.role === "manager";
-
-    let userDepartment = req.user.department?.toString();
-    let allowedDepartment = currentLevelInfo?.department?.toString();
-
     const isTeamMember =
       project.team &&
       project.team.some(
         (teamMember) => teamMember.toString() === req.user.id.toString()
       );
 
-    // Global project access (admin, manager, team)
     if (!isAdmin && !isTeamMember && !isManager) {
       return next(
         new ErrorResponse("User not authorized to access this project", 403)
       );
     }
 
-    // Department-based Level Restriction
-    // Admin and manager can see everything, skip check
-    if (!isAdmin && !isManager) {
-      if (userDepartment !== allowedDepartment) {
-        return res.status(200).json({
-          success: true,
-          count: 0,
-          data: [],
-          message: "Your department cannot view tasks until your level begins.",
-        });
-      }
-    }
-
     // Filtering
     const filter = { project: req.params.id, deleted: false };
 
-    if (req.query.status) filter.status = req.query.status;
-    if (req.query.assignedTo) filter.assignedTo = req.query.assignedTo;
-    if (req.query.priority) filter.priority = req.query.priority;
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    if (req.query.assignedTo) {
+      filter.assignedTo = req.query.assignedTo;
+    }
+    if (req.query.priority) {
+      filter.priority = req.query.priority;
+    }
+
+    //pagination
+
+    // const total = await Task.countDocuments(filter);
 
     const tasks = await Task.find(filter)
       .sort({ dueDate: 1, priority: -1 })
-      .populate("assignedTo", "name email avatar")
+      // .skip(startIndex)
+      // .limit(limit)
+      .populate({
+        path: "assignedTo",
+        select: "name email avatar",
+      })
       .populate({
         path: "createdBy",
         select: "name email",
       });
 
+    //      const pagination = {};
+
+    //     if (endIndex < total) {
+    //         pagination.next = {
+    //             page: page + 1,
+    //             limit,
+    //         };
+    //     }
+
+    //     if (startIndex > 0) {
+    //         pagination.prev = {
+    //             page: page - 1,
+    //             limit,
+    //     };
+    // }
+
     res.status(200).json({
       success: true,
       count: tasks.length,
+      // pagination,
+      // total,
       data: tasks,
     });
   } catch (error) {
@@ -889,46 +861,4 @@ exports.updateProjectInvoiceStatus = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
-
-exports.advanceProjectLevel = async (req, res, next) => {
-  const project = await Project.findById(req.params.id);
-
-  if (!project)
-    return next(new ErrorResponse("Project not found", 404));
-
-  const current = project.currentLevelIndex;
-
-  // Only admin, manager, or verification user of current level can move forward
-  const currentLevel = project.assignedTo[current];
-  const isCurrentUser =
-    currentLevel.user.toString() === req.user._id.toString();
-
-  if (!["admin", "manager"].includes(req.user.role) && !isCurrentUser) {
-    return next(new ErrorResponse("Unauthorized", 403));
-  }
-
-  // Check if all tasks of this level are completed
-  const pending = await Task.countDocuments({
-    project: project._id,
-    levelIndex: current,
-    status: { $ne: "completed" },
-    deleted: false
-  });
-
-  if (pending > 0)
-    return next(new ErrorResponse("Complete all tasks first", 400));
-
-  // Move to next level or invoice
-  if (current + 1 < project.assignedTo.length) {
-    project.currentLevelIndex++;
-    await project.save();
-    return res.json({ success: true, message: "Moved to next level" });
-  }
-
-  // Last level completed → move to invoice process
-  project.status = "completed";
-  await project.save();
-
-  res.json({ success: true, message: "Project completed. Move to invoice." });
 };

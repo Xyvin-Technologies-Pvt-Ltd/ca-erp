@@ -106,36 +106,3 @@ exports.remindDuetask = cron.schedule("0 2 * * *", async () => {
     console.log(error);
   }
 });
-
-exports.markOverdueTasks = cron.schedule("5 0 * * *", async () => {
-  try {
-    console.log("Overdue task cron running...");
-
-    // Current time 
-    const now = new Date();
-
-    const result = await Task.updateMany(
-      {
-        dueDate: { $lt: now },
-
-        // Only tasks that are still active
-        status: { $nin: ["completed", "cancelled", "overdue"] },
-
-        // Important: do this only once
-        wasOverdue: { $ne: true },
-      },
-      {
-        $set: {
-          status: "overdue",
-          wasOverdue: true,
-        },
-      }
-    );
-
-    console.log(
-      `Overdue cron completed. Tasks marked overdue: ${result.modifiedCount}`
-    );
-  } catch (error) {
-    console.error("Error in overdue cron job:", error);
-  }
-});

@@ -14,7 +14,7 @@ class VerificationService {
         this.projectAssignmentHistory = new Map(); // Track last assigned user per project
     }
 
-
+   
     resetState() {
         this.currentIndex = 0;
         this.verificationStaff = [];
@@ -23,16 +23,16 @@ class VerificationService {
         logger.info('Verification service state reset');
     }
 
-
+   
     async getVerificationStaff() {
         try {
             const staff = await User.find({ verificationStaff: true, status: 'active' })
                 .select('_id name email role')
                 .sort('name');
-
+            
             this.verificationStaff = staff;
             this.lastUpdate = Date.now();
-
+            
             logger.info(`Loaded ${staff.length} verification staff members`);
             return staff;
         } catch (error) {
@@ -41,7 +41,7 @@ class VerificationService {
         }
     }
 
-
+    
     async getNextVerificationStaff(projectId = null) {
         try {
             if (!this.lastUpdate || Date.now() - this.lastUpdate > 300000) {
@@ -56,8 +56,8 @@ class VerificationService {
             let projectAssignedUsers = [];
             if (projectId) {
                 try {
-                    const projectTasks = await Task.find({
-                        project: projectId,
+                    const projectTasks = await Task.find({ 
+                        project: projectId, 
                         deleted: { $ne: true },
                         assignedTo: { $exists: true, $ne: null }
                     }).select('assignedTo');
@@ -69,7 +69,7 @@ class VerificationService {
                 }
             }
 
-            const availableStaff = this.verificationStaff.filter(staff =>
+            const availableStaff = this.verificationStaff.filter(staff => 
                 !projectAssignedUsers.includes(staff._id.toString())
             );
 
@@ -79,7 +79,7 @@ class VerificationService {
             }
 
             const lastAssignedUserId = this.projectAssignmentHistory.get(projectId);
-
+            
             let selectedStaff = null;
             let attempts = 0;
             const maxAttempts = availableStaff.length * 2; // Allow multiple rounds
@@ -88,7 +88,7 @@ class VerificationService {
                 const nextStaff = this.verificationStaff[this.currentIndex];
                 this.currentIndex = (this.currentIndex + 1) % this.verificationStaff.length;
 
-                const isAvailable = availableStaff.some(staff =>
+                const isAvailable = availableStaff.some(staff => 
                     staff._id.toString() === nextStaff._id.toString()
                 );
 
@@ -106,7 +106,7 @@ class VerificationService {
 
             if (selectedStaff) {
                 this.projectAssignmentHistory.set(projectId, selectedStaff._id.toString());
-
+                
                 logger.info(`Assigned verification task to: ${selectedStaff.name} (${selectedStaff._id}) for project ${projectId}`);
                 logger.info(`Available staff for project ${projectId}: ${availableStaff.map(s => s.name).join(', ')}`);
             } else {
@@ -120,48 +120,43 @@ class VerificationService {
         }
     }
 
+   
+    async areAllTasksCompleted(projectId) {
+        try {
+            const tasks = await Task.find({ 
+                project: projectId, 
+                deleted: { $ne: true } 
+            });
 
-    async areCurrentLevelTasksCompleted(projectId) {
-        const project = await Project.findById(projectId);
-        if (!project) return false;
+            if (tasks.length === 0) {
+                return false; 
+            }
 
-        const levelIndex = project.currentLevelIndex;
+            const allCompleted = tasks.every(task => task.status === 'completed');
+            
+            if (allCompleted) {
+                logger.info(`All tasks completed for project ${projectId}`);
+            }
 
-        const tasks = await Task.find({
-            project: projectId,
-            levelIndex,
-            title: { $ne: "Project Verification Task" },
-            deleted: { $ne: true }
-        });
-        console.log("LEVEL TASKS:", tasks.map(t => ({
-            id: t._id,
-            title: t.title,
-            status: t.status,
-            levelIndex: t.levelIndex
-        })));
-
-        if (tasks.length === 0) {
-            console.log("⚠️ No normal tasks found for this level — skipping verification");
-            return false;
+            return allCompleted;
+        } catch (error) {
+            logger.error('Error checking if all tasks are completed:', error);
+            throw error;
         }
-
-        return tasks.every(task => task.status === "completed");
     }
 
     /**
      * Check if verification task already exists for the project
      */
-    async verificationTaskExists(projectId, levelIndex) {
+    async verificationTaskExists(projectId) {
         try {
             const existingTask = await Task.findOne({
                 project: projectId,
                 title: 'Project Verification Task',
-                levelIndex,
                 deleted: { $ne: true }
             });
 
             return !!existingTask;
-
         } catch (error) {
             logger.error('Error checking if verification task exists:', error);
             throw error;
@@ -173,31 +168,19 @@ class VerificationService {
      */
     async createVerificationTask(projectId, createdBy) {
         try {
-            // Load project 
-            const project = await Project.findById(projectId);
-            const currentLevelIndex = project.currentLevelIndex;
-            const currentLevelInfo = project.assignedTo[currentLevelIndex];
-
-            if (!currentLevelInfo || !currentLevelInfo.department) {
-                logger.error(
-                    `Missing department for project ${projectId} at level ${currentLevelIndex}`
-                );
-                return null;
-            }
-            if (!project) {
-                logger.error(`Project not found: ${projectId}`);
-                return null;
-            }
             // Check if verification task already exists
-            const exists = await this.verificationTaskExists(
-                projectId,
-                project.currentLevelIndex
-            );
+            const exists = await this.verificationTaskExists(projectId);
             if (exists) {
                 logger.info(`Verification task already exists for project ${projectId}`);
                 return null;
             }
 
+            // Get project details
+            const project = await Project.findById(projectId);
+            if (!project) {
+                logger.error(`Project not found: ${projectId}`);
+                return null;
+            }
 
             // Get next verification staff member, excluding those already assigned to this project
             const assignedTo = await this.getNextVerificationStaff(projectId);
@@ -208,11 +191,9 @@ class VerificationService {
 
             const verificationTask = new Task({
                 title: 'Project Verification Task',
-                description: `Please verify all completed tasks for project: ${project.name} (Level ${project.currentLevelIndex + 1})`,
+                description: `Please verify all completed tasks for project: ${project.name}`,
                 project: projectId,
                 assignedTo: assignedTo._id,
-                levelIndex: project.currentLevelIndex,
-                department: currentLevelInfo.department,
                 status: 'pending',
                 priority: 'high',
                 createdBy: createdBy,
@@ -276,18 +257,20 @@ class VerificationService {
      */
     async handleTaskCompletion(taskId, projectId, createdBy) {
         try {
-            console.log("🔥 handleTaskCompletion CALLED", {
-                taskId,
-                projectId
-            });
-            const isLevelDone =
-                await this.areCurrentLevelTasksCompleted(projectId);
-            console.log("isLevelDone =", isLevelDone);
-            if (!isLevelDone) return null;
+            const allCompleted = await this.areAllTasksCompleted(projectId);
+            
+            if (allCompleted) {
+                const verificationTask = await this.createVerificationTask(projectId, createdBy);
+                
+                if (verificationTask) {
+                    logger.info(`Verification task created automatically for project ${projectId} after all tasks completed`);
+                    return verificationTask;
+                }
+            }
 
-            return await this.createVerificationTask(projectId, createdBy);
+            return null;
         } catch (error) {
-            logger.error("Error handling task completion:", error);
+            logger.error('Error handling task completion:', error);
             throw error;
         }
     }
@@ -301,7 +284,7 @@ class VerificationService {
             }
 
             const projectId = verificationTask.project;
-
+            
             const completedTasks = await Task.find({
                 project: projectId,
                 status: 'completed'
@@ -312,8 +295,8 @@ class VerificationService {
 
             for (const task of completedTasks) {
                 if (task.amount && task.amount > 0) {
-                    const verificationIncentivePercentage = task.verificationIncentivePercentage || 1;
-                    const verificationIncentive = task.amount * (verificationIncentivePercentage / 100);
+                    const verificationIncentivePercentage = task.verificationIncentivePercentage || 1; 
+                    const verificationIncentive = task.amount * (verificationIncentivePercentage / 100); 
                     // Update monthly incentive
                     const now = new Date();
                     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -333,32 +316,6 @@ class VerificationService {
                     totalVerificationIncentive += verificationIncentive;
                     tasksProcessed++;
                     logger.info(`Verification incentive ${verificationIncentive} (${verificationIncentivePercentage}%) distributed to verification staff ${completedBy} for task ${task._id}`);
-                }
-            }
-            const project = await Project.findById(projectId);
-
-            if (!project) {
-                logger.error(`Project not found while trying to move levels: ${projectId}`);
-            } else {
-                const currentIndex = project.currentLevelIndex;
-                const totalLevels = project.assignedTo.length;
-
-                // Move to next department level
-                if (currentIndex < totalLevels - 1) {
-                    project.currentLevelIndex = currentIndex + 1;
-                    await project.save();
-
-                    logger.info(
-                        `Project ${projectId} moved to next department level: ${project.currentLevelIndex}`
-                    );
-                } else {
-                    // All levels completed → project completed
-                    project.status = "completed";
-                    await project.save();
-
-                    logger.info(
-                        `Project ${projectId} completed all levels. Ready for invoice.`
-                    );
                 }
             }
 

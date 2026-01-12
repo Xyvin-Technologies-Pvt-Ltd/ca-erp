@@ -51,7 +51,6 @@ const statusColors = {
   review: "bg-purple-50 text-purple-700 border-purple-200",
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
-  overdue: "bg-red-100 text-red-800 border-red-300",
 };
 
 const priorityColors = {
@@ -66,7 +65,6 @@ const statusIcons = {
   review: PauseCircle,
   completed: CheckCircle2,
   cancelled: XCircle,
-  overdue: AlertCircle,
 };
 
 const getColor = (val) => {
@@ -480,8 +478,9 @@ const handleRatingSubmit = async () => {
         throw new Error("Attachment not found");
       }
 
-      const fileUrl = `${import.meta.env.VITE_BASE_URL
-        }/${attachment.fileUrl.replace("public/", "")}`;
+      const fileUrl = `${
+        import.meta.env.VITE_BASE_URL
+      }/${attachment.fileUrl.replace("public/", "")}`;
 
       const response = await fetch(fileUrl);
       const blob = await response.blob();
@@ -716,36 +715,27 @@ const handleRatingSubmit = async () => {
               <div className="mt-6 md:mt-0 flex flex-col items-end space-y-3">
                 <div className="flex gap-3">
                   <span
-                    className={`px-4 py-2 rounded-full text-sm font-medium border flex items-center transition-all duration-200 hover:scale-105 ${statusColors[task.status] ||
+                    className={`px-4 py-2 rounded-full text-sm font-medium border flex items-center transition-all duration-200 hover:scale-105 ${
+                      statusColors[task.status] ||
                       "bg-gray-100 text-gray-800 border-gray-200"
-                      }`}
+                    }`}
                   >
                     <StatusIcon className="w-4 h-4 mr-2" />
                     {task.status}
                   </span>
                   <span
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 hover:scale-105 ${priorityColors[task.priority] ||
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 hover:scale-105 ${
+                      priorityColors[task.priority] ||
                       "bg-gray-100 text-gray-800 border-gray-200"
-                      }`}
+                    }`}
                   >
                     {task.priority}
                   </span>
                 </div>
-                <div
-                  className={`flex items-center text-sm px-3 py-2 rounded-lg ${task.wasOverdue
-                      ? "bg-red-50 text-red-700 border border-red-200"
-                      : "text-gray-600 bg-gray-50"
-                    }`}
-                >
-                  <Calendar
-                    className={`w-4 h-4 mr-2 ${task.wasOverdue ? "text-red-600" : ""
-                      }`}
-                  />
+                <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                  <Calendar className="w-4 h-4 mr-2" />
                   <span className="mr-2">Due:</span>
-                  <span
-                    className={`font-medium ${task.wasOverdue ? "font-bold" : ""
-                      }`}
-                  >
+                  <span className="font-medium">
                     {formatDate(task.dueDate)}
                   </span>
                 </div>
@@ -798,10 +788,11 @@ const handleRatingSubmit = async () => {
                             onClick={() =>
                               handleToggleSubtaskStatus(subtask.id)
                             }
-                            className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${subtask.status === "completed"
-                              ? "bg-[#1c6ead] border-[#1c6ead]"
-                              : "bg-white border-gray-300 hover:border-blue-400"
-                              }`}
+                            className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${
+                              subtask.status === "completed"
+                                ? "bg-[#1c6ead] border-[#1c6ead]"
+                                : "bg-white border-gray-300 hover:border-blue-400"
+                            }`}
                           >
                             {subtask.status === "completed" && (
                               <CheckCircle2 className="w-4 h-4 text-white" />
@@ -809,10 +800,11 @@ const handleRatingSubmit = async () => {
                           </button>
                           <div className="ml-4 flex-grow">
                             <p
-                              className={`text-sm transition-all duration-200 ${subtask.status === "completed"
-                                ? "text-gray-500 line-through"
-                                : "text-gray-700 group-hover:text-gray-900"
-                                }`}
+                              className={`text-sm transition-all duration-200 ${
+                                subtask.status === "completed"
+                                  ? "text-gray-500 line-through"
+                                  : "text-gray-700 group-hover:text-gray-900"
+                              }`}
                             >
                               {subtask.title}
                             </p>
@@ -885,10 +877,11 @@ const handleRatingSubmit = async () => {
                                   e.target.outerHTML = `
                                     <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                       <span class="text-white font-medium text-sm">
-                                        ${comment.user.name
-                                      ?.charAt(0)
-                                      .toUpperCase() || ""
-                                    }
+                                        ${
+                                          comment.user.name
+                                            ?.charAt(0)
+                                            .toUpperCase() || ""
+                                        }
                                       </span>
                                     </div>`;
                                 }}
@@ -940,38 +933,19 @@ const handleRatingSubmit = async () => {
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-<<<<<<< HEAD
                 {["pending", "in-progress", "review", "completed", "cancelled"].map(
                   (status) => {
-=======
-                  {[
-                    "pending",
-                    "in-progress",
-                    "review",
-                    "completed",
-                    "cancelled",
-                    "overdue",
-                  ].map((status) => {
->>>>>>> testing
                     const StatusIcon = statusIcons[status] || AlertCircle;
                     return (
                       <div key={status}>
                         <button
                         onClick={() => handleStatusChange(status)}
-<<<<<<< HEAD
                         className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${
                         task.status === status
                         ? `${statusColors[status]} shadow-lg`
                         : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
                         }`}
                         >
-=======
-                        className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${task.status === status
-                          ? `${statusColors[status]} shadow-lg`
-                          : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                          }`}
-                      >
->>>>>>> testing
                         <StatusIcon className="w-4 h-4 mr-2" />
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </button>
@@ -1239,7 +1213,7 @@ const handleRatingSubmit = async () => {
                 </div>
               ) : task.tags.length > 0 ? (
                 <div className="space-y-6">
-                  {task.tags.map((tag, id) => (
+                  {task.tags.map((tag,id) => (
                     <TagDocumentUpload
                       key={tag}
                       tag={tag}
@@ -1280,7 +1254,7 @@ const handleRatingSubmit = async () => {
             </button>
           </div>
           <div className="p-6">
-
+           
 
             {task?.timeTracking?.entries?.length > 0 ? (
               <ul className="space-y-3">
@@ -1321,7 +1295,7 @@ const handleRatingSubmit = async () => {
                 </p>
               </div>
             )}
-            <div className="mt-6">
+             <div className="mt-6">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Estimated: {calculateEstimatedHours()} hours</span>
                 <span>Actual: {calculateActualHours()} hours</span>

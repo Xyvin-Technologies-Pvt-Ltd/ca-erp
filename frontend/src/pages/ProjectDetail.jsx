@@ -490,8 +490,9 @@ const ProjectDetail = () => {
               <div className="flex items-center space-x-3 mt-3">
                 <button
                   type="button"
-                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-[#1c6ead] font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${showClientDetails ? "ring-2 ring-blue-300" : ""
-                    }`}
+                  className={`flex items-center px-4 py-1.5 rounded-full  text-xs bg-blue-50 text-[#1c6ead] font-medium shadow-sm hover:bg-blue-100 focus:outline-none transition-all duration-200 ${
+                    showClientDetails ? "ring-2 ring-blue-300" : ""
+                  }`}
                   onClick={() => setShowClientDetails((v) => !v)}
                 >
                   {/* <svg className="w-5 h-5 mr-2 text-[#1c6ead]" fill="currentColor" viewBox="0 0 20 20">
@@ -500,8 +501,9 @@ const ProjectDetail = () => {
                   </svg> */}
                   Client Information
                   <svg
-                    className={`w-4 h-4 ml-2 transition-transform duration-200 ${showClientDetails ? "rotate-180" : ""
-                      }`}
+                    className={`w-4 h-4 ml-2 transition-transform duration-200 ${
+                      showClientDetails ? "rotate-180" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -516,15 +518,17 @@ const ProjectDetail = () => {
                 </button>
                 {/* Status and Priority Chips */}
                 <span
-                  className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[project.status] || "bg-gray-200 text-gray-800"
-                    } shadow-sm`}
+                  className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${
+                    statusColors[project.status] || "bg-gray-200 text-gray-800"
+                  } shadow-sm`}
                 >
                   {project.status}
                 </span>
                 <span
-                  className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${priorityColors[project.priority] ||
+                  className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${
+                    priorityColors[project.priority] ||
                     "bg-gray-200 text-gray-800"
-                    } shadow-sm`}
+                  } shadow-sm`}
                 >
                   {project.priority} Priority
                 </span>
@@ -622,7 +626,7 @@ const ProjectDetail = () => {
                       </span>
                       <span className="text-gray-900 ">
                         {Array.isArray(project.client.directors) &&
-                          project.client.directors.length > 0
+                        project.client.directors.length > 0
                           ? project.client.directors.join(", ")
                           : "N/A"}
                       </span>
@@ -700,10 +704,11 @@ const ProjectDetail = () => {
               <button
                 key={tab.name}
                 onClick={() => handleTabChange(tab.name)}
-                className={`flex items-center hover:cursor-pointer px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${activeTab === tab.name
+                className={`flex items-center hover:cursor-pointer px-4 py-2 border-b-2 text-sm font-medium transition-all duration-300 ease-in-out shrink-0 ${
+                  activeTab === tab.name
                     ? "border-[#1c6ead] text-blue-600 bg-blue-50"
                     : "border-transparent text-gray-600 hover:text-[#1c6ead] hover:bg-gray-50"
-                  } rounded-t-lg`}
+                } rounded-t-lg`}
               >
                 {tab.icon}
                 {tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}
@@ -776,10 +781,11 @@ const ProjectDetail = () => {
                   <div className="bg-gray-50 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
                     {project.team?.length > 0 ? (
                       <ul
-                        className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${project.team.length >= 3
+                        className={`grid gap-y-2 gap-x-2 sm:gap-x-4 ${
+                          project.team.length >= 3
                             ? "grid-cols-2"
                             : "grid-cols-1"
-                          }`}
+                        }`}
                       >
                         {project.team.map((member) => (
                           <li
@@ -796,10 +802,11 @@ const ProjectDetail = () => {
                                     e.target.outerHTML = `
                                     <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                       <span class="text-[#1c6ead] font-medium text-sm">
-                                        ${member.name
-                                        ?.charAt(0)
-                                        .toUpperCase() || ""
-                                      }
+                                        ${
+                                          member.name
+                                            ?.charAt(0)
+                                            .toUpperCase() || ""
+                                        }
                                       </span>
                                     </div>`;
                                   }}
@@ -856,49 +863,6 @@ const ProjectDetail = () => {
                   </div>
                 </div>
               )}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-2 text-[#1c6ead]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  Workflow Levels
-                </h3>
-
-                <div className="bg-gray-50 rounded-xl p-5 shadow-sm space-y-4">
-                  {project.assignedTo?.map((lvl, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-lg border ${project.currentLevelIndex === index
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 bg-white"
-                        }`}
-                    >
-                      <p className="text-sm font-medium text-gray-900">
-                        Level {index + 1}
-                        {project.currentLevelIndex === index && (
-                          <span className="ml-2 text-xs text-blue-600">(Current Level)</span>
-                        )}
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1">
-                        Department: {lvl.department?.name || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        Assigned User: {lvl.user?.name || lvl.user?.toString() || "N/A"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           ) : activeTab === "tasks" ? (
             <ProjectTasks
@@ -1010,10 +974,11 @@ const ProjectDetail = () => {
                       <button
                         onClick={goToPrevDocPage}
                         disabled={docCurrentPage === 1}
-                        className={`flex items-center text-sm font-medium transition-all duration-300 ${docCurrentPage === 1
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
+                          docCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-[#1c6ead] hover:text-blur-600"
-                          }`}
+                        }`}
                       >
                         <svg
                           className="w-5 h-5 mr-2"
@@ -1036,10 +1001,11 @@ const ProjectDetail = () => {
                       <button
                         onClick={goToNextDocPage}
                         disabled={docCurrentPage === totalDocPages}
-                        className={`flex items-center text-sm font-medium transition-all duration-300 ${docCurrentPage === totalDocPages
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
+                          docCurrentPage === totalDocPages
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-indigo-600 hover:text-indigo-800"
-                          }`}
+                        }`}
                       >
                         Next
                         <svg
@@ -1156,10 +1122,11 @@ const ProjectDetail = () => {
                           setNoteCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={noteCurrentPage === 1}
-                        className={`flex items-center text-sm font-medium transition-all duration-300 ${noteCurrentPage === 1
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
+                          noteCurrentPage === 1
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-[#1c6ead] hover:text-blue-600"
-                          }`}
+                        }`}
                       >
                         <svg
                           className="w-5 h-5 mr-2"
@@ -1186,10 +1153,11 @@ const ProjectDetail = () => {
                           )
                         }
                         disabled={noteCurrentPage === totalNotePages}
-                        className={`flex items-center text-sm font-medium transition-all duration-300 ${noteCurrentPage === totalNotePages
+                        className={`flex items-center text-sm font-medium transition-all duration-300 ${
+                          noteCurrentPage === totalNotePages
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-[#1c6ead] hover:text-blue-600"
-                          }`}
+                        }`}
                       >
                         Next
                         <svg

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { projectsApi, userApi } from "../api";
+import { projectsApi } from "../api";
 import { clientsApi } from "../api/clientsApi";
 import { useAuth } from "../context/AuthContext";
-import { getDepartments } from "../api/department.api";
 import {
   DocumentTextIcon,
   UserIcon,
@@ -14,24 +13,12 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-
-const ProjectForm = ({
-  project = null,
-  presetLevels = null,
-  lockDepartments = false,
-  onSuccess,
-  onCancel,
-  onSubmit: onSubmitOverride, }) => {
+const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [departments, setDepartments] = useState([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [levels, setLevels] = useState([
-    { department: "", user: "" }
-  ]);
-  const isEditMode = !!(project && (project.id || project._id));
+  const [showConfirmModal, setShowConfirmModal] = useState(false); 
+  const isEditMode = !!project;
   const { user, role } = useAuth();
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -49,12 +36,11 @@ const ProjectForm = ({
       name: "",
       client: { id: "" },
       description: "",
-      status: "",
+      status: "", 
       priority: "",
       startDate: "",
       dueDate: "",
       amount: "",
-      department: "",
     },
   });
 
@@ -63,84 +49,42 @@ const ProjectForm = ({
   const projectName = watch("name");
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadClientsAndProjects = async () => {
       try {
-        const [clientsResponse, projectsResponse, departmentsResponse, usersResponse] = await Promise.all([
+        const [clientsResponse, projectsResponse] = await Promise.all([
           clientsApi.getAllClients(),
           projectsApi.getAllProjects({ limit: 1000 }),
-          getDepartments({ limit: 1000 }),
-          userApi.getUsersDepartmentProject()
         ]);
         setClients(clientsResponse.data);
         setProjects(projectsResponse.data || []);
-        setDepartments(departmentsResponse.data || []);
-        setUsers(usersResponse.data || []);
       } catch (error) {
         console.error("Error loading clients or projects:", error);
       }
     };
 
-    loadData();
+    loadClientsAndProjects();
   }, []);
-
-  useEffect(() => {
-    if (!presetLevels || departments.length === 0) return;
-
-    const hydratedLevels = presetLevels.map(lvl => {
-      const dept = departments.find(
-        d => d.name === lvl.department
-      );
-
-      return {
-        department: dept?._id || "",
-        user: ""
-      };
-    });
-
-    setLevels(hydratedLevels);
-  }, [presetLevels, departments]);
 
   useEffect(() => {
     if (project && clients.length > 0) {
       const formattedProject = {
         ...project,
-
         startDate: project.startDate
           ? new Date(project.startDate).toISOString().split("T")[0]
           : "",
-
         dueDate: project.dueDate
           ? new Date(project.dueDate).toISOString().split("T")[0]
           : "",
-
         client: {
           id: String(project.client?._id || project.client?.id || ""),
           name: project.client?.name || "",
         },
-
         priority: project.priority?.toLowerCase() || "",
-
         status: project.status?.toLowerCase() || "",
-
-        departments: Array.isArray(project.departments)
-          ? project.departments.map((d) => d?._id || d)
-          : [],
-
-        assignedTo: Array.isArray(project.assignedTo)
-          ? project.assignedTo.map((a) => ({
-            department: a.department?._id || a.department,
-            user: a.user?._id || a.user,
-          }))
-          : [],
       };
       reset(formattedProject);
-      if (formattedProject.assignedTo.length > 0) {
-        setLevels(formattedProject.assignedTo);
-      } else if (!presetLevels) {
-        setLevels([{ department: "", user: "" }]);
-      }
     }
-  }, [project, clients, reset, presetLevels]);
+  }, [project, clients, reset]);
 
   const onSubmit = async (data) => {
     if (data.startDate && data.dueDate && new Date(data.dueDate) < new Date(data.startDate)) {
@@ -175,12 +119,6 @@ const ProjectForm = ({
         priority: data.priority ? data.priority.toLowerCase() : "medium",
         description: data.description || "No description provided",
         name: data.name,
-        departments: levels.map(l => l.department),
-        assignedTo: levels.map((l, index) => ({
-          department: l.department,
-          user: l.user,
-          levelIndex: index
-        }))
       };
 
       // Only add date fields if they have values
@@ -191,7 +129,6 @@ const ProjectForm = ({
         projectData.dueDate = data.dueDate;
       }
 
-
       // Filter out undefined values
       const filteredProjectData = Object.fromEntries(
         Object.entries(projectData).filter(([key, value]) => value !== undefined)
@@ -200,13 +137,6 @@ const ProjectForm = ({
 
       if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
         console.error(`Invalid status: ${filteredProjectData.status}`);
-        return;
-      }
-
-      // If an override is provided, use it and skip internal API call
-      if (onSubmitOverride) {
-        await onSubmitOverride(filteredProjectData);
-        setLoading(false);
         return;
       }
 
@@ -229,13 +159,12 @@ const ProjectForm = ({
         });
       }
       setLoading(false);
-      console.log("Final form data being submitted:", data);
     }
   };
 
   const handleCancel = () => {
     if (isDirty) {
-      setShowConfirmModal(true);
+      setShowConfirmModal(true); 
     } else {
       onCancel();
     }
@@ -270,15 +199,15 @@ const ProjectForm = ({
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {isEditMode ? 'Edit Project' : (presetLevels ? 'Create New Project From Preset' : 'Create New Project')}
+                  {isEditMode ? 'Edit Project' : 'Create New Project'}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {isEditMode ? 'Update project details below' : 'Fill in the details to create a new project'}
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleCancel}
+            <button 
+              onClick={handleCancel} 
               className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -442,81 +371,6 @@ const ProjectForm = ({
                       <span className="text-red-500 mr-1">⚠</span>
                       {errors.dueDate.message}
                     </div>
-                  )}
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department Levels <span className="text-red-500">*</span>
-                  </label>
-
-                  {levels.map((level, index) => (
-                    <div key={index} className="flex gap-3 mb-3">
-
-                      {/* Department Dropdown */}
-                      <select
-                        value={level.department}
-                        onChange={(e) => {
-                          const updated = [...levels];
-                          updated[index].department = e.target.value;
-                          updated[index].user = "";
-                          setLevels(updated);
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                      >
-                        <option value="">Select department</option>
-                        {departments.map((dept) => (
-                          <option key={dept._id} value={dept._id}>
-                            {dept.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Users Dropdown — Enhanced */}
-                      <select
-                        value={level.user}
-                        onChange={(e) => {
-                          const updated = [...levels];
-                          updated[index].user = e.target.value;
-                          setLevels(updated);
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                      >
-                        <option value="">Assign user</option>
-
-                        {users
-                          .filter((u) => u.department?._id === level.department)   // 🔥 show matching users only
-                          .map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} — {u.department?.name}
-                            </option>
-                          ))}
-                      </select>
-
-                      {/* Remove Row (except first row) */}
-                      {!lockDepartments && index !== 0 && (
-                        <button
-                          type="button"
-                          className="text-red-600 font-bold"
-                          onClick={() => {
-                            const updated = levels.filter((_, i) => i !== index);
-                            setLevels(updated);
-                          }}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Add New Level */}
-                  {!lockDepartments && (
-                    <button
-                      type="button"
-                      onClick={() => setLevels([...levels, { department: "", user: "" }])}
-                      className="text-[#1c6ead] hover:text-[#104670] font-semibold"
-                    >
-                      + Add Level
-                    </button>
                   )}
                 </div>
               </div>
