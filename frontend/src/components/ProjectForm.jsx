@@ -15,7 +15,13 @@ import {
 } from "@heroicons/react/24/outline";
 
 
-const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
+const ProjectForm = ({
+  project = null,
+  presetLevels = null,
+  lockDepartments = false,
+  onSuccess,
+  onCancel,
+  onSubmit: onSubmitOverride, }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +31,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   const [levels, setLevels] = useState([
     { department: "", user: "" }
   ]);
-  const isEditMode = !!project;
+  const isEditMode = !!(project && (project.id || project._id));
   const { user, role } = useAuth();
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -78,6 +84,23 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   }, []);
 
   useEffect(() => {
+    if (!presetLevels || departments.length === 0) return;
+
+    const hydratedLevels = presetLevels.map(lvl => {
+      const dept = departments.find(
+        d => d.name === lvl.department
+      );
+
+      return {
+        department: dept?._id || "",
+        user: ""
+      };
+    });
+
+    setLevels(hydratedLevels);
+  }, [presetLevels, departments]);
+
+  useEffect(() => {
     if (project && clients.length > 0) {
       const formattedProject = {
         ...project,
@@ -111,12 +134,13 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
           : [],
       };
       reset(formattedProject);
-      setLevels(formattedProject.assignedTo.length > 0
-        ? formattedProject.assignedTo
-        : [{ department: "", user: "" }]
-      );
+      if (formattedProject.assignedTo.length > 0) {
+        setLevels(formattedProject.assignedTo);
+      } else if (!presetLevels) {
+        setLevels([{ department: "", user: "" }]);
+      }
     }
-  }, [project, clients, reset]);
+  }, [project, clients, reset, presetLevels]);
 
   const onSubmit = async (data) => {
     if (data.startDate && data.dueDate && new Date(data.dueDate) < new Date(data.startDate)) {
@@ -152,9 +176,10 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
         description: data.description || "No description provided",
         name: data.name,
         departments: levels.map(l => l.department),
-        assignedTo: levels.map(l => ({
+        assignedTo: levels.map((l, index) => ({
           department: l.department,
-          user: l.user
+          user: l.user,
+          levelIndex: index
         }))
       };
 
@@ -175,6 +200,13 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
 
       if (!["planning", "in-progress", "completed", "archived"].includes(filteredProjectData.status)) {
         console.error(`Invalid status: ${filteredProjectData.status}`);
+        return;
+      }
+
+      // If an override is provided, use it and skip internal API call
+      if (onSubmitOverride) {
+        await onSubmitOverride(filteredProjectData);
+        setLoading(false);
         return;
       }
 
@@ -238,7 +270,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {isEditMode ? 'Edit Project' : 'Create New Project'}
+                  {isEditMode ? 'Edit Project' : (presetLevels ? 'Create New Project From Preset' : 'Create New Project')}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {isEditMode ? 'Update project details below' : 'Fill in the details to create a new project'}
@@ -461,7 +493,7 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                       </select>
 
                       {/* Remove Row (except first row) */}
-                      {index !== 0 && (
+                      {!lockDepartments && index !== 0 && (
                         <button
                           type="button"
                           className="text-red-600 font-bold"
@@ -477,13 +509,15 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
                   ))}
 
                   {/* Add New Level */}
-                  <button
-                    type="button"
-                    onClick={() => setLevels([...levels, { department: "", user: "" }])}
-                    className="text-[#1c6ead] hover:text-[#104670] font-semibold"
-                  >
-                    + Add Level
-                  </button>
+                  {!lockDepartments && (
+                    <button
+                      type="button"
+                      onClick={() => setLevels([...levels, { department: "", user: "" }])}
+                      className="text-[#1c6ead] hover:text-[#104670] font-semibold"
+                    >
+                      + Add Level
+                    </button>
+                  )}
                 </div>
               </div>
 

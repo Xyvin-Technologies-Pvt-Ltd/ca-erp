@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 // Import the ProjectForm component
 import ProjectForm from "./ProjectForm"; // Adjust the import path as needed
 
-const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = null, onTaskUpdate }) => {
+const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const tagOptions = [
@@ -78,10 +78,10 @@ const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = nu
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-const handleFileChange = (e) => {
-  const selectedFiles = Array.from(e.target.files); // convert FileList → array
-  setFile(selectedFiles);
-};
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files); // convert FileList → array
+    setFile(selectedFiles);
+  };
 
   // Update form dirty status on input changes
   useEffect(() => {
@@ -203,147 +203,147 @@ const handleFileChange = (e) => {
     }
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!token) {
-    toast.error("Unauthorized: No token found");
-    return;
-  }
-
-  if (!projectId) {
-    toast.error("Please select a project.");
-    return;
-  }
-
-  // Validate project due date
-
-  let selectedProject;
-
-  if (projectIds) {
-    try {
-      const response = await projectsApi.getProjectById(projectId);
-      selectedProject = response.data;
-    } catch (error) {
-      console.error("Error fetching project details:", error);
-      toast.error("Error fetching project details");
+    if (!token) {
+      toast.error("Unauthorized: No token found");
       return;
     }
-  } else {
-    selectedProject = projects.find((p) => p._id === projectId);
-  }
 
-  if (selectedProject && !selectedProject.dueDate) {
-    setProjectDueDateError({
-      projectId: selectedProject._id,
-      projectName: selectedProject.name,
-    });
-    setSelectedProject(selectedProject);
-    return;
-  } else {
-    setProjectDueDateError(null);
-  }
-
-
-  // Build FormData
-
-  const tagList = selectedTags.map((tag) => tag.text);
-  const taskPayload = new FormData();
-
-  taskPayload.append("title", title);
-  taskPayload.append("project", projectId);
-  taskPayload.append("status", status);
-  taskPayload.append("priority", priority.toLowerCase());
-  taskPayload.append("assignedTo", assignedTo);
-  taskPayload.append("amount", amount !== undefined ? amount : 0);
-  taskPayload.append("dueDate", dueDate);
-  taskPayload.append("description", description);
-
-  if (file.length > 0) {
-    file.forEach((f) => taskPayload.append("files", f));
-  }
-
-  tagList.forEach((t) => taskPayload.append("tags[]", t));
-
-  if (user?.role === "admin") {
-    taskPayload.append("taskIncentivePercentage", taskIncentivePercentage);
-    taskPayload.append(
-      "verificationIncentivePercentage",
-      verificationIncentivePercentage
-    );
-  }
-
-  //TASK CREATION
-
-  let response;
-
-  try {
-    if (task) {
-      response = await updateTask(task._id, taskPayload, token);
-      toast.success("Task updated successfully");
-    } else {
-      response = await createTask(taskPayload, token);
-      toast.success("Task created successfully");
+    if (!projectId) {
+      toast.error("Please select a project.");
+      return;
     }
-  } catch (err) {
-    console.error("Task creation failed", err);
-    toast.error(err.response?.data?.message || "Failed to create/update task");
-    return; 
-  }
 
-  // Upload tag documents
-  if (!task) {
-    try {
-      const tempDocs = Object.entries(tagDocuments).filter(
-        ([_, doc]) => doc.isTemp
-      );
+    // Validate project due date
 
-      for (const [key, doc] of tempDocs) {
-        const formData = new FormData();
-        formData.append("file", doc.file);
-        formData.append("tag", doc.tag);
-        formData.append("documentType", doc.documentType);
+    let selectedProject;
 
-        await uploadTagDocument(response.data.data._id, formData, token);
+    if (projectIds) {
+      try {
+        const response = await projectsApi.getProjectById(projectId);
+        selectedProject = response.data;
+      } catch (error) {
+        console.error("Error fetching project details:", error);
+        toast.error("Error fetching project details");
+        return;
       }
-    } catch (docErr) {
-      console.error("Document upload failed:", docErr);
-
+    } else {
+      selectedProject = projects.find((p) => p._id === projectId);
     }
-  }
+
+    if (selectedProject && !selectedProject.dueDate) {
+      setProjectDueDateError({
+        projectId: selectedProject._id,
+        projectName: selectedProject.name,
+      });
+      setSelectedProject(selectedProject);
+      return;
+    } else {
+      setProjectDueDateError(null);
+    }
 
 
-  try {
-    if (!task && socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
-        JSON.stringify({
-          type: "notification",
-          message: `New task "${title}" has been created`,
-          timestamp: new Date(),
-          taskId: response.data.data._id,
-          action: "create_task",
-          data: {
-            title,
-            projectId,
-            assignedTo,
-            priority: priority.toLowerCase(),
-            status,
-            amount,
-          },
-        })
+    // Build FormData
+
+    const tagList = selectedTags.map((tag) => tag.text);
+    const taskPayload = new FormData();
+
+    taskPayload.append("title", title);
+    taskPayload.append("project", projectId);
+    taskPayload.append("status", status);
+    taskPayload.append("priority", priority.toLowerCase());
+    taskPayload.append("assignedTo", assignedTo);
+    taskPayload.append("amount", amount !== undefined ? amount : 0);
+    taskPayload.append("dueDate", dueDate);
+    taskPayload.append("description", description);
+
+    if (file.length > 0) {
+      file.forEach((f) => taskPayload.append("files", f));
+    }
+
+    tagList.forEach((t) => taskPayload.append("tags[]", t));
+
+    if (user?.role === "admin") {
+      taskPayload.append("taskIncentivePercentage", taskIncentivePercentage);
+      taskPayload.append(
+        "verificationIncentivePercentage",
+        verificationIncentivePercentage
       );
     }
-  } catch (sockErr) {
-    console.error("Socket notification failed:", sockErr);
-  }
 
-  try {
-    onSuccess?.(response.data);
-    onSucces?.();
-  } catch (callbackErr) {
-    console.error("Callback error:", callbackErr);
-  }
-};
+    //TASK CREATION
+
+    let response;
+
+    try {
+      if (task) {
+        response = await updateTask(task._id, taskPayload, token);
+        toast.success("Task updated successfully");
+      } else {
+        response = await createTask(taskPayload, token);
+        toast.success("Task created successfully");
+      }
+    } catch (err) {
+      console.error("Task creation failed", err);
+      toast.error(err.response?.data?.message || "Failed to create/update task");
+      return;
+    }
+
+    // Upload tag documents
+    if (!task) {
+      try {
+        const tempDocs = Object.entries(tagDocuments).filter(
+          ([_, doc]) => doc.isTemp
+        );
+
+        for (const [key, doc] of tempDocs) {
+          const formData = new FormData();
+          formData.append("file", doc.file);
+          formData.append("tag", doc.tag);
+          formData.append("documentType", doc.documentType);
+
+          await uploadTagDocument(response.data.data._id, formData, token);
+        }
+      } catch (docErr) {
+        console.error("Document upload failed:", docErr);
+
+      }
+    }
+
+
+    try {
+      if (!task && socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "notification",
+            message: `New task "${title}" has been created`,
+            timestamp: new Date(),
+            taskId: response.data.data._id,
+            action: "create_task",
+            data: {
+              title,
+              projectId,
+              assignedTo,
+              priority: priority.toLowerCase(),
+              status,
+              amount,
+            },
+          })
+        );
+      }
+    } catch (sockErr) {
+      console.error("Socket notification failed:", sockErr);
+    }
+
+    try {
+      onSuccess?.(response.data);
+      onSucces?.();
+    } catch (callbackErr) {
+      console.error("Callback error:", callbackErr);
+    }
+  };
 
   const handleTagToggle = (tag) => {
     setSelectedTags((prev) => {
@@ -415,7 +415,7 @@ const handleSubmit = async (e) => {
 
   const handleCancel = () => {
     if (isFormDirty) {
-       setShowConfirmModal(true); 
+      setShowConfirmModal(true);
     } else {
       onCancel();
     }
@@ -432,7 +432,7 @@ const handleSubmit = async (e) => {
 
   const handleProjectSuccess = async (updatedProject) => {
     setShowProjectForm(false);
-    setProjectDueDateError(null); 
+    setProjectDueDateError(null);
     if (!projectIds) {
       setProjects((prev) =>
         prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
@@ -470,8 +470,8 @@ const handleSubmit = async (e) => {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={handleCancel} 
+            <button
+              onClick={handleCancel}
               className="text-gray-500 hover:text-gray-700 hover:cursor-pointer transition-colors duration-200"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -570,33 +570,33 @@ const handleSubmit = async (e) => {
                 </div>
 
                 {/* Assigned To */}
-               <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Assigned To <span className="text-red-500">*</span>
-  </label>
-  <select
-    value={assignedTo}
-    onChange={(e) => {
-      setAssignedTo(e.target.value);
-      setIsFormDirty(true);
-    }}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
-    required
-  >
-    <option value="">Select a user</option>
-    {users.map((user) => (
-      <option key={user._id} value={user._id}>
-        {user.name || user.email}
-      </option>
-    ))}
-  </select>
-  {userError && (
-    <div className="text-red-500 text-sm mt-1 flex items-center">
-      <span className="text-red-500 mr-1">⚠</span>
-      {userError}
-    </div>
-  )}
-</div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assigned To <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={assignedTo}
+                    onChange={(e) => {
+                      setAssignedTo(e.target.value);
+                      setIsFormDirty(true);
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
+                    required
+                  >
+                    <option value="">Select a user</option>
+                    {users.map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name || user.email}
+                      </option>
+                    ))}
+                  </select>
+                  {userError && (
+                    <div className="text-red-500 text-sm mt-1 flex items-center">
+                      <span className="text-red-500 mr-1">⚠</span>
+                      {userError}
+                    </div>
+                  )}
+                </div>
 
 
                 {/* Due Date */}
@@ -709,43 +709,43 @@ const handleSubmit = async (e) => {
               </div>
 
               {/* Attachment */}
-            <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Attachments
-  </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Attachments
+                </label>
 
-  <div className="flex items-center space-x-3">
-    <label
-      htmlFor="file"
-      className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
-    >
-      Upload Files
-    </label>
-    <span className="text-sm text-gray-600 truncate max-w-xs">
-      {file.length > 0 ? `${file.length} file(s) selected` : "No files selected"}
-    </span>
-  </div>
+                <div className="flex items-center space-x-3">
+                  <label
+                    htmlFor="file"
+                    className="cursor-pointer px-4 py-2 bg-[#1c6ead] text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 font-medium"
+                  >
+                    Upload Files
+                  </label>
+                  <span className="text-sm text-gray-600 truncate max-w-xs">
+                    {file.length > 0 ? `${file.length} file(s) selected` : "No files selected"}
+                  </span>
+                </div>
 
-  <input
-    id="file"
-    type="file"
-    multiple   // ✅ allow multiple files
-    onChange={handleFileChange}
-    className="hidden"
-  />
+                <input
+                  id="file"
+                  type="file"
+                  multiple   // ✅ allow multiple files
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-  {/* List of selected files */}
-  {file.length > 0 && (
-    <ul className="mt-3 space-y-1 text-sm text-gray-700">
-      {file.map((fil, index) => (
-        <li key={index} className="flex items-center space-x-2">
-          <span className="truncate max-w-xs">{fil.name}</span>
-          <span className="text-gray-500 text-xs">({(fil.size / 1024).toFixed(1)} KB)</span>
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+                {/* List of selected files */}
+                {file.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                    {file.map((fil, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <span className="truncate max-w-xs">{fil.name}</span>
+                        <span className="text-gray-500 text-xs">({(fil.size / 1024).toFixed(1)} KB)</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
 
               {/* Tags */}
@@ -764,7 +764,7 @@ const handleSubmit = async (e) => {
                         className={`px-3 py-1 rounded-full text-sm font-medium cursor-pointer ${isSelected
                           ? "bg-blue-100 text-blue-800 border border-blue-300"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
-                        } transition-all duration-200`}
+                          } transition-all duration-200`}
                       >
                         {tag}
                       </button>
@@ -853,39 +853,39 @@ const handleSubmit = async (e) => {
             </div>
           </form>
         </div>
-      {/* Confirmation Popup */}
-          {showConfirmModal && (
-            <div className="fixed inset-0 bg-black/20 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-              <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Discard Changes?</h3>
-                  <button
-                    onClick={cancelDiscard}
-                    className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                  >
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
-                </div>
-                <p className="text-sm text-gray-600 mb-6">
-                  Are you sure you want to discard changes? Any unsaved changes will be lost.
-                </p>
-                <div className="flex justify-end space-x-4">
-                  <button
-                    onClick={cancelDiscard}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmDiscard}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
-                  >
-                    Discard
-                  </button>
-                </div>
+        {/* Confirmation Popup */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/20 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Discard Changes?</h3>
+                <button
+                  onClick={cancelDiscard}
+                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to discard changes? Any unsaved changes will be lost.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={cancelDiscard}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDiscard}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+                >
+                  Discard
+                </button>
               </div>
             </div>
-          )}      
+          </div>
+        )}
 
         {/* Project Form Modal */}
         {showProjectForm && selectedProject && (

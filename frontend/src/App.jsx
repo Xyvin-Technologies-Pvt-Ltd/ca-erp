@@ -33,6 +33,8 @@ import Attendance from './pages/hrm/Attendance';
 import EmployeeAttendance from './pages/employee/EmployeeAttendance';
 import { useAuth } from "./context/AuthContext";
 import InvoicePreviewPage from "./pages/InvoicePreviewPage";
+import PresetProjects from "./pages/PresetProjects";
+import PresetProjectDetail from "./pages/PresetProjectDetail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,6 +89,18 @@ function App() {
                   path={`${ROUTES.PROJECTS}/:id`}
                   element={<ProjectDetail />}
                 />
+
+                {/* Preset Project Routes */}
+                <Route 
+                  path={ROUTES.PRESET_PROJECTS} 
+                  element={<PresetProjects />} 
+                />
+                
+                <Route
+                  path={ROUTES.PRESET_PROJECT_DETAIL}
+                  element={<PresetProjectDetail />}
+                /> 
+
 
                 {/* Task Routes */}
                 <Route path={ROUTES.TASKS} element={<Tasks />} />

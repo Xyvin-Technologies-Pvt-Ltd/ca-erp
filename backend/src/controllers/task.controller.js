@@ -33,6 +33,8 @@ exports.getTasks = async (req, res, next) => {
       filter.priority = req.query.priority;
     }
     filter.deleted = { $ne: true };
+    // Hide pending preset tasks from sidebar
+    filter.isPresetPending = { $ne: true };
 
     // Add project filter to only get tasks with non-deleted projects
     const validProjects = await Project.find({ deleted: { $ne: true } }, "_id");

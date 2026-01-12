@@ -38,6 +38,7 @@ const attendanceRoutes = require('./routes/attendance.routes')
 const cronJobRoutes = require('./routes/cronJob.routes')
 const sectionRoutes = require('./routes/section.routes')
 const uploadRoutes = require('./routes/upload.routes')
+const presetProjectRoutes = require('./routes/presetProject.routes');
 
 
 // Initialize express app
@@ -109,6 +110,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/preset-projects', presetProjectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/finance', financeRoutes);
@@ -123,6 +125,7 @@ app.use('/api/attendance',attendanceRoutes)
 app.use('/api/cronjobs', cronJobRoutes)
 app.use('/api/sections', sectionRoutes)
 app.use('/api/upload', uploadRoutes);
+
 
 
 

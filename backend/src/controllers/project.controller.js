@@ -459,10 +459,18 @@ exports.createProject = async (req, res, next) => {
     // Ensure assignedTo is used 
     const { assignedTo, ...rest } = req.body;
 
+    // Collect all assigned users and add to team
+    const assignedUserIds = assignedTo.map(a => a.user);
+    // Merge with existing team (if any provided in body, though typically not for create)
+    const initialTeam = req.body.team || [];
+    // Combine and deduplicate
+    const team = [...new Set([...initialTeam, ...assignedUserIds, req.user.id])];
+
     console.log("REQ BODY:", req.body);
     const project = await Project.create({
       ...rest,
       assignedTo,
+      team,
       currentLevelIndex: 0,
     });
 

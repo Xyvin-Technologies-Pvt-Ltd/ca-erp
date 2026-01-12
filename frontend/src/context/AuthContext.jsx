@@ -21,7 +21,19 @@ export const AuthProvider = ({ children }) => {
   // Check authentication status on mount
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+
+    // Auto Logout Check
+    const interval = setInterval(() => {
+      const now = new Date();
+      // Check if it's 11:59 PM (23:59)
+      if (isAuthenticated && now.getHours() === 23 && now.getMinutes() === 59) {
+        console.log("Auto-logout triggered at 11:59 PM");
+        logout();
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [checkAuth, isAuthenticated, logout]);
 
   // Helper function to check if user is superadmin
   const isSuperadmin = () => {

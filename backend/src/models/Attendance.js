@@ -37,17 +37,11 @@ const attendanceSchema = new mongoose.Schema(
         "Present",
         "Absent",
         "Half-Day",
-        "Late",
-        "Early-Leave",
         "Holiday",
         "On-Leave",
         "Day-Off",
       ],
       required: true,
-    },
-    arrivalStatus: {
-      type: String,
-      enum: ["Early-Logged", "On-Time", "Late-Logged"],
     },
     workHours: {
       type: Number,
@@ -58,14 +52,6 @@ const attendanceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       set: (v) => (Number.isNaN(v) ? 0 : v), // 👈 replaces NaN with 0 automatically
-    },
-    lateHours: {
-      type: Number,
-      default: 0,
-    },
-    lateMinutes: {
-      type: Number,
-      default: 0,
     },
     overtime: {
       hours: {
@@ -218,24 +204,73 @@ attendanceSchema.index(
 attendanceSchema.pre("save", function (next) {
   if (this.isLeave) {
     this.workHours = 0;
+    this.workMinutes = 0;
     return next();
   }
-  if (this.checkIn && this.checkOut) {
-    const checkInTime = new Date(this.checkIn.time);
-    const checkOutTime = new Date(this.checkOut.time);
-    const totalBreakDuration = this.breaks.reduce((total, breakItem) => {
-      if (breakItem.startTime && breakItem.endTime) {
-        return (
-          total +
-          (new Date(breakItem.endTime) - new Date(breakItem.startTime)) /
-            (1000 * 60 * 60)
-        );
+
+  // Only recalculate if check-in/out times are present and modified, 
+  // OR if it's a new record with both times
+  if (this.checkIn && this.checkIn.times && this.checkIn.times.length > 0 &&
+    this.checkOut && this.checkOut.times && this.checkOut.times.length > 0) {
+
+    const checkInTime = new Date(this.checkIn.times[0]); // Using first check-in
+    // Use the last check-out for the day
+    const checkOutTime = new Date(this.checkOut.times[this.checkOut.times.length - 1]);
+
+    let durationMs = 0;
+
+    // Helper to clamp time to 8:30 AM - 6:00 PM
+    const clampToBand = (date) => {
+      const d = new Date(date);
+      const start = new Date(d);
+      start.setHours(8, 30, 0, 0);
+      const end = new Date(d);
+      end.setHours(18, 0, 0, 0);
+
+      if (d < start) return start;
+      if (d > end) return end;
+      return d;
+    };
+
+    const validStart = clampToBand(checkInTime);
+    const validEnd = clampToBand(checkOutTime);
+
+    if (validEnd > validStart) {
+      durationMs = validEnd - validStart;
+    }
+
+    // Convert to minutes
+    let totalMinutes = Math.floor(durationMs / (1000 * 60));
+
+    // DEDUCT 45 MINUTES MANDATORY BREAK OONLY IF HOURS > 0
+    // If duration is 0 (e.g. checked in after 6pm), don't subtract to negative
+    if (totalMinutes > 0) {
+      totalMinutes -= 45;
+    }
+
+    // Ensure no negative work time
+    if (totalMinutes < 0) totalMinutes = 0;
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    this.workHours = hours;
+    this.workMinutes = minutes;
+
+    // DETERMINE STATUS
+    // Policy: >= 8 hours -> Present
+    //         >= 4 hours -> Half-Day
+    //         < 4 hours  -> Absent 
+
+    if (!["Holiday", "On-Leave", "Day-Off"].includes(this.status)) {
+      if (hours >= 8) {
+        this.status = "Present";
+      } else if (hours >= 4) {
+        this.status = "Half-Day";
+      } else {
+        this.status = "Absent";
       }
-      return total;
-    }, 0);
-    this.workHours =
-      (checkOutTime - checkInTime) / (1000 * 60 * 60) - totalBreakDuration;
-    this.workHours = Math.round(this.workHours * 100) / 100;
+    }
   }
   next();
 });

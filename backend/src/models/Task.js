@@ -129,6 +129,10 @@ const TaskSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        isPresetPending: {
+            type: Boolean,
+            default: false
+        },
         priority: {
             type: String,
             enum: ['low', 'medium', 'high', 'urgent'],
