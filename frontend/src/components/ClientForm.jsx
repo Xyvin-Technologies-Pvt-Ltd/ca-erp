@@ -148,17 +148,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       //   setLoading(false);
       //   return;
       // }
-      if (formData.gstin === "") {
-        toast.error("Tax information is required", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      } else if (formData.pan === "") {
+      if (formData.pan === "") {
         toast.error("Tax information is required", {
           position: "top-right",
           autoClose: 5000,
@@ -227,9 +217,8 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       console.error("Error saving client:", error);
       toast.error(
         error.message ||
-          `Failed to ${
-            isEditMode ? "update" : "create"
-          } client. Please try again.`,
+        `Failed to ${isEditMode ? "update" : "create"
+        } client. Please try again.`,
         {
           position: "top-right",
           autoClose: 5000,
@@ -349,11 +338,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       {...register("name", {
                         required: "Client name is required",
                       })}
-                      className={`w-full px-4 py-3 border ${
-                        errors.name
+                      className={`w-full px-4 py-3 border ${errors.name
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
-                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                        } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. Acme Corporation"
                     />
                     {errors.name && (
@@ -386,7 +374,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Contact Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Contact Email<span className="text-red-500">*</span>
+                    Contact Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -398,11 +386,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Invalid email address",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${
-                        errors.contactEmail
+                      className={`w-full px-4 py-3 border ${errors.contactEmail
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
-                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                        } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. john@acme.com"
                     />
                     {errors.contactEmail && (
@@ -422,14 +409,30 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Contact Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Contact Phone
+                    Contact Phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    {...register("contactPhone")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
+                    {...register("contactPhone", {
+                      required: "Contact phone is required",
+                      pattern: {
+                        value: /^[0-9+\-\s]{7,15}$/,
+                        message: "Enter a valid phone number",
+                      },
+                    })}
+                    className={`w-full px-4 py-3 border ${errors.contactPhone
+                        ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
+                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                     placeholder="e.g. +1 234 567 8900"
                   />
+
+                  {errors.contactPhone && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {errors.contactPhone.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Industry */}
@@ -494,11 +497,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                             "Please enter a valid URL starting with http:// or https://",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${
-                        errors.website
+                      className={`w-full px-4 py-3 border ${errors.website
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
-                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                        } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. https://www.acme.com"
                     />
                     {errors.website && (
@@ -710,7 +712,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* GSTIN */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    GSTIN <span className="text-red-500">*</span>
+                    GSTIN
                   </label>
                   <div className="relative">
                     <input
@@ -722,11 +724,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid GSTIN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${
-                        errors.gstin
+                      className={`w-full px-4 py-3 border ${errors.gstin
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
-                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                        } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. 27AAACR5055K1Z5"
                     />
                     {errors.gstin && (
@@ -756,11 +757,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                           message: "Please enter a valid PAN",
                         },
                       })}
-                      className={`w-full px-4 py-3 border ${
-                        errors.pan
+                      className={`w-full px-4 py-3 border ${errors.pan
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-[#1c6ead] focus:border-[#1c6ead]"
-                      } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
+                        } rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 hover:border-gray-400`}
                       placeholder="e.g. AAAAA0000A"
                     />
                     {errors.pan && (
@@ -838,11 +838,10 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                       Any additional information or special requirements
                     </p>
                     <p
-                      className={`text-sm ${
-                        (notesValue?.length || 0) > maxNotesLength * 0.8
+                      className={`text-sm ${(notesValue?.length || 0) > maxNotesLength * 0.8
                           ? "text-amber-600"
                           : "text-gray-500"
-                      }`}
+                        }`}
                     >
                       {notesValue?.length || 0}/{maxNotesLength}
                     </p>

@@ -129,16 +129,36 @@ const TaskSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
+        levelIndex: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        department: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+            required: true
+        },
         status: {
             type: String,
-            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review'],
+            enum: ['pending', 'in-progress', 'under-review', 'completed', 'invoiceable', 'invoiced', 'cancelled', 'review', 'overdue'],
             default: 'pending',
         },
+<<<<<<< HEAD
         rating: {
             type: Number,
             default: 0,
             min:0,
             max:10,
+=======
+        wasOverdue: {
+            type: Boolean,
+            default: false,
+        },
+        isPresetPending: {
+            type: Boolean,
+            default: false
+>>>>>>> testing
         },
         priority: {
             type: String,
@@ -335,7 +355,7 @@ TaskSchema.post('save', async function () {
     await this.model('Project').findByIdAndUpdate(
         this.project,
         { $addToSet: { tasks: this._id } },
-        { new: true }
+        { new: true, runValidators: false }
     );
 });
 

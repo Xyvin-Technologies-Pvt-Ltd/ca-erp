@@ -18,6 +18,8 @@ const StatusBadge = ({ status }) => {
         return "bg-red-100 text-red-800";
       case "review":
         return "bg-purple-100 text-purple-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -62,6 +64,21 @@ const TaskDetails = () => {
   const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
   const [comment, setComment] = useState("");
+
+  const isOverdue = () => {
+    // Permanent red once overdue
+    if (task?.wasOverdue) return true;
+
+    // Safety fallback (if cron hasn't run yet)
+    const now = new Date();
+    const due = new Date(task?.dueDate);
+
+    return (
+      due < now &&
+      !["completed", "cancelled"].includes(task?.status?.toLowerCase())
+    );
+  };
+
 
   // Fetch task details
   const {
@@ -202,9 +219,8 @@ const TaskDetails = () => {
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) {
-      return `${diffInMinutes} ${
-        diffInMinutes === 1 ? "minute" : "minutes"
-      } ago`;
+      return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"
+        } ago`;
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60);
@@ -517,7 +533,12 @@ const TaskDetails = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Due Date</h3>
-                <p className="mt-1 text-sm text-gray-900">
+                <p
+                  className={`mt-1 text-sm font-medium ${isOverdue()
+                      ? "text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded"
+                      : "text-gray-900"
+                    }`}
+                >
                   {formatDate(task.dueDate)}
                 </p>
               </div>

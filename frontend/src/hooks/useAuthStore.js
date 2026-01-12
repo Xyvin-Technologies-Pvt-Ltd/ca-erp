@@ -53,21 +53,45 @@ const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       set({ isLoading: true });
-      await checkOut();
-      console.log("called");
-      // Call the real logout API
-      await authApi.logout();
+
+      // Attempt to check out, but don't block logout if it fails
+      try {
+        await checkOut();
+        console.log("Check-out successful during logout");
+      } catch (checkOutError) {
+        console.warn("Check-out failed during logout (ignoring):", checkOutError.message);
+      }
+
+      // Call the real logout API (if it exists)
+      try {
+        await authApi.logout();
+      } catch (apiError) {
+        console.warn("Logout API call failed:", apiError.message);
+      }
+
+      // ALWAYS clear local state
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        error: null // Clear any previous errors
       });
+
+      // Force clear localStorage just to be safe
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("userData");
+
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout critical error:", error);
+      // Even in a critical error, we should probably force logout locally
       set({
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
         error: error.message,
       });
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("userData");
     }
   },
 

@@ -1,3 +1,4 @@
+
 import axiosInstance from "./axios";
 
 export const userApi = {
@@ -76,9 +77,16 @@ return res.data;
     const response = await axiosInstance.get("/users/verification-staff");
     return response.data.data || [];
   },
+<<<<<<< HEAD
 
   getUsersByDepartment: async (department) => {
   const response = await axiosInstance.get(`/users/department/${department}`);
   return response.data.data; 
 },
+=======
+  getUsersDepartmentProject: async()=>{
+    const response = await axiosInstance.get("/users/user-dept-projects");
+    return response.data;
+  }
+>>>>>>> testing
 };
