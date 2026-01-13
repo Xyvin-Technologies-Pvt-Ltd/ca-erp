@@ -207,7 +207,7 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         console.log(new Date(record.checkIn.time));
         console.log(
           userAttendance?.checkOut.times[
-            userAttendance?.checkOut.times.length - 1
+          userAttendance?.checkOut.times.length - 1
           ]
         );
 
@@ -235,30 +235,11 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
         const workHours = calculateWorkHours(
           record.checkIn.time,
           userAttendance?.checkOut.times[
-            userAttendance?.checkOut.times.length - 1
+          userAttendance?.checkOut.times.length - 1
           ]
         );
 
         console.log(workHours);
-        const computeArrivalFromDate = (d) => {
-          try {
-            const fmt = new Intl.DateTimeFormat("en-IN", {
-              timeZone: "Asia/Kolkata",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
-            const parts = fmt.formatToParts(new Date(d));
-            const h = Number(parts.find((p) => p.type === "hour").value);
-            const m = Number(parts.find((p) => p.type === "minute").value);
-            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
-            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
-            return "On-Time";
-          } catch (_) {
-            return undefined;
-          }
-        };
-        const arrivalStatus = computeArrivalFromDate(record.checkIn.time);
         await Attendance.updateOne(
           {
             employee: new mongoose.Types.ObjectId(record.employee),
@@ -270,7 +251,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
               status: record.status,
               notes: record.notes,
               shift: record.shift,
-              ...(arrivalStatus ? { arrivalStatus } : {}),
             },
           }
         );
@@ -329,25 +309,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
       }
     } else {
       if (record?.checkOut === undefined) {
-        const computeArrivalFromDate = (d) => {
-          try {
-            const fmt = new Intl.DateTimeFormat("en-IN", {
-              timeZone: "Asia/Kolkata",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
-            const parts = fmt.formatToParts(new Date(d));
-            const h = Number(parts.find((p) => p.type === "hour").value);
-            const m = Number(parts.find((p) => p.type === "minute").value);
-            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
-            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
-            return "On-Time";
-          } catch (_) {
-            return undefined;
-          }
-        };
-        const arrivalStatus = computeArrivalFromDate(record.checkIn.time);
         await Attendance.create({
           employee: record.employee,
           date: record.date,
@@ -364,7 +325,6 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
           shift: record.shift,
           workHours: 0, // Initialize work hours as 0
           workMinutes: 0,
-          ...(arrivalStatus ? { arrivalStatus } : {}),
           createdBy: req.user._id,
           updatedBy: req.user._id,
         });
@@ -768,28 +728,16 @@ exports.createAttendance = catchAsync(async (req, res) => {
     };
   }
 
+  // Check if before 8:30 AM
   const today = new Date(now);
   const { isthour, istminute } = getISTParts(today);
 
-  // Determine arrival status
-  let arrivalStatus = "On-Time";
-  let attendanceStatus = "Present";
-
-  if (isthour < 9 || (isthour === 9 && istminute === 0)) {
-    arrivalStatus = "Early-Logged";
-    attendanceStatus = "Present";
-  } else if (isthour === 9 && istminute > 0 && istminute <= 15) {
-    arrivalStatus = "Late-Logged";
-    attendanceStatus = "Late";
-  } else if (
-    (isthour === 9 && istminute > 15) ||
-    (isthour === 10 && istminute === 0)
-  ) {
-    arrivalStatus = "Late-Logged";
-    attendanceStatus = "Half-Day";
-  } else if (isthour > 10 || (isthour === 10 && istminute > 0)) {
-    arrivalStatus = "Late-Logged";
-    attendanceStatus = "Absent";
+  if (isthour < 8 || (isthour === 8 && istminute < 30)) {
+    return res.status(200).json({
+      status: "success",
+      msg: "Please Login In 8:30 AM For Attendence...",
+      beforeNine: true,
+    });
   }
 
   // Convert UTC to IST (+5:30)
@@ -818,7 +766,6 @@ exports.createAttendance = catchAsync(async (req, res) => {
         $push: { "checkIn.times": istDate },
         $set: {
           totalSign: (existing?.totalSign || 0) + 1,
-          arrivalStatus,
         },
       }
     );
@@ -834,8 +781,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
         ipAddress: req.ip,
         location,
       },
-      status: attendanceStatus,
-      arrivalStatus,
+      status: "Present",
       shift: "Morning",
       workHours: 0,
       notes: "",
@@ -861,130 +807,31 @@ exports.checkOut = catchAsync(async (req, res) => {
   const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
-  const checkInAvailable = await Attendance.findOne(
-    { employee: req.user._id, date: formattedDate } // filte
+
+  const attendance = await Attendance.findOne(
+    { employee: req.user._id, date: formattedDate }
   );
-  console.log(checkInAvailable);
-  if (checkInAvailable === null) {
-    res.status(200).json({
-      status: "success",
-      success: true,
-    });
-  }
-  const userData = await User.findOne({
-    _id: new mongoose.Types.ObjectId(req.user._id),
-  });
-
-  const istDate = new Date(today.getTime() + 330 * 60 * 1000);
-  // console.log(today, istDate);
-  const resul = await Attendance.findOneAndUpdate(
-    { employee: req.user._id, date: formattedDate }, // filter
-    { $push: { "checkOut.times": istDate } },
-    {
-      new: true, // return the updated document instead of the old one
-    }
-  );
-  // console.log(resul);
-  // console.log(resul?.checkIn.times[resul?.totalSign]);
-  // console.log(resul?.checkOut.times[resul?.totalSign]);
-  const start = new Date(resul?.checkIn.times[resul?.totalSign]);
-  const end = new Date(resul?.checkOut.times[resul?.totalSign]);
-
-  // Get the difference in milliseconds
-  const diffMs = end - start;
-  // console.log(start);
-  // console.log(end);
-  // Convert to hours and minutes
-  let hours = Math.floor(diffMs / (1000 * 60 * 60));
-  let minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  hours = resul?.workHours + hours;
-  minutes = resul?.workMinutes + minutes;
-  console.log(hours, minutes);
-  if (minutes > 60) {
-    hours = hours + 1;
-    minutes = minutes - 60;
-  }
-  for (let i = 1; i <= minutes; i++) {
-    if (minutes === 60) {
-      hours += 1;
-      minutes = 0;
-    }
-  }
-  // console.log(hours, minutes);
-  const result2 = await Attendance.findOneAndUpdate(
-    { employee: req.user._id, date: formattedDate }, // filter
-    {
-      $set: {
-        workHours: hours,
-        workMinutes: minutes,
-      },
-    },
-    {
-      new: true, // return the updated document instead of the old one
-    }
-  );
-  console.log("called");
-  res.status(200).json({
-    status: "success",
-    success: true,
-  });
-
-  return;
-  const { id } = req.params;
-  const { checkOut } = req.body;
-
-  const attendance = await Attendance.findById(id);
 
   if (!attendance) {
-    throw createError(404, "No attendance record found with that ID");
+    return res.status(404).json({
+      status: "fail",
+      message: "No attendance record found for today",
+    });
   }
 
-  if (!attendance.checkIn || !attendance.checkIn.time) {
-    throw createError(400, "Cannot checkout without a check-in record");
-  }
+  // Convert to IST (+5:30)
+  const offset530 = (5 * 60 + 30) * 60 * 1000;
+  const istDate = new Date(today.getTime() + offset530);
 
-  if (attendance.checkOut && attendance.checkOut.time) {
-    throw createError(400, "Employee has already checked out");
-  }
+  attendance.checkOut.times.push(istDate);
+  attendance.updatedBy = req.user._id;
 
-  const checkInTime = new Date(attendance.checkIn.time);
-  const checkOutTime = new Date(checkOut?.time || new Date());
-
-  if (checkOutTime <= checkInTime) {
-    throw createError(400, "Check-out time must be after check-in time");
-  }
-
-  const workHours = calculateWorkHours(checkInTime, checkOutTime);
-
-  const updatedAttendance = await Attendance.findByIdAndUpdate(
-    id,
-    {
-      $set: {
-        checkOut: {
-          time: checkOutTime,
-          device: checkOut?.device || "Web",
-          ipAddress: checkOut?.ipAddress,
-        },
-        workHours,
-        status: determineStatus(checkInTime, checkOutTime, workHours),
-      },
-    },
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).populate({
-    path: "employee",
-    select: "firstName lastName department position",
-    populate: [
-      { path: "department", select: "name" },
-      { path: "position", select: "title" },
-    ],
-  });
+  // The pre('save') hook in model will handle workHours calculation (First In - Last Out - 45mins)
+  await attendance.save();
 
   res.status(200).json({
     status: "success",
-    data: { attendance: updatedAttendance },
+    data: { attendance },
   });
 });
 
@@ -1336,26 +1183,7 @@ exports.updateAttendance = catchAsync(async (req, res) => {
         shift: shift || attendance.shift,
         workHours: workHours.hour,
         workMinutes: workHours.minute,
-        // Recompute arrivalStatus from check-in in IST for updates too
-        arrivalStatus: (() => {
-          try {
-            if (!checkIndate) return attendance.arrivalStatus;
-            const fmt = new Intl.DateTimeFormat("en-IN", {
-              timeZone: "Asia/Kolkata",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
-            const parts = fmt.formatToParts(checkIndate);
-            const h = Number(parts.find((p) => p.type === "hour").value);
-            const m = Number(parts.find((p) => p.type === "minute").value);
-            if (h < 9 || (h === 9 && m === 0)) return "Early-Logged";
-            if (h > 9 || (h === 9 && m > 15)) return "Late-Logged";
-            return "On-Time";
-          } catch (_) {
-            return attendance.arrivalStatus;
-          }
-        })(),
+
       },
     }
   );
@@ -1384,21 +1212,21 @@ exports.updateAttendance = catchAsync(async (req, res) => {
         : attendance.date,
       checkIn: checkIn
         ? {
-            time: checkIn.time
-              ? moment.tz(checkIn.time, "UTC").toDate()
-              : attendance.checkIn.time,
-            device: checkIn.device || "Web",
-            ipAddress: checkIn.ipAddress,
-          }
+          time: checkIn.time
+            ? moment.tz(checkIn.time, "UTC").toDate()
+            : attendance.checkIn.time,
+          device: checkIn.device || "Web",
+          ipAddress: checkIn.ipAddress,
+        }
         : attendance.checkIn,
       checkOut: checkOut
         ? {
-            time: checkOut.time
-              ? moment.tz(checkOut.time, "UTC").toDate()
-              : attendance.checkOut.time,
-            device: checkOut.device || "Web",
-            ipAddress: checkOut.ipAddress,
-          }
+          time: checkOut.time
+            ? moment.tz(checkOut.time, "UTC").toDate()
+            : attendance.checkOut.time,
+          device: checkOut.device || "Web",
+          ipAddress: checkOut.ipAddress,
+        }
         : attendance.checkOut,
       status: status || attendance.status,
       notes: notes !== undefined ? notes : attendance.notes,
@@ -1548,19 +1376,19 @@ exports.getEmployeeAttendance = catchAsync(async (req, res, next) => {
       date: moment.tz(record.date, "UTC").toISOString(),
       checkIn: record.checkIn
         ? {
-            ...record.checkIn,
-            time: record.checkIn.time
-              ? moment.tz(record.checkIn.time, "UTC").toISOString()
-              : null,
-          }
+          ...record.checkIn,
+          time: record.checkIn.time
+            ? moment.tz(record.checkIn.time, "UTC").toISOString()
+            : null,
+        }
         : null,
       checkOut: record.checkOut
         ? {
-            ...record.checkOut,
-            time: record.checkOut.time
-              ? moment.tz(record.checkOut.time, "UTC").toISOString()
-              : null,
-          }
+          ...record.checkOut,
+          time: record.checkOut.time
+            ? moment.tz(record.checkOut.time, "UTC").toISOString()
+            : null,
+        }
         : null,
       monthYear: moment
         .tz(record.date, "UTC")

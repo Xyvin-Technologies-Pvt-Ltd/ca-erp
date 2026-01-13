@@ -10,7 +10,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
     checkIn: "",
     checkOut: "",
     status: "Present",
-    arrivalStatus: "",
+
     notes: "",
     shift: "Morning",
   });
@@ -33,7 +33,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
   const formatTimeForInput = (timeString) => {
     if (!timeString) return "";
     const date = new Date(timeString);
-    
+
     const minus5h30 = new Date(date.getTime() - (5 * 60 + 30) * 60 * 1000);
     // Use local time components to avoid timezone conversion
     const hours = String(minus5h30.getHours()).padStart(2, "0");
@@ -52,11 +52,11 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
           attendance.checkOut?.times.length - 1
         ]
           ? formatTimeForInput(
-              attendance.checkOut.times[attendance.checkOut?.times.length - 1]
-            )
+            attendance.checkOut.times[attendance.checkOut?.times.length - 1]
+          )
           : "",
         status: attendance.status || "Present",
-        arrivalStatus: attendance.arrivalStatus || "",
+
         notes: attendance.notes || "",
         shift: attendance.shift || "Morning",
       });
@@ -129,11 +129,11 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
       const workHours =
         checkInDateTime && checkOutDateTime
           ? Math.max(
-              0,
-              Math.round(
-                ((checkOutDateTime - checkInDateTime) / (1000 * 60 * 60)) * 100
-              ) / 100
-            )
+            0,
+            Math.round(
+              ((checkOutDateTime - checkInDateTime) / (1000 * 60 * 60)) * 100
+            ) / 100
+          )
           : 0;
 
       await updateAttendance(attendance._id, {
@@ -148,7 +148,7 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
         notes: formData.notes,
         shift: formData.shift,
         workHours,
-        arrivalStatus: formData.arrivalStatus || undefined,
+
       });
 
       toast.success("Attendance updated successfully");

@@ -291,24 +291,21 @@ const Attendance = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${
-                  statusColors[s.key].border
-                } hover:shadow-md hover:-translate-y-1 transition-all duration-300 `}
+                className={`group bg-white rounded-xl shadow-sm p-4 flex items-center space-x-3 border ${statusColors[s.key].border
+                  } hover:shadow-md hover:-translate-y-1 transition-all duration-300 `}
                 whileHover={{ scale: 1.02 }}
               >
                 <div
-                  className={`p-2 rounded-full ${
-                    statusColors[s.key].bg
-                  } group-hover:scale-110 transition-transform duration-200`}
+                  className={`p-2 rounded-full ${statusColors[s.key].bg
+                    } group-hover:scale-110 transition-transform duration-200`}
                 >
                   <Icon className={`h-6 w-6 ${statusColors[s.key].text}`} />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">{s.label}</p>
                   <p
-                    className={`text-2xl font-bold ${
-                      statusColors[s.key].text
-                    } group-hover:text-indigo-600 transition-colors duration-200`}
+                    className={`text-2xl font-bold ${statusColors[s.key].text
+                      } group-hover:text-indigo-600 transition-colors duration-200`}
                   >
                     {statusCounts[s.key] || 0}
                   </p>
@@ -352,14 +349,12 @@ const Attendance = () => {
                   }
                 }}
                 placeholder="Enter employee name..."
-                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead]  transition-all duration-300 ${
-                  isSearching ? "animate-pulse" : ""
-                }`}
+                className={`w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1c6ead]  transition-all duration-300 ${isSearching ? "animate-pulse" : ""
+                  }`}
               />
               <UserIcon
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-                  isSearching ? "text-indigo-500" : "text-gray-400"
-                }`}
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isSearching ? "text-indigo-500" : "text-gray-400"
+                  }`}
               />
             </div>
           </div>
@@ -436,9 +431,7 @@ const Attendance = () => {
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Check Out
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Arrival Status
-                </th>
+
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -515,24 +508,19 @@ const Attendance = () => {
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkOut?.times[0]
                             ? moment(
-                                a.checkOut.times[a?.checkOut?.times.length - 1]
-                              ).format("h:mm A")
+                              a.checkOut.times[a?.checkOut?.times.length - 1]
+                            ).format("h:mm A")
                             : "-"}
                         </td>
-                        <td className="px-6 py-4 text-base text-gray-900">
-                          {a.arrivalStatus || "-"}
-                        </td>
+
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${
-                              statusColors[a.status]?.tableBg || "bg-gray-50"
-                            } ${
-                              statusColors[a.status]?.tableText ||
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[a.status]?.tableBg || "bg-gray-50"
+                              } ${statusColors[a.status]?.tableText ||
                               "text-gray-600"
-                            } max-w-max border ${
-                              statusColors[a.status]?.border ||
+                              } max-w-max border ${statusColors[a.status]?.border ||
                               "border-gray-100"
-                            }`}
+                              }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}
@@ -671,11 +659,10 @@ const Attendance = () => {
                 <button
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                    page === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
-                  }`}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${page === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                    }`}
                 >
                   <span className="sr-only">First</span>
                   <ChevronLeftIcon className="h-5 w-5" />
@@ -685,11 +672,10 @@ const Attendance = () => {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        p === page
-                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                          : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
-                      }`}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page
+                        ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                        : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
+                        }`}
                     >
                       {p}
                     </button>
@@ -698,11 +684,10 @@ const Attendance = () => {
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                    page === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
-                  }`}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${page === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200"
+                    }`}
                 >
                   <span className="sr-only">Next</span>
                   <ChevronRightIcon className="h-5 w-5" />

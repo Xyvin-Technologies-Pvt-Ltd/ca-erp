@@ -16,21 +16,21 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
     checkIn: {
-  times: [Date],
-  device: {
-    type: String,
-    enum: ["Web", "Mobile", "Biometric"],
-  },
-  ipAddress: String,
-  location: {
-    lat: { type: Number },
-    lon: { type: Number },
-    city: { type: String },
-    region: { type: String },
-    country: { type: String },
-    source: { type: String, enum: ["gps", "ip"], default: "ip" },
-  },
-},
+      times: [Date],
+      device: {
+        type: String,
+        enum: ["Web", "Mobile", "Biometric"],
+      },
+      ipAddress: String,
+      location: {
+        lat: { type: Number },
+        lon: { type: Number },
+        city: { type: String },
+        region: { type: String },
+        country: { type: String },
+        source: { type: String, enum: ["gps", "ip"], default: "ip" },
+      },
+    },
     checkOut: {
       times: [Date],
       device: {
@@ -44,7 +44,7 @@ const attendanceSchema = new mongoose.Schema(
       enum: [
         "Present",
         "Absent",
-        "Half-Day", 
+        "Half-Day",
         "Late",
         "Early-Leave",
         "Holiday",
@@ -53,10 +53,7 @@ const attendanceSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    arrivalStatus: {
-      type: String,
-      enum: ["Early-Logged", "On-Time", "Late-Logged"],
-    },
+
     workHours: {
       type: Number,
       default: 0,
@@ -228,32 +225,53 @@ attendanceSchema.pre("save", function (next) {
     this.workHours = 0;
     return next();
   }
-  if (this.checkIn && this.checkOut) {
-    const checkInTime = new Date(this.checkIn.time);
-    const checkOutTime = new Date(this.checkOut.time);
-    const totalBreakDuration = this.breaks.reduce((total, breakItem) => {
-      if (breakItem.startTime && breakItem.endTime) {
-        return (
-          total +
-          (new Date(breakItem.endTime) - new Date(breakItem.startTime)) /
-            (1000 * 60 * 60)
-        );
-      }
-      return total;
-    }, 0);
-    this.workHours =
-      (checkOutTime - checkInTime) / (1000 * 60 * 60) - totalBreakDuration;
-    this.workHours = Math.round(this.workHours * 100) / 100;
-  }
-  next();
-});
 
-attendanceSchema.pre("save", function (next) {
-  if (this.isLeave) {
-    return next();
-  }
-  if (this.checkIn && this.checkOut && this.checkIn.time > this.checkOut.time) {
-    throw new Error("Check-out time cannot be before check-in time");
+  // Only recalculate if check-in/out times are present and modified, 
+  // OR if it's a new record with both times
+  if (this.checkIn && this.checkIn.times && this.checkIn.times.length > 0 &&
+    this.checkOut && this.checkOut.times && this.checkOut.times.length > 0) {
+
+    const checkInTime = new Date(this.checkIn.times[0]); // Using first check-in
+    // Use the last check-out for the day
+    const checkOutTime = new Date(this.checkOut.times[this.checkOut.times.length - 1]);
+
+    let durationMs = 0;
+
+    if (checkOutTime > checkInTime) {
+      durationMs = checkOutTime - checkInTime;
+    }
+
+    // Convert to minutes
+    let totalMinutes = Math.floor(durationMs / (1000 * 60));
+
+    // DEDUCT 45 MINUTES MANDATORY BREAK OONLY IF HOURS > 0
+    if (totalMinutes > 0) {
+      totalMinutes -= 45;
+    }
+
+    // Ensure no negative work time
+    if (totalMinutes < 0) totalMinutes = 0;
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    this.workHours = hours;
+    this.workMinutes = minutes;
+
+    // DETERMINE STATUS
+    // Policy: >= 8 hours -> Present
+    //         >= 4 hours -> Half-Day
+    //         < 4 hours  -> Absent 
+
+    if (!["Holiday", "On-Leave", "Day-Off"].includes(this.status)) {
+      if (hours >= 8) {
+        this.status = "Present";
+      } else if (hours >= 4) {
+        this.status = "Half-Day";
+      } else {
+        this.status = "Absent";
+      }
+    }
   }
   next();
 });
