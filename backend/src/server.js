@@ -77,7 +77,7 @@ cronService.init();
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com' , 'https://testerp.xyvin.com' , 'https://api-testerp.xyvin.com'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com', 'https://testerp.xyvin.com', 'https://api-testerp.xyvin.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -117,11 +117,11 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
-app.use('/api/departments',departments)
-app.use('/api/positions',positionRoutes)
-app.use('/api/events',eventsRoutes)
-app.use('/api/leaves',leavesRoutes)
-app.use('/api/attendance',attendanceRoutes)
+app.use('/api/departments', departments)
+app.use('/api/positions', positionRoutes)
+app.use('/api/events', eventsRoutes)
+app.use('/api/leaves', leavesRoutes)
+app.use('/api/attendance', attendanceRoutes)
 app.use('/api/cronjobs', cronJobRoutes)
 app.use('/api/sections', sectionRoutes)
 app.use('/api/upload', uploadRoutes);
@@ -137,9 +137,9 @@ app.get('/api/health', async (req, res) => {
     try {
         const { checkSuperAdmin } = require('./utils/seedSuperAdmin');
         const superadminExists = await checkSuperAdmin();
-        
-        res.status(200).json({ 
-            status: 'ok', 
+
+        res.status(200).json({
+            status: 'ok',
             message: 'Server is running',
             superadmin: {
                 exists: superadminExists,
@@ -147,8 +147,8 @@ app.get('/api/health', async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ 
-            status: 'error', 
+        res.status(500).json({
+            status: 'error',
             message: 'Server is running but health check failed',
             error: error.message
         });
@@ -168,7 +168,7 @@ const PORT = process.env.PORT || 5001;
 const server = app.listen(PORT, async () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on port ${PORT}`);
-    
+
     // Initialize server (database connection and seeding)
     try {
         await initializeServer();
@@ -179,7 +179,7 @@ const server = app.listen(PORT, async () => {
         console.error('❌ Server initialization failed:', error.message);
         process.exit(1);
     }
-    
+
     // Initialize cron service
     try {
         await cronService.init();
@@ -200,5 +200,3 @@ process.on('unhandledRejection', (err) => {
 });
 
 module.exports = { server };
-// Force restart for timezone fix Mon Jan 12 17:30:50 IST 2026
-// Force restart for IST storage fix Mon Jan 12 17:38:13 IST 2026

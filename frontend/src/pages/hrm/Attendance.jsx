@@ -501,18 +501,18 @@ const Attendance = () => {
                             "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {a.date ? moment.utc(a.date).format("DD/MM/YYYY") : "-"}
+                          {a.date ? moment(a.date).format("DD/MM/YYYY") : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkIn?.times[0]
-                            ? moment.utc(a.checkIn.times[0]).format("h:mm A")
+                            ? moment(a.checkIn.times[0]).format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {a.checkOut?.times[0]
                             ? moment(
                               a.checkOut.times[a?.checkOut?.times.length - 1]
-                            ).utc().format("h:mm A")
+                            )().format("h:mm A")
                             : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">

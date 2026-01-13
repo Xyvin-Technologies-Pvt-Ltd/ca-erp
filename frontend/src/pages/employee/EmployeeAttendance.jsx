@@ -285,8 +285,8 @@ const EmployeeAttendance = () => {
           <AnimatePresence>
             {days.map((day, index) => {
               // Create a proper date string in YYYY-MM-DD format
-              const dateStr = moment(day).format("YYYY-MM-DD");
-              const todayStr = moment().format("YYYY-MM-DD");
+              const dateStr = moment(day).tz("Asia/Kolkata").format("YYYY-MM-DD");
+              const todayStr = moment().tz("Asia/Kolkata").format("YYYY-MM-DD");
               const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
@@ -391,7 +391,7 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = moment.utc(day).format("YYYY-MM-DD");
+                    const dateStr = moment(day).format("YYYY-MM-DD");
                     const att = attendanceByDate[dateStr];
                     console.log(att)
                     const Icon = statusColors[att?.status]?.icon;

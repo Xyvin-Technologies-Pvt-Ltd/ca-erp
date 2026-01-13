@@ -16,6 +16,8 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 moment.tz.setDefault("UTC");
 
+
+
 const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
   const [formData, setFormData] = useState({
     date: (() => {
@@ -278,9 +280,9 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
           : new Date().toISOString().split("T")[0],
         time: attendance[attendance.type]?.time
           ? new Date(attendance[attendance.type].time)
-              .toTimeString()
-              .split(" ")[0]
-              .slice(0, 5)
+            .toTimeString()
+            .split(" ")[0]
+            .slice(0, 5)
           : new Date().toTimeString().split(" ")[0].slice(0, 5),
         type: attendance.type || "checkIn",
         status: attendance.status || "Present",
@@ -345,10 +347,10 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
     setFilteredEmployees(
       searchTerm
         ? activeEmployees.filter(
-            (emp) =>
-              emp.name?.toLowerCase().includes(searchTerm) ||
-              emp.employeeId?.toLowerCase().includes(searchTerm)
-          )
+          (emp) =>
+            emp.name?.toLowerCase().includes(searchTerm) ||
+            emp.employeeId?.toLowerCase().includes(searchTerm)
+        )
         : activeEmployees
     );
   };
@@ -383,12 +385,12 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
         // Create attendance date-time in UTC
         const attendanceDateTime = moment.tz(
           [year, month - 1, day, hours, minutes],
-          "UTC"
+          "Asia/Kolkata"
         );
 
         // Create date-only object (start of day in UTC)
         const dateOnly = moment
-          .tz([year, month - 1, day], "UTC")
+          .tz([year, month - 1, day], "Asia/Kolkata")
           .startOf("day");
 
         return {
@@ -455,7 +457,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
               <span className="text-blue-600">
                 {loadingExisting
                   ? "Checking..."
-                  : ` ${availableEmployeesCount} records available for ${formData.type ==="checkIn"?"Check In":"Check Out"}`}
+                  : ` ${availableEmployeesCount} records available for ${formData.type === "checkIn" ? "Check In" : "Check Out"}`}
               </span>
             </div>
           </div>
@@ -605,7 +607,7 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                       id="select-all"
                       checked={
                         formData.selectedEmployees.length ===
-                          availableEmployeesCount && availableEmployeesCount > 0
+                        availableEmployeesCount && availableEmployeesCount > 0
                       }
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-[#1c6ead]"
@@ -637,9 +639,8 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                     return (
                       <div
                         key={employee._id}
-                        className={`flex items-center space-x-2 py-2 px-2 rounded ${
-                          !canSelect ? "bg-gray-50" : "hover:bg-gray-50"
-                        }`}
+                        className={`flex items-center space-x-2 py-2 px-2 rounded ${!canSelect ? "bg-gray-50" : "hover:bg-gray-50"
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -658,9 +659,8 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
                         />
                         <label
                           htmlFor={`employee-${employee._id}`}
-                          className={`text-sm flex-1 ${
-                            !canSelect ? "text-gray-400" : "text-gray-700"
-                          }`}
+                          className={`text-sm flex-1 ${!canSelect ? "text-gray-400" : "text-gray-700"
+                            }`}
                         >
                           {employee.name} ({employee.employeeId || "No ID"})
                         </label>
@@ -700,9 +700,8 @@ const AttendanceModal = ({ isOpen, onClose, onSuccess, attendance }) => {
             >
               {loading
                 ? "Saving..."
-                : `Record ${
-                    formData.type === "checkIn" ? "Check-In" : "Check-Out"
-                  } (${formData.selectedEmployees.length})`}
+                : `Record ${formData.type === "checkIn" ? "Check-In" : "Check-Out"
+                } (${formData.selectedEmployees.length})`}
             </button>
           </div>
         </form>

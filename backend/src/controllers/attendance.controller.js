@@ -686,17 +686,26 @@ exports.createBulkAttendance = catchAsync(async (req, res) => {
 //   if (checkOut <= checkIn) {
 //     return 0;
 //   }
-
 //   const diffInHours = (checkOut - checkIn) / (1000 * 60 * 60); // Convert milliseconds to hours
 //   return Math.max(0, Math.round(diffInHours * 100) / 100); // Round to 2 decimal places, ensure non-negative
 // };
 
 exports.createAttendance = catchAsync(async (req, res) => {
-  // istSimulatedDate is used ONLY to determine the "Current Day" in IST
-  // This ensures that if it's 1 AM IST (but previous day UTC), we still log it under the new day.
+
   const istSimulatedDate = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
   );
+
+  const hours = istSimulatedDate.getHours();
+  const minutes = istSimulatedDate.getMinutes();
+
+  if (hours < 8 || (hours === 8 && minutes < 30)) {
+    return res.status(200).json({
+      status: "success",
+      msg: "Please Login In 8:30 AM For Attendence...",
+      beforeNine: true,
+    });
+  }
 
   const startOfDay = new Date(istSimulatedDate);
   startOfDay.setHours(0, 0, 0, 0);
@@ -717,9 +726,13 @@ exports.createAttendance = catchAsync(async (req, res) => {
     isDeleted: false,
   });
 
+  // Read device from header or default to "Web"
+  const device = req.headers["x-device-type"] || "Web";
+
   // If already exists → push check-in
   if (attendance) {
     attendance.checkIn.times.push(timestamp);
+    attendance.checkIn.device = device;
     attendance.status = "Present";
     attendance.updatedBy = req.user._id;
     await attendance.save();
@@ -736,7 +749,7 @@ exports.createAttendance = catchAsync(async (req, res) => {
     date: startOfDay,
     checkIn: {
       times: [timestamp],
-      device: "Web",
+      device: device,
     },
     checkOut: {
       times: [],
@@ -788,7 +801,18 @@ exports.checkOut = catchAsync(async (req, res) => {
     });
   }
 
+  if (attendance.checkOut.times.length >= attendance.checkIn.times.length) {
+    return res.status(400).json({
+      status: "fail",
+      message: "You have already checked out for the latest session",
+    });
+  }
+
+  // Read device from header or default to "Web"
+  const device = req.headers["x-device-type"] || "Web";
+
   attendance.checkOut.times.push(timestamp);
+  attendance.checkOut.device = device;
   attendance.updatedBy = req.user._id;
 
   await attendance.save(); // Model hook handles calculations and status
