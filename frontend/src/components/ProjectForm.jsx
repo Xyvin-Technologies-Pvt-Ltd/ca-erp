@@ -87,9 +87,13 @@ const ProjectForm = ({
     if (!presetLevels || departments.length === 0) return;
 
     const hydratedLevels = presetLevels.map(lvl => {
-      const dept = departments.find(
-        d => d.name === lvl.department
+      const deptName = (lvl.department || "").trim().toLowerCase();
+
+      const dept = departments.find(d =>
+        (d.name || "").trim().toLowerCase() === deptName ||
+        d._id === lvl.department
       );
+
 
       return {
         department: dept?._id || "",

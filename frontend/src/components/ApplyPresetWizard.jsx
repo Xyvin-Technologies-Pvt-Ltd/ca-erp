@@ -56,8 +56,12 @@ const ApplyPresetWizard = ({ presetId, onClose }) => {
                 tasks: tasks,
             });
 
-            navigate(`/projects/${res.projectId}`);
-            onClose();
+            if (onSuccess) {
+                onSuccess(res.data);
+            } else {
+                navigate(`/projects/${res.projectId}`);
+                onClose();
+            }
         } catch (err) {
             console.error("Failed to apply preset", err);
         }
@@ -75,39 +79,16 @@ const ApplyPresetWizard = ({ presetId, onClose }) => {
     if (!preset) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-4xl rounded-xl shadow-xl overflow-hidden">
-
-                {/* HEADER */}
-                <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">
-                            Apply Preset: {preset.name}
-                        </h2>
-                        <p className="text-sm text-gray-600">
-                            Project details and assignments
-                        </p>
-                    </div>
-                    <button onClick={onClose}>
-                        <XMarkIcon className="h-6 w-6 text-gray-500" />
-                    </button>
-                </div>
-
-
-                <div className="p-6">
-                    <ProjectForm
-                        project={{
-                            name: preset.name,
-                            description: preset.description,
-                        }}
-                        presetLevels={preset.levels}
-                        lockDepartments={true}
-                        onCancel={onClose}
-                        onSubmit={handleProjectSubmit}
-                    />
-                </div>
-            </div>
-        </div>
+        <ProjectForm
+            project={{
+                name: preset.name,
+                description: preset.description,
+            }}
+            presetLevels={preset.levels}
+            lockDepartments={true}
+            onCancel={onClose}
+            onSubmit={handleProjectSubmit}
+        />
     );
 };
 

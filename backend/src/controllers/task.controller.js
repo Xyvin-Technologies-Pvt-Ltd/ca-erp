@@ -33,8 +33,12 @@ exports.getTasks = async (req, res, next) => {
       filter.priority = req.query.priority;
     }
     filter.deleted = { $ne: true };
-    // Hide pending preset tasks from sidebar
-    filter.isPresetPending = { $ne: true };
+    // Handle pending preset tasks
+    if (req.query.isPresetPending === 'true') {
+      filter.isPresetPending = true;
+    } else {
+      filter.isPresetPending = { $ne: true };
+    }
 
     // Add project filter to only get tasks with non-deleted projects
     const validProjects = await Project.find({ deleted: { $ne: true } }, "_id");
@@ -115,7 +119,8 @@ exports.getTasks = async (req, res, next) => {
       .populate({
         path: "createdBy",
         select: "name email",
-      });
+      })
+      .populate("department", "name");
 
     // Filter out tasks where project population failed
     const validTasks = tasks.filter((task) => task.project != null);
