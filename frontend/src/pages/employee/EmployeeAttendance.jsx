@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendance } from "../../api/attendance";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import moment from "moment-timezone";
+import moment from "moment";
 import { Clock } from "lucide-react";
 import {
   CalendarIcon,
@@ -17,6 +17,8 @@ import {
 } from "@heroicons/react/24/outline";
 import useHeaderStore from "../../stores/useHeaderStore";
 
+// moment.tz.setDefault('UTC');
+
 const statusColors = {
   Present: {
     bg: "bg-emerald-100",
@@ -30,12 +32,12 @@ const statusColors = {
     border: "border-red-200",
     icon: XCircleIcon,
   },
-  // Late: {
-  //   bg: "bg-amber-100",
-  //   text: "text-amber-700",
-  //   border: "border-amber-200",
-  //   icon: ClockIcon,
-  // },
+  Late: {
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    icon: ClockIcon,
+  },
   "Half-Day": {
     bg: "bg-blue-100",
     text: "text-[#1c6ead]",
@@ -135,7 +137,7 @@ const EmployeeAttendance = () => {
   const statusList = [
     { key: "Present", label: "Present" },
     { key: "On-Leave", label: "On Leave" },
-    // { key: "Late", label: "Late" },
+    { key: "Late", label: "Late" },
     { key: "Half-Day", label: "Half Day" },
     { key: "Early-Leave", label: "Early Leave" },
     { key: "Absent", label: "Absent" },
@@ -152,10 +154,10 @@ const EmployeeAttendance = () => {
   const attendanceByDate = {};
   attendance.forEach((a) => {
     if (a.date) {
-      const dateStr = moment(a.date).format("YYYY-MM-DD");
-      attendanceByDate[dateStr] = a;
-    } else if (a.checkIn?.time) {
-      const dateStr = moment(a.checkIn.time).format("YYYY-MM-DD");
+      const date = new Date(a.date);
+      const dateStr = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       attendanceByDate[dateStr] = a;
     }
   });
@@ -173,7 +175,10 @@ const EmployeeAttendance = () => {
   const days = getDaysInMonth(year, month - 1);
   const firstDayOfWeek = days.length > 0 ? days[0].getDay() : 0;
   const attendanceDays = days.filter((day) => {
-    const dateStr = moment(day).format("YYYY-MM-DD");
+    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(day.getDate()).padStart(2, "0")}`;
     return attendanceByDate[dateStr];
   });
 
@@ -285,8 +290,13 @@ const EmployeeAttendance = () => {
           <AnimatePresence>
             {days.map((day, index) => {
               // Create a proper date string in YYYY-MM-DD format
-              const dateStr = moment(day).tz("Asia/Kolkata").format("YYYY-MM-DD");
-              const todayStr = moment().tz("Asia/Kolkata").format("YYYY-MM-DD");
+              const dateStr = `${day.getFullYear()}-${String(
+                day.getMonth() + 1
+              ).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+              const today = new Date();
+              const todayStr = `${today.getFullYear()}-${String(
+                today.getMonth() + 1
+              ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
               const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
               const Icon = att ? statusColors[att.status]?.icon : null;
@@ -362,7 +372,7 @@ const EmployeeAttendance = () => {
                   Check Out
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Work Hours
+                  Work Hours[HH:MM]
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -391,7 +401,12 @@ const EmployeeAttendance = () => {
               ) : (
                 <AnimatePresence>
                   {attendanceDays.map((day, index) => {
-                    const dateStr = moment(day).format("YYYY-MM-DD");
+                    const dateStr = `${day.getFullYear()}-${String(
+                      day.getMonth() + 1
+                    ).padStart(2, "0")}-${String(day.getDate()).padStart(
+                      2,
+                      "0"
+                    )}`;
                     const att = attendanceByDate[dateStr];
                     console.log(att)
                     const Icon = statusColors[att?.status]?.icon;
@@ -405,7 +420,11 @@ const EmployeeAttendance = () => {
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
                         <td className="px-6 py-4 text-base text-gray-900">
-                          {moment(day).format("DD/MM/YYYY")}
+                          {att?.date
+                            ? moment(att.date).format("DD/MM/YYYY")
+                            : att?.checkIn?.time
+                              ? moment(att.checkIn.time).format("DD/MM/YYYY")
+                              : "-"}
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.checkIn?.times[0]
@@ -423,7 +442,7 @@ const EmployeeAttendance = () => {
                         </td>
                         <td className="px-6 py-4 text-base text-gray-900">
                           {att?.workHours != null
-                            ? att.workHours + ":" + String(att.workMinutes || 0).padStart(2, '0')
+                            ? att.workHours + ":" + att.workMinutes
                             : "-"}
                         </td>
 
