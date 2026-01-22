@@ -6,10 +6,12 @@ import {
   TrashIcon,
   CheckCircleIcon,
   XCircleIcon,
+  XMarkIcon,
   ClockIcon,
   CalendarIcon,
   UserCircleIcon,
   TagIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import LeaveModal from "../../components/LeaveModal";
@@ -19,8 +21,10 @@ import {
   updateLeave,
   deleteLeave,
   reviewLeave,
+  getMonthlyLeaveStats,
 } from "../../api/Leave";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import EmployeeAnnualLeaveCalendar from "../../components/EmployeeAnnualLeaveCalendar";
 
 const statusColors = {
   Approved: "bg-green-100 text-green-800",
@@ -51,6 +55,23 @@ const Leave = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [statsData, setStatsData] = useState({});
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [selectedEmployeeForCalendar, setSelectedEmployeeForCalendar] = useState(null);
+
+  const fetchMonthlyStats = async () => {
+    setLoadingStats(true);
+    try {
+      const response = await getMonthlyLeaveStats();
+      setStatsData(response.data || {});
+      setShowStatsModal(true);
+    } catch (error) {
+      toast.error("Failed to fetch monthly leave statistics");
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const fetchLeavesData = async (pageNum = page) => {
     setLoading(true);
@@ -106,15 +127,28 @@ const Leave = () => {
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen"
     >
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center space-x-3 mb-4 sm:mb-0"
-        >
-          <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Leave Requests</h1>
-        </motion.div>
+
+        <div className="flex items-center space-x-3">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center space-x-3"
+          >
+            <CalendarIcon className="h-8 w-8 text-[#1c6ead]" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Leave Requests</h1>
+          </motion.div>
+
+          <motion.button
+            onClick={fetchMonthlyStats}
+            className="group px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 shadow-sm flex items-center space-x-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ChartBarIcon className="h-5 w-5 text-[#1c6ead]" />
+            <span className="font-medium">Monthly Stats</span>
+          </motion.button>
+        </div>
         {/* <motion.button
           onClick={handleAdd}
           className="group px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"  
@@ -235,10 +269,10 @@ const Leave = () => {
                           <span>
                             {leave.startDate
                               ? new Date(leave.startDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "2-digit",
-                                })
+                                month: "short",
+                                day: "numeric",
+                                year: "2-digit",
+                              })
                               : "N/A"}
                           </span>
                         </div>
@@ -249,10 +283,10 @@ const Leave = () => {
                           <span>
                             {leave.endDate
                               ? new Date(leave.endDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "2-digit",
-                                })
+                                month: "short",
+                                day: "numeric",
+                                year: "2-digit",
+                              })
                               : "N/A"}
                           </span>
                         </div>
@@ -304,60 +338,57 @@ const Leave = () => {
       </AnimatePresence>
 
       {/* Pagination Controls */}
-       {totalPages > 0 && leaves.length > 0 && (
-                                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                          <div>
-                                              <p className="text-sm text-gray-700">
-                                                  Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-                                                  <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
-                                                  <span className="font-medium">{total}</span> results
-                                              </p>
-                                          </div>
-                                          <div>
-                                              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                                  <button
-                                                      onClick={() => setPage(page - 1)}
-                                                      disabled={page === 1}
-                                                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                                                          page === 1
-                                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                              : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                                                      }`}
-                                                  >
-                                                      <span className="sr-only">First</span>
-                                                      <ChevronLeftIcon className="h-5 w-5" />
-                                                  </button>
-                                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                                                      <button
-                                                          key={p}
-                                                          onClick={() => setPage(p)}
-                                                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                                              p === page
-                                                                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                                                  : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
-                                                          }`}
-                                                      >
-                                                          {p}
-                                                      </button>
-                                                  ))}
-                                                  <button
-                                                      onClick={() => setPage(page + 1)}
-                                                      disabled={page === totalPages}
-                                                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                                                          page === totalPages
-                                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                              : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
-                                                      }`}
-                                                  >
-                                                      <span className="sr-only">Next</span>
-                                                      <ChevronRightIcon className="h-5 w-5" />
-                                                  </button>
-                                              </nav>
-                                          </div>
-                                      </div>
-                                  </div>
-                              )}
+      {totalPages > 0 && leaves.length > 0 && (
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+                <span className="font-medium">{Math.min(page * limit, total)}</span> of{" "}
+                <span className="font-medium">{total}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${page === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                    }`}
+                >
+                  <span className="sr-only">First</span>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page
+                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                      : 'bg-white border-gray-200 text-gray-500 hover:bg-indigo-50'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${page === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-indigo-600 hover:bg-indigo-50 border-gray-200'
+                    }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
       {/* {totalPages > 0 && (
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
@@ -457,6 +488,95 @@ const Leave = () => {
             />
           </motion.div>
         )}
+        {showStatsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowStatsModal(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-6xl max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <div className="flex items-center space-x-3">
+                  <ChartBarIcon className="h-6 w-6 text-[#1c6ead]" />
+                  <h2 className="text-xl font-bold text-gray-900">Monthly Leave Statistics ({new Date().getFullYear()})</h2>
+                </div>
+                <button
+                  onClick={() => setShowStatsModal(false)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="overflow-auto flex-1 p-6">
+                {Object.keys(statsData || {}).length === 0 ? (
+                  <div className="text-center py-10 text-gray-500">No leave data available for this year.</div>
+                ) : (
+                  <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+                    <thead className="bg-gray-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b">Employee</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b">Total</th>
+                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                          <th key={m} className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b">{m}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {Object.values(statsData).map((stat, idx) => (
+                        <tr
+                          key={idx}
+                          className="hover:bg-blue-50 cursor-pointer transition-colors duration-150"
+                          onClick={() => setSelectedEmployeeForCalendar({
+                            id: Object.keys(statsData).find(key => statsData[key] === stat),
+                            name: stat.name
+                          })}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {stat.name}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-bold text-[#1c6ead]">{stat.totalYearly}</td>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
+                            <td key={m} className={`px-2 py-3 whitespace-nowrap text-sm text-center ${stat.months[m] > 0 ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                              {stat.months[m] > 0 ? stat.months[m] : '-'}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex justify-end">
+                <button
+                  onClick={() => setShowStatsModal(false)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <AnimatePresence>
+          {selectedEmployeeForCalendar && (
+            <EmployeeAnnualLeaveCalendar
+              employeeId={selectedEmployeeForCalendar.id}
+              employeeName={selectedEmployeeForCalendar.name}
+              year={new Date().getFullYear()}
+              onClose={() => setSelectedEmployeeForCalendar(null)}
+            />
+          )}
+        </AnimatePresence>
+
         {deleteModal.isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
