@@ -13,7 +13,14 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
     const [description, setDescription] = useState("");
     const [departments, setDepartments] = useState([]);
     const [levels, setLevels] = useState([{ department: "" }]);
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState([
+        {
+            title: "",
+            description: "",
+            priority: "medium",
+            levelIndex: 0,
+        },
+    ]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const isEditMode = Boolean(preset);
@@ -178,33 +185,33 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                     {/* Preset Info */}
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Preset Name *
                             </label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-3 border rounded-lg"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Description
                             </label>
                             <textarea
                                 rows={3}
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full px-4 py-3 border rounded-lg"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                             />
                         </div>
                     </div>
 
                     {/* Department Levels */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             Department Levels *
                         </label>
 
@@ -215,7 +222,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                     onChange={(e) =>
                                         updateLevel(index, e.target.value)
                                     }
-                                    className="w-full px-4 py-3 border rounded-lg"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                                 >
                                     <option value="">Select department</option>
                                     {departments.map((d) => (
@@ -252,13 +259,6 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                             <label className="text-sm font-medium text-gray-700">
                                 Preset Tasks
                             </label>
-                            <button
-                                type="button"
-                                onClick={addTask}
-                                className="text-[#1c6ead] font-semibold"
-                            >
-                                + Add Task
-                            </button>
                         </div>
 
                         {tasks.map((task, index) => (
@@ -273,7 +273,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                     onChange={(e) =>
                                         updateTask(index, "title", e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border rounded"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
                                 />
 
                                 <textarea
@@ -283,7 +283,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                     onChange={(e) =>
                                         updateTask(index, "description", e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border rounded"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 resize-none"
                                 />
 
                                 <div className="flex gap-3">
@@ -292,7 +292,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                         onChange={(e) =>
                                             updateTask(index, "priority", e.target.value)
                                         }
-                                        className="px-3 py-2 border rounded"
+                                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                                     >
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
@@ -308,7 +308,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                                 Number(e.target.value)
                                             )
                                         }
-                                        className="px-3 py-2 border rounded"
+                                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
                                     >
                                         {levels.map((_, i) => (
                                             <option key={i} value={i}>
@@ -317,16 +317,25 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                                         ))}
                                     </select>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => removeTask(index)}
-                                        className="text-red-600"
-                                    >
-                                        Remove
-                                    </button>
+                                    {tasks.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeTask(index)}
+                                            className="text-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
+                        <button
+                            type="button"
+                            onClick={addTask}
+                            className="text-[#1c6ead] font-semibold"
+                        >
+                            + Add Task
+                        </button>
                     </div>
 
                     {/* Actions */}

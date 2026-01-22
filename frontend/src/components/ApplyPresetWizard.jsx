@@ -5,7 +5,7 @@ import ProjectForm from "./ProjectForm";
 import TaskForm from "./TaskForm";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-const ApplyPresetWizard = ({ presetId, onClose }) => {
+const ApplyPresetWizard = ({ presetId, onClose, onSuccess }) => {
     const navigate = useNavigate();
 
     const [step, setStep] = useState(1);

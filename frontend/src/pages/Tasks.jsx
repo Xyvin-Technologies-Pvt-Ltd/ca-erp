@@ -232,7 +232,8 @@ const Tasks = () => {
           <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
-        {(role === "admin" || role === "manager" || canStaffCreateTask) && (
+         {/* {(role === "admin" || role === "manager" || canStaffCreateTask) && ( */}
+        {(role === "admin" || role === "manager") && (
           <motion.button
             onClick={() => setIsModalOpen(true)}
             className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
@@ -248,7 +249,7 @@ const Tasks = () => {
       </div>
 
       {/* Pending Tasks Section */}
-      {pendingSetupTasks.length > 0 && (
+      {pendingSetupTasks.length > 0 && role !== "staff" && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 shadow-sm mb-6">
           <div className="flex justify-between items-center">
             <div>

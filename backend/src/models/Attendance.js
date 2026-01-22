@@ -21,7 +21,15 @@ const attendanceSchema = new mongoose.Schema(
         type: String,
         enum: ["Web", "Mobile", "Biometric"],
       },
-      // ipAddress: String
+      ipAddress: String,
+      location: {
+        lat: { type: Number },
+        lon: { type: Number },
+        city: { type: String },
+        region: { type: String },
+        country: { type: String },
+        source: { type: String, enum: ["gps", "ip"], default: "ip" },
+      },
     },
     checkOut: {
       times: [Date],
@@ -37,21 +45,32 @@ const attendanceSchema = new mongoose.Schema(
         "Present",
         "Absent",
         "Half-Day",
+        "Late",
+        "Early-Leave",
         "Holiday",
         "On-Leave",
         "Day-Off",
       ],
       required: true,
     },
+
     workHours: {
       type: Number,
       default: 0,
-      set: (v) => (Number.isNaN(v) ? 0 : v),
+      set: (v) => (Number.isNaN(v) ? 0 : v), 
     },
     workMinutes: {
       type: Number,
       default: 0,
-      set: (v) => (Number.isNaN(v) ? 0 : v),
+      set: (v) => (Number.isNaN(v) ? 0 : v), 
+    },
+    lateHours: {
+      type: Number,
+      default: 0,
+    },
+    lateMinutes: {
+      type: Number,
+      default: 0,
     },
     overtime: {
       hours: {
@@ -204,7 +223,6 @@ attendanceSchema.index(
 attendanceSchema.pre("save", function (next) {
   if (this.isLeave) {
     this.workHours = 0;
-    this.workMinutes = 0;
     return next();
   }
 
@@ -254,16 +272,6 @@ attendanceSchema.pre("save", function (next) {
         this.status = "Absent";
       }
     }
-  }
-  next();
-});
-
-attendanceSchema.pre("save", function (next) {
-  if (this.isLeave) {
-    return next();
-  }
-  if (this.checkIn && this.checkOut && this.checkIn.time > this.checkOut.time) {
-    throw new Error("Check-out time cannot be before check-in time");
   }
   next();
 });

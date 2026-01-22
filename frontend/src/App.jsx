@@ -1,4 +1,3 @@
-// src/App.js
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, NotificationProvider } from "./context/";
@@ -69,7 +68,7 @@ function App() {
                 <Route path={ROUTES.LOGIN} element={<Login />} />
               </Route>
 
- {/* Invoice Preview Route - Standalone (no layout) - MUST BE BEFORE CATCH-ALL */}
+
               <Route path={ROUTES.INVOICE_PREVIEW} element={<InvoicePreviewPage />} />
               <Route path="/invoice-preview" element={<InvoicePreviewPage />} />
               <Route path="/invoice-preview/*" element={<InvoicePreviewPage />} />

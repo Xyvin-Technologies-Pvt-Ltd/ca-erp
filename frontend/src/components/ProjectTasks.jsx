@@ -150,7 +150,7 @@ const ProjectTasks = ({ projectId, tasks: initialTasks, onTaskCreated, onTaskDel
   return (
     <div className="space-y-6">
       {/* Pending Tasks Section */}
-      {pendingSetupTasks.length > 0 && (
+      {pendingSetupTasks.length > 0 && role !== "staff" && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 shadow-sm">
           <div className="flex justify-between items-center">
             <div>
