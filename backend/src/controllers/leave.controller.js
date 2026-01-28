@@ -836,8 +836,6 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
     isDeleted: false // Exclude deleted records
   };
 
-  // Filter by department if provided (requires lookup first since Attendance doesn't store dept)
-  // OPTIMIZATION: Get employee IDs first if filtering by department
   if (departmentId) {
     const employees = await Employee.find({ department: departmentId }).select("_id");
     matchStage.employee = { $in: employees.map((emp) => emp._id) };
@@ -847,7 +845,7 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
     {
       $match: matchStage
     },
-    // Deduplicate logic: Group by Employee + Date (YYYY-MM-DD) first
+    
     {
       $project: {
         employee: 1,
@@ -861,10 +859,10 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
           employee: "$employee",
           dateStr: "$dateStr"
         },
-        date: { $first: "$date" } // Keep one date for the next stage
+        date: { $first: "$date" } 
       }
     },
-    // Now continue with joining user details
+   
     {
       $lookup: {
         from: 'users',
@@ -890,7 +888,7 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
           employeeName: '$employeeName',
           month: '$month'
         },
-        count: { $sum: 1 } // Each group here is a unique day
+        count: { $sum: 1 } 
       }
     },
     {
@@ -901,8 +899,7 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
     }
   ]);
 
-  // Transform data for easier frontend consumption
-  // Structure: { employeeId: { name: "...", months: { 1: 2, 2: 0, ... } } }
+  
   const formattedStats = {};
 
   stats.forEach(stat => {
@@ -914,7 +911,7 @@ exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
         totalYearly: 0,
         months: {}
       };
-      // Initialize all months to 0
+  
       for (let i = 1; i <= 12; i++) {
         formattedStats[employeeId].months[i] = 0;
       }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import moment from 'moment';
-import { getAttendance } from '../api/Attendance';
+import { getAttendance } from '../api/attendance';
 import { toast } from 'react-toastify';
 
 const EmployeeAnnualLeaveCalendar = ({ employeeId, employeeName, year, onClose }) => {
