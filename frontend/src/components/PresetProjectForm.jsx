@@ -24,7 +24,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
         },
     ]);
 
-    // Initialize prevTasksLength with the initial tasks length
+
     useEffect(() => {
         prevTasksLength.current = tasks.length;
     }, []);
