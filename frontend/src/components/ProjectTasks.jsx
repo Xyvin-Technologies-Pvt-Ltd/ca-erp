@@ -431,6 +431,7 @@ const goToPrevTaskPage = () => {
         </div>
       )}
     </div>
+    </div>
   );
 };
 
