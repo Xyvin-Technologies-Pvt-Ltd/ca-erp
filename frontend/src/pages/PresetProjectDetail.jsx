@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeftIcon, PlayIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PlayIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { presetProjectsApi } from "../api/presetProjectApi";
 import { Layers } from "lucide-react";
 import { LayoutTemplate } from "lucide-react";
@@ -23,7 +23,19 @@ const PresetProjectDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
     const [showApplyWizard, setShowApplyWizard] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const handleDelete = async () => {
+        try {
+            await presetProjectsApi.delete(id);
+            navigate(-1); // Go back to the list
+        } catch (err) {
+            console.error("Failed to delete preset", err);
+            window.alert("Failed to delete preset project");
+        }
+    };
 
     useEffect(() => {
         const loadPreset = async () => {
@@ -92,6 +104,13 @@ const PresetProjectDetail = () => {
                     >
                         <CiEdit className="h-5 w-5 mr-2" />
                         Edit Preset
+                    </button>
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="px-6 py-3 border border-red-500 text-red-500 rounded-xl font-semibold hover:bg-red-50 flex items-center"
+                    >
+                        <TrashIcon className="h-5 w-5 mr-2" />
+                        Delete
                     </button>
                 </div>
             </div>
@@ -196,6 +215,35 @@ const PresetProjectDetail = () => {
                     presetId={id}
                     onClose={() => setShowApplyWizard(false)}
                 />
+            )}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            Delete Preset Project?
+                        </h3>
+
+                        <p className="text-sm text-gray-600 mb-6">
+                            Are you sure you want to delete this preset project? This action cannot be undone.
+                        </p>
+
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-colors duration-200 font-medium"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={handleDelete}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 font-medium"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

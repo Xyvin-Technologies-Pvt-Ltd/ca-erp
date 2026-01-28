@@ -22,7 +22,7 @@ const presetTaskSchema = new mongoose.Schema(
 
     levelIndex: {
       type: Number,
-      required: true, 
+      required: true,
     },
 
     order: {
@@ -67,6 +67,11 @@ const presetProjectSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
 
     createdBy: {

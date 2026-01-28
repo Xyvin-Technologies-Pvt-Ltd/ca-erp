@@ -7,6 +7,7 @@ const {
   getPresetProjectById,
   updatePresetProject,
   applyPresetToProject,
+  deletePresetProject,
 } = require("../controllers/presetProject.controller");
 
 const { protect, authorize } = require("../middleware/auth");
@@ -19,6 +20,7 @@ router.get("/", getPresetProjects);
 router.get("/:id", getPresetProjectById);
 router.put("/:id", updatePresetProject);
 router.post("/:id/apply", applyPresetToProject);
+router.delete("/:id", deletePresetProject);
 
 
 module.exports = router;

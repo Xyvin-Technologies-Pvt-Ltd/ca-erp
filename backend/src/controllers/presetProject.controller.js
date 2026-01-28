@@ -43,7 +43,10 @@ exports.createPresetProject = async (req, res) => {
 
 exports.getPresetProjects = async (req, res) => {
   try {
-    const presents = await PresetProject.find({ isActive: true })
+    const presents = await PresetProject.find({
+      isActive: true,
+      isDeleted: { $ne: true }
+    })
       .sort({ createdAt: -1 })
       .select(" name description levels tasks createdAt ");
 
@@ -161,5 +164,29 @@ exports.applyPresetToProject = async (req, res) => {
       message: `Failed to apply preset. All changes rolled back. Error: ${error.message}`,
       error: error.toString()
     });
+  }
+};
+
+exports.deletePresetProject = async (req, res) => {
+  try {
+    const preset = await PresetProject.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!preset) {
+      return res.status(404).json({
+        success: false,
+        message: "Preset project not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Preset project deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };

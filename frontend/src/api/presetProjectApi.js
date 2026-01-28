@@ -26,6 +26,12 @@ export const presetProjectsApi = {
     return res.data;
   },
 
+  // Delete preset project
+  delete: async (id) => {
+    const res = await api.delete(`/preset-projects/${id}`);
+    return res.data;
+  },
+
   // Apply preset to create a real project
   applyToProject: async (presetId, payload) => {
     const res = await api.post(

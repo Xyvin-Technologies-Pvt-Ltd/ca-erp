@@ -8,6 +8,8 @@ import {
 
 const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
     const modalRef = useRef(null);
+    const lastTaskRef = useRef(null);
+    const prevTasksLength = useRef(0);
 
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -21,6 +23,11 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
             levelIndex: 0,
         },
     ]);
+
+    // Initialize prevTasksLength with the initial tasks length
+    useEffect(() => {
+        prevTasksLength.current = tasks.length;
+    }, []);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const isEditMode = Boolean(preset);
@@ -49,9 +56,22 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                     department: lvl.department,
                 })) || [{ department: "" }]
             );
-            setTasks(preset.tasks || []);
+            const initialTasks = preset.tasks || [];
+            setTasks(initialTasks);
+            prevTasksLength.current = initialTasks.length;
         }
     }, [preset]);
+
+    // Scroll to the new task when added
+    useEffect(() => {
+        if (tasks.length > prevTasksLength.current) {
+            lastTaskRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+        prevTasksLength.current = tasks.length;
+    }, [tasks.length]);
 
     /*  LEVEL HANDLERS  */
 
@@ -264,6 +284,7 @@ const PresetProjectForm = ({ preset, onSuccess, onCancel }) => {
                         {tasks.map((task, index) => (
                             <div
                                 key={index}
+                                ref={index === tasks.length - 1 ? lastTaskRef : null}
                                 className="border rounded-lg p-4 mb-4 space-y-2"
                             >
                                 <input
