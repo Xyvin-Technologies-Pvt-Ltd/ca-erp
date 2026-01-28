@@ -136,9 +136,39 @@ const goToPrevTaskPage = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <style>
-        {`
+    <div className="space-y-6">
+      {/* Pending Tasks Section */}
+      {pendingSetupTasks.length > 0 && role !== "staff" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-amber-800 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {wizardTasks.length > 0 ? "Pending Setup Action Required" : "Project Setup in Progress"}
+              </h3>
+              <p className="text-sm text-amber-700 mt-1">
+                {wizardTasks.length > 0
+                  ? `You have ${wizardTasks.length} tasks that need to be set up.`
+                  : `There are ${pendingSetupTasks.length} pending tasks waiting for completion by other members.`}
+              </p>
+            </div>
+            {wizardTasks.length > 0 && (
+              <button
+                onClick={() => setIsWizardOpen(true)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 shadow-sm transition-all"
+              >
+                Complete Setup
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow">
+        <style>
+          {`
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }

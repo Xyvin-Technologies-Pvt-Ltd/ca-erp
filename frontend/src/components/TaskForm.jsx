@@ -23,8 +23,7 @@ import {
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
-// Import the ProjectForm component
-import ProjectForm from "./ProjectForm"; // Adjust the import path as needed
+import ProjectForm from "./ProjectForm";
 
 const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const navigate = useNavigate();
@@ -78,12 +77,12 @@ const TaskForm = ({ projectIds, onClose,onSucces, onSuccess, onCancel, task = nu
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-const handleFileChange = (e) => {
-  const selectedFiles = Array.from(e.target.files); // convert FileList → array
-  setFile(selectedFiles);
-};
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFile(selectedFiles);
+  };
 
-  // Update form dirty status on input changes
+
   useEffect(() => {
     const isDirty =
       title !== (task?.title || "") ||
@@ -216,7 +215,7 @@ const handleFileChange = (e) => {
       return;
     }
 
-    // Check if project has due date
+
     let selectedProject;
     if (projectIds) {
       // Single project context - fetch project details

@@ -649,9 +649,8 @@ exports.reviewLeave = catchAsync(async (req, res) => {
               employee: leave.employee._id,
               date: attendanceDate,
               status: "On-Leave",
-              notes: `${leave.leaveType} Leave - ${
-                leave.reason || "No reason provided"
-              }`,
+              notes: `${leave.leaveType} Leave - ${leave.reason || "No reason provided"
+                }`,
               shift: "Morning",
               workHours: 0,
               overtime: { hours: 0, approved: false },
@@ -719,10 +718,10 @@ exports.reviewLeave = catchAsync(async (req, res) => {
       message: `Your leave request from ${moment
         .tz(leave.startDate, "UTC")
         .format("MMM DD, YYYY")} to ${moment
-        .tz(leave.endDate, "UTC")
-        .format(
-          "MMM DD, YYYY"
-        )} has been ${normalizedStatus.toLowerCase()} by Admin.`,
+          .tz(leave.endDate, "UTC")
+          .format(
+            "MMM DD, YYYY"
+          )} has been ${normalizedStatus.toLowerCase()} by Admin.`,
       type: "LEAVE_REVIEW",
       isRead: false,
     });
@@ -817,5 +816,116 @@ exports.getLeaveStats = catchAsync(async (req, res) => {
   res.status(200).json({
     status: "success",
     data: { stats },
+  });
+});
+
+// Get monthly leave statistics
+exports.getMonthlyLeaveStats = catchAsync(async (req, res) => {
+  const { year, departmentId } = req.query;
+
+  // Default to current year if not specified
+  const targetYear = year ? parseInt(year) : new Date().getFullYear();
+
+  // Create date range for the target year
+  const startOfYear = moment.tz(`${targetYear}-01-01`, "UTC").startOf('year').toDate();
+  const endOfYear = moment.tz(`${targetYear}-12-31`, "UTC").endOf('year').toDate();
+
+  let matchStage = {
+    status: { $in: ['On-Leave', 'Absent'] }, // Count both On-Leave and Absent
+    date: { $gte: startOfYear, $lte: endOfYear },
+    isDeleted: false // Exclude deleted records
+  };
+
+  // Filter by department if provided (requires lookup first since Attendance doesn't store dept)
+  // OPTIMIZATION: Get employee IDs first if filtering by department
+  if (departmentId) {
+    const employees = await Employee.find({ department: departmentId }).select("_id");
+    matchStage.employee = { $in: employees.map((emp) => emp._id) };
+  }
+
+  const stats = await Attendance.aggregate([
+    {
+      $match: matchStage
+    },
+    // Deduplicate logic: Group by Employee + Date (YYYY-MM-DD) first
+    {
+      $project: {
+        employee: 1,
+        dateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+        date: 1
+      }
+    },
+    {
+      $group: {
+        _id: {
+          employee: "$employee",
+          dateStr: "$dateStr"
+        },
+        date: { $first: "$date" } // Keep one date for the next stage
+      }
+    },
+    // Now continue with joining user details
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id.employee',
+        foreignField: '_id',
+        as: 'employeeDetails'
+      }
+    },
+    {
+      $unwind: '$employeeDetails'
+    },
+    {
+      $project: {
+        employeeId: '$_id.employee',
+        employeeName: '$employeeDetails.name',
+        month: { $month: '$date' }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          employeeId: '$employeeId',
+          employeeName: '$employeeName',
+          month: '$month'
+        },
+        count: { $sum: 1 } // Each group here is a unique day
+      }
+    },
+    {
+      $sort: {
+        '_id.month': 1,
+        '_id.employeeName': 1
+      }
+    }
+  ]);
+
+  // Transform data for easier frontend consumption
+  // Structure: { employeeId: { name: "...", months: { 1: 2, 2: 0, ... } } }
+  const formattedStats = {};
+
+  stats.forEach(stat => {
+    const { employeeId, employeeName, month } = stat._id;
+
+    if (!formattedStats[employeeId]) {
+      formattedStats[employeeId] = {
+        name: employeeName,
+        totalYearly: 0,
+        months: {}
+      };
+      // Initialize all months to 0
+      for (let i = 1; i <= 12; i++) {
+        formattedStats[employeeId].months[i] = 0;
+      }
+    }
+
+    formattedStats[employeeId].months[month] = stat.count;
+    formattedStats[employeeId].totalYearly += stat.count;
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: formattedStats
   });
 });

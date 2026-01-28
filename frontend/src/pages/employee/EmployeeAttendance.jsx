@@ -372,7 +372,7 @@ const EmployeeAttendance = () => {
                   Check Out
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Work Hours
+                  Work Hours [HH:MM]
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">

@@ -4,6 +4,7 @@ import { fetchTasks } from "../api/tasks";
 import { fetchProjects } from "../api/projects";
 import { motion, AnimatePresence } from "framer-motion";
 import CreateTaskModal from "../components/CreateTaskModal";
+import PresetTaskCompletionWizard from "../components/PresetTaskCompletionWizard";
 import { useAuth } from "../context/AuthContext";
 import {
   ChevronLeftIcon,
@@ -35,6 +36,7 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginations, setPaginations] = useState({
     page: 1,
@@ -42,7 +44,7 @@ const Tasks = () => {
     total: 0,
   });
 
-  const { role } = useAuth();
+  const { role, user } = useAuth();
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -53,18 +55,32 @@ const Tasks = () => {
   });
 
   const [teamMembers, setTeamMembers] = useState([]);
+  const [staffProjects, setStaffProjects] = useState([]);
+  const [reload, setReload] = useState(false);
+  const [pendingSetupTasks, setPendingSetupTasks] = useState([]);
 
   const loadTasksAndProjects = async () => {
     try {
       setLoading(true);
-      const [tasksData, projectsData] = await Promise.all([
+      setLoading(true);
+      const [tasksData, projectsData, pendingData] = await Promise.all([
         fetchTasks({ ...filters, page: currentPage, limit: 10 }),
         fetchProjects(),
+        fetchTasks({ isPresetPending: 'true', limit: 100 }),
       ]);
 
 
       setTasks(Array.isArray(tasksData.tasks) ? tasksData.tasks : []);
       setProjects(Array.isArray(projectsData.data) ? projectsData.data : []);
+      setPendingSetupTasks(Array.isArray(pendingData.tasks) ? pendingData.tasks : []);
+
+      // If logged-in user is staff → filter assigned projects
+      if (role === "staff") {
+        const assigned = projectsData.data.filter((p) =>
+          p.assignedTo?.some((a) => a.user?._id === user._id)
+        );
+        setStaffProjects(assigned);
+      }
 
       setTeamMembers(
         Array.isArray(tasksData.tasks)
@@ -88,7 +104,7 @@ const Tasks = () => {
 
   useEffect(() => {
     loadTasksAndProjects();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, reload]);
 
   const handlePageChanges = (newPage) => {
     setCurrentPage(newPage);
@@ -131,13 +147,31 @@ const Tasks = () => {
   const pages = Array.from({ length: totalPage }, (_, i) => i + 1);
 
   const capitalizeText = (text) => {
-  if (!text) return text;
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+    if (!text) return text;
+    return text
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  // Staff create-task permission check
+  const canStaffCreateTask =
+    role === "staff" &&
+    staffProjects.some((project) =>
+      project.assignedTo.some(
+        (a) =>
+          a.user?._id === user._id &&
+          a.levelIndex === project.currentLevelIndex
+      )
+    );
+
+  const visibleTasks = tasks;
+
+  const isAdmin = role === 'admin' || role === 'manager' || role === 'superadmin';
+  const wizardTasks = isAdmin
+    ? pendingSetupTasks
+    : pendingSetupTasks.filter(t => (t.assignedTo?._id === user?._id || t.assignedTo === user?._id || t.assignedTo?.id === user?._id));
 
   if (loading) {
     return (
@@ -197,7 +231,8 @@ const Tasks = () => {
           <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
-        {role !== "staff" && (
+         {/* {(role === "admin" || role === "manager" || canStaffCreateTask) && ( */}
+        {(role === "admin" || role === "manager") && (
           <motion.button
             onClick={() => setIsModalOpen(true)}
             className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
@@ -211,6 +246,35 @@ const Tasks = () => {
           </motion.button>
         )}
       </div>
+
+      {/* Pending Tasks Section */}
+      {pendingSetupTasks.length > 0 && role !== "staff" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 shadow-sm mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-amber-800 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {wizardTasks.length > 0 ? "Pending Setup Action Required" : "Project Setup in Progress"}
+              </h3>
+              <p className="text-sm text-amber-700 mt-1">
+                {wizardTasks.length > 0
+                  ? `You have ${wizardTasks.length} tasks that need to be set up.`
+                  : `There are ${pendingSetupTasks.length} pending tasks waiting for completion by other members.`}
+              </p>
+            </div>
+            {wizardTasks.length > 0 && (
+              <button
+                onClick={() => setIsWizardOpen(true)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 shadow-sm transition-all"
+              >
+                Complete Setup
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <motion.div
@@ -342,7 +406,7 @@ const Tasks = () => {
 
       {/* Task List */}
       <AnimatePresence mode="wait">
-        {tasks.length === 0 ? (
+        {visibleTasks.length === 0 ? (
           <motion.div
             key="no-tasks"
             initial={{ opacity: 0, y: 20 }}
@@ -408,7 +472,7 @@ const Tasks = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <AnimatePresence>
-                    {tasks.map((task, index) => (
+                    {visibleTasks.map((task, index) => (
                       <motion.tr
                         key={task._id}
                         initial={{ opacity: 0, y: 10 }}
@@ -465,7 +529,7 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Pagination */}
-       {/* {tasks.length > 0 && (
+      {/* {tasks.length > 0 && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -573,76 +637,73 @@ const Tasks = () => {
       </motion.div>
        )} */}
 
-       {tasks.length > 0 && (
+      {tasks.length > 0 && (
         <div className="px-6 py-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing{" "}
-                    <span className="font-medium">
-                      {(currentPage - 1) * paginations.limit + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium">
-                      {Math.min(currentPage * paginations.limit, paginations.total)}
-                    </span>{" "}
-                    of <span className="font-medium">{paginations.total}</span>{" "}
-                    results
-                  </p>
-                </div>
-                <div>
-                  <nav
-                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                    aria-label="Pagination"
-                  >
-                    <motion.button
-                      onClick={() => handlePageChanges(1)}
-                      disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
-                        currentPage === 1
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
-                      }`}
-                      whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
-                      whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
-                    >
-                      <span className="sr-only">First</span>
-                      <ChevronLeftIcon className="h-5 w-5" />
-                    </motion.button>
-                    {pages.map((page) => (
-                      <motion.button
-                        key={page}
-                        onClick={() => handlePageChanges(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          page === currentPage
-                            ? "z-10 bg-indigo-50 border-[#1c6ead] text-[#1c6ead]"
-                            : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        {page}
-                      </motion.button>
-                    ))}
-                    <motion.button
-                      onClick={() => handlePageChanges(currentPage + 1)}
-                      disabled={currentPage === totalPage}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
-                        currentPage === totalPage
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
-                      }`}
-                      whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
-                      whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
-                    >
-                      <span className="sr-only">Next</span>
-                      <ChevronRightIcon className="h-5 w-5" />
-                    </motion.button>
-                  </nav>
-                </div>
-              </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * paginations.limit + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * paginations.limit, paginations.total)}
+                </span>{" "}
+                of <span className="font-medium">{paginations.total}</span>{" "}
+                results
+              </p>
             </div>
-       )}
+            <div>
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
+                <motion.button
+                  onClick={() => handlePageChanges(1)}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
+                    }`}
+                  whileHover={{ scale: currentPage === 1 ? 1 : 1.02 }}
+                  whileTap={{ scale: currentPage === 1 ? 1 : 0.98 }}
+                >
+                  <span className="sr-only">First</span>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </motion.button>
+                {pages.map((page) => (
+                  <motion.button
+                    key={page}
+                    onClick={() => handlePageChanges(page)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === currentPage
+                      ? "z-10 bg-indigo-50 border-[#1c6ead] text-[#1c6ead]"
+                      : "bg-white border-gray-200 text-gray-500 hover:bg-indigo-50"
+                      }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {page}
+                  </motion.button>
+                ))}
+                <motion.button
+                  onClick={() => handlePageChanges(currentPage + 1)}
+                  disabled={currentPage === totalPage}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${currentPage === totalPage
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-[#1c6ead] hover:bg-indigo-50 border-gray-200"
+                    }`}
+                  whileHover={{ scale: currentPage === totalPage ? 1 : 1.02 }}
+                  whileTap={{ scale: currentPage === totalPage ? 1 : 0.98 }}
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronRightIcon className="h-5 w-5" />
+                </motion.button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
@@ -660,6 +721,17 @@ const Tasks = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Preset Wizard */}
+      {isWizardOpen && (
+        <PresetTaskCompletionWizard
+          tasks={wizardTasks}
+          onClose={() => {
+            setIsWizardOpen(false);
+            setReload(!reload);
+          }}
+        />
+      )}
     </motion.div>
   );
 };

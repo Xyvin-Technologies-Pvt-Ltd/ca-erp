@@ -350,6 +350,3 @@ const AttendanceEditModal = ({ attendance, onClose, onSuccess }) => {
 };
 
 export default AttendanceEditModal;
-
-
-

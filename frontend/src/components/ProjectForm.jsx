@@ -66,6 +66,27 @@ const ProjectForm = ({ project = null, onSuccess, onCancel }) => {
   }, []);
 
   useEffect(() => {
+    if (!presetLevels || departments.length === 0) return;
+
+    const hydratedLevels = presetLevels.map(lvl => {
+      const deptName = (lvl.department || "").trim().toLowerCase();
+
+      const dept = departments.find(d =>
+        (d.name || "").trim().toLowerCase() === deptName ||
+        d._id === lvl.department
+      );
+
+
+      return {
+        department: dept?._id || "",
+        user: ""
+      };
+    });
+
+    setLevels(hydratedLevels);
+  }, [presetLevels, departments]);
+
+  useEffect(() => {
     if (project && clients.length > 0) {
       const formattedProject = {
         ...project,

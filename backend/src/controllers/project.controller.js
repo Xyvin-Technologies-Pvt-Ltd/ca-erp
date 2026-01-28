@@ -722,12 +722,8 @@ exports.getProjectTasks = async (req, res, next) => {
 
     const tasks = await Task.find(filter)
       .sort({ dueDate: 1, priority: -1 })
-      // .skip(startIndex)
-      // .limit(limit)
-      .populate({
-        path: "assignedTo",
-        select: "name email avatar",
-      })
+      .populate("assignedTo", "name email avatar")
+      .populate("department", "name")
       .populate({
         path: "createdBy",
         select: "name email",

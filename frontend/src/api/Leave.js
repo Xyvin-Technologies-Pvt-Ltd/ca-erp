@@ -65,3 +65,11 @@ export const reviewLeave = async (id, data) => {
   const response = await api.patch(`/leaves/${id}/review`, data);
   return response.data;
 };
+
+export const getMonthlyLeaveStats = async (params = {}) => {
+  const { year, departmentId } = params;
+  const response = await api.get("/leaves/monthly-stats", {
+    params: { year, departmentId },
+  });
+  return response.data;
+};
