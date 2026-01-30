@@ -208,7 +208,22 @@ const Attendance = () => {
 
   const statusCounts = {};
   attendance.forEach((a) => {
-    statusCounts[a.status] = (statusCounts[a.status] || 0) + 1;
+    let status = a.status;
+    const recordDate = new Date(a.date);
+    const today = new Date();
+    const isToday =
+      recordDate.getDate() === today.getDate() &&
+      recordDate.getMonth() === today.getMonth() &&
+      recordDate.getFullYear() === today.getFullYear();
+
+    if (
+      isToday &&
+      a.checkIn &&
+      (a.checkIn.time || a.checkIn.times?.length > 0)
+    ) {
+      status = "Present";
+    }
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
   });
 
   const sortedAttendance = [...attendance].sort(
@@ -478,8 +493,25 @@ const Attendance = () => {
               ) : (
                 <AnimatePresence>
                   {sortedAttendance.map((a, index) => {
-                    console.log(a);
-                    const Icon = statusColors[a.status]?.icon;
+                    // console.log(a);
+
+                    let displayStatus = a.status;
+                    const recordDate = new Date(a.date);
+                    const today = new Date();
+                    const isToday =
+                      recordDate.getDate() === today.getDate() &&
+                      recordDate.getMonth() === today.getMonth() &&
+                      recordDate.getFullYear() === today.getFullYear();
+
+                    if (
+                      isToday &&
+                      a.checkIn &&
+                      (a.checkIn.time || a.checkIn.times?.length > 0)
+                    ) {
+                      displayStatus = "Present";
+                    }
+
+                    const Icon = statusColors[displayStatus]?.icon;
                     return (
                       <motion.tr
                         key={a._id}
@@ -515,16 +547,16 @@ const Attendance = () => {
 
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[a.status]?.tableBg || "bg-gray-50"
-                              } ${statusColors[a.status]?.tableText ||
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[displayStatus]?.tableBg || "bg-gray-50"
+                              } ${statusColors[displayStatus]?.tableText ||
                               "text-gray-600"
-                              } max-w-max border ${statusColors[a.status]?.border ||
+                              } max-w-max border ${statusColors[displayStatus]?.border ||
                               "border-gray-100"
                               }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}
-                            {a.status || "-"}
+                            {displayStatus || "-"}
                           </motion.span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

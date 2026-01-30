@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const User = require("../models/User");
+const Project = require("../models/Project")
 const { ErrorResponse } = require("../middleware/errorHandler");
 const { logger } = require("../utils/logger");
 
@@ -519,9 +520,9 @@ exports.Allusers = async (req, res, next) => {
 
     // Growth percentage
     const growthPercentage =
-  totalBefore.length + newMembers.length > 0
-    ? Number(((newMembers.length / (totalBefore.length + newMembers.length)) * 100).toFixed(2))
-    : 0;
+      totalBefore.length + newMembers.length > 0
+        ? Number(((newMembers.length / (totalBefore.length + newMembers.length)) * 100).toFixed(2))
+        : 0;
     console.log(growthPercentage);
     console.log(
       "ok,vinu",
@@ -529,7 +530,7 @@ exports.Allusers = async (req, res, next) => {
       totalBefore.length,
       growthPercentage
     );
-   
+
     res.status(200).json({
       success: true,
       count: users.length,
@@ -565,13 +566,35 @@ exports.getVerificationStaff = async (req, res, next) => {
   }
 };
 
-
-exports.getUsersByDepartment = async (req, res, next) => {
+exports.getUsersDepartmentProject = async (req, res, next) => {
   try {
-    const { department } = req.params;
-    const users = await User.find({ department });
-    res.status(200).json({ success: true, data: users });
-  } catch (err) {
-    next(err);
+    // Get all users with department info
+    const users = await User.find()
+      .populate("department", "name")
+      .select("name email department role");
+
+    // For each user, get projects assigned to them
+    const usersWithProjects = await Promise.all(
+      users.map(async (user) => {
+        const projects = await Project.find({ "assignedTo.user": user._id })
+          .populate("client", "name")
+          .populate("assignedTo.user", "name")
+          .populate("assignedTo.department", "name");
+
+        return {
+          ...user.toObject(),
+          projects,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      count: usersWithProjects.length,
+      data: usersWithProjects,
+    });
+  } catch (error) {
+    console.error("Error fetching users and projects:", error);
+    next(error);
   }
 };

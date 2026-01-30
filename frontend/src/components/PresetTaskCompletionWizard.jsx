@@ -65,7 +65,7 @@ const PresetTaskCompletionWizard = ({ tasks, onClose, onSuccess }) => {
             amount: currentTask?.amount || 0,
             estimatedHours: currentTask?.estimatedHours || 0,
             taskIncentivePercentage: currentTask?.taskIncentivePercentage || 0,
-            verificationIncentivePercentage: currentTask?.verificationIncentivePercentage || 1,
+            verificationIncentivePercentage: currentTask?.verificationIncentivePercentage || 0,
             tags: currentTask?.tags || [],
             assignedTo: currentTask?.assignedTo || ''
         }
@@ -82,7 +82,7 @@ const PresetTaskCompletionWizard = ({ tasks, onClose, onSuccess }) => {
                 amount: currentTask.amount,
                 estimatedHours: currentTask.estimatedHours || 0,
                 taskIncentivePercentage: currentTask.taskIncentivePercentage || 0,
-                verificationIncentivePercentage: currentTask.verificationIncentivePercentage || 1,
+                verificationIncentivePercentage: currentTask.verificationIncentivePercentage || 0,
                 tags: currentTask.tags || [],
                 assignedTo: currentTask.assignedTo || ''
             });
@@ -265,7 +265,7 @@ const PresetTaskCompletionWizard = ({ tasks, onClose, onSuccess }) => {
                                 <p className="text-xs text-gray-500 mt-1">Leave empty to use default level-based assignment</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div>
                                 {/* Amount */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Budget Amount</label>
@@ -278,43 +278,12 @@ const PresetTaskCompletionWizard = ({ tasks, onClose, onSuccess }) => {
                                         />
                                     </div>
                                 </div>
-
-                                {/* Estimated Hours */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Hours</label>
-                                    <input
-                                        type="number"
-                                        step="0.5"
-                                        {...register('estimatedHours')}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
-                                        placeholder="0.0"
-                                    />
-                                </div>
                             </div>
 
-                            {/* Admin Only Incentives */}
-                            {user?.role === 'admin' && (
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Task Incentive %</label>
-                                        <input
-                                            type="number"
-                                            step="0.1"
-                                            {...register('taskIncentivePercentage')}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Verification Incentive %</label>
-                                        <input
-                                            type="number"
-                                            step="0.1"
-                                            {...register('verificationIncentivePercentage')}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1c6ead] focus:border-transparent"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+
+
+
+
 
                             {/* Tags */}
                             <div>
@@ -368,7 +337,7 @@ const PresetTaskCompletionWizard = ({ tasks, onClose, onSuccess }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

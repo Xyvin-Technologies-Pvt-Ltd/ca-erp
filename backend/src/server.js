@@ -16,6 +16,7 @@ const WebSocket = require('ws');
 const websocketService = require('./utils/websocket');
 const cronService = require('./services/cronService');
 const seedSuperAdmin = require('./utils/seedSuperAdmin').seedSuperAdmin;
+require('./config/cronJobs'); // Enable cron jobs
 // Load env vars
 config();
 
@@ -38,6 +39,7 @@ const attendanceRoutes = require('./routes/attendance.routes')
 const cronJobRoutes = require('./routes/cronJob.routes')
 const sectionRoutes = require('./routes/section.routes')
 const uploadRoutes = require('./routes/upload.routes')
+const presetProjectRoutes = require('./routes/presetProject.routes');
 
 
 // Initialize express app
@@ -76,7 +78,7 @@ cronService.init();
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com', 'https://testerp.xyvin.com', 'https://api-testerp.xyvin.com'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com', 'https://testerp.xyvin.com', 'https://api-testerp.xyvin.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -109,6 +111,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/preset-projects', presetProjectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/finance', financeRoutes);
@@ -123,6 +126,7 @@ app.use('/api/attendance', attendanceRoutes)
 app.use('/api/cronjobs', cronJobRoutes)
 app.use('/api/sections', sectionRoutes)
 app.use('/api/upload', uploadRoutes);
+
 
 
 

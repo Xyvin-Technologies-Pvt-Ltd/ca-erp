@@ -22,9 +22,9 @@ export const fetchTasks = async (filters = {}) => {
     throw error;
   }
 };
-export const removeDoc = async (id, taskId) => {
+export const removeDoc = async (id,taskId) => {
   try {
-    const response = await api.put(`/tasks/removedoc/${id}`, { taskId });
+    const response = await api.put(`/tasks/removedoc/${id}`,{taskId});
     return response
   } catch (error) {
     console.error("Error when removing document:", error);
@@ -137,8 +137,8 @@ export const updateTask = async (id, taskData, token) => {
         ...(isFormData
           ? { "Content-Type": "multipart/form-data" }
           : {
-            "Content-Type": "application/json",
-          }),
+              "Content-Type": "application/json",
+            }),
       },
     });
 
@@ -338,17 +338,4 @@ export const remindClientForDocument = async (taskId, reminderData, token) => {
     console.error(`Error sending reminder for task ${taskId}:`, error);
     throw error;
   }
-};
-
-/**
- * Add a rating to a task (Placeholder)
- * @param {string} id - Task ID
- * @param {number} rating - Rating value
- * @param {string} token - Auth token
- * @returns {Promise} Promise object
- */
-export const addTaskRating = async (id, rating, token) => {
-  console.warn("addTaskRating API not implemented yet");
-  // Placeholder implementation to prevent crash
-  return Promise.resolve({});
 };

@@ -147,8 +147,20 @@ const EmployeeAttendance = () => {
 
   const statusCounts = {};
   attendance.forEach((a) => {
-    statusCounts[a.status] = (statusCounts[a.status] || 0) + 1;
-    console.log(statusCounts[a.status])
+    let status = a.status;
+    // Override status for today if checked in
+    const recordDate = new Date(a.date);
+    const today = new Date();
+    const isToday =
+      recordDate.getDate() === today.getDate() &&
+      recordDate.getMonth() === today.getMonth() &&
+      recordDate.getFullYear() === today.getFullYear();
+
+    if (isToday && a.checkIn && (a.checkIn.time || a.checkIn.times?.length > 0)) {
+      status = "Present";
+    }
+
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
   });
 
   const attendanceByDate = {};
@@ -299,7 +311,17 @@ const EmployeeAttendance = () => {
               ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
               const isToday = dateStr === todayStr;
               const att = attendanceByDate[dateStr];
-              const Icon = att ? statusColors[att.status]?.icon : null;
+
+              let displayStatus = att?.status;
+              if (
+                isToday &&
+                att?.checkIn &&
+                (att.checkIn.time || att.checkIn.times?.length > 0)
+              ) {
+                displayStatus = "Present";
+              }
+
+              const Icon = att ? statusColors[displayStatus]?.icon : null;
               return (
                 <motion.div
                   key={dateStr}
@@ -310,7 +332,7 @@ const EmployeeAttendance = () => {
                   className={`rounded-lg p-2 h-16 flex flex-col items-center justify-center group border ${isToday
                     ? "bg-indigo-100 border-indigo-300 ring-2 ring-[#1c6ead] ring-opacity-50"
                     : att
-                      ? `${statusColors[att.status]?.bg} ${statusColors[att.status]?.border
+                      ? `${statusColors[displayStatus]?.bg} ${statusColors[displayStatus]?.border
                       }`
                       : "bg-gray-50 border-gray-100"
                     } hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isToday ? "shadow-lg" : ""
@@ -326,19 +348,19 @@ const EmployeeAttendance = () => {
                   <div className="flex items-center space-x-1">
                     {Icon && (
                       <Icon
-                        className={`h-4 w-4 ${statusColors[att?.status]?.text}`}
+                        className={`h-4 w-4 ${statusColors[displayStatus]?.text}`}
                       />
                     )}
                     <motion.span
                       className={`text-xs ${isToday
                         ? "text-indigo-700 font-semibold"
                         : att
-                          ? statusColors[att.status]?.text
+                          ? statusColors[displayStatus]?.text
                           : "text-gray-400"
                         }`}
                       whileHover={{ scale: 1.05 }}
                     >
-                      {isToday && !att ? "Today" : att ? att.status : "-"}
+                      {isToday && !att ? "Today" : att ? displayStatus : "-"}
                     </motion.span>
                   </div>
                 </motion.div>
@@ -408,8 +430,26 @@ const EmployeeAttendance = () => {
                       "0"
                     )}`;
                     const att = attendanceByDate[dateStr];
-                    console.log(att)
-                    const Icon = statusColors[att?.status]?.icon;
+
+                    // Logic to determine display status
+                    let displayStatus = att?.status;
+                    const recordDate = new Date(day);
+                    const today = new Date();
+                    const isToday =
+                      recordDate.getDate() === today.getDate() &&
+                      recordDate.getMonth() === today.getMonth() &&
+                      recordDate.getFullYear() === today.getFullYear();
+
+                    if (
+                      isToday &&
+                      att?.checkIn &&
+                      (att.checkIn.time || att.checkIn.times?.length > 0)
+                    ) {
+                      displayStatus = "Present";
+                    }
+
+                    // console.log(att)
+                    const Icon = statusColors[displayStatus]?.icon;
                     return (
                       <motion.tr
                         key={dateStr}
@@ -448,15 +488,15 @@ const EmployeeAttendance = () => {
 
                         <td className="px-6 py-4">
                           <motion.span
-                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[att?.status]?.bg || "bg-gray-50"
-                              } ${statusColors[att?.status]?.text || "text-gray-600"
-                              } max-w-max border ${statusColors[att?.status]?.border ||
+                            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusColors[displayStatus]?.bg || "bg-gray-50"
+                              } ${statusColors[displayStatus]?.text || "text-gray-600"
+                              } max-w-max border ${statusColors[displayStatus]?.border ||
                               "border-gray-100"
                               }`}
                             whileHover={{ scale: 1.05 }}
                           >
                             {Icon && <Icon className="h-4 w-4 mr-1" />}
-                            {att?.status || "-"}
+                            {displayStatus || "-"}
                           </motion.span>
                         </td>
                       </motion.tr>

@@ -22,6 +22,7 @@ const statusColors = {
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-gray-100 text-gray-800",
   verification: "bg-indigo-100 text-indigo-800",
+  overdue: "bg-red-100 text-red-800",
 };
 
 const priorityColors = {
@@ -63,8 +64,16 @@ const Tasks = () => {
     try {
       setLoading(true);
       setLoading(true);
+
+      // Handle overdue filter special case
+      const apiFilters = { ...filters };
+      if (apiFilters.status === "overdue") {
+        apiFilters.overdue = "true";
+        delete apiFilters.status;
+      }
+
       const [tasksData, projectsData, pendingData] = await Promise.all([
-        fetchTasks({ ...filters, page: currentPage, limit: 10 }),
+        fetchTasks({ ...apiFilters, page: currentPage, limit: 10 }),
         fetchProjects(),
         fetchTasks({ isPresetPending: 'true', limit: 100 }),
       ]);
@@ -231,7 +240,7 @@ const Tasks = () => {
           <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
-         {/* {(role === "admin" || role === "manager" || canStaffCreateTask) && ( */}
+        {/* {(role === "admin" || role === "manager" || canStaffCreateTask) && ( */}
         {(role === "admin" || role === "manager") && (
           <motion.button
             onClick={() => setIsModalOpen(true)}
@@ -321,6 +330,7 @@ const Tasks = () => {
               <option value="review">Review</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
+              <option value="overdue">Overdue</option>
             </motion.select>
           </div>
 

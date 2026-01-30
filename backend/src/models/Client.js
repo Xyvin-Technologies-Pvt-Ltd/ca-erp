@@ -106,7 +106,7 @@ const ClientSchema = new mongoose.Schema(
     },
     contactEmail: {
       type: String,
-      required: [true, "Please add a contact email"],
+      // required: [true, "Please add a contact email"],
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         "Please add a valid email",
@@ -114,6 +114,7 @@ const ClientSchema = new mongoose.Schema(
     },
     contactPhone: {
       type: String,
+      required: [true, "Please add a contact phone"],
       maxlength: [20, "Phone number cannot be longer than 20 characters"],
     },
     country: {

@@ -76,13 +76,6 @@ exports.getTasks = async (req, res, next) => {
         $gte: new Date(req.query.dueAfter),
       };
     }
-
-    // Overdue tasks
-    if (req.query.overdue === "true") {
-      const today = new Date();
-      filter.dueDate = { $lt: today };
-      filter.status = { $ne: "completed" };
-    }
     const total = await Task.countDocuments(filter);
 
     // Search
@@ -243,19 +236,11 @@ exports.createTask = async (req, res, next) => {
     }
 
     // Reference values
-    const currentLevel = project.currentLevelIndex || 0;
-    const currentLevelInfo = project.assignedTo && project.assignedTo[currentLevel];
+    const currentLevel = project.currentLevelIndex;
+    const currentLevelInfo = project.assignedTo[currentLevel];
 
     if (!currentLevelInfo) {
-      // Fallback: if project has assignedTo but currentLevel is invalid, try index 0
-      if (project.assignedTo && project.assignedTo.length > 0) {
-        // If we are here, it means assignedTo[currentLevel] failed.
-        // We can try to rely on the first assignment if strictly necessary, 
-        // or just fail with a more descriptive error.
-        // For now, let's just stick to the error but ensure we checked existence.
-        return next(new ErrorResponse("Invalid project level configuration: Level not found", 400));
-      }
-      return next(new ErrorResponse("Invalid project level configuration: No assignments found", 400));
+      return next(new ErrorResponse("Invalid project level configuration", 400));
     }
 
 

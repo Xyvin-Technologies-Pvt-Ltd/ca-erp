@@ -5,6 +5,7 @@ import CreateProjectModal from "../components/CreateProjectModal";
 import { fetchTasks } from "../api/tasks";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   PlusIcon,
   CalendarIcon,
@@ -28,6 +29,7 @@ const priorityColors = {
 };
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -77,13 +79,17 @@ const Projects = () => {
       });
 
       setProjects(sortedProjects);
+
+      const totalProjects = data.total || 0;
+      const totalPages = Math.ceil(totalProjects / paginations.limit); 
+
       setPaginations({
         page: currentPage,
-        total: data.total || 0,
-        limit: 9,
+        total: totalProjects,
+        limit: paginations.limit,
       });
 
-      const totalPages = Math.ceil(data.total / paginations.limit);
+      
       setTotalPage(totalPages);
 
       const pageNumbers = [];
@@ -133,6 +139,8 @@ const Projects = () => {
       const [tasksData, projectsData] = await Promise.all([
         fetchTasks({ ...filters, page: currentPage, limit: 9 }),
         projectsApi.getAllProjects({
+          page: currentPage, 
+          limit: paginations.limit,
           status: filters.status,
           priority: filters.priority,
           client: filters.client,
@@ -149,7 +157,7 @@ const Projects = () => {
         : [];
 
       const filteredProjects = allProjects
-        .filter((project) => taskProjectIds.has(project._id))
+        
         .sort((a, b) => {
           if (!a.dueDate && !b.dueDate) return 0;
           if (!a.dueDate) return 1;
@@ -161,8 +169,8 @@ const Projects = () => {
 
       setPaginations({
         page: currentPage,
-        total: tasksData.total,
-        limit: tasksData.pagination?.next?.limit || 10,
+        total: filteredProjects.length,
+        limit: paginations.limit || 10,
       });
 
       const uniqueClients = [
@@ -326,24 +334,34 @@ const Projects = () => {
         className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div className="flex items-center space-x-3">
-          <Briefcase className="h-8 w-8 text-indigo-600" />
+          <Briefcase className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Projects
           </h1>
         </div>
-        <div className="flex space-x-4">
-          {role !== "staff" && (
-            <motion.button
-              onClick={() => setIsModalOpen(true)}
-              className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Create Project
-            </motion.button>
-          )}
-        </div>
+        <div className="flex space-x-3">
+  {role !== "staff" && (
+    <>
+      {/* Preset Projects */}
+      <motion.button
+        onClick={() => navigate("/preset-projects")}
+        className="px-6 py-3 bg-white border border-[#1c6ead] text-[#1c6ead] rounded-xl hover:bg-indigo-50 font-semibold shadow-sm"
+        whileHover={{ scale: 1.02 }}
+      >
+        Preset Projects
+      </motion.button>
+
+      {/* Create Project */}
+      <motion.button
+        onClick={() => setIsModalOpen(true)}
+        className="px-6 py-3 bg-[#1c6ead] text-white rounded-xl font-semibold shadow-lg"
+      >
+        <PlusIcon className="h-5 w-5 mr-2 inline" />
+        Create Project
+      </motion.button>
+    </>
+  )}
+</div>
       </motion.div>
 
       {/* Filters */}

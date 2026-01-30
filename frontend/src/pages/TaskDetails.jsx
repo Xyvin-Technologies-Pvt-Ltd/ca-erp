@@ -18,6 +18,8 @@ const StatusBadge = ({ status }) => {
         return "bg-red-100 text-red-800";
       case "review":
         return "bg-purple-100 text-purple-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -202,9 +204,8 @@ const TaskDetails = () => {
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) {
-      return `${diffInMinutes} ${
-        diffInMinutes === 1 ? "minute" : "minutes"
-      } ago`;
+      return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"
+        } ago`;
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60);

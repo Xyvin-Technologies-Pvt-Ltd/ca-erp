@@ -82,7 +82,7 @@ const UserSchema = new mongoose.Schema({
   },
   emp_status: {
     type: String,
-    default:"Permanent"
+    default: "Permanent"
   },
   name: {
     type: String,
@@ -102,7 +102,7 @@ const UserSchema = new mongoose.Schema({
   },
   casual: {
     type: Number,
-    
+
   },
   incentive: {
     type: Map,
@@ -180,8 +180,19 @@ UserSchema.pre("save", async function (next) {
 
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
+  const now = new Date();
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Calculate seconds remaining until 23:59:59
+  const expiresInSeconds = Math.floor((endOfDay.getTime() - now.getTime()) / 1000);
+
+  // Ensure strict adherence to 11:59 PM expiration
+  // If for some reason it's past 11:59 PM but before midnight (edge case), give it a short expiry or throw error
+  // But typically this function is called on login, so we define the session duration.
+
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+    expiresIn: expiresInSeconds > 0 ? expiresInSeconds : 60, // Fallback to 60s if close to midnight
   });
 };
 

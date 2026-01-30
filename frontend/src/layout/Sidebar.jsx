@@ -206,7 +206,7 @@ const Sidebar = ({ onCloseMobile, projects = [] }) => {
               </span>
             </div>
           )} */}
-        <img src="/logo/logo-3.png" alt="Logo" className="h-12 object-contain" />
+        <img src="/logo/company-logo.png" alt="Logo" className="h-12 object-contain" />
 
         </Link>
         {onCloseMobile && (

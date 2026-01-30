@@ -51,6 +51,7 @@ const statusColors = {
   review: "bg-purple-50 text-purple-700 border-purple-200",
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
+  overdue: "bg-red-50 text-red-700 border-red-200",
 };
 
 const priorityColors = {
@@ -65,6 +66,7 @@ const statusIcons = {
   review: PauseCircle,
   completed: CheckCircle2,
   cancelled: XCircle,
+  overdue: AlertCircle,
 };
 
 const getColor = (val) => {
@@ -190,45 +192,45 @@ const TaskDetail = () => {
     loadTask();
   }, [id, refresh]);
 
- const handleStatusChange = async (newStatus) => {
-  if (
-    newStatus === "completed" &&
-    task.title ==="Project Verification Task"
-  ) {
-    setShowRatingPopup(true);
-    return; 
-  }
+  const handleStatusChange = async (newStatus) => {
+    if (
+      newStatus === "completed" &&
+      task.title === "Project Verification Task"
+    ) {
+      setShowRatingPopup(true);
+      return;
+    }
 
-  try {
-    setLoading(true);
-    const updatedTask = await updateTask(id, { ...task, status: newStatus });
+    try {
+      setLoading(true);
+      const updatedTask = await updateTask(id, { ...task, status: newStatus });
 
-    setTask((prevTask) => ({
-      ...prevTask,
-      ...updatedTask,
-    }));
-    setRefresh((prev) => !prev);
-  } catch (err) {
-    console.error("Failed to update task status:", err);
-    setError("Failed to update task status. Please try again later.");
-    setLoading(false);
-  }
-};
+      setTask((prevTask) => ({
+        ...prevTask,
+        ...updatedTask,
+      }));
+      setRefresh((prev) => !prev);
+    } catch (err) {
+      console.error("Failed to update task status:", err);
+      setError("Failed to update task status. Please try again later.");
+      setLoading(false);
+    }
+  };
 
-const handleRatingSubmit = async () => {
-  try {
-    setLoading(true);
-    const updatedTask = await addTaskRating(id, rating, token); // <-- use new API
-    setTask(updatedTask); // update local state
-    setShowRatingPopup(false);
-    setRefresh((prev) => !prev);
-  } catch (err) {
-    console.error("Failed to submit rating:", err);
-    setError("Failed to submit rating. Please try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleRatingSubmit = async () => {
+    try {
+      setLoading(true);
+      const updatedTask = await addTaskRating(id, rating, token); // <-- use new API
+      setTask(updatedTask); // update local state
+      setShowRatingPopup(false);
+      setRefresh((prev) => !prev);
+    } catch (err) {
+      console.error("Failed to submit rating:", err);
+      setError("Failed to submit rating. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTaskUpdate = async (updatedTask) => {
     setTask(updatedTask);
@@ -478,9 +480,8 @@ const handleRatingSubmit = async () => {
         throw new Error("Attachment not found");
       }
 
-      const fileUrl = `${
-        import.meta.env.VITE_BASE_URL
-      }/${attachment.fileUrl.replace("public/", "")}`;
+      const fileUrl = `${import.meta.env.VITE_BASE_URL
+        }/${attachment.fileUrl.replace("public/", "")}`;
 
       const response = await fetch(fileUrl);
       const blob = await response.blob();
@@ -715,19 +716,17 @@ const handleRatingSubmit = async () => {
               <div className="mt-6 md:mt-0 flex flex-col items-end space-y-3">
                 <div className="flex gap-3">
                   <span
-                    className={`px-4 py-2 rounded-full text-sm font-medium border flex items-center transition-all duration-200 hover:scale-105 ${
-                      statusColors[task.status] ||
+                    className={`px-4 py-2 rounded-full text-sm font-medium border flex items-center transition-all duration-200 hover:scale-105 ${statusColors[task.status] ||
                       "bg-gray-100 text-gray-800 border-gray-200"
-                    }`}
+                      }`}
                   >
                     <StatusIcon className="w-4 h-4 mr-2" />
                     {task.status}
                   </span>
                   <span
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 hover:scale-105 ${
-                      priorityColors[task.priority] ||
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 hover:scale-105 ${priorityColors[task.priority] ||
                       "bg-gray-100 text-gray-800 border-gray-200"
-                    }`}
+                      }`}
                   >
                     {task.priority}
                   </span>
@@ -788,11 +787,10 @@ const handleRatingSubmit = async () => {
                             onClick={() =>
                               handleToggleSubtaskStatus(subtask.id)
                             }
-                            className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${
-                              subtask.status === "completed"
+                            className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${subtask.status === "completed"
                                 ? "bg-[#1c6ead] border-[#1c6ead]"
                                 : "bg-white border-gray-300 hover:border-blue-400"
-                            }`}
+                              }`}
                           >
                             {subtask.status === "completed" && (
                               <CheckCircle2 className="w-4 h-4 text-white" />
@@ -800,11 +798,10 @@ const handleRatingSubmit = async () => {
                           </button>
                           <div className="ml-4 flex-grow">
                             <p
-                              className={`text-sm transition-all duration-200 ${
-                                subtask.status === "completed"
+                              className={`text-sm transition-all duration-200 ${subtask.status === "completed"
                                   ? "text-gray-500 line-through"
                                   : "text-gray-700 group-hover:text-gray-900"
-                              }`}
+                                }`}
                             >
                               {subtask.title}
                             </p>
@@ -877,11 +874,10 @@ const handleRatingSubmit = async () => {
                                   e.target.outerHTML = `
                                     <div class="h-10 w-10 rounded-full bg-[#1c6ead] flex items-center justify-center transition-transform duration-200 hover:scale-110">
                                       <span class="text-white font-medium text-sm">
-                                        ${
-                                          comment.user.name
-                                            ?.charAt(0)
-                                            .toUpperCase() || ""
-                                        }
+                                        ${comment.user.name
+                                      ?.charAt(0)
+                                      .toUpperCase() || ""
+                                    }
                                       </span>
                                     </div>`;
                                 }}
@@ -933,107 +929,106 @@ const handleRatingSubmit = async () => {
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                {["pending", "in-progress", "review", "completed", "cancelled"].map(
-                  (status) => {
-                    const StatusIcon = statusIcons[status] || AlertCircle;
-                    return (
-                      <div key={status}>
-                        <button
-                        onClick={() => handleStatusChange(status)}
-                        className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${
-                        task.status === status
-                        ? `${statusColors[status]} shadow-lg`
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                        }`}
-                        >
-                        <StatusIcon className="w-4 h-4 mr-2" />
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </button>
+                  {["pending", "in-progress", "review", "completed", "cancelled", "overdue"].map(
+                    (status) => {
+                      const StatusIcon = statusIcons[status] || AlertCircle;
+                      return (
+                        <div key={status}>
+                          <button
+                            onClick={() => handleStatusChange(status)}
+                            className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center ${task.status === status
+                                ? `${statusColors[status]} shadow-lg`
+                                : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                              }`}
+                          >
+                            <StatusIcon className="w-4 h-4 mr-2" />
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
 
-                        {/* Show rating only if status is completed */}
-                        {status === "completed" && task.title === "Project Verification Task" &&
-                        task.status === "completed" &&
-                        typeof task.rating === "number" && (
-                        <span className="flex items-baseline gap-1 text-gray-800">
-                          Rating{" "}
-                          <span className="font-semibold text-base">{task.rating}</span>
-                          <span className="text-xs text-gray-500">/10</span>
-                        </span>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
+                          {/* Show rating only if status is completed */}
+                          {status === "completed" && task.title === "Project Verification Task" &&
+                            task.status === "completed" &&
+                            typeof task.rating === "number" && (
+                              <span className="flex items-baseline gap-1 text-gray-800">
+                                Rating{" "}
+                                <span className="font-semibold text-base">{task.rating}</span>
+                                <span className="text-xs text-gray-500">/10</span>
+                              </span>
+                            )}
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-            
-          {showRatingPopup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md animate-fadeIn relative">
-            {/* Close Button */}
-              <button
-              onClick={() => setShowRatingPopup(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors"
-              >
-              ✕
-              </button>
 
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-              Rate Before Completing
-              </h3>
+            {showRatingPopup && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md animate-fadeIn relative">
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowRatingPopup(false)}
+                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors"
+                  >
+                    ✕
+                  </button>
 
-              {/* Rating Section */}
-              <div className="flex flex-col items-center mb-4">
-                <p className="text-gray-600 mb-2 font-medium">
-                  Rating:{" "}
-                  <span style={{ color: getColor(rating) }}>{rating}/10</span>
-                </p>
-                <input
-                type="range"
-                min="0"
-                max="10"
-                step="0.1"
-                value={rating}
-                onChange={(e) => setRating(e.target.value)}
-                className="w-4/5 h-3 rounded-lg appearance-none cursor-pointer mb-4 transition-all duration-500"
-                style={{
-                background: `linear-gradient(to right, 
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                    Rate Before Completing
+                  </h3>
+
+                  {/* Rating Section */}
+                  <div className="flex flex-col items-center mb-4">
+                    <p className="text-gray-600 mb-2 font-medium">
+                      Rating:{" "}
+                      <span style={{ color: getColor(rating) }}>{rating}/10</span>
+                    </p>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      value={rating}
+                      onChange={(e) => setRating(e.target.value)}
+                      className="w-4/5 h-3 rounded-lg appearance-none cursor-pointer mb-4 transition-all duration-500"
+                      style={{
+                        background: `linear-gradient(to right, 
                 #ff4d4d 0%, 
                 #ffa500 33%, 
                 #ffeb3b 66%, 
                 #4caf50 100%)`,
-                accentColor: getColor(rating),
-                }}
-                />
+                        accentColor: getColor(rating),
+                      }}
+                    />
+                  </div>
+
+
+                  {/* Buttons */}
+                  <div className="flex justify-end gap-3 mt-5">
+                    <button
+                      onClick={() => setShowRatingPopup(false)}
+                      className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleRatingSubmit}
+                      className="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                      style={{
+                        backgroundColor: "#6366F1",
+                        transition: "background-color 0.4s ease",
+                      }}
+                    >
+                      Submit
+                    </button>
+                  </div>
                 </div>
-
-
-              {/* Buttons */}
-              <div className="flex justify-end gap-3 mt-5">
-                <button
-                onClick={() => setShowRatingPopup(false)}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                onClick={handleRatingSubmit}
-                className="px-4 py-2 rounded-lg font-semibold text-white transition-all"
-                style={{
-                backgroundColor: "#6366F1",
-                transition: "background-color 0.4s ease",
-                }}
-                >
-                  Submit
-                </button>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
 
-        
+
             {/* Task Details */}
             <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
@@ -1213,7 +1208,7 @@ const handleRatingSubmit = async () => {
                 </div>
               ) : task.tags.length > 0 ? (
                 <div className="space-y-6">
-                  {task.tags.map((tag,id) => (
+                  {task.tags.map((tag, id) => (
                     <TagDocumentUpload
                       key={tag}
                       tag={tag}
@@ -1254,7 +1249,7 @@ const handleRatingSubmit = async () => {
             </button>
           </div>
           <div className="p-6">
-           
+
 
             {task?.timeTracking?.entries?.length > 0 ? (
               <ul className="space-y-3">
@@ -1295,7 +1290,7 @@ const handleRatingSubmit = async () => {
                 </p>
               </div>
             )}
-             <div className="mt-6">
+            <div className="mt-6">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Estimated: {calculateEstimatedHours()} hours</span>
                 <span>Actual: {calculateActualHours()} hours</span>

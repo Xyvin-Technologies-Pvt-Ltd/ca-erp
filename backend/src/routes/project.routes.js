@@ -9,6 +9,7 @@ const {
     getProjectTasks,
     updateProjectStatus,
     updateProjectInvoiceStatus,
+    advanceProjectLevel
 } = require('../controllers/project.controller');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -349,9 +350,8 @@ router.route('/:id/tasks')
 router.route('/:id/status')
     .put(protect, updateProjectStatus);
 
-    
+router.put("/:id/advance", protect, advanceProjectLevel);
+
+
 router.put('/:id/invoice', protect, updateProjectInvoiceStatus);
-
-
-
 module.exports = router;

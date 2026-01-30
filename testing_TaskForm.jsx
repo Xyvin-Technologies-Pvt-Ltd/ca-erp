@@ -69,7 +69,7 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [amount, setAmount] = useState(task?.amount);
   const [taskIncentivePercentage, setTaskIncentivePercentage] = useState(task?.taskIncentivePercentage || 0);
-  const [verificationIncentivePercentage, setVerificationIncentivePercentage] = useState(task?.verificationIncentivePercentage || 0);
+  const [verificationIncentivePercentage, setVerificationIncentivePercentage] = useState(task?.verificationIncentivePercentage || 1);
   const dueDateRef = useRef(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -253,10 +253,7 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
     taskPayload.append("status", status);
     taskPayload.append("priority", priority.toLowerCase());
     taskPayload.append("assignedTo", assignedTo);
-    // Ensure amount is not empty string/null, default to 0
-    const finalAmount = (amount === "" || amount === null || amount === undefined) ? 0 : amount;
-    taskPayload.append("amount", finalAmount);
-    // taskPayload.append("amount", amount !== undefined ? amount : 0);
+    taskPayload.append("amount", amount !== undefined ? amount : 0);
     taskPayload.append("dueDate", dueDate);
     taskPayload.append("description", description);
 
@@ -379,7 +376,7 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
   useEffect(() => {
     if (task) {
       setTaskIncentivePercentage(task.taskIncentivePercentage || 0);
-      setVerificationIncentivePercentage(task.verificationIncentivePercentage || 0);
+      setVerificationIncentivePercentage(task.verificationIncentivePercentage || 1);
     }
   }, [task]);
 
@@ -635,7 +632,57 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
                 </div>
 
                 {/* Task Incentive % */}
+                {/* {user?.role === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Task Incentive % 
+                    </label>
+                    <input
+                      type="number"
+                      value={taskIncentivePercentage === null || taskIncentivePercentage === undefined ? '' : taskIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setTaskIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                      placeholder="Enter incentive percentage"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                )}
 
+                {user?.role === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Verification Incentive % 
+                    </label>
+                    <input
+                      type="number"
+                      value={verificationIncentivePercentage === null || verificationIncentivePercentage === undefined ? '' : verificationIncentivePercentage}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                        setIsFormDirty(true);
+                      }}
+                      onBlur={(e) => {
+                        let val = e.target.value.replace(/^0+(?!$)/, '');
+                        setVerificationIncentivePercentage(val === '' ? '' : Number(val));
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200"
+                      placeholder="Enter verification incentive percentage"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                )} */}
               </div>
 
               {/* Description */}

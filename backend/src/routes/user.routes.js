@@ -10,7 +10,7 @@ const {
   Allusers,
   getVerificationStaff,
   lastMonthMembersPer,
-  getUsersByDepartment,
+  getUsersDepartmentProject,
 } = require("../controllers/user.controller");
 
 const { protect, authorize } = require("../middleware/auth");
@@ -156,7 +156,12 @@ router
 router.route("/allusers").get(protect, Allusers);
 router
   .route("lastMonthTotalMembersPersontage")
-  .get(lastMonthMembersPer);
+  .get( lastMonthMembersPer);
+
+
+
+router.get("/user-dept-projects", getUsersDepartmentProject);
+  
 router
   .route("/:id")
   .get(protect, getUser)
@@ -331,9 +336,5 @@ router
   .route("/verification-staff")
   .get(protect, authorize("admin", "manager"), getVerificationStaff);
 
-
-router
-  .route("/department/:department")
-  .get(protect, authorize("admin", "manager"), getUsersByDepartment);
 
 module.exports = router;
