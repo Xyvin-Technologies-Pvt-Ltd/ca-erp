@@ -16,7 +16,7 @@ const WebSocket = require('ws');
 const websocketService = require('./utils/websocket');
 const cronService = require('./services/cronService');
 const seedSuperAdmin = require('./utils/seedSuperAdmin').seedSuperAdmin;
-require('./config/cronJobs'); // Enable cron jobs
+require('./config/cronJobs');
 // Load env vars
 config();
 
@@ -78,7 +78,7 @@ cronService.init();
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com', 'https://testerp.xyvin.com', 'https://api-testerp.xyvin.com'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'https://api-ca-erp.xyvin.com', 'https://ca-erp.xyvin.com', 'https://testerp.xyvin.com', 'https://api-testerp.xyvin.com', 'https://www.api-ca-erp.xyvin.com', 'https://www.ca-erp.xyvin.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

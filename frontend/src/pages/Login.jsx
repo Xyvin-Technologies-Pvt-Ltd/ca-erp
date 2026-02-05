@@ -110,12 +110,20 @@ const Login = () => {
       // Login user
       const result = await login(data);
 
-      // Send location & time to backend
-      const res = await checkIn({ now, location });
-      console.log("Check-in response:", res);
+      try {
+        // Send location & time to backend
+        const res = await checkIn({ now, location });
+        console.log("Check-in response:", res);
 
-      if (res.beforeNine) {
-        toast.error(res.msg);
+        if (res.beforeNine) {
+          toast.error(res.msg);
+        }
+      } catch (checkInError) {
+        // Log the error but don't block access
+        console.error("Check-in failed:", checkInError);
+        toast.warning(
+          "Logged in, but automatic attendance check-in failed. Please check in manually."
+        );
       }
 
       // Redirect after login
@@ -126,6 +134,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login failed:", error);
+      toast.error("Login failed. Please check your credentials.");
     }
   };
   const togglePasswordVisibility = () => {
