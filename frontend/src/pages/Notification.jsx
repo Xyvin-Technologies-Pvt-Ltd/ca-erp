@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import useNotificationStore from "../hooks/useNotificationsStore";
-import { NOTIFICATION_TYPES } from "../config/constants";
+import { NOTIFICATION_TYPES, API_BASE_URL } from "../config/constants";
 import {
   Bell,
   Trash2,
@@ -50,9 +50,7 @@ const Notification = () => {
         return null;
       }
 
-      const wsUrl = `${
-        import.meta.env.VITE_WS_URL
-      }/websocket?token=${token}`.replace(/^http/, "ws");
+      const wsUrl = `${API_BASE_URL.replace(/^http/, 'ws').replace(/\/api\/$/, '')}/websocket?token=${token}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -93,13 +91,13 @@ const Notification = () => {
       }
     };
   }, [fetchNotifications]);
-//   useEffect(()=>{
-// reminderForTaskDue()
-//   },[])
-//   const reminderForTaskDue=async()=>{
-// await alertTaskDueDate
-//   }
-  const clearAllNotification = async() => {
+  //   useEffect(()=>{
+  // reminderForTaskDue()
+  //   },[])
+  //   const reminderForTaskDue=async()=>{
+  // await alertTaskDueDate
+  //   }
+  const clearAllNotification = async () => {
     await clearNotification();
     setOpen(false)
   };
@@ -108,7 +106,7 @@ const Notification = () => {
     if (filter === "read") return notification.read;
     return true;
   });
-// console.log(filteredNotifications)
+  // console.log(filteredNotifications)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -396,28 +394,26 @@ const Notification = () => {
                     {filter === "unread"
                       ? "You're all caught up! No unread notifications."
                       : filter === "read"
-                      ? "No read notifications to display."
-                      : "You don't have any notifications yet."}
+                        ? "No read notifications to display."
+                        : "You don't have any notifications yet."}
                   </p>
                 </div>
               ) : (
                 filteredNotifications.map((notification) => (
                   <div
                     key={notification._id}
-                    className={`bg-white  border-l-blue-500 hover:border-l-blue-700 rounded-2xl shadow-lg border-l-4  overflow-hidden  transition-all   transform hover:scale-105 duration-200 hover:shadow-xl ${
-                      notification.read
+                    className={`bg-white  border-l-blue-500 hover:border-l-blue-700 rounded-2xl shadow-lg border-l-4  overflow-hidden  transition-all   transform hover:scale-105 duration-200 hover:shadow-xl ${notification.read
                         ? "border-gray-100"
                         : "border-blue-200 bg-gradient-to-r from-blue-50/30 to-white"
-                    }`}
+                      }`}
                   >
                     <div className="p-6  cursor-pointer ">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4 flex-1">
                           {/* Enhanced Icon */}
                           <div
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                              notification.read ? "bg-gray-100" : "bg-blue-100"
-                            }`}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${notification.read ? "bg-gray-100" : "bg-blue-100"
+                              }`}
                           >
                             {getNotificationIcon(notification.type)}
                           </div>
@@ -426,11 +422,10 @@ const Notification = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <h3
-                                className={`font-semibold text-lg ${
-                                  notification.read
+                                className={`font-semibold text-lg ${notification.read
                                     ? "text-gray-700"
                                     : "text-gray-900"
-                                }`}
+                                  }`}
                               >
                                 {notification.title}
                               </h3>
@@ -440,11 +435,10 @@ const Notification = () => {
                             </div>
 
                             <p
-                              className={`text-base leading-relaxed mb-3 ${
-                                notification.read
+                              className={`text-base leading-relaxed mb-3 ${notification.read
                                   ? "text-gray-500"
                                   : "text-gray-600"
-                              }`}
+                                }`}
                             >
                               {notification.message}
                             </p>

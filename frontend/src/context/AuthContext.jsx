@@ -44,6 +44,14 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      // Max 32-bit integer for setTimeout is 2147483647 ms (~24.8 days)
+      const MAX_TIMEOUT = 2147483647;
+
+      if (timeRemaining > MAX_TIMEOUT) {
+        console.log(`Auto-logout scheduled in ${Math.round(timeRemaining / 1000 / 60)} minutes. (Timer not set due to 32-bit limit, will rely on checkAuth on reload)`);
+        return;
+      }
+
       // Set timeout to logout when token expires
       console.log(`Auto-logout scheduled in ${Math.round(timeRemaining / 1000 / 60)} minutes at ${new Date(expirationTime).toLocaleTimeString()}`);
 

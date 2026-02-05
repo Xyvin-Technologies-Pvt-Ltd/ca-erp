@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import  useAuthStore  from '../hooks/useAuthStore';
+import useAuthStore from '../hooks/useAuthStore';
+import { API_BASE_URL } from '../config/constants';
 
 const NotificationContext = createContext();
 
@@ -11,7 +12,8 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       // Create WebSocket connection
-      const ws = new WebSocket('ws://localhost:5001');
+      const wsUrl = API_BASE_URL.replace(/^http/, 'ws').replace(/\/api\/$/, '');
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         console.log('Connected to WebSocket server');
