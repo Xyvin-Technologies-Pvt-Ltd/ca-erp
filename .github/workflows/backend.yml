@@ -1,79 +1,87 @@
 name: Deploy CA-ERP-Backend to AWS Lightsail
 
 on:
-  push:
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend.yml"
-    branches:
-      - main
-  workflow_dispatch:
+push:
+paths:
+- "backend/**"
+- ".github/workflows/backend.yml"
+branches:
+- main
+workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+deploy:
+runs-on: ubuntu-latest
 
-    steps:
-    # 1️⃣ Checkout
-    - name: Checkout code
-      uses: actions/checkout@v4
+steps:
+# 1️⃣ Checkout code
+- name: Checkout code
+  uses: actions/checkout@v4
 
-    # 2️⃣ AWS creds (for ECR push)
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1
+# 2️⃣ Configure AWS credentials
+- name: Configure AWS credentials
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: ap-south-1
 
-    # 3️⃣ Login to ECR
-    - name: Login to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v2
+# 3️⃣ Login to ECR
+- name: Login to Amazon ECR
+  uses: aws-actions/amazon-ecr-login@v2
 
-    # 4️⃣ Build & Push
-    - name: Build and push Docker image
-      run: |
-        REGISTRY="${{ secrets.ECR_REGISTRY }}"
-        REPO="${{ secrets.ECR_REPOSITORY }}"
-        IMAGE="${REGISTRY}/${REPO}:latest"
+# 4️⃣ Build & Push Docker Image (FIXED)
+- name: Build and push Docker image
+  run: |
+    REGISTRY="${{ secrets.ECR_REGISTRY }}"
+    REPO="${{ secrets.ECR_REPOSITORY }}"
 
-        echo "Building image: $IMAGE"
+    IMAGE_SHA="${REGISTRY}/${REPO}:${{ github.sha }}"
+    IMAGE_LATEST="${REGISTRY}/${REPO}:latest"
 
-        docker build -t "$IMAGE" .
-        docker push "$IMAGE"
+    echo "Building image..."
 
-    # 5️⃣ Deploy to EC2
-    - name: Deploy backend on EC2
-      uses: appleboy/ssh-action@v0.1.6
-      with:
-        host: ${{ secrets.LIGHTSAIL_HOST }}
-        username: ubuntu
-        key: ${{ secrets.LIGHTSAIL_KEY }}
-        script: |
-          set -e
+    docker build -t "$IMAGE_SHA" -t "$IMAGE_LATEST" ./backend
 
-          REGISTRY="${{ secrets.ECR_REGISTRY }}"
-          REPO="${{ secrets.ECR_REPOSITORY }}"
-          IMAGE="${REGISTRY}/${REPO}:latest"
+    echo "Pushing images..."
+    docker push "$IMAGE_SHA"
+    docker push "$IMAGE_LATEST"
 
-          echo "Logging into ECR..."
+# 5️⃣ Deploy to Lightsail
+- name: Deploy backend on Lightsail
+  uses: appleboy/ssh-action@v0.1.6
+  with:
+    host: ${{ secrets.LIGHTSAIL_HOST }}
+    username: ubuntu
+    key: ${{ secrets.LIGHTSAIL_KEY }}
+    script: |
+      set -e
 
-          aws ecr get-login-password --region ap-south-1 \
-          | docker login --username AWS --password-stdin "$REGISTRY"
+      REGISTRY="${{ secrets.ECR_REGISTRY }}"
+      REPO="${{ secrets.ECR_REPOSITORY }}"
+      IMAGE="${REGISTRY}/${REPO}:latest"
 
-          echo "Pulling latest image..."
-          docker pull "$IMAGE"
+      echo "Logging into ECR..."
+      aws ecr get-login-password --region ap-south-1 \
+      | docker login --username AWS --password-stdin "$REGISTRY"
 
-          echo "Stopping old container..."
-          docker stop CA_ERP_BACKEND || true
-          docker rm  CA_ERP_BACKEND || true
+      echo "Pulling latest image..."
+      docker pull "$IMAGE"
 
-          echo "Starting new container..."
-          docker run -d \
-            --name  CA_ERP_BACKEND \
-            --restart always \
-            -p 127.0.0.1:5001:5001 \
-            --env-file /home/ubuntu/ca-erp/.env/.env.production \
-            "$IMAGE"
+      echo "Cleaning old images..."
+      docker system prune -af || true
 
-          echo "✅ Backend deployed successfully"
+      echo "Stopping old container..."
+      docker stop CA_ERP_BACKEND || true
+      docker rm CA_ERP_BACKEND || true
+
+      echo "Starting new container..."
+      docker run -d \
+        --name CA_ERP_BACKEND \
+        --restart always \
+        -p 127.0.0.1:5001:5001 \
+        --env-file /home/ubuntu/ca-erp/.env/.env.production \
+        "$IMAGE"
+
+      echo "✅ Backend deployed successfully"
+```
