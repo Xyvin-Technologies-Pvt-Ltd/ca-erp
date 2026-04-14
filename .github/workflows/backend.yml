@@ -84,4 +84,3 @@ steps:
         "$IMAGE"
 
       echo "✅ Backend deployed successfully"
-```
