@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { clientsApi } from "../api/clientsApi";
 import { projectsApi } from "../api/projectsApi";
 import { getActivityHistory } from "../api/activity";
@@ -52,6 +53,9 @@ const ClientDetails = () => {
     _id: "",
   });
   const { profileIsActive, profileDropdown } = useHeaderStore();
+  const { role } = useAuth();
+  const isDeleteAuthorized = role === "admin" || role === "manager";
+
   const checkHeader = () => {
     if (profileDropdown === true) {
       profileIsActive(false);
@@ -603,14 +607,15 @@ const ClientDetails = () => {
               </svg>
               Edit Client
             </Link>
-            <button
-              onClick={handleDelete}
-              className={
-                profileDropdown === true
-                  ? `opacity-10 inline-flex items-center px-5 py-2.5 bg-red-100  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
-                  : `inline-flex items-center px-5 py-2.5 bg-red-500  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
-              }
-            >
+            {isDeleteAuthorized && (
+              <button
+                onClick={handleDelete}
+                className={
+                  profileDropdown === true
+                    ? `opacity-10 inline-flex items-center px-5 py-2.5 bg-red-100  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
+                    : `inline-flex items-center px-5 py-2.5 bg-red-500  text-white rounded-lg  transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5`
+                }
+              >
               <svg
                 className="h-4 w-4 mr-2"
                 fill="none"
@@ -626,6 +631,7 @@ const ClientDetails = () => {
               </svg>
               Delete Client
             </button>
+            )}
           </div>
         </div>
       </div>

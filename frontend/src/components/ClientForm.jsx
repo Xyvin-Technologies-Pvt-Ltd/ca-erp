@@ -148,17 +148,6 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       //   setLoading(false);
       //   return;
       // }
-      if (formData.pan === "") {
-        toast.error("Tax information is required", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      }
       const uniqueDirectors = [
         ...new Set(validDirectors.map((d) => d.toLowerCase())),
       ];
@@ -374,13 +363,13 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* Contact Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Contact Email
+                    Contact Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
                       type="email"
                       {...register("contactEmail", {
-                        // required: "Contact email is required",
+                        required: "Contact email is required",
                         pattern: {
                           value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                           message: "Invalid email address",
@@ -748,7 +737,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                 {/* PAN */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    PAN <span className="text-red-500">*</span>
+                    PAN
                   </label>
                   <div className="relative">
                     <input

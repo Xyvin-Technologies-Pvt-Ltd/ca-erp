@@ -229,7 +229,7 @@ router.route('/:id')
      *       403:
      *         description: Forbidden
      */
-    .delete(protect, authorize('admin'), deleteClient);
+    .delete(protect, authorize('admin', 'manager'), deleteClient);
 
 /**
  * @swagger

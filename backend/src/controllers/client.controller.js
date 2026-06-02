@@ -259,7 +259,7 @@ exports.updateClient = async (req, res, next) => {
 /**
  * @desc    Delete client
  * @route   DELETE /api/clients/:id
- * @access  Private/Admin
+ * @access  Private/Admin/Manager
  */
 exports.deleteClient = async (req, res, next) => {
     try {
