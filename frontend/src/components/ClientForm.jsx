@@ -66,6 +66,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
       cin: "",
       currencyFormat: "",
       notes: "",
+      address: "",
       directors: ["", ""],
     },
   });
@@ -77,6 +78,7 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
 
   const countryValue = watch("country");
   const notesValue = watch("notes");
+  const addressValue = watch("address");
   const currencyValue = watch("currencyFormat");
 
   const maxAddressLength = 200;
@@ -682,6 +684,27 @@ const ClientForm = ({ client = null, onSuccess, onCancel }) => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 hover:border-gray-400"
                         placeholder="e.g. 400021"
                       />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Address
+                    </label>
+                    <textarea
+                      {...register("address")}
+                      rows="4"
+                      maxLength={500}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200 resize-none hover:border-gray-400"
+                      placeholder="Enter the complete address of the client"
+                    ></textarea>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-sm text-gray-500">
+                        Street address, building, or office location
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {(getValues("address")?.length || 0)}/500
+                      </p>
                     </div>
                   </div>
                 </div>

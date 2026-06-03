@@ -167,6 +167,10 @@ const ClientSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+    address: {
+      type: String,
+      maxlength: [500, "Address cannot be more than 500 characters"],
+    },
     status: {
       type: String,
       enum: ["active", "inactive"],
