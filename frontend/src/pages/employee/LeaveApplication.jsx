@@ -59,6 +59,104 @@ const LeaveApplication = () => {
   });
   const [availableCasualLeaves, setAvailableCasualLeaves] = useState(0);
   const now = new Date();
+  
+  const leavePolicyHtml = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Leave, Attendance & Working Hours Policy</title>
+  <style>
+  /* Style Definitions */
+  table.MsoNormalTable
+    {mso-style-name:"Table Normal";
+    mso-tstyle-rowband-size:0;
+    mso-tstyle-colband-size:0;
+    mso-style-noshow:yes;
+    mso-style-priority:99;
+    mso-style-parent:"";
+    mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
+    mso-para-margin-top:0cm;
+    mso-para-margin-right:0cm;
+    mso-para-margin-bottom:8.0pt;
+    mso-para-margin-left:0cm;
+    line-height:107%;
+    mso-pagination:widow-orphan;
+    font-size:11.0pt;
+    font-family:"Calibri",sans-serif;
+    mso-ascii-font-family:Calibri;
+    mso-ascii-theme-font:minor-latin;
+    mso-hansi-font-family:Calibri;
+    mso-hansi-theme-font:minor-latin;
+    mso-bidi-font-family:"Times New Roman";
+    mso-bidi-theme-font:minor-bidi;}
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #111827; }
+  h1,h2,h3 { color: #0f172a }
+  </style>
+</head>
+<body>
+<h1>LEAVE, ATTENDANCE & WORKING HOURS POLICY</h1>
+<h2>ACAS Advisory</h2>
+<h3>PART A – OBJECTIVE & APPLICABILITY</h3>
+<h4>1. OBJECTIVE</h4>
+<p>This Policy is formulated to regulate working hours, attendance, leave entitlement, employee availability, and discipline within ACAS Advisory (“Company”) and to ensure operational efficiency, professional accountability, and compliance with applicable labour laws.</p>
+<h4>2. APPLICABILITY</h4>
+<p>This Policy shall apply to all employees, trainees, probationers, interns, consultants, contractual staff, and permanent employees of the Company, unless specifically exempted by Management through written communication.</p>
+<p><strong>Employee on Probation</strong><br/>An Employee who is undergoing the initial probation period prescribed by the Company, which shall ordinarily be 6 months unless a lesser period is specified by the Management, and whose employment is subject to performance evaluation and confirmation.</p>
+<p><strong>Permanent Employee</strong><br/>An Employee who has successfully completed the prescribed probation period and whose employment has been confirmed in writing by the Company.</p>
+<h3>PART B – WORKING DAYS, HOURS & ATTENDANCE</h3>
+<h4>4. WORKING DAYS</h4>
+<p>The normal working schedule of the Company shall be:</p>
+<p>Monday to Saturday – Working Days<br/>Second Saturday - Holiday<br/>Sunday – Weekly Holiday</p>
+<p>The Company reserves the right to modify working schedules, shifts, or weekly offs depending upon operational requirements and business exigencies.</p>
+<h4>5. OFFICE TIMINGS & WORKING HOURS</h4>
+<p><strong>5.1 Flexible Reporting Window</strong><br/>Employees may report to office between: 8:30 AM to 9:30 AM</p>
+<p><strong>5.2 Working Hours</strong><br/>Employees are required to complete: Minimum 8 Working Hours per day excluding approved break timings.</p>
+<p><strong>5.3 Exit Timing</strong><br/>Final exit timing shall depend upon actual reporting time and completion of mandatory working hours.</p>
+<p><strong>5.4 Core Availability</strong><br/>Employees shall remain available during core business hours for client coordination, internal meetings, operational communication, and official responsibilities.</p>
+<h4>6. BREAK TIMINGS</h4>
+<p><strong>Lunch Break:</strong> 30 Minutes<br/><strong>Tea Break:</strong> 10 Minutes</p>
+<h4>7. ATTENDANCE RECORDING</h4>
+<p>All employees shall compulsorily record attendance through the ACAS ERP/Attendance System. Mandatory attendance entries include Entry Punch, Lunch Out Punch, Lunch In Punch, Final Exit Punch.</p>
+<h4>8. HALF DAY & ABSENCE RULE</h4>
+<p>Minimum 4 working hours attendance is required for Half Day eligibility. Attendance below 4 working hours may be treated as Absent unless otherwise approved.</p>
+<h4>9. GENERAL LEAVE RULES</h4>
+<p>All leave applications shall be submitted through the ERP system or approved communication channel and must receive prior approval from Reporting Authority/Management except in emergencies.</p>
+<h4>10. CASUAL LEAVE (CL)</h4>
+<p>Entitlement: 6 Days Casual Leave per Year for permanent employees. Accrual: 1 leave for every two completed months of service. Casual Leave cannot ordinarily be combined with Earned Leave and shall lapse at year end; not encashable.</p>
+<h4>11. SICK LEAVE (SL)</h4>
+<p>Entitlement: 6 Days Sick Leave per Year. Sick Leave requires a valid Medical Certificate. Unused Sick Leave shall lapse at year end.</p>
+<h4>12. EARNED LEAVE (EL)</h4>
+<p>Entitlement: 12 Days Earned Leave annually, eligibility after 240 working days of continuous service. May be accumulated subject to limits; unused may be encashed as per policy.</p>
+<h4>13. PUBLIC HOLIDAYS</h4>
+<p>Company may declare holidays: VISHU, INTERNATIONAL LABOUR DAY, EID-UL-FITR, EID-UL-ADHA, INDEPENDENCE DAY, THIRUVONAM, GANDHI JAYANTI, DEEPAVALI, CHRISTMAS, REPUBLIC DAY, GOOD FRIDAY, etc.</p>
+<h4>14. SANDWICH LEAVE POLICY</h4>
+<p>Leave taken immediately before and after weekly offs or public holidays may result in intervening days treated as leave, subject to Management discretion.</p>
+<h4>15. LOSS OF PAY (LOP)</h4>
+<p>Situations leading to LOP include exhaustion of leave balance, unauthorized absence, attendance irregularities, unapproved leave.</p>
+<h4>16. DISCIPLINARY ACTION</h4>
+<p>Violations such as habitual absenteeism, attendance manipulation, false leave claims, unauthorized absence can attract disciplinary action including warning, salary deduction, suspension, or termination.</p>
+<h4>17. MANAGEMENT RIGHTS</h4>
+<p>The Company reserves the right to Interpret, Modify, Amend, Suspend, or Withdraw provisions of this Policy. Management decisions are final and binding.</p>
+<p>-- End of Policy --</p>
+</body>
+</html>`;
+
+  const downloadLeavePolicy = () => {
+    try {
+      const blob = new Blob([leavePolicyHtml], { type: "application/msword" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ACAS_Leave_Policy.doc";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Failed to download leave policy");
+    }
+  };
   useEffect(() => {
     const fetchLeaveData = async () => {
       // const loadingToast = toast.loading("Loading leave information...", {
@@ -744,6 +842,8 @@ const LeaveApplication = () => {
         </div>
         <Button
           variant="outline"
+          onClick={downloadLeavePolicy}
+          type="button"
           className="mt-4 md:mt-0 flex items-center gap-2 bg-white hover:bg-indigo-50 border-indigo-300 shadow-sm rounded-lg transition-all duration-300 hover:shadow-md"
         >
           <DocumentTextIcon className="h-5 w-5 text-[#1c6ead]" />
