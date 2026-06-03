@@ -1,4 +1,5 @@
 const cron = require("node-cron");
+const moment = require("moment-timezone");
 const User = require("../models/User");
 const Attendance = require("../models/Attendance");
 const mongoose = require("mongoose");
@@ -6,32 +7,71 @@ const Task = require("../models/Task");
 const Notification = require("../models/Notification");
 const websocketService = require("../utils/websocket");
 exports.autoAbsent = cron.schedule("45 23 * * *", async () => {
-  console.log("cron job run");
-  const employee = await User.find({});
-  // console.log(employee,employee.length)
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  let istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000);
-  console.log(istDate);
-  for (const record of employee) {
-    console.log(record._id);
-    const att = await Attendance.findOne({
-      employee: record._id,
-      date: istDate,
-    });
-    console.log(att);
-    if (att === null) {
-      await Attendance.create({
-        employee: record._id,
-        status: "Absent",
-        date: istDate,
+  try {
+    console.log("autoAbsent cron job run");
 
-        updatedBy: record._id,
-        createdBy: record._id,
-        shift: "Morning",
-        workHours: 0,
-      });
+    const activeEmployees = await User.find({ status: "active" }).select(
+      "_id"
+    );
+
+    if (!activeEmployees.length) {
+      console.log("No active employees found for autoAbsent");
+      return;
     }
+
+    const istNow = moment().tz("Asia/Kolkata");
+    const istStart = istNow.clone().startOf("day");
+    const istEnd = istNow.clone().endOf("day");
+
+    const utcStart = istStart.clone().utc().toDate();
+    const utcEnd = istEnd.clone().utc().toDate();
+
+    const attendanceRecords = await Attendance.find({
+      employee: { $in: activeEmployees.map((emp) => emp._id) },
+      date: { $gte: utcStart, $lt: utcEnd },
+      isDeleted: { $ne: true },
+    }).select("employee");
+
+    const presentEmployeeIds = new Set(
+      attendanceRecords.map((record) => record.employee.toString())
+    );
+
+    const absentRecords = activeEmployees
+      .filter((emp) => !presentEmployeeIds.has(emp._id.toString()))
+      .map((emp) => ({
+        employee: emp._id,
+        status: "Absent",
+        date: utcStart,
+        shift: "Morning",
+        totalSign: 0,
+        lateHours: 0,
+        lateMinutes: 0,
+        workHours: 0,
+        workMinutes: 0,
+        checkIn: {
+          times: [],
+          device: "System",
+          ipAddress: "System",
+        },
+        checkOut: {
+          times: [],
+          device: "System",
+        },
+        createdBy: emp._id,
+        updatedBy: emp._id,
+        notes: "Auto-marked absent - No check-in recorded",
+      }));
+
+    if (absentRecords.length > 0) {
+      await Attendance.insertMany(absentRecords);
+      console.log(
+        `autoAbsent created ${absentRecords.length} absent records for ${istStart.format("YYYY-MM-DD")}`
+      );
+    } else {
+      console.log("autoAbsent found no missing attendance records");
+    }
+  } catch (error) {
+    console.error("autoAbsent cron job error:", error);
   }
 });
 exports.updateCasualLeaveCount = cron.schedule("0 0 1 * *", async () => {
