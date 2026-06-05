@@ -3,6 +3,7 @@ import {
   getAttendance,
   getAttendanceStats,
   getAttendanceSummaryStats,
+  getAttendanceForExport,
   deleteAttendance,
 } from "../../api/attendance";
 import AttendanceModal from "../../components/AttendanceModal";
@@ -22,6 +23,7 @@ import {
   CalendarDaysIcon,
   PencilIcon,
   TrashIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
@@ -252,6 +254,83 @@ const Attendance = () => {
     }
   };
 
+  // Function to convert array of objects to CSV and trigger download
+  const exportToCSV = (data, filename) => {
+    try {
+      if (!data || data.length === 0) {
+        toast.error("No data to export");
+        return;
+      }
+
+      // Get headers from first object
+      const headers = Object.keys(data[0]);
+      
+      // Create CSV content
+      let csvContent = headers.join(",") + "\n";
+      
+      data.forEach((row) => {
+        const values = headers.map((header) => {
+          const value = row[header];
+          // Escape quotes and wrap in quotes if contains comma
+          const escapedValue = String(value).replace(/"/g, '""');
+          return `"${escapedValue}"`;
+        });
+        csvContent += values.join(",") + "\n";
+      });
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Attendance exported successfully");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export attendance");
+    }
+  };
+
+  // Function to handle attendance export
+  const handleExportAttendance = async () => {
+    try {
+      const [year, month] = selectedMonth.split("-");
+      const range = getMonthRange(new Date(year, month));
+
+      const params = {
+        ...range,
+      };
+
+      if (searchName.trim()) {
+        params.employeeName = searchName.trim();
+      }
+
+      if (selectedDate) {
+        params.specificDate = selectedDate;
+      }
+
+      const response = await getAttendanceForExport(params);
+      
+      if (response.data && response.data.length > 0) {
+        const monthName = moment(selectedMonth, "YYYY-MM").format("MMMM_YYYY");
+        const filename = `Attendance_${monthName}_${new Date().getTime()}.csv`;
+        exportToCSV(response.data, filename);
+      } else {
+        toast.error("No attendance records found to export");
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export attendance data");
+    }
+  };
+
   const statusList = [
     { key: "Present", label: "Present" },
     { key: "On-Leave", label: "On Leave" },
@@ -323,6 +402,16 @@ const Attendance = () => {
             />
             <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
+          <motion.button
+            className="group px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+            onClick={handleExportAttendance}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Export attendance data as CSV"
+          >
+            <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+            Export
+          </motion.button>
           <motion.button
             className="group px-5 py-2 bg-[#1c6ead] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
             onClick={() => setModalOpen(true)}

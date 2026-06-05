@@ -65,3 +65,9 @@ export const deleteAttendance = async (id) => {
   const response = await api.delete(`/attendance/${id}`);
   return response.data;
 };
+
+// Get all attendance records for export (without pagination)
+export const getAttendanceForExport = async (params) => {
+  const response = await api.get("/attendance/export", { params });
+  return response.data;
+};

@@ -1668,3 +1668,119 @@ exports.getAttendanceByEmployeeId = catchAsync(async (req, res) => {
     },
   });
 });
+
+// Export attendance records (for CSV/Excel download - without pagination)
+exports.getAttendanceExport = catchAsync(async (req, res) => {
+  const {
+    startDate,
+    endDate,
+    employeeName,
+    specificDate,
+  } = req.query;
+
+  console.log("getAttendanceExport called with params:", {
+    startDate,
+    endDate,
+    employeeName,
+    specificDate,
+  });
+
+  let query = { isDeleted: false };
+
+  // Handle date filtering: specificDate takes precedence
+  if (specificDate) {
+    const specificDateTime = moment
+      .tz(specificDate + "T00:00:00", "UTC")
+      .toDate();
+    const specificEndDateTime = moment
+      .tz(specificDate + "T23:59:59", "UTC")
+      .toDate();
+
+    query.date = {
+      $gte: specificDateTime,
+      $lte: specificEndDateTime,
+    };
+  } else if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + "T00:00:00", "UTC").toDate();
+    const endDateTime = moment.tz(endDate + "T23:59:59", "UTC").toDate();
+
+    query.date = {
+      $gte: startDateTime,
+      $lte: endDateTime,
+    };
+  } else {
+    // Default to current month if no date filters provided
+    const now = moment.tz("UTC");
+    const startOfMonth = now.clone().startOf("month").toDate();
+    const endOfMonth = now.clone().endOf("month").toDate();
+
+    query.date = {
+      $gte: startOfMonth,
+      $lte: endOfMonth,
+    };
+  }
+
+  // Employee name filtering
+  if (employeeName && employeeName.trim()) {
+    const nameSearchRegex = new RegExp(employeeName.trim(), "i");
+    const nameFilter = {
+      $or: [
+        { name: nameSearchRegex },
+        { firstName: nameSearchRegex },
+        { lastName: nameSearchRegex },
+      ],
+    };
+
+    let nameFilteredEmployees = await Employee.find(nameFilter).select("_id");
+    let nameFilteredIds = nameFilteredEmployees.map((emp) => emp._id);
+
+    if (nameFilteredIds.length > 0) {
+      query.employee = { $in: nameFilteredIds };
+    } else {
+      // No employees match the filter
+      return res.status(200).json({
+        status: "success",
+        data: [],
+        count: 0,
+      });
+    }
+  }
+
+  // Get all attendance records for export (no pagination)
+  const allAttendance = await Attendance.find(query)
+    .populate({
+      path: "employee",
+      select: "name firstName lastName email phone department position",
+      populate: [
+        { path: "department", select: "name" },
+        { path: "position", select: "title" },
+      ],
+    })
+    .sort("date");
+
+  // Format data for export
+  const exportData = allAttendance.map((record) => ({
+    Date: moment(record.date).format("DD/MM/YYYY"),
+    "Employee Name": record.employee?.name || record.employee?.firstName || "N/A",
+    Email: record.employee?.email || "N/A",
+    Phone: record.employee?.phone || "N/A",
+    Department: record.employee?.department?.name || "N/A",
+    Position: record.employee?.position?.title || "N/A",
+    Status: record.status || "N/A",
+    "Check In": record.checkIn?.times?.[0]
+      ? moment(record.checkIn.times[0]).format("HH:mm:ss")
+      : "N/A",
+    "Check Out": record.checkOut?.times?.[record.checkOut?.times?.length - 1]
+      ? moment(record.checkOut.times[record.checkOut?.times?.length - 1]).format("HH:mm:ss")
+      : "N/A",
+    "Work Hours": record.workHours || 0,
+    "Work Minutes": record.workMinutes || 0,
+    Notes: record.notes || "N/A",
+  }));
+
+  res.status(200).json({
+    status: "success",
+    data: exportData,
+    count: exportData.length,
+  });
+});
