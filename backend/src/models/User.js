@@ -54,6 +54,10 @@ require("dotenv").config();
  *           type: boolean
  *           default: false
  *           description: Whether the employee is a verification staff member
+ *         joiningDate:
+ *           type: string
+ *           format: date
+ *           description: Date when the employee joined the organization (optional)
  *         incentive:
  *           type: object
  *           description: Monthly incentive earned by the user 
@@ -99,6 +103,11 @@ const UserSchema = new mongoose.Schema({
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
       "Please add a valid email",
     ],
+  },
+  joiningDate: {
+    type: Date,
+    required: false,
+    description: "Date when the employee joined the organization",
   },
   casual: {
     type: Number,

@@ -38,6 +38,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
       confirmPassword: "",
       workType: "onsite",
       verificationStaff: false,
+      joiningDate: "",
     },
   });
 
@@ -67,6 +68,11 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
     if (user && dataLoaded) {
       const departmentId = user.department?._id;
       const positionId = user.position?._id;
+      
+      // Format joining date for date input (YYYY-MM-DD)
+      const formattedJoiningDate = user.joiningDate 
+        ? new Date(user.joiningDate).toISOString().split('T')[0] 
+        : "";
 
       reset({
         name: user.name || "",
@@ -78,6 +84,7 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
         avatar: user.avatar || null,
         workType: user.workType || "onsite",
         verificationStaff: user.verificationStaff || false,
+        joiningDate: formattedJoiningDate,
       });
       setHandleRole(user.emp_status);
     }
@@ -239,6 +246,26 @@ const UserForm = ({ user = null, onSubmit, onCancel }) => {
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">
                     {errors.phone.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="joiningDate"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Joining Date
+                </label>
+                <input
+                  id="joiningDate"
+                  type="date"
+                  {...register("joiningDate")}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-all duration-200"
+                />
+                {errors.joiningDate && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.joiningDate.message}
                   </p>
                 )}
               </div>

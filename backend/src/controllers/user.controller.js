@@ -63,6 +63,10 @@ const { logger } = require("../utils/logger");
  *         position:
  *           type: string
  *           description: Position (ObjectId reference)
+ *         joiningDate:
+ *           type: string
+ *           format: date
+ *           description: Date when the employee joined the organization (optional)
  *       example:
  *         _id:
  *           $oid: "67f54137ca7f2422c0e39cdb"
@@ -242,6 +246,10 @@ exports.createUser = async (req, res, next) => {
         casual: 0,
         workType: req.body.userData.workType || "onsite",
         verificationStaff: req.body.userData.verificationStaff || false,
+        // Handle joiningDate - convert string to Date if provided
+        ...(req.body.userData.joiningDate && {
+          joiningDate: new Date(req.body.userData.joiningDate),
+        }),
       };
     } else {
       console.log("2");
@@ -253,6 +261,10 @@ exports.createUser = async (req, res, next) => {
         casual: 1,
         workType: req.body.userData.workType || "onsite",
         verificationStaff: req.body.userData.verificationStaff || false,
+        // Handle joiningDate - convert string to Date if provided
+        ...(req.body.userData.joiningDate && {
+          joiningDate: new Date(req.body.userData.joiningDate),
+        }),
       };
     }
 
@@ -356,6 +368,10 @@ exports.updateUser = async (req, res, next) => {
       ...req.body.userData,
       department: req.body.userData.department,
       position: req.body.userData.position,
+      // Handle joiningDate - convert string to Date if provided
+      ...(req.body.userData.joiningDate && {
+        joiningDate: new Date(req.body.userData.joiningDate),
+      }),
     };
 
     if (req.body.userData.password) {

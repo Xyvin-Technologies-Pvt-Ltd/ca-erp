@@ -14,6 +14,7 @@ import {
   XCircleIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import {  Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -349,6 +350,15 @@ const UserManagement = () => {
                       className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
                     >
                       <div className="flex items-center space-x-2">
+                        <CalendarDaysIcon className="h-4 w-4 text-indigo-600" />
+                        <span>Joining Date</span>
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      <div className="flex items-center space-x-2">
                         <CheckCircleIcon className="h-4 w-4 text-indigo-600" />
                         <span>Status</span>
                       </div>
@@ -464,6 +474,15 @@ const UserManagement = () => {
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {user.position?.title || "N/A"}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.joiningDate 
+                            ? new Date(user.joiningDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })
+                            : "N/A"}
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <motion.span
