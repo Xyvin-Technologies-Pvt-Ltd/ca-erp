@@ -28,6 +28,13 @@ import ProjectForm from "./ProjectForm";
 const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = null, onTaskUpdate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  /**
+   * USER ASSIGNMENT RULES:
+   * - Admin/Manager: Can assign tasks to any user
+   * - Staff/Finance: Can only create tasks assigned to themselves (auto-assigned, disabled select)
+   */
+  
   const tagOptions = [
     "GST",
     "Income Tax",
@@ -389,6 +396,12 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
       try {
         const response = await userApi.Allusers();
         setUsers(response.data?.data?.data || []);
+        
+        // Auto-assign based on user role
+        if (user?.role === "staff" || user?.role === "finance") {
+          // For staff and finance roles, auto-assign to the current user
+          setAssignedTo(user._id);
+        }
       } catch (error) {
         setUserError("Failed to load users");
       } finally {
@@ -412,7 +425,7 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
       loadUsers();
       loadProjects();
     }
-  }, [token]);
+  }, [token, user]);
 
   const handleCancel = () => {
     if (isFormDirty) {
@@ -575,22 +588,63 @@ const TaskForm = ({ projectIds, onClose, onSucces, onSuccess, onCancel, task = n
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assigned To <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    value={assignedTo}
-                    onChange={(e) => {
-                      setAssignedTo(e.target.value);
-                      setIsFormDirty(true);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer"
-                    required
-                  >
-                    <option value="">Select a user</option>
-                    {users.map((user) => (
-                      <option key={user._id} value={user._id}>
-                        {user.name || user.email}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={assignedTo}
+                      onChange={(e) => {
+                        // Only allow change for admin and manager
+                        if (user?.role === "admin" || user?.role === "manager") {
+                          setAssignedTo(e.target.value);
+                          setIsFormDirty(true);
+                        }
+                      }}
+                      disabled={user?.role === "staff" || user?.role === "finance"}
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:border-[#1c6ead] transition-colors duration-200 cursor-pointer ${
+                        user?.role === "staff" || user?.role === "finance"
+                          ? "bg-gray-100 cursor-not-allowed opacity-70"
+                          : ""
+                      }`}
+                      required
+                    >
+                      <option value="">Select a user</option>
+                      {/* For admin/manager: show all users */}
+                      {(user?.role === "admin" || user?.role === "manager") &&
+                        users.map((user) => (
+                          <option key={user._id} value={user._id}>
+                            {user.name || user.email}
+                          </option>
+                        ))}
+                      {/* For staff/finance: only show current user */}
+                      {(user?.role === "staff" || user?.role === "finance") &&
+                        users
+                          .filter((u) => u._id === user._id)
+                          .map((u) => (
+                            <option key={u._id} value={u._id}>
+                              {u.name || u.email} (You)
+                            </option>
+                          ))}
+                    </select>
+                    {(user?.role === "staff" || user?.role === "finance") && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
+                        <svg
+                          className="h-5 w-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {(user?.role === "staff" || user?.role === "finance") && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Tasks are automatically assigned to you
+                    </p>
+                  )}
                   {userError && (
                     <div className="text-red-500 text-sm mt-1 flex items-center">
                       <span className="text-red-500 mr-1">⚠</span>

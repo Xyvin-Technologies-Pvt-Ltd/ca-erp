@@ -164,16 +164,16 @@ const Tasks = () => {
       .join(" ");
   };
 
-  // Staff create-task permission check
-  const canStaffCreateTask =
-    role === "staff" &&
-    staffProjects.some((project) =>
-      project.assignedTo.some(
-        (a) =>
-          a.user?._id === user._id &&
-          a.levelIndex === project.currentLevelIndex
-      )
-    );
+  // Staff create-task permission check (kept for reference, not used anymore)
+  // const canStaffCreateTask =
+  //   role === "staff" &&
+  //   staffProjects.some((project) =>
+  //     project.assignedTo.some(
+  //       (a) =>
+  //         a.user?._id === user._id &&
+  //         a.levelIndex === project.currentLevelIndex
+  //     )
+  //   );
 
   const visibleTasks = tasks;
 
@@ -240,20 +240,18 @@ const Tasks = () => {
           <ClipboardDocumentListIcon className="h-8 w-8 text-[#1c6ead]" />
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
         </motion.div>
-        {/* {(role === "admin" || role === "manager" || canStaffCreateTask) && ( */}
-        {(role === "admin" || role === "manager") && (
-          <motion.button
-            onClick={() => setIsModalOpen(true)}
-            className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="flex items-center space-x-2">
-              <PlusIcon className="h-5 w-5" />
-              <span>Create Task</span>
-            </div>
-          </motion.button>
-        )}
+        {/* Create Task button visible for all users */}
+        <motion.button
+          onClick={() => setIsModalOpen(true)}
+          className="group px-6 py-3 bg-[#1c6ead] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] focus:ring-offset-2 transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl flex items-center"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-center space-x-2">
+            <PlusIcon className="h-5 w-5" />
+            <span>Create Task</span>
+          </div>
+        </motion.button>
       </div>
 
       {/* Pending Tasks Section */}
