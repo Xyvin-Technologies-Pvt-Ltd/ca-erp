@@ -866,6 +866,166 @@ exports.deleteAttendance = catchAsync(async (req, res) => {
   });
 });
 
+// New API endpoint for attendance summary stats (without pagination)
+exports.getAttendanceSummaryStats = catchAsync(async (req, res) => {
+  const {
+    startDate,
+    endDate,
+    employeeName,
+    specificDate,
+    departmentId,
+  } = req.query;
+
+  console.log("getAttendanceSummaryStats called with params:", {
+    startDate,
+    endDate,
+    employeeName,
+    specificDate,
+    departmentId,
+  });
+
+  let query = { isDeleted: false };
+
+  // Handle date filtering: specificDate takes precedence
+  if (specificDate) {
+    const specificDateTime = moment
+      .tz(specificDate + "T00:00:00", "UTC")
+      .toDate();
+    const specificEndDateTime = moment
+      .tz(specificDate + "T23:59:59", "UTC")
+      .toDate();
+
+    query.date = {
+      $gte: specificDateTime,
+      $lte: specificEndDateTime,
+    };
+  } else if (startDate && endDate) {
+    const startDateTime = moment.tz(startDate + "T00:00:00", "UTC").toDate();
+    const endDateTime = moment.tz(endDate + "T23:59:59", "UTC").toDate();
+
+    query.date = {
+      $gte: startDateTime,
+      $lte: endDateTime,
+    };
+  } else {
+    // Default to current month if no date filters provided
+    const now = moment.tz("UTC");
+    const startOfMonth = now.clone().startOf("month").toDate();
+    const endOfMonth = now.clone().endOf("month").toDate();
+
+    query.date = {
+      $gte: startOfMonth,
+      $lte: endOfMonth,
+    };
+  }
+
+  // Employee filtering logic
+  let employeeQueryIds = [];
+  let employeeFilterApplied = false;
+
+  if (departmentId) {
+    const departmentEmployees = await Employee.find({
+      department: departmentId,
+    }).select("_id");
+    employeeQueryIds = departmentEmployees.map((emp) => emp._id);
+    employeeFilterApplied = true;
+  }
+
+  if (employeeName && employeeName.trim()) {
+    const nameSearchRegex = new RegExp(employeeName.trim(), "i");
+    const nameFilter = {
+      $or: [
+        { name: nameSearchRegex },
+        { firstName: nameSearchRegex },
+        { lastName: nameSearchRegex },
+      ],
+    };
+
+    let nameFilteredEmployees = await Employee.find(nameFilter).select("_id");
+    let nameFilteredIds = nameFilteredEmployees.map((emp) => emp._id);
+
+    if (employeeFilterApplied) {
+      // If both department and name filters are applied, intersect the results
+      employeeQueryIds = employeeQueryIds.filter((id) =>
+        nameFilteredIds.includes(id)
+      );
+    } else {
+      // Only name filter is applied
+      employeeQueryIds = nameFilteredIds;
+      employeeFilterApplied = true;
+    }
+  }
+
+  // Apply the employee filter if any filtering was applied
+  if (employeeFilterApplied) {
+    if (employeeQueryIds.length > 0) {
+      query.employee = { $in: employeeQueryIds };
+    } else {
+      // No employees match the combined filters, return empty result
+      return res.status(200).json({
+        status: "success",
+        data: {
+          Present: 0,
+          Absent: 0,
+          Late: 0,
+          "Half-Day": 0,
+          "Early-Leave": 0,
+          "On-Leave": 0,
+          Holiday: 0,
+          "Day-Off": 0,
+        },
+      });
+    }
+  }
+
+  // Get all attendance records that match the filters (no pagination)
+  const allAttendance = await Attendance.find(query).populate({
+    path: "employee",
+    select: "name firstName lastName department position",
+    populate: [
+      { path: "department", select: "name" },
+      { path: "position", select: "title" },
+    ],
+  });
+
+  // Calculate statistics by counting statuses
+  const statusCounts = {};
+  allAttendance.forEach((a) => {
+    let status = a.status;
+    const recordDate = new Date(a.date);
+    const today = new Date();
+    const isToday =
+      recordDate.getDate() === today.getDate() &&
+      recordDate.getMonth() === today.getMonth() &&
+      recordDate.getFullYear() === today.getFullYear();
+
+    // If it's today and has check-in, mark as Present
+    if (
+      isToday &&
+      a.checkIn &&
+      (a.checkIn.time || a.checkIn.times?.length > 0)
+    ) {
+      status = "Present";
+    }
+
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      Present: statusCounts["Present"] || 0,
+      Absent: statusCounts["Absent"] || 0,
+      Late: statusCounts["Late"] || 0,
+      "Half-Day": statusCounts["Half-Day"] || 0,
+      "Early-Leave": statusCounts["Early-Leave"] || 0,
+      "On-Leave": statusCounts["On-Leave"] || 0,
+      Holiday: statusCounts["Holiday"] || 0,
+      "Day-Off": statusCounts["Day-Off"] || 0,
+    },
+  });
+});
+
 exports.getAttendanceStats = catchAsync(async (req, res) => {
   const { startDate, endDate, departmentId } = req.query;
 

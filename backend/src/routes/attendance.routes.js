@@ -8,6 +8,7 @@ const {
   checkOut,
   deleteAttendance,
   getAttendanceStats,
+  getAttendanceSummaryStats,
   updateAttendance,
   getEmployeeAttendance,
   getAttendanceByEmployeeId,
@@ -22,6 +23,7 @@ router.get('/employee/:employeeId',  getAttendanceByEmployeeId);
 router.get('/search',getSearchedAttendance)
 router.post('/bulk',  createBulkAttendance);
 router.get('/stats',  getAttendanceStats);
+router.get('/summary-stats', getAttendanceSummaryStats);
 router.route('/check-in')
   .get( getAllAttendance)
   .post( createAttendance);

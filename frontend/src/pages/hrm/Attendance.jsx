@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   getAttendance,
   getAttendanceStats,
+  getAttendanceSummaryStats,
   deleteAttendance,
 } from "../../api/attendance";
 import AttendanceModal from "../../components/AttendanceModal";
@@ -107,6 +108,16 @@ function getMonthRange(date) {
 const Attendance = () => {
   const [attendance, setAttendance] = useState([]);
   const [stats, setStats] = useState({});
+  const [summaryStats, setSummaryStats] = useState({
+    Present: 0,
+    Absent: 0,
+    Late: 0,
+    "Half-Day": 0,
+    "Early-Leave": 0,
+    "On-Leave": 0,
+    Holiday: 0,
+    "Day-Off": 0,
+  });
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ open: false, record: null });
@@ -128,12 +139,14 @@ const Attendance = () => {
   useEffect(() => {
     setPage(1); // Reset to first page when filters change
     fetchData(1);
+    fetchSummaryStats(); // Fetch stats separately
   }, [selectedMonth, modalOpen, editModal.open]);
 
   useEffect(() => {
     setIsSearching(true);
     setPage(1);
     fetchData(1).finally(() => setIsSearching(false));
+    fetchSummaryStats(); // Fetch stats when filters change
   }, [searchName, selectedDate]);
   // const searchedItem = async (page) => {
   //   try {
@@ -145,6 +158,47 @@ const Attendance = () => {
   useEffect(() => {
     fetchData(page);
   }, [page]);
+  // Separate function to fetch summary stats for the cards
+  const fetchSummaryStats = async () => {
+    try {
+      const [year, month] = selectedMonth.split("-");
+      const range = getMonthRange(new Date(year, month));
+
+      const summaryParams = {
+        ...range,
+      };
+
+      if (searchName.trim()) {
+        summaryParams.employeeName = searchName.trim();
+      }
+
+      if (selectedDate) {
+        summaryParams.specificDate = selectedDate;
+      }
+
+      const summaryRes = await getAttendanceSummaryStats(summaryParams);
+      setSummaryStats(summaryRes.data || {
+        Present: 0,
+        Absent: 0,
+        Late: 0,
+        "Half-Day": 0,
+        "Early-Leave": 0,
+        "On-Leave": 0,
+        Holiday: 0,
+        "Day-Off": 0,
+      });
+    } catch (e) {
+      console.error("Failed to fetch summary stats:", e);
+      toast.error("Failed to fetch attendance statistics", {
+        style: {
+          background: "#fef2f2",
+          color: "#b91c1c",
+          border: "1px solid #fecaca",
+        },
+      });
+    }
+  };
+
   const fetchData = async (pageNum = page) => {
     // setLoading(true);
     try {
@@ -169,6 +223,8 @@ const Attendance = () => {
       setAttendance(attRes.data?.attendance || []);
       setTotalPages(attRes.totalPages || 1);
       setTotal(attRes.total || 0);
+
+      // Keep the original stats API for other purposes if needed
       const statsRes = await getAttendanceStats({ ...range });
       setStats(statsRes.data || {});
     } catch (e) {
@@ -190,6 +246,7 @@ const Attendance = () => {
       await deleteAttendance(id);
       toast.success("Deleted");
       fetchData();
+      fetchSummaryStats(); // Refresh summary stats after deletion
     } catch (e) {
       toast.error("Delete failed");
     }
@@ -206,25 +263,26 @@ const Attendance = () => {
     { key: "Day-Off", label: "Day Off" },
   ];
 
-  const statusCounts = {};
-  attendance.forEach((a) => {
-    let status = a.status;
-    const recordDate = new Date(a.date);
-    const today = new Date();
-    const isToday =
-      recordDate.getDate() === today.getDate() &&
-      recordDate.getMonth() === today.getMonth() &&
-      recordDate.getFullYear() === today.getFullYear();
+  // Remove the old statusCounts calculation since we now have summaryStats from API
+  // const statusCounts = {};
+  // attendance.forEach((a) => {
+  //   let status = a.status;
+  //   const recordDate = new Date(a.date);
+  //   const today = new Date();
+  //   const isToday =
+  //     recordDate.getDate() === today.getDate() &&
+  //     recordDate.getMonth() === today.getMonth() &&
+  //     recordDate.getFullYear() === today.getFullYear();
 
-    if (
-      isToday &&
-      a.checkIn &&
-      (a.checkIn.time || a.checkIn.times?.length > 0)
-    ) {
-      status = "Present";
-    }
-    statusCounts[status] = (statusCounts[status] || 0) + 1;
-  });
+  //   if (
+  //     isToday &&
+  //     a.checkIn &&
+  //     (a.checkIn.time || a.checkIn.times?.length > 0)
+  //   ) {
+  //     status = "Present";
+  //   }
+  //   statusCounts[status] = (statusCounts[status] || 0) + 1;
+  // });
 
   const sortedAttendance = [...attendance].sort(
     (a, b) => new Date(a.date) - new Date(b.date)
@@ -322,7 +380,7 @@ const Attendance = () => {
                     className={`text-2xl font-bold ${statusColors[s.key].text
                       } group-hover:text-indigo-600 transition-colors duration-200`}
                   >
-                    {statusCounts[s.key] || 0}
+                    {summaryStats[s.key] || 0}
                   </p>
                 </div>
               </motion.div>
@@ -407,6 +465,7 @@ const Attendance = () => {
                 setSearchName("");
                 setSelectedDate("");
                 setPage(1);
+                // The useEffect will handle refreshing data and stats when dependencies change
               }}
               className="px-6 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1c6ead] transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm font-medium"
               whileHover={{ scale: 1.02 }}

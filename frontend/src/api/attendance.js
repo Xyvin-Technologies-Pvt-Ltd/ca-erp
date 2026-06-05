@@ -15,6 +15,12 @@ export const getAttendanceStats = async ({ startDate, endDate }) => {
   return response.data;
 };
 
+// Get attendance summary stats (for stats cards)
+export const getAttendanceSummaryStats = async (params) => {
+  const response = await api.get("/attendance/summary-stats", { params });
+  return response.data;
+};
+
 // Get my attendance (for logged-in employee)
 export const getMyAttendance = async (params) => {
   const response = await api.get("/attendance/my-attendance", { params });
