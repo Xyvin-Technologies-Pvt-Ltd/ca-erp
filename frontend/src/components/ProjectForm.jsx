@@ -165,19 +165,6 @@ const ProjectForm = ({
       clearErrors("dueDate");
     }
 
-    const isDuplicateName = projects.some(
-      (p) => p.name.toLowerCase() === data.name.toLowerCase() && (!isEditMode || p._id !== project?._id)
-    );
-    if (isDuplicateName) {
-      setError("name", {
-        type: "manual",
-        message: "Project name already exists",
-      });
-      return;
-    } else {
-      clearErrors("name");
-    }
-
     setLoading(true);
     try {
       const projectData = {
@@ -234,12 +221,6 @@ const ProjectForm = ({
       if (onSuccess) onSuccess(result.data);
     } catch (error) {
       console.error("Error saving project:", error.response ? error.response.data : error);
-      if (error.response?.data?.message?.includes("name already exists")) {
-        setError("name", {
-          type: "manual",
-          message: "Project name already exists",
-        });
-      }
       setLoading(false);
       console.log("Final form data being submitted:", data);
     }
